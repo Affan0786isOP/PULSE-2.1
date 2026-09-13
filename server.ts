@@ -8,6 +8,7 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue, type Firestore } from 'firebase-admin/firestore';
 import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 
+
 function isPermissionDenied(err: any): boolean {
   if (!err) return false;
   if (err.code === 7 || err.code === 'permission-denied') return true;
@@ -396,25 +397,9 @@ function seedPRNG(seedStr: string): () => number {
 
 // Assessment-specific trial schema validators
 
-function generateAuthoritativeVrtForeperiod(
-  sessionId: string,
-  trialNumber: number,
-  attemptNumber: number
-): { foreperiodMs: number; foreperiodCategory: 'SHORT' | 'LONG' } {
-  const prng = seedPRNG(`${sessionId}-reaction-delays-t${trialNumber}-a${attemptNumber}`);
-  const isShort = prng() < 0.5;
-  const foreperiodMs = isShort
-    ? Math.floor(prng() * (500 - 100 + 1)) + 100
-    : Math.floor(prng() * (3000 - 501 + 1)) + 501;
-  const foreperiodCategory = foreperiodMs <= 500 ? 'SHORT' : 'LONG';
-  return { foreperiodMs, foreperiodCategory };
-}
-
 function validateVisualReactionTrial(
   t: any,
-  index: number,
-  sessionId: string,
-  expectedAttemptNumber: number
+  index: number
 ): { success: boolean; error?: string; foreperiodMs?: number; foreperiodCategory?: 'SHORT' | 'LONG' } {
   const rawFp = t.foreperiodMs !== null && t.foreperiodMs !== undefined
     ? Number(t.foreperiodMs)
@@ -424,25 +409,16 @@ function validateVisualReactionTrial(
     return { success: false, error: `Invalid or missing foreperiod duration in trial ${index + 1}. Must be an integer between 100ms and 3000ms.` };
   }
 
-  const trialNumber = Number(t.trialNumber);
-  if (!Number.isInteger(trialNumber) || trialNumber < 1) {
-    return { success: false, error: `Invalid trialNumber for visual reaction trial ${index + 1}.` };
+  const expectedCategory = deriveForeperiodCategory(rawFp);
+  if (!expectedCategory) {
+    return { success: false, error: `Invalid foreperiod category derivation for ${rawFp}ms in trial ${index + 1}.` };
   }
 
-  const authoritative = generateAuthoritativeVrtForeperiod(sessionId, trialNumber, expectedAttemptNumber);
-  if (rawFp !== authoritative.foreperiodMs) {
-    return {
-      success: false,
-      error: `Foreperiod mismatch in trial ${index + 1}: received ${rawFp}ms, expected the authoritative session schedule.`
-    };
-  }
-
-  const expectedCategory = authoritative.foreperiodCategory;
   if (t.foreperiodCategory !== undefined && t.foreperiodCategory !== null && t.foreperiodCategory !== expectedCategory) {
     return { success: false, error: `Foreperiod category mismatch in trial ${index + 1}: got ${t.foreperiodCategory} for ${rawFp}ms.` };
   }
 
-  return { success: true, foreperiodMs: authoritative.foreperiodMs, foreperiodCategory: expectedCategory };
+  return { success: true, foreperiodMs: rawFp, foreperiodCategory: expectedCategory };
 }
 
 function validateDirectionTrial(
@@ -771,7 +747,6 @@ function validateAndDeriveAssessmentFromTrials(
     if (!Number.isInteger(trialNumber) || trialNumber < 1) {
       return { success: false, error: `Invalid trialNumber at index ${i}. Must be a positive integer.` };
     }
-
     if (i === 0) {
       if (trialNumber !== 1) {
         return { success: false, error: `Invalid trialNumber at index 0 (received ${trialNumber}, expected 1). First observation must start at logical trial 1.` };
@@ -931,12 +906,7 @@ function validateAndDeriveAssessmentFromTrials(
 
       for (let i = 0; i < trials.length; i++) {
         const t = trials[i];
-        let expectedAttemptNumber = 1;
-        for (let attemptIdx = i - 1; attemptIdx >= 0; attemptIdx--) {
-          if (Number(trials[attemptIdx].trialNumber) !== Number(t.trialNumber)) break;
-          expectedAttemptNumber++;
-        }
-        const valRes = validateVisualReactionTrial(t, i, sessionId, expectedAttemptNumber);
+        const valRes = validateVisualReactionTrial(t, i);
         if (!valRes.success) {
           return { success: false, error: valRes.error };
         }
@@ -958,7 +928,8 @@ function validateAndDeriveAssessmentFromTrials(
           ? Number(t.rawReactionTime)
           : (typeof t.rawLatencyMs === 'number' && Number.isFinite(t.rawLatencyMs)
               ? Number(t.rawLatencyMs)
-              : (typeof t.rawLatency === 'number' && Number.isFinite(t.rawLatency) ? Number(t.rawLatency)
+              : (typeof t.rawLatency === 'number' && Number.isFinite(t.rawLatency)
+                  ? Number(t.rawLatency)
                   : correctedRt));
 
         let isFalseStart = false;
@@ -1064,7 +1035,6 @@ function validateAndDeriveAssessmentFromTrials(
         const fp = Number(t.foreperiodMs ?? t.foreperiod ?? 0);
         return fp >= 100 && fp <= 500;
       });
-
       const longWindowTrials = chronoValidTrials.filter(t => {
         const fp = Number(t.foreperiodMs ?? t.foreperiod ?? 0);
         return fp >= 501 && fp <= 3000;
@@ -1167,6 +1137,7 @@ function validateAndDeriveAssessmentFromTrials(
         }
       };
     }
+
     case 'direction': {
       let totalCorrect = 0;
       const completedLogicalPositions = new Set<number>();
@@ -1208,20 +1179,35 @@ function validateAndDeriveAssessmentFromTrials(
           : (t.reactionTimeMs !== null && t.reactionTimeMs !== undefined ? Number(t.reactionTimeMs) : null);
 
         let canonicalValidity = 'VALID';
-        let canonicalQualityFlag = null;
+        let canonicalQualityFlag: string | null = null;
         if (valRes.derivedFalseStart) {
-          canonicalValidity = 'FALSE_START_PRE_STIMULUS';
-          canonicalQualityFlag = 'PREMATURE_TRIGGER';
+          if (rawRtPhysiological !== null && rawRtPhysiological < 80.0) {
+            canonicalValidity = 'FALSE_START_PHYSIOLOGICAL';
+            canonicalQualityFlag = 'ANTICIPATORY_RESPONSE';
+          } else {
+            canonicalValidity = 'FALSE_START_PRE_STIMULUS';
+            canonicalQualityFlag = 'PREMATURE_TRIGGER';
+          }
         } else if (valRes.derivedTimedOut) {
           canonicalValidity = 'TIMEOUT';
           canonicalQualityFlag = 'TIMEOUT_EXCEEDED';
-        } else if (rawRtPhysiological !== null && rawRtPhysiological < 80.0) {
-          canonicalValidity = 'ANTICIPATORY_TOO_FAST';
-          canonicalQualityFlag = 'ANTICIPATORY_RT';
+        } else if (!valRes.isCorrect) {
+          canonicalValidity = 'INCORRECT';
+          canonicalQualityFlag = 'ACCURACY_ERROR';
+        } else {
+          canonicalValidity = 'VALID';
+          canonicalQualityFlag = null;
         }
 
-        t.falseStart = !!valRes.derivedFalseStart || (rawRtPhysiological !== null && rawRtPhysiological < 80.0);
-        t.timedOut = !!valRes.derivedTimedOut;
+        t.targetDirection = expectedDir;
+        if (valRes.userResponse) {
+          t.userResponse = valRes.userResponse;
+        }
+        t.falseStart = valRes.derivedFalseStart;
+        t.timedOut = valRes.derivedTimedOut;
+        t.correct = valRes.isCorrect === true;
+        t.correctness = valRes.isCorrect === true;
+        t.accuracy = valRes.isCorrect ? 1 : 0;
         t.valid = !valRes.derivedFalseStart && !valRes.derivedTimedOut && rawRtPhysiological !== null && rawRtPhysiological >= 80.0 && rawRtPhysiological < 3000.0;
         t.validity = canonicalValidity;
         t.qualityFlag = canonicalQualityFlag;
@@ -1277,6 +1263,7 @@ function validateAndDeriveAssessmentFromTrials(
         derivedMetrics
       };
     }
+
     case 'color-recognition': {
       if (trials.length !== 15) {
         return { success: false, error: `Color recognition test requires exactly 15 trials (received ${trials.length}).` };
@@ -1319,88 +1306,141 @@ function validateAndDeriveAssessmentFromTrials(
           const offset = Math.floor(prngTrial() * (COLORS.length - 1)) + 1;
           colorIdx = (wordIdx + offset) % COLORS.length;
         }
+
         const expectedWord = COLORS[wordIdx];
         const expectedColor = COLORS[colorIdx];
-        const expectedCondition = plan.condition;
         const expectedInstruction = plan.instruction;
 
-        const valRes = validateColorRecognitionTrial(t, i, expectedWord, expectedColor, expectedCondition, expectedInstruction);
+        const valRes = validateColorRecognitionTrial(
+          t,
+          i,
+          expectedWord,
+          expectedColor,
+          plan.condition,
+          expectedInstruction
+        );
         if (!valRes.success) {
           return { success: false, error: valRes.error };
+        }
+
+        let rawRtPhysiological: number | null = null;
+        if (t.rawReactionTime !== null && t.rawReactionTime !== undefined && !Number.isNaN(Number(t.rawReactionTime))) {
+          rawRtPhysiological = Number(t.rawReactionTime);
+        } else if (t.rawLatencyMs !== null && t.rawLatencyMs !== undefined && !Number.isNaN(Number(t.rawLatencyMs))) {
+          rawRtPhysiological = Number(t.rawLatencyMs);
+        } else if (t.reactionTime !== null && t.reactionTime !== undefined && !Number.isNaN(Number(t.reactionTime))) {
+          rawRtPhysiological = Number(t.reactionTime);
+        } else if (t.reactionTimeMs !== null && t.reactionTimeMs !== undefined && !Number.isNaN(Number(t.reactionTimeMs))) {
+          rawRtPhysiological = Number(t.reactionTimeMs);
         }
 
         const correctedRt = t.reactionTime !== null && t.reactionTime !== undefined
           ? Number(t.reactionTime)
           : (t.reactionTimeMs !== null && t.reactionTimeMs !== undefined ? Number(t.reactionTimeMs) : null);
-        const rawRt = t.rawReactionTime !== null && t.rawReactionTime !== undefined
-          ? Number(t.rawReactionTime)
-          : (t.rawLatencyMs !== null && t.rawLatencyMs !== undefined ? Number(t.rawLatencyMs) : correctedRt);
 
         let canonicalValidity = 'VALID';
-        let canonicalQualityFlag = null;
+        let canonicalQualityFlag: string | null = null;
         if (valRes.derivedFalseStart) {
-          canonicalValidity = 'FALSE_START_PRE_STIMULUS';
-          canonicalQualityFlag = 'PREMATURE_TRIGGER';
+          if (rawRtPhysiological !== null && rawRtPhysiological < 80.0) {
+            canonicalValidity = 'FALSE_START_PHYSIOLOGICAL';
+            canonicalQualityFlag = 'ANTICIPATORY_RESPONSE';
+          } else {
+            canonicalValidity = 'FALSE_START_PRE_STIMULUS';
+            canonicalQualityFlag = 'PREMATURE_TRIGGER';
+          }
         } else if (valRes.derivedTimedOut) {
           canonicalValidity = 'TIMEOUT';
           canonicalQualityFlag = 'TIMEOUT_EXCEEDED';
-        } else if (rawRt !== null && rawRt < 80.0) {
-          canonicalValidity = 'ANTICIPATORY_TOO_FAST';
-          canonicalQualityFlag = 'ANTICIPATORY_RT';
+        } else if (!valRes.isCorrect) {
+          canonicalValidity = 'INCORRECT';
+          canonicalQualityFlag = 'ACCURACY_ERROR';
+        } else {
+          canonicalValidity = 'VALID';
+          canonicalQualityFlag = null;
         }
 
-        t.falseStart = !!valRes.derivedFalseStart || (rawRt !== null && rawRt < 80.0);
-        t.timedOut = !!valRes.derivedTimedOut;
-        t.valid = !valRes.derivedFalseStart && !valRes.derivedTimedOut && rawRt !== null && rawRt >= 80.0 && rawRt < 3000.0;
+        t.wordName = expectedWord;
+        t.wordColor = expectedColor;
+        t.condition = plan.condition;
+        t.instruction = expectedInstruction;
+        if (valRes.userResponse) {
+          t.userResponse = valRes.userResponse;
+        }
+        t.falseStart = valRes.derivedFalseStart;
+        t.timedOut = valRes.derivedTimedOut;
+        t.correct = valRes.isCorrect === true;
+        t.correctness = valRes.isCorrect === true;
+        t.accuracy = valRes.isCorrect ? 1 : 0;
+        t.valid = !valRes.derivedFalseStart && !valRes.derivedTimedOut && rawRtPhysiological !== null && rawRtPhysiological >= 80.0 && rawRtPhysiological < 3000.0;
         t.validity = canonicalValidity;
         t.qualityFlag = canonicalQualityFlag;
-        t.correct = valRes.isCorrect;
-        t.accuracy = valRes.isResponded ? (valRes.isCorrect ? 1 : 0) : 0;
 
-        if (valRes.isCorrect) {
+        if (valRes.isCorrect && (correctedRt !== null || rawRtPhysiological !== null)) {
           correctCount++;
-        }
-        if (t.valid && correctedRt !== null) {
-          validRTs.push(correctedRt);
-          if (plan.condition === 'congruent') congruentTrials.push(correctedRt);
-          else incongruentTrials.push(correctedRt);
+          validRTs.push(correctedRt !== null ? correctedRt : rawRtPhysiological!);
+          if (plan.condition === 'congruent') {
+            congruentTrials.push(t);
+          } else {
+            incongruentTrials.push(t);
+          }
         }
       }
 
-      const validTrialsCount = trials.filter(t => t.valid).length;
+      const validTrialsCount = trials.filter(t => !t.falseStart && !t.timedOut).length;
       const accuracy = validTrialsCount > 0 ? Math.round(((correctCount / validTrialsCount) * 100.0) * 100) / 100 : 0;
+
       validRTs.sort((a, b) => a - b);
-      const avg = validRTs.length > 0 ? Math.round((validRTs.reduce((a, b) => a + b, 0) / validRTs.length) * 100) / 100 : null;
+      const sum = validRTs.reduce((acc, v) => acc + v, 0);
+      const avg = validRTs.length > 0 ? Math.round((sum / validRTs.length) * 100) / 100 : null;
       const fastest = validRTs.length > 0 ? Math.round(validRTs[0] * 100) / 100 : null;
       const slowest = validRTs.length > 0 ? Math.round(validRTs[validRTs.length - 1] * 100) / 100 : null;
+
       const mid = Math.floor(validRTs.length / 2);
       const median = validRTs.length > 0
         ? (validRTs.length % 2 !== 0
           ? Math.round(validRTs[mid] * 100) / 100
           : Math.round(((validRTs[mid - 1] + validRTs[mid]) / 2.0) * 100) / 100)
         : null;
-      const congruentAvg = congruentTrials.length > 0 ? Number((congruentTrials.reduce((a, b) => a + b, 0) / congruentTrials.length).toFixed(2)) : null;
-      const incongruentAvg = incongruentTrials.length > 0 ? Number((incongruentTrials.reduce((a, b) => a + b, 0) / incongruentTrials.length).toFixed(2)) : null;
-      const interferenceCost = congruentAvg !== null && incongruentAvg !== null ? Number((incongruentAvg - congruentAvg).toFixed(2)) : null;
+
+      let congruentAvg: number | undefined = undefined;
+      let incongruentAvg: number | undefined = undefined;
+      let interferenceCost: number | undefined = undefined;
+
+      if (congruentTrials.length > 0) {
+        const cSum = congruentTrials.reduce((acc, t) => acc + Number(t.reactionTime), 0);
+        congruentAvg = Math.round((cSum / congruentTrials.length) * 100) / 100;
+      }
+      if (incongruentTrials.length > 0) {
+        const iSum = incongruentTrials.reduce((acc, t) => acc + Number(t.reactionTime), 0);
+        incongruentAvg = Math.round((iSum / incongruentTrials.length) * 100) / 100;
+      }
+      if (congruentAvg !== undefined && incongruentAvg !== undefined) {
+        interferenceCost = Math.round((incongruentAvg - congruentAvg) * 100) / 100;
+      }
 
       const derivedMetrics: Record<string, any> = {
         accuracy,
-        correctCount,
-        totalTrials: 15,
-        totalIncorrect: Math.max(0, validTrialsCount - correctCount),
-        totalFalseStarts: trials.filter(t => t.falseStart).length,
-        congruentAvg,
-        incongruentAvg,
-        interferenceCost
+        correctCount
       };
       if (avg !== null) derivedMetrics.averageReactionTime = avg;
       if (fastest !== null) derivedMetrics.fastestReactionTime = fastest;
       if (slowest !== null) derivedMetrics.slowestReactionTime = slowest;
       if (median !== null) derivedMetrics.medianReactionTime = median;
+      if (congruentAvg !== undefined) derivedMetrics.congruentAvg = congruentAvg;
+      if (incongruentAvg !== undefined) derivedMetrics.incongruentAvg = incongruentAvg;
+      if (interferenceCost !== undefined) derivedMetrics.interferenceCost = interferenceCost;
 
-      return { success: true, derivedMetrics };
+      return {
+        success: true,
+        derivedMetrics
+      };
     }
+
     case 'block-memory': {
+      if (trials.length < 1 || trials.length > 103) {
+        return { success: false, error: `Block memory trial count (${trials.length}) is outside valid range (1-103).` };
+      }
+
       let failuresCount = 0;
       let expectedLevel = 1;
       let totalCorrect = 0;
@@ -1421,7 +1461,7 @@ function validateAndDeriveAssessmentFromTrials(
           let next: number;
           do {
             next = Math.floor(prng() * 9);
-          } while (expectedSeq.includes(next));
+          } while (k > 0 && next === expectedSeq[k - 1]);
           expectedSeq.push(next);
         }
 
@@ -1431,6 +1471,7 @@ function validateAndDeriveAssessmentFromTrials(
         }
 
         const isCorrect = valRes.isCorrect;
+
         t.generatedSequence = expectedSeq;
         t.sequenceLength = seqLen;
         t.accuracy = isCorrect ? 1 : 0;
@@ -1482,6 +1523,7 @@ function validateAndDeriveAssessmentFromTrials(
         }
       };
     }
+
     case 'number-memory': {
       if (trials.length < 1 || trials.length > 103) {
         return { success: false, error: `Number memory trial count (${trials.length}) is outside valid range (1-103).` };
@@ -1513,6 +1555,7 @@ function validateAndDeriveAssessmentFromTrials(
         }
 
         const isCorrect = valRes.isCorrect;
+
         t.generatedSequence = expectedSeq;
         t.sequenceLength = seqLen;
         t.accuracy = isCorrect ? 1 : 0;
@@ -1564,9 +1607,1727 @@ function validateAndDeriveAssessmentFromTrials(
         }
       };
     }
+
     default:
-      return { success: false, error: `Unsupported assessment type: ${assessmentType}` };
+      return { success: false, error: 'Unsupported assessmentType' };
   }
 }
 
-// ... existing server implementation continues unchanged ...
+function getProvenanceSecret() {
+  const secret = process.env.PULSE_PROVENANCE_SECRET || process.env.SESSION_SECRET;
+  if (!secret) {
+    throw new Error('PULSE_PROVENANCE_SECRET environment variable is missing. Please configure it in the application settings.');
+  }
+  return secret;
+}
+
+export const app = express();
+
+async function startServer() {
+  // Trust proxy for Cloud Run and reverse proxies
+  app.set('trust proxy', 1);
+
+  // Normalize incoming URLs for Vercel/proxies that might strip or preserve /api prefix
+  app.use((req, _res, next) => {
+    if (req.url && !req.url.startsWith('/api') && (
+      req.url.startsWith('/research') ||
+      req.url.startsWith('/leaderboard') ||
+      req.url.startsWith('/admin') ||
+      req.url.startsWith('/health') ||
+      req.url.startsWith('/personal-best') ||
+      req.url.startsWith('/sessions')
+    )) {
+      req.url = '/api' + req.url;
+    }
+    next();
+  });
+
+  // Production security headers
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
+
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.googleapis.com https://apis.google.com https://*.gstatic.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: blob: https://*.googleusercontent.com https://*.gstatic.com https://*.google.com",
+      "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.run.app",
+      "worker-src 'self' blob:",
+      "frame-ancestors 'self' https://*.google.com https://*.googleusercontent.com https://*.run.app https://ai.studio"
+    ].join('; ');
+    
+    res.setHeader('Content-Security-Policy', csp);
+    next();
+  });
+
+  // Respect process.env.PORT whenever present, defaulting to 3000
+  const PORT = Number(process.env.PORT) || 3000;
+
+  // JSON Body parsing for API endpoints
+  app.use(express.json({ limit: '1mb' }));
+
+  // Process-local idempotency store serves as a best-effort, bounded LRU cache for high-frequency retries within a single instance.
+  // Hard bounded to MAX_IDEMPOTENCY_ENTRIES (5000) to prevent memory growth under unique keys.
+  const idempotencyStore = new Map<string, { result: Record<string, unknown>; expiresAt: number }>();
+  function setIdempotency(key: string, result: Record<string, unknown>, ttlMs: number = 24 * 60 * 60 * 1000) {
+    if (!key || typeof key !== "string" || key.length > MAX_IDEMPOTENCY_KEY_LENGTH + 16) return;
+    if (idempotencyStore.size >= MAX_IDEMPOTENCY_ENTRIES) {
+      const oldestKey = idempotencyStore.keys().next().value;
+      if (oldestKey) idempotencyStore.delete(oldestKey);
+    }
+    idempotencyStore.set(key, { result, expiresAt: Date.now() + ttlMs });
+  }
+
+  function getIdempotency(key: string): Record<string, unknown> | null {
+    if (!key) return null;
+    const item = idempotencyStore.get(key);
+    if (!item) return null;
+    if (item.expiresAt <= Date.now()) {
+      idempotencyStore.delete(key);
+      return null;
+    }
+    // Refresh position for LRU
+    idempotencyStore.delete(key);
+    idempotencyStore.set(key, item);
+    return item.result;
+  }
+
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, item] of idempotencyStore.entries()) {
+      if (item.expiresAt <= now) {
+        idempotencyStore.delete(key);
+      }
+    }
+  }, 10 * 60 * 1000);
+
+  // Authoritative Experiment Session Store
+  interface ExperimentSession {
+    sessionId: string;
+    uid: string;
+    assessmentType: string;
+    ageGroup: string;
+    createdAt: number;
+    expiresAt: number;
+    consumed: boolean;
+    consumedAt?: number;
+    researchDocId?: string;
+    leaderboardSubmitted?: boolean;
+    leaderboardDocId?: string;
+    leaderboardSubmittedAt?: number;
+    trialsDigest?: string;
+    provenanceToken?: string;
+    derivedMetrics?: Record<string, any>;
+    scoreMetric?: number;
+    isNewPersonalBest?: boolean;
+    previousPersonalBest?: number | null;
+    personalBest?: number | null;
+  }
+
+  interface AuthoritativeLeaderboardEntry {
+    id: string;
+    displayName: string;
+    assessmentType: string;
+    scoreMetric: number;
+    ageGroup: string;
+    createdAt: number;
+    provenanceToken: string;
+    hidden: boolean;
+  }
+
+
+
+
+
+  function isOptedInLeaderboardUser(displayName: string | null | undefined): boolean {
+    const trimmed = String(displayName || '').trim();
+    if (!trimmed) return false;
+    const lower = trimmed.toLowerCase();
+    if (lower === 'anonymous' || lower === 'unknown' || lower === 'guest') return false;
+    if (lower.startsWith('participant')) return false;
+    return true;
+  }
+
+  async function getAndValidateSession(
+    sessionId: string,
+    userUid: string,
+    requestedAssessmentType: string
+  ): Promise<{ valid: boolean; session?: ExperimentSession; error?: string; status?: number }> {
+    if (!sessionId || typeof sessionId !== 'string' || !sessionId.trim() || sessionId.trim().length > 128) {
+      return { valid: false, error: 'Missing or invalid session ID', status: 400 };
+    }
+
+    const cleanSessionId = sessionId.trim();
+    const db = getAdminDb();
+    if (!db) {
+      const errorDetail = getAdminDiagnosticMessage();
+      console.error('[Session Lookup] Firestore database is unavailable:', errorDetail);
+      return { valid: false, error: `Database unavailable: ${errorDetail}`, status: 500 };
+    }
+
+    let session: ExperimentSession | null = null;
+    try {
+      const snap = await db.collection('experimentSessions').doc(cleanSessionId).get();
+      if (snap.exists) {
+        session = snap.data() as ExperimentSession;
+      }
+    } catch (err: any) {
+      console.error('[Session Lookup] Firestore read failed:', err instanceof Error ? err.message : String(err));
+      return { valid: false, error: 'Database error reading experiment session', status: 500 };
+    }
+
+    if (!session) {
+      return { valid: false, error: 'Experiment session not found or invalid', status: 404 };
+    }
+
+    if (session.uid !== userUid) {
+      return { valid: false, error: 'Session UID mismatch with authenticated identity', status: 403 };
+    }
+
+    if (normalizeAssessmentType(session.assessmentType) !== normalizeAssessmentType(requestedAssessmentType)) {
+      return { valid: false, error: `Session assessment type mismatch (expected ${session.assessmentType}, received ${requestedAssessmentType})`, status: 400 };
+    }
+
+    if (Date.now() > session.expiresAt + 60000) {
+      return { valid: false, error: 'Experiment session has expired', status: 400 };
+    }
+
+    if (session.consumed) {
+      return { valid: false, error: 'Experiment session has already been completed/consumed', status: 400 };
+    }
+
+    return { valid: true, session };
+  }
+
+  // 1. Health check endpoint - exempted from rate limiting for Cloud Run probes
+  app.get('/api/health', (_req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // 2. Specialized Rate Limiters
+  const sessionStartLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { success: false, error: 'Too many requests. Please try again later.' }
+  });
+
+  const sessionSubmitLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { success: false, error: 'Too many requests. Please try again later.' }
+  });
+
+  const leaderboardSubmitLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { success: false, error: 'Too many requests. Please try again later.' }
+  });
+
+  const generalSessionsLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { success: false, error: 'Too many requests. Please try again later.' }
+  });
+
+  const verificationLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 60,
+    message: { success: false, error: 'Too many verification requests. Please try again later.' }
+  });
+
+  const generalApiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    message: { success: false, error: 'Too many API requests' }
+  });
+
+  app.use('/api/admin', generalApiLimiter);
+  app.use('/api/research/session', sessionStartLimiter);
+  app.use('/api/sessions', generalSessionsLimiter);
+  app.use('/api/research/submit', sessionSubmitLimiter);
+  app.use('/api/leaderboard/submit', leaderboardSubmitLimiter);
+  app.use('/api/research/verify-provenance', verificationLimiter);
+  app.use('/api/leaderboard/verify-provenance', verificationLimiter);
+  app.use('/api/', generalApiLimiter);
+
+  // Authoritative Admin Audit Log Creation
+  const handleAdminAuditLog = async (req: express.Request, res: express.Response) => {
+    try {
+      const verifiedUser = await verifyFirebaseUserToken(req);
+      if (!verifiedUser) {
+        return res.status(401).json({ success: false, error: 'Authentication required: missing or invalid Firebase ID token' });
+      }
+
+      const isAdmin = !verifiedUser.isAnonymous && (
+        verifiedUser.email === 'admin@pulse-research.org' ||
+        verifiedUser.role === 'admin' ||
+        verifiedUser.admin === true
+      );
+
+      if (!isAdmin) {
+        return res.status(403).json({ success: false, error: 'Forbidden: Caller is not an authorized administrator' });
+      }
+
+      const { action, target, note } = req.body || {};
+
+      if (!action || typeof action !== 'string' || !action.trim()) {
+        return res.status(400).json({ success: false, error: 'Invalid or missing action field' });
+      }
+
+      if (!target || typeof target !== 'string' || !target.trim()) {
+        return res.status(400).json({ success: false, error: 'Invalid or missing target field' });
+      }
+
+      // Authoritative identity and timestamp determination
+      const actor = verifiedUser.email || verifiedUser.uid;
+      const timestamp = new Date().toISOString();
+      const cleanAction = action.trim();
+      const cleanTarget = target.trim();
+      const cleanNote = (typeof note === 'string') ? note.trim() : '';
+
+      const logId = `log-${Date.now()}-${crypto.randomUUID().substring(0, 8)}`;
+
+      const auditDoc = {
+        actor,
+        action: cleanAction,
+        target: cleanTarget,
+        timestamp,
+        note: cleanNote
+      };
+
+      const db = getAdminDb();
+      if (!db) {
+        return res.status(503).json({ success: false, error: 'Database service unavailable' });
+      }
+
+      try {
+        await db.collection('adminAuditLogs').doc(logId).set(auditDoc);
+      } catch (dbErr: any) {
+        console.error('[Admin Audit Log API] Firestore write failed:', dbErr instanceof Error ? dbErr.message : String(dbErr));
+        return res.status(500).json({ success: false, error: 'Failed to persist audit log' });
+      }
+
+      return res.json({
+        success: true,
+        log: {
+          id: logId,
+          ...auditDoc
+        }
+      });
+    } catch (err: unknown) {
+      console.error('[Admin Audit Log API] Error:', err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to record admin audit log' });
+    }
+  };
+
+  app.post('/api/admin/audit-log', handleAdminAuditLog);
+  app.post('/api/admin/log-action', handleAdminAuditLog);
+
+  // Authoritative Experiment Session Issuance
+  const handleSessionStart = async (req: express.Request, res: express.Response) => {
+    try {
+      const verifiedUser = await verifyFirebaseUserToken(req);
+      if (!verifiedUser) {
+        return res.status(401).json({ success: false, error: 'Authentication required: missing or invalid Firebase ID token' });
+      }
+
+      const { assessmentType, ageGroup } = req.body || {};
+      const normalizedType = normalizeAssessmentType(assessmentType);
+      if (!normalizedType || !VALID_ASSESSMENT_TYPES.includes(normalizedType)) {
+        return res.status(400).json({ success: false, error: 'Invalid or missing assessmentType' });
+      }
+
+      if (!ageGroup || !VALID_AGE_GROUPS.includes(ageGroup)) {
+        return res.status(400).json({ success: false, error: 'Invalid or missing ageGroup. A valid demographic age group is required.' });
+      }
+
+      const sessionId = crypto.randomUUID();
+      const now = Date.now();
+      const expiresAt = now + 15 * 60 * 1000; // 15 minute lifespan
+
+      const session: ExperimentSession = {
+        sessionId,
+        uid: verifiedUser.uid,
+        assessmentType: normalizedType,
+        ageGroup,
+        createdAt: now,
+        expiresAt,
+        consumed: false
+      };
+
+      // Authoritative Firestore persistence
+      const db = getAdminDb();
+      if (!db) {
+        const errorDetail = getAdminDiagnosticMessage();
+        console.error('[Session Start API] Firestore database is unavailable:', errorDetail);
+        return res.status(500).json({ success: false, error: `Database unavailable: ${errorDetail}` });
+      }
+
+      try {
+        await db.collection('experimentSessions').doc(sessionId).set({
+          sessionId,
+          uid: verifiedUser.uid,
+          assessmentType: normalizedType,
+          ageGroup,
+          createdAt: now,
+          expiresAt,
+          consumed: false
+        });
+      } catch (dbErr: any) {
+        console.error('[Session Start API] Firestore persistence failed:', dbErr instanceof Error ? dbErr.message : String(dbErr));
+        return res.status(500).json({ success: false, error: `Failed to persist experiment session: ${dbErr instanceof Error ? dbErr.message : 'Database write error'}` });
+      }
+
+      return res.json({
+        success: true,
+        sessionId,
+        expiresAt,
+        assessmentType: normalizedType
+      });
+    } catch (err: unknown) {
+      console.error('[Session Start API] Error:', err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: err instanceof Error ? err.message : 'Failed to initialize experiment session' });
+    }
+  };
+
+  app.post('/api/research/session/start', handleSessionStart);
+
+  // Canonical Personal Best Retrieval Endpoint — Authoritative Firestore
+  app.get('/api/personal-best', async (req, res) => {
+    try {
+      const verifiedUser = await verifyFirebaseUserToken(req);
+      if (!verifiedUser) {
+        return res.status(401).json({ success: false, error: 'Authentication required: missing or invalid Firebase ID token' });
+      }
+
+      const { assessmentType } = req.query || {};
+      if (!assessmentType || typeof assessmentType !== 'string' || !VALID_ASSESSMENT_TYPES.includes(assessmentType)) {
+        return res.status(400).json({ success: false, error: 'Invalid or missing assessmentType query parameter' });
+      }
+
+      const isLowerBetter = assessmentType === 'visual-reaction' || assessmentType === 'direction' || assessmentType === 'color-recognition';
+
+      let best: number | null = null;
+      const db = getAdminDb();
+      if (!db) {
+        return res.status(500).json({ success: false, error: 'Database unavailable: Server misconfiguration' });
+      }
+
+      try {
+        const snap = await db.collection('experimentSessions')
+          .where('uid', '==', verifiedUser.uid)
+          .where('assessmentType', '==', assessmentType)
+          .where('consumed', '==', true)
+          .get();
+
+        snap.docs.forEach(docSnap => {
+          const data = docSnap.data();
+          let score: number | null = null;
+          if (typeof data.scoreMetric === 'number') {
+            score = data.scoreMetric;
+          } else if (data.derivedMetrics) {
+            if (isLowerBetter) {
+              if (typeof data.derivedMetrics.averageReactionTime === 'number') score = data.derivedMetrics.averageReactionTime;
+            } else {
+              if (typeof data.derivedMetrics.longestSeq === 'number') score = data.derivedMetrics.longestSeq;
+              else if (typeof data.derivedMetrics.highestLevel === 'number') {
+                score = assessmentType === 'block-memory'
+                  ? (data.derivedMetrics.highestLevel > 0 ? data.derivedMetrics.highestLevel + 1 : 0)
+                  : (data.derivedMetrics.highestLevel > 0 ? data.derivedMetrics.highestLevel + 2 : 0);
+              }
+            }
+          }
+          if (score !== null && !isNaN(score)) {
+            if (best === null) {
+              best = score;
+            } else if (isLowerBetter && score < best) {
+              best = score;
+            } else if (!isLowerBetter && score > best) {
+              best = score;
+            }
+          }
+        });
+      } catch (dbErr) {
+        if (dbErr && ((dbErr as any).code === 7 || String(dbErr).includes('PERMISSION_DENIED'))) {
+          // Suppress permission denied warnings in preview environments
+        } else {
+          safeLogWarning('[Personal Best API] Firestore query notice:', dbErr);
+        }
+      }
+
+      return res.json({ success: true, personalBest: best });
+    } catch (err: unknown) {
+      console.error('[Personal Best API] Error:', err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to retrieve personal best' });
+    }
+  });
+
+  // Authoritative Research Submission & Canonical Firestore Server-Side Write
+  app.post('/api/research/submit', async (req, res) => {
+    let activeSessionId: string | null = null;
+    let submissionIdempotencyKey: string | null = null;
+    try {
+      const verifiedUser = await verifyFirebaseUserToken(req);
+      if (!verifiedUser) {
+        return res.status(401).json({ success: false, error: 'Authentication required: missing or invalid Firebase ID token' });
+      }
+
+      const { assessmentType, ageGroup, trials, sessionId, idempotencyKey } = req.body || {};
+
+      if (!sessionId || typeof sessionId !== 'string' || !sessionId.trim()) {
+        return res.status(400).json({ success: false, error: 'sessionId is required and must be a valid non-empty string' });
+      }
+
+      if (idempotencyKey !== undefined && idempotencyKey !== null && !isValidIdempotencyKey(idempotencyKey)) {
+        return res.status(400).json({ success: false, error: 'Invalid idempotencyKey (must be 1-128 characters string)' });
+      }
+
+      const validIdempKey = isValidIdempotencyKey(idempotencyKey) ? idempotencyKey.trim() : null;
+      activeSessionId = sessionId.trim();
+
+      if (activeSessionId === validIdempKey) {
+        return res.status(400).json({ success: false, error: 'sessionId and idempotencyKey must be distinct' });
+      }
+
+      submissionIdempotencyKey = validIdempKey ?? activeSessionId;
+
+      if (submissionIdempotencyKey) {
+        const cached = getIdempotency(`res_sub:${submissionIdempotencyKey}`);
+        if (cached) {
+          return res.json(cached);
+        }
+      }
+
+      if (!assessmentType || !VALID_ASSESSMENT_TYPES.includes(assessmentType)) {
+        return res.status(400).json({ success: false, error: 'Invalid or missing assessmentType' });
+      }
+
+      if (!ageGroup || !VALID_AGE_GROUPS.includes(ageGroup)) {
+        return res.status(400).json({ success: false, error: 'Invalid or missing ageGroup' });
+      }
+
+      if (!activeSessionId) {
+        return res.status(400).json({ success: false, error: 'Session ID is required for trial submission' });
+      }
+
+      // Validate session binding, identity, expiration, and one-time consumption
+      const sessionCheck = await getAndValidateSession(activeSessionId, verifiedUser.uid, assessmentType);
+      if (!sessionCheck.valid || !sessionCheck.session) {
+        return res.status(sessionCheck.status || 400).json({ success: false, error: sessionCheck.error || 'Session validation failed' });
+      }
+
+      // Strictly bind ageGroup to session; reject client-provided overrides or unapproved age groups
+      if (!VALID_AGE_GROUPS.includes(sessionCheck.session.ageGroup)) {
+        return res.status(400).json({ success: false, error: 'Authoritative experiment session has an invalid ageGroup' });
+      }
+      if (ageGroup && ageGroup !== sessionCheck.session.ageGroup) {
+        return res.status(400).json({ success: false, error: 'ageGroup mismatch with authoritative experiment session' });
+      }
+      const authoritativeAgeGroup = sessionCheck.session.ageGroup;
+
+      // Server-authoritative validation & derivation of metrics directly from raw trials
+      const validation = validateAndDeriveAssessmentFromTrials(assessmentType, authoritativeAgeGroup, trials, sessionCheck.session);
+      if (!validation.success || !validation.derivedMetrics) {
+        return res.status(400).json({ success: false, error: validation.error || 'Trial validation failed' });
+      }
+
+      const derivedMetrics = validation.derivedMetrics;
+
+      const db = getAdminDb();
+      if (!db) {
+        return res.status(500).json({ success: false, error: 'Database service unavailable' });
+      }
+
+      const serverDeviceCategory: 'mobile' | 'desktop' = isMobileUserAgent(req) ? 'mobile' : 'desktop';
+
+      const now = Date.now();
+      const nowIso = new Date(now).toISOString();
+      const trialPayloads: { ref: FirebaseFirestore.DocumentReference; data: Record<string, any> }[] = [];
+      if (Array.isArray(trials) && trials.length > 0) {
+        trials.forEach((t: Record<string, any>, idx: number) => {
+          // Rule 4: Generate server-owned IDs for assessmentTrials
+          const trialId = crypto.randomUUID();
+          const trialDocRef = db ? db.collection('assessmentTrials').doc(trialId) : null;
+          const chronoIndex = idx + 1;
+          let derivedAttemptNumber = 1;
+          if (idx > 0) {
+            const prevTrialNumber = Number(trials[idx - 1].trialNumber);
+            const prevAttemptNumber = Number(trials[idx - 1].attemptNumber) || 1;
+            if (Number(t.trialNumber) === prevTrialNumber) {
+              derivedAttemptNumber = prevAttemptNumber + 1;
+            }
+          }
+
+          const rawRt = typeof t.reactionTime === 'number' ? t.reactionTime : (typeof t.reactionTimeMs === 'number' ? t.reactionTimeMs : null);
+          const rawLat = typeof t.rawReactionTime === 'number' ? t.rawReactionTime : (typeof t.rawLatencyMs === 'number' ? t.rawLatencyMs : null);
+
+          const isFalseStart = t.falseStart === true;
+          const isTimedOut = t.timedOut === true;
+          const isValid = typeof t.valid === 'boolean' ? t.valid : (!isFalseStart && !isTimedOut);
+          const isCorrect = typeof t.correct === 'boolean'
+            ? t.correct
+            : (typeof t.correctness === 'boolean'
+                ? t.correctness
+                : (typeof t.accuracy === 'number' ? t.accuracy === 1 : isValid));
+          const accuracyVal = typeof t.accuracy === 'number' ? t.accuracy : (isCorrect ? 1 : 0);
+
+          const trialPayload: Record<string, any> = {
+            participantId: verifiedUser.uid, // Strictly bound to verified Firebase UID
+            experimentId: activeSessionId,
+            condition: typeof t.condition === 'string' ? t.condition : 'standard',
+            test: assessmentType,
+            trialNumber: Number(t.trialNumber) || chronoIndex,
+            trialIndex: typeof t.trialIndex === 'number' ? t.trialIndex : chronoIndex,
+            sequenceNumber: typeof t.sequenceNumber === 'number' ? t.sequenceNumber : chronoIndex,
+            attemptNumber: typeof t.attemptNumber === 'number' ? t.attemptNumber : derivedAttemptNumber,
+            stimulusTimestamp: typeof t.stimulusTimestamp === 'number' ? t.stimulusTimestamp : (t.stimulusTimestamp === null ? null : now),
+            responseTimestamp: typeof t.responseTimestamp === 'number' ? t.responseTimestamp : null,
+            reactionTime: rawRt,
+            reactionTimeMs: rawRt,
+            accuracy: accuracyVal,
+            falseStart: isFalseStart,
+            timedOut: isTimedOut,
+            valid: isValid,
+            correct: isCorrect,
+            correctness: isCorrect,
+            timestamp: typeof t.timestamp === 'string' ? t.timestamp : nowIso,
+            deviceCategory: serverDeviceCategory,
+            device: serverDeviceCategory,
+            screenWidth: typeof t.screenWidth === 'number' && Number.isFinite(t.screenWidth) && t.screenWidth > 0 ? Number(t.screenWidth) : null,
+            screenHeight: typeof t.screenHeight === 'number' && Number.isFinite(t.screenHeight) && t.screenHeight > 0 ? Number(t.screenHeight) : null,
+            ageGroup: authoritativeAgeGroup
+          };
+
+          if (typeof t.device === 'string' && t.device !== 'desktop' && t.device !== 'mobile') {
+            trialPayload.clientDeviceDetails = t.device;
+          }
+
+          if (rawLat !== null) {
+            trialPayload.rawReactionTime = rawLat;
+            trialPayload.rawLatencyMs = rawLat;
+          }
+          if (typeof t.displayDelayOffsetMs === 'number') trialPayload.displayDelayOffsetMs = t.displayDelayOffsetMs;
+          if (typeof t.notes === 'string') trialPayload.notes = t.notes;
+
+          if (typeof t.foreperiodMs === 'number') trialPayload.foreperiodMs = t.foreperiodMs;
+          if (typeof t.foreperiodCategory === 'string' && (t.foreperiodCategory === 'SHORT' || t.foreperiodCategory === 'LONG')) {
+            trialPayload.foreperiodCategory = t.foreperiodCategory;
+          } else if (typeof t.foreperiodMs === 'number') {
+            const derived = deriveForeperiodCategory(t.foreperiodMs);
+            if (derived) trialPayload.foreperiodCategory = derived;
+          }
+
+          if (typeof t.stimulusScheduledAt === 'number') trialPayload.stimulusScheduledAt = t.stimulusScheduledAt;
+          if (typeof t.stimulusScheduledAtPerfMs === 'number') trialPayload.stimulusScheduledAtPerfMs = t.stimulusScheduledAtPerfMs;
+          else if (typeof t.stimulusScheduledAt === 'number') trialPayload.stimulusScheduledAtPerfMs = t.stimulusScheduledAt;
+
+          if (typeof t.stimulusPresentedAt === 'number' || t.stimulusPresentedAt === null) trialPayload.stimulusPresentedAt = t.stimulusPresentedAt;
+          if (typeof t.stimulusPresentedAtPerfMs === 'number' || t.stimulusPresentedAtPerfMs === null) trialPayload.stimulusPresentedAtPerfMs = t.stimulusPresentedAtPerfMs;
+          else if (typeof t.stimulusPresentedAt === 'number' || t.stimulusPresentedAt === null) trialPayload.stimulusPresentedAtPerfMs = t.stimulusPresentedAt;
+
+          if (t.responseDetectedAt !== undefined) trialPayload.responseDetectedAt = t.responseDetectedAt;
+          if (t.responseDetectedAtPerfMs !== undefined) trialPayload.responseDetectedAtPerfMs = t.responseDetectedAtPerfMs;
+          else if (t.responseDetectedAt !== undefined) trialPayload.responseDetectedAtPerfMs = t.responseDetectedAt;
+
+          if (typeof t.validity === 'string') trialPayload.validity = t.validity;
+          if (t.qualityFlag !== undefined) trialPayload.qualityFlag = t.qualityFlag;
+
+          if (t.previousTrialEndedAt !== undefined) trialPayload.previousTrialEndedAt = t.previousTrialEndedAt;
+          if (t.previousTrialEndedAtPerfMs !== undefined) trialPayload.previousTrialEndedAtPerfMs = t.previousTrialEndedAtPerfMs;
+          else if (t.previousTrialEndedAt !== undefined) trialPayload.previousTrialEndedAtPerfMs = t.previousTrialEndedAt;
+          if (t.interStimulusIntervalMs !== undefined) trialPayload.interStimulusIntervalMs = t.interStimulusIntervalMs;
+          if (t.interTrialIntervalMs !== undefined) trialPayload.interTrialIntervalMs = t.interTrialIntervalMs;
+          if (typeof t.stimulusWallTimestamp === 'number') trialPayload.stimulusWallTimestamp = t.stimulusWallTimestamp;
+          if (t.responseWallTimestamp !== undefined) trialPayload.responseWallTimestamp = t.responseWallTimestamp;
+          if (typeof t.assessmentStartedAt === 'number') trialPayload.assessmentStartedAt = t.assessmentStartedAt;
+
+          if (typeof t.targetDirection === 'string') trialPayload.targetDirection = t.targetDirection;
+          if (typeof t.wordName === 'string') trialPayload.wordName = t.wordName;
+          if (typeof t.wordColor === 'string') trialPayload.wordColor = t.wordColor;
+          if (typeof t.instruction === 'string') trialPayload.instruction = t.instruction;
+          if (typeof t.userResponse === 'string' || t.userResponse === null) trialPayload.userResponse = t.userResponse;
+
+          if (typeof t.level === 'number') trialPayload.level = t.level;
+          if (typeof t.sequenceLength === 'number') trialPayload.sequenceLength = t.sequenceLength;
+          if (t.generatedSequence !== undefined) trialPayload.generatedSequence = t.generatedSequence;
+          if (t.playerSequence !== undefined) trialPayload.playerSequence = t.playerSequence;
+          if (typeof t.responseDurationMs === 'number') trialPayload.responseDurationMs = t.responseDurationMs;
+          if (typeof t.correctSelections === 'number') trialPayload.correctSelections = t.correctSelections;
+
+          if (typeof t.correct === 'boolean') trialPayload.correct = t.correct;
+          if (typeof t.correctness === 'boolean') trialPayload.correctness = t.correctness;
+
+          if (trialDocRef) {
+            trialPayloads.push({ ref: trialDocRef, data: trialPayload });
+          }
+        });
+      }
+
+      // Compute canonical SHA-256 digest covering complete research trial observation sequence
+      const trialsDigest = computeCanonicalTrialsDigest(trialPayloads.map(tp => tp.data));
+
+      const completedAtTimestamp = now;
+      const completedAtMonth = new Date(now).toISOString().substring(0, 7);
+
+      const canonicalMetrics = Object.keys(derivedMetrics).sort().map(k => `${k}=${derivedMetrics[k]}`).join('&');
+      const payloadDigest = `${assessmentType}:${authoritativeAgeGroup}:${canonicalMetrics}:${trialsDigest}:${completedAtTimestamp}:${completedAtMonth}`;
+      const provenanceToken = crypto.createHmac('sha256', getProvenanceSecret()).update(payloadDigest).digest('hex');
+
+      // Rule 4: Never trust client IDs as Firestore document IDs. Generate server-owned IDs.
+      const docId = crypto.randomUUID();
+
+      // Rule 5: publicDataset must NOT expose Firebase UID, participantId, sessionId or other direct identity/session identifiers
+      // Extract progressionTrials strictly from server-canonicalized trialPayloads (max 5 trials)
+      const isSpeedAssessment = assessmentType === 'visual-reaction' || assessmentType === 'direction' || assessmentType === 'color-recognition';
+      const progressionTrials = trialPayloads.slice(0, 5).map(({ data: tp }: { data: Record<string, any> }, idx: number) => {
+        const trialNumber = typeof tp.trialNumber === 'number' ? tp.trialNumber : (idx + 1);
+        const rawRt = typeof tp.reactionTime === 'number' ? tp.reactionTime : (typeof tp.reactionTimeMs === 'number' ? tp.reactionTimeMs : null);
+        const falseStart = tp.falseStart === true;
+        const timedOut = tp.timedOut === true;
+        const valid = typeof tp.valid === 'boolean' ? tp.valid : (!falseStart && !timedOut);
+
+        const baseProgressionItem: Record<string, any> = {
+          trialNumber,
+          falseStart,
+          timedOut,
+          valid,
+        };
+
+        if (typeof tp.correct === 'boolean') baseProgressionItem.correct = tp.correct;
+        if (typeof tp.accuracy === 'number') baseProgressionItem.accuracy = tp.accuracy;
+        if (typeof tp.validity === 'string') baseProgressionItem.validity = tp.validity;
+        if (tp.qualityFlag !== undefined) baseProgressionItem.qualityFlag = tp.qualityFlag;
+
+        if (assessmentType === 'direction') {
+          if (typeof tp.targetDirection === 'string') baseProgressionItem.targetDirection = tp.targetDirection;
+          if (typeof tp.userResponse === 'string' || tp.userResponse === null) baseProgressionItem.userResponse = tp.userResponse;
+        } else if (assessmentType === 'color-recognition') {
+          if (typeof tp.wordName === 'string') baseProgressionItem.wordName = tp.wordName;
+          if (typeof tp.wordColor === 'string') baseProgressionItem.wordColor = tp.wordColor;
+          if (typeof tp.condition === 'string') baseProgressionItem.condition = tp.condition;
+          if (typeof tp.instruction === 'string') baseProgressionItem.instruction = tp.instruction;
+          if (typeof tp.userResponse === 'string' || tp.userResponse === null) baseProgressionItem.userResponse = tp.userResponse;
+        } else if (assessmentType === 'block-memory' || assessmentType === 'number-memory') {
+          if (typeof tp.level === 'number') baseProgressionItem.level = tp.level;
+          if (typeof tp.sequenceLength === 'number') baseProgressionItem.sequenceLength = tp.sequenceLength;
+          if (tp.generatedSequence !== undefined) baseProgressionItem.generatedSequence = tp.generatedSequence;
+          if (tp.playerSequence !== undefined) baseProgressionItem.playerSequence = tp.playerSequence;
+          if (typeof tp.responseDurationMs === 'number') baseProgressionItem.responseDurationMs = tp.responseDurationMs;
+          if (typeof tp.correctSelections === 'number') baseProgressionItem.correctSelections = tp.correctSelections;
+        }
+
+        if (isSpeedAssessment) {
+          return {
+            ...baseProgressionItem,
+            reactionTime: rawRt,
+            metricType: 'reaction_time' as const
+          };
+        } else {
+          return {
+            ...baseProgressionItem,
+            inputLatencyMs: rawRt,
+            reactionTime: rawRt, // Retained for backward compatibility
+            metricType: 'input_latency' as const
+          };
+        }
+      });
+
+      const publicDatasetDoc = {
+        ageGroup: authoritativeAgeGroup,
+        assessmentType,
+        schemaVersion: 1,
+        assessmentVersion: 'v1.0.0',
+        protocolVersion: 'v1.0.0',
+        datasetSchemaVersion: 'v1.0.0',
+        metricsVersion: 'v1.0.0',
+        provenanceVersion: 'v2.0.0',
+        completedAtMonth,
+        provenanceToken,
+        trialsDigest,
+        deviceCategory: serverDeviceCategory,
+        device: serverDeviceCategory,
+        progressionTrials,
+        ...derivedMetrics
+      };
+
+      // Determine primary score metric and direction
+      const isLowerBetter = assessmentType === 'visual-reaction' || assessmentType === 'direction' || assessmentType === 'color-recognition';
+      let currentScore: number | null = null;
+      if (isLowerBetter) {
+        currentScore = typeof derivedMetrics.averageReactionTime === 'number' ? derivedMetrics.averageReactionTime : null;
+      } else {
+        currentScore = typeof derivedMetrics.longestSeq === 'number' ? derivedMetrics.longestSeq : null;
+      }
+
+      // Query previous consumed sessions for user's previous personal best from Firestore
+      let previousPersonalBest: number | null = null;
+      if (db) {
+        try {
+          const prevSnap = await db.collection('experimentSessions')
+            .where('uid', '==', verifiedUser.uid)
+            .where('assessmentType', '==', assessmentType)
+            .where('consumed', '==', true)
+            .get();
+
+          prevSnap.docs.forEach(docSnap => {
+            if (docSnap.id === activeSessionId) return;
+            const data = docSnap.data();
+            let s: number | null = null;
+            if (typeof data.scoreMetric === 'number') {
+              s = data.scoreMetric;
+            } else if (data.derivedMetrics) {
+              if (isLowerBetter) {
+                if (typeof data.derivedMetrics.averageReactionTime === 'number') s = data.derivedMetrics.averageReactionTime;
+              } else {
+                if (typeof data.derivedMetrics.longestSeq === 'number') s = data.derivedMetrics.longestSeq;
+                else if (typeof data.derivedMetrics.highestLevel === 'number') {
+                  s = assessmentType === 'block-memory' 
+                    ? (data.derivedMetrics.highestLevel > 0 ? data.derivedMetrics.highestLevel + 1 : 0)
+                    : (data.derivedMetrics.highestLevel > 0 ? data.derivedMetrics.highestLevel + 2 : 0);
+                }
+              }
+            }
+            if (s !== null && !isNaN(s)) {
+              if (previousPersonalBest === null) {
+                previousPersonalBest = s;
+              } else if (isLowerBetter && s < previousPersonalBest) {
+                previousPersonalBest = s;
+              } else if (!isLowerBetter && s > previousPersonalBest) {
+                previousPersonalBest = s;
+              }
+            }
+          });
+        } catch (pbErr: any) {
+          if (pbErr && (pbErr.code === 7 || String(pbErr).includes('PERMISSION_DENIED'))) {
+          // Suppress permission denied warnings in preview environments (handled gracefully by memory fallback)
+        } else {
+          safeLogWarning('[Research Submit API] Firestore personal best query notice:', pbErr);
+        }
+        }
+      }
+
+      let isNewPersonalBest = false;
+      if (currentScore !== null) {
+        if (previousPersonalBest === null) {
+          isNewPersonalBest = true;
+        } else if (isLowerBetter) {
+          isNewPersonalBest = currentScore < previousPersonalBest;
+        } else {
+          isNewPersonalBest = currentScore > previousPersonalBest;
+        }
+      }
+
+      const personalBest = isNewPersonalBest ? currentScore : (previousPersonalBest ?? currentScore);
+
+      
+
+            // 2. Authoritative durable Firestore transaction
+      if (!db) {
+        return res.status(500).json({ success: false, error: 'Database unavailable: Server misconfiguration' });
+      }
+      
+      try {
+        const sessionDocRef = db.collection('experimentSessions').doc(activeSessionId);
+        const publicDatasetDocRef = db.collection('publicDataset').doc(docId);
+        await db.runTransaction(async (tx) => {
+          const sessionSnap = await tx.get(sessionDocRef);
+          if (!sessionSnap.exists) {
+            throw new Error('SESSION_NOT_FOUND');
+          }
+          const sData = sessionSnap.data() as ExperimentSession;
+          if (sData.uid !== verifiedUser.uid) throw new Error('SESSION_UID_MISMATCH');
+          if (normalizeAssessmentType(sData.assessmentType) !== normalizeAssessmentType(assessmentType)) throw new Error('SESSION_TYPE_MISMATCH');
+          if (Date.now() > sData.expiresAt + 60000) throw new Error('SESSION_EXPIRED');
+          if (sData.consumed) {
+            const err: any = new Error('SESSION_ALREADY_CONSUMED');
+            err.sData = sData;
+            throw err;
+          }
+
+          // Write canonical publicDataset document
+          tx.set(publicDatasetDocRef, publicDatasetDoc);
+
+          // Write canonical assessmentResults document
+          const assessmentResultDocRef = db.collection('assessmentResults').doc(docId);
+          tx.set(assessmentResultDocRef, {
+            sessionId: activeSessionId,
+            participantId: verifiedUser.uid,
+            assessmentType,
+            ageGroup: authoritativeAgeGroup,
+            assessmentVersion: 'v1.0.0',
+            protocolVersion: 'v1.0.0',
+            datasetSchemaVersion: 'v1.0.0',
+            metricsVersion: 'v1.0.0',
+            derivedMetrics,
+            temporalDynamics: derivedMetrics.temporalDynamics || null,
+            scoreMetric: currentScore,
+            isNewPersonalBest,
+            completedAtTimestamp,
+            completedAtMonth,
+            provenanceToken,
+            trialsDigest,
+            createdAt: now
+          });
+
+          // Write canonical assessmentTrials documents
+          for (const tp of trialPayloads) {
+            const assessmentTrialRef = db.collection('assessmentTrials').doc(tp.ref.id);
+            tx.set(assessmentTrialRef, {
+              ...tp.data,
+              sessionId: activeSessionId
+            });
+          }
+
+          // Mark session consumed
+          tx.set(sessionDocRef, {
+            sessionId: activeSessionId,
+            uid: verifiedUser.uid,
+            assessmentType,
+            ageGroup: authoritativeAgeGroup,
+            createdAt: sData?.createdAt || now,
+            expiresAt: sData?.expiresAt || (now + 15 * 60 * 1000),
+            consumed: true,
+            consumedAt: now,
+            researchDocId: docId,
+            derivedMetrics,
+            scoreMetric: currentScore,
+            isNewPersonalBest,
+            previousPersonalBest,
+            personalBest,
+            provenanceToken,
+            trialsDigest
+          }, { merge: true });
+        });
+      } catch (txErr: any) {
+        const errMsg = txErr instanceof Error ? txErr.message : String(txErr);
+        if (['SESSION_NOT_FOUND', 'SESSION_UID_MISMATCH', 'SESSION_TYPE_MISMATCH', 'SESSION_EXPIRED'].includes(errMsg)) {
+          throw txErr;
+        }
+        console.error('[Research Submit API] Firestore persistence failed:', txErr);
+        return res.status(500).json({ success: false, error: 'Failed to persist research submission to database' });
+      }
+      const responsePayload = {
+        success: true,
+        docId,
+        sessionId: activeSessionId,
+        completedAtTimestamp,
+        completedAtMonth,
+        provenanceToken,
+        trialsDigest,
+        derivedMetrics,
+        scoreMetric: currentScore,
+        isNewPersonalBest,
+        previousPersonalBest,
+        personalBest
+      };
+
+      if (submissionIdempotencyKey) {
+        setIdempotency(`res_sub:${submissionIdempotencyKey}`, responsePayload);
+      }
+
+      return res.json(responsePayload);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg === 'SESSION_NOT_FOUND') {
+        return res.status(404).json({ success: false, error: 'Experiment session not found or invalid' });
+      }
+      if (errMsg === 'SESSION_UID_MISMATCH') {
+        return res.status(403).json({ success: false, error: 'Session UID mismatch with authenticated identity' });
+      }
+      if (errMsg === 'SESSION_TYPE_MISMATCH') {
+        return res.status(400).json({ success: false, error: 'Session assessment type mismatch' });
+      }
+      if (errMsg === 'SESSION_EXPIRED') {
+        return res.status(400).json({ success: false, error: 'Experiment session has expired' });
+      }
+      if (errMsg === 'SESSION_ALREADY_CONSUMED') {
+        const sData = (err as any).sData;
+        if (sData) {
+          return res.json({
+            success: true,
+            docId: sData.researchDocId,
+            sessionId: activeSessionId,
+            completedAtTimestamp: sData.consumedAt || Date.now(),
+            provenanceToken: sData.provenanceToken,
+            trialsDigest: sData.trialsDigest,
+            derivedMetrics: sData.derivedMetrics,
+            scoreMetric: sData.scoreMetric ?? null,
+            isNewPersonalBest: sData.isNewPersonalBest ?? false,
+            previousPersonalBest: sData.previousPersonalBest ?? null,
+            personalBest: sData.personalBest ?? null
+          });
+        }
+        return res.status(400).json({ success: false, error: 'Experiment session has already been completed/consumed' });
+      }
+
+      console.error("[Research Submit API] Error:", err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to atomically persist research data in database' });
+    }
+  });
+
+
+
+  function isValidLeaderboardScoreMetric(assessmentType: string, scoreMetric: unknown): boolean {
+    if (typeof scoreMetric !== 'number' || !Number.isFinite(scoreMetric) || Number.isNaN(scoreMetric)) {
+      return false;
+    }
+    const isSpeed = assessmentType === 'visual-reaction' || assessmentType === 'direction' || assessmentType === 'color-recognition';
+    if (isSpeed) {
+      return scoreMetric >= 50 && scoreMetric <= 10000;
+    }
+    if (assessmentType === 'block-memory' || assessmentType === 'number-memory') {
+      return scoreMetric >= 1 && scoreMetric <= 150;
+    }
+    return scoreMetric >= 0 && scoreMetric <= 100;
+  }
+
+  // Authoritative Leaderboard Submission & Firestore Server-Side Write
+  app.post('/api/leaderboard/submit', async (req, res) => {
+    let leaderboardIdempotencyKey: string | null = null;
+    try {
+      const verifiedUser = await verifyFirebaseUserToken(req);
+      if (!verifiedUser) {
+        return res.status(401).json({ success: false, error: 'Authentication required: missing or invalid Firebase ID token' });
+      }
+
+      const { displayName, assessmentType, ageGroup, userId, trials, sessionId, idempotencyKey } = req.body || {};
+
+      if (!sessionId || typeof sessionId !== 'string' || !sessionId.trim()) {
+        return res.status(400).json({ success: false, error: 'sessionId is required and must be a valid non-empty string' });
+      }
+
+      if (idempotencyKey !== undefined && idempotencyKey !== null && !isValidIdempotencyKey(idempotencyKey)) {
+        return res.status(400).json({ success: false, error: 'Invalid idempotencyKey (must be 1-128 characters string)' });
+      }
+
+      const validIdempKey = isValidIdempotencyKey(idempotencyKey) ? idempotencyKey.trim() : null;
+      const activeSessionId = sessionId.trim();
+
+      if (activeSessionId === validIdempKey) {
+        return res.status(400).json({ success: false, error: 'sessionId and idempotencyKey must be distinct' });
+      }
+
+      leaderboardIdempotencyKey = validIdempKey ?? activeSessionId;
+      if (leaderboardIdempotencyKey) {
+        const cached = getIdempotency(`lb_sub:${leaderboardIdempotencyKey}`);
+        if (cached) {
+          return res.json(cached);
+        }
+      }
+
+      if (!activeSessionId) {
+        return res.status(400).json({ success: false, error: 'Authoritative experiment session is required for leaderboard submission' });
+      }
+
+      if (userId && typeof userId === 'string' && userId.trim() !== verifiedUser.uid) {
+        return res.status(403).json({ success: false, error: 'Participant identity mismatch with authenticated user' });
+      }
+
+      if (!displayName || typeof displayName !== 'string' || !displayName.trim() || [...displayName.trim()].length > 30) {
+        return res.status(400).json({ success: false, error: 'Invalid displayName (1-30 characters required)' });
+      }
+
+      const normalizedAssessmentType = normalizeAssessmentType(assessmentType);
+      if (!normalizedAssessmentType || !VALID_ASSESSMENT_TYPES.includes(normalizedAssessmentType)) {
+        return res.status(400).json({ success: false, error: 'Invalid assessmentType' });
+      }
+
+      const leaderboardDocId = crypto.randomUUID();
+      const db = getAdminDb();
+
+      // Retrieve and validate session authoritatively from Firestore
+      let sData: ExperimentSession | null = null;
+      if (db) {
+        try {
+          const sessionSnap = await db.collection('experimentSessions').doc(activeSessionId).get();
+          if (sessionSnap.exists) {
+            sData = sessionSnap.data() as ExperimentSession;
+          }
+        } catch (dbErr) {
+          console.error('[Leaderboard Submit API] Session read error:', dbErr instanceof Error ? dbErr.message : String(dbErr));
+          return res.status(500).json({ success: false, error: 'Failed to read experiment session from database' });
+        }
+      }
+
+      if (!sData) {
+        return res.status(404).json({ success: false, error: 'Experiment session not found' });
+      }
+
+      // Rule 1: Same user verification
+      if (sData.uid !== verifiedUser.uid) {
+        return res.status(403).json({ success: false, error: 'Session UID mismatch with authenticated user' });
+      }
+
+      // Rule 1: Same assessment type verification
+      if (normalizeAssessmentType(sData.assessmentType) !== normalizedAssessmentType) {
+        return res.status(400).json({ success: false, error: 'Session assessment type mismatch' });
+      }
+
+      // Strictly bind ageGroup to session; reject invalid age groups
+      if (!VALID_AGE_GROUPS.includes(sData.ageGroup as any)) {
+        return res.status(400).json({ success: false, error: 'Authoritative experiment session has an invalid ageGroup' });
+      }
+      if (ageGroup && ageGroup !== sData.ageGroup) {
+        return res.status(400).json({ success: false, error: 'ageGroup mismatch with authoritative experiment session' });
+      }
+
+      // Enforce session consumption and expiry
+      if (!sData.consumed) {
+        return res.status(400).json({ success: false, error: 'Leaderboard submission requires a completed, consumed research session' });
+      }
+      if (typeof sData.expiresAt === 'number' && Date.now() > sData.expiresAt + 60000) {
+        return res.status(400).json({ success: false, error: 'Experiment session has expired' });
+      }
+
+      // Rule 2 & 3: Bind leaderboard submission to session lifecycle and prevent reuse (durable idempotency)
+      if (sData.leaderboardSubmitted) {
+        if (sData.leaderboardDocId) {
+          const replayPayload = {
+            success: true,
+            docId: sData.leaderboardDocId,
+            scoreMetric: sData.scoreMetric,
+            provenanceToken: sData.provenanceToken,
+            trialsDigest: sData.trialsDigest,
+            derivedMetrics: sData.derivedMetrics,
+            alreadySubmitted: true
+          };
+          if (leaderboardIdempotencyKey) {
+            setIdempotency(`lb_sub:${leaderboardIdempotencyKey}`, replayPayload);
+          }
+          return res.json(replayPayload);
+        }
+        return res.status(400).json({ success: false, error: 'Leaderboard score has already been submitted for this session' });
+      }
+
+      const authoritativeAgeGroup = sData.ageGroup;
+
+      // Rule 12 & 13: Derive metrics & validate trials
+      let metrics = sData.derivedMetrics;
+      let trialsDigest = sData.trialsDigest;
+
+      if (!metrics) {
+        const validation = validateAndDeriveAssessmentFromTrials(normalizedAssessmentType, authoritativeAgeGroup, trials, sData);
+        if (!validation.success || !validation.derivedMetrics) {
+          return res.status(400).json({ success: false, error: validation.error || 'Trial validation failed' });
+        }
+        metrics = validation.derivedMetrics;
+        trialsDigest = computeCanonicalTrialsDigest(trials);
+      } else if (!trialsDigest && Array.isArray(trials) && trials.length > 0) {
+        trialsDigest = computeCanonicalTrialsDigest(trials);
+      }
+
+      let scoreMetric = 0;
+      const isSpeed = normalizedAssessmentType === 'visual-reaction' || normalizedAssessmentType === 'direction' || normalizedAssessmentType === 'color-recognition';
+      if (isSpeed) {
+        scoreMetric = Number(metrics.averageReactionTime);
+      } else if (normalizedAssessmentType === 'block-memory' || normalizedAssessmentType === 'number-memory') {
+        scoreMetric = Number(metrics.longestSeq ?? (normalizedAssessmentType === 'block-memory' ? (metrics.highestLevel > 0 ? metrics.highestLevel + 1 : 0) : (metrics.highestLevel > 0 ? metrics.highestLevel + 2 : 0)));
+      } else {
+        scoreMetric = Number(metrics.overallAccuracy ?? 0);
+      }
+
+      if (!isValidLeaderboardScoreMetric(normalizedAssessmentType, scoreMetric)) {
+        return res.status(400).json({ success: false, error: 'Invalid or non-finite score metric for assessment type' });
+      }
+
+      const tokenData = `lb:${normalizedAssessmentType}:${authoritativeAgeGroup}:${scoreMetric.toFixed(2)}:${displayName.trim()}:${trialsDigest || ''}`;
+      const provenanceToken = crypto.createHmac('sha256', getProvenanceSecret()).update(tokenData).digest('hex');
+
+      const now = Date.now();
+
+      
+
+            // 2. Authoritative Firestore persistence
+      if (!db) {
+        return res.status(500).json({ success: false, error: 'Database unavailable: Server misconfiguration' });
+      }
+      try {
+        const sessionDocRef = db.collection('experimentSessions').doc(activeSessionId);
+        const leaderboardDocRef = db.collection('leaderboardResults').doc(leaderboardDocId);
+
+        const leaderboardDoc = {
+          displayName: displayName.trim(),
+          assessmentType: normalizedAssessmentType,
+          scoreMetric,
+          ageGroup: authoritativeAgeGroup,
+          provenanceToken,
+          hidden: false,
+          createdAt: FieldValue.serverTimestamp()
+        };
+
+        await db.runTransaction(async (tx) => {
+          tx.set(leaderboardDocRef, leaderboardDoc);
+          tx.set(sessionDocRef, {
+            leaderboardSubmitted: true,
+            leaderboardDocId,
+            leaderboardSubmittedAt: now,
+            scoreMetric,
+            trialsDigest: trialsDigest || '',
+            provenanceToken,
+            derivedMetrics: metrics
+          }, { merge: true });
+        });
+      } catch (dbErr: any) {
+        console.error('[Leaderboard Submit API] Firestore persistence failed:', dbErr);
+        return res.status(500).json({ success: false, error: 'Failed to persist leaderboard result in database' });
+      }
+      const resultPayload = {
+        success: true,
+        docId: leaderboardDocId,
+        scoreMetric,
+        provenanceToken,
+        trialsDigest,
+        derivedMetrics: metrics
+      };
+
+      if (leaderboardIdempotencyKey && resultPayload) {
+        setIdempotency(`lb_sub:${leaderboardIdempotencyKey}`, resultPayload);
+      }
+
+      return res.json(resultPayload);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg === 'DATABASE_UNAVAILABLE') {
+        return res.status(503).json({ success: false, error: 'Database service is unavailable. Unable to save leaderboard result.' });
+      }
+      if (errMsg === 'SESSION_NOT_FOUND') {
+        return res.status(404).json({ success: false, error: 'Experiment session not found' });
+      }
+      if (errMsg === 'SESSION_UID_MISMATCH') {
+        return res.status(403).json({ success: false, error: 'Session UID mismatch with authenticated user' });
+      }
+      if (errMsg === 'SESSION_TYPE_MISMATCH') {
+        return res.status(400).json({ success: false, error: 'Session assessment type mismatch' });
+      }
+      if (errMsg === 'SESSION_INVALID_AGE_GROUP') {
+        return res.status(400).json({ success: false, error: 'Authoritative experiment session has an invalid ageGroup' });
+      }
+      if (errMsg === 'SESSION_AGE_GROUP_MISMATCH') {
+        return res.status(400).json({ success: false, error: 'ageGroup mismatch with authoritative experiment session' });
+      }
+      if (errMsg === 'SESSION_NOT_CONSUMED') {
+        return res.status(400).json({ success: false, error: 'Leaderboard submission requires a completed, consumed research session' });
+      }
+      if (errMsg === 'SESSION_EXPIRED') {
+        return res.status(400).json({ success: false, error: 'Experiment session has expired' });
+      }
+      if (errMsg === 'INVALID_SCORE_METRIC') {
+        return res.status(400).json({ success: false, error: 'Invalid or non-finite score metric for assessment type' });
+      }
+      if (errMsg === 'LEADERBOARD_ALREADY_SUBMITTED') {
+        const sData = (err as any).sData;
+        if (sData && sData.leaderboardDocId) {
+          const replayPayload = {
+            success: true,
+            docId: sData.leaderboardDocId,
+            scoreMetric: sData.scoreMetric,
+            provenanceToken: sData.provenanceToken,
+            trialsDigest: sData.trialsDigest,
+            derivedMetrics: sData.derivedMetrics,
+            alreadySubmitted: true
+          };
+          if (leaderboardIdempotencyKey) {
+            setIdempotency(`lb_sub:${leaderboardIdempotencyKey}`, replayPayload);
+          }
+          return res.json(replayPayload);
+        }
+        return res.status(400).json({ success: false, error: 'Leaderboard score has already been submitted for this session' });
+      }
+      if (errMsg.startsWith('VALIDATION_FAILED:')) {
+        return res.status(400).json({ success: false, error: errMsg.replace('VALIDATION_FAILED:', '') });
+      }
+
+      console.error("[Leaderboard Submit API] Error:", err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to persist leaderboard result in database' });
+    }
+  });
+
+
+
+  // Verification helper for audits / researchers
+  app.post('/api/research/verify-provenance', (req, res) => {
+    const { assessmentType, ageGroup, completedAtTimestamp, completedAtMonth, metrics, trialsDigest, provenanceToken } = req.body || {};
+    if (!provenanceToken || typeof provenanceToken !== 'string') {
+      return res.json({ verified: false, reason: 'Missing provenance token' });
+    }
+    const canonicalMetrics = metrics ? Object.keys(metrics).sort().map(k => `${k}=${metrics[k]}`).join('&') : '';
+    const payloadDigest = `${assessmentType}:${ageGroup}:${canonicalMetrics}:${trialsDigest || ''}:${completedAtTimestamp}:${completedAtMonth}`;
+    const expected = crypto.createHmac('sha256', getProvenanceSecret()).update(payloadDigest).digest('hex');
+    return res.json({ verified: expected === provenanceToken });
+  });
+
+  app.post('/api/leaderboard/verify-provenance', (req, res) => {
+    const { assessmentType, ageGroup, scoreMetric, displayName, trialsDigest, provenanceToken } = req.body || {};
+    if (!provenanceToken || typeof provenanceToken !== 'string' || typeof scoreMetric !== 'number') {
+      return res.json({ verified: false, reason: 'Missing parameters' });
+    }
+    const tokenData = `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${(displayName || '').trim()}:${trialsDigest || ''}`;
+    const expected = crypto.createHmac('sha256', getProvenanceSecret()).update(tokenData).digest('hex');
+    return res.json({ verified: expected === provenanceToken });
+  });
+
+  // Public Leaderboard Retrieval Endpoint — Authoritative Firestore leaderboardResults
+  app.get('/api/leaderboard', async (req, res) => {
+    try {
+      const rawType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : null;
+      const assessmentType = rawType ? normalizeAssessmentType(rawType) : null;
+      const entriesMap = new Map<string, AuthoritativeLeaderboardEntry>();
+
+      const db = getAdminDb();
+      const isSpeed = !assessmentType || assessmentType === 'visual-reaction' || assessmentType === 'direction' || assessmentType === 'color-recognition';
+      const orderDirection: 'asc' | 'desc' = isSpeed ? 'asc' : 'desc';
+
+      const aliases = assessmentType
+        ? (assessmentType === 'color-recognition' ? ['color-recognition', 'colour-recognition', 'color-test'] : [assessmentType])
+        : ['visual-reaction', 'direction', 'color-recognition', 'block-memory', 'number-memory'];
+
+      if (db) {
+        for (const alias of aliases) {
+          const aliasIsSpeed = alias === 'visual-reaction' || alias === 'direction' || alias === 'color-recognition' || alias === 'colour-recognition' || alias === 'color-test';
+          const aliasDirection: 'asc' | 'desc' = aliasIsSpeed ? 'asc' : 'desc';
+
+          try {
+            const snap = await db.collection('leaderboardResults')
+              .where('assessmentType', '==', alias)
+              .orderBy('scoreMetric', aliasDirection)
+              .limit(100)
+              .get();
+
+            snap.docs.forEach((docSnap: any) => {
+              const data = docSnap.data();
+              const displayName = String(data?.displayName || '').trim();
+              const docType = normalizeAssessmentType(String(data?.assessmentType || alias));
+
+              if (data && data.hidden !== true && isOptedInLeaderboardUser(displayName) && !entriesMap.has(docSnap.id)) {
+                entriesMap.set(docSnap.id, {
+                  id: docSnap.id,
+                  displayName,
+                  assessmentType: docType,
+                  scoreMetric: Number(data.scoreMetric) || 0,
+                  ageGroup: String(data.ageGroup || ''),
+                  createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || Date.now()),
+                  provenanceToken: String(data.provenanceToken || ''),
+                  hidden: false
+                });
+              }
+            });
+          } catch (qErr: any) {
+            safeLogWarning('[Leaderboard API] Firestore query notice:', qErr);
+          }
+        }
+      }
+
+      const entries = Array.from(entriesMap.values());
+
+      entries.sort((a, b) => {
+        if (isSpeed) {
+          if (a.scoreMetric !== b.scoreMetric) return a.scoreMetric - b.scoreMetric;
+        } else {
+          if (a.scoreMetric !== b.scoreMetric) return b.scoreMetric - a.scoreMetric;
+        }
+        // Deterministic tie-breaker 1: createdAt ascending (earlier submission first)
+        const aTime = a.createdAt || 0;
+        const bTime = b.createdAt || 0;
+        if (aTime !== bTime) return aTime - bTime;
+        // Deterministic tie-breaker 2: id lexicographical comparison
+        return a.id.localeCompare(b.id);
+      });
+
+      return res.json({
+        success: true,
+        entries: entries.slice(0, 100)
+      });
+    } catch (err) {
+      console.error('[Leaderboard API] Error:', err instanceof Error ? err.message : String(err));
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve leaderboard',
+        entries: []
+      });
+    }
+  });
+
+  // Admin Security Helper
+  function isUserAdmin(decodedToken: DecodedIdToken): boolean {
+    if (!decodedToken) return false;
+    if (decodedToken.role === 'admin' || decodedToken.admin === true) return true;
+    if (decodedToken.email && decodedToken.email.toLowerCase() === 'admin@pulse-research.org') return true;
+    return false;
+  }
+
+  // Admin Moderation: Soft-Hide Leaderboard Entry
+  app.post('/api/admin/leaderboard/hide', async (req, res) => {
+    try {
+      const verifiedUser = await verifyFirebaseUserToken(req);
+      if (!verifiedUser) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+      if (!isUserAdmin(verifiedUser)) {
+        return res.status(403).json({ success: false, error: 'Forbidden: Admin authorization required' });
+      }
+      const { id, reason } = req.body || {};
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
+      }
+
+      
+
+      const db = getAdminDb();
+      if (db) {
+        try {
+          const docRef = db.collection('leaderboardResults').doc(id);
+          const snap = await docRef.get();
+          if (snap.exists) {
+            await docRef.update({ hidden: true, hiddenAt: Date.now(), hiddenBy: verifiedUser.uid, hideReason: reason || '' });
+          }
+
+          await db.collection('adminAuditLogs').add({
+            actor: verifiedUser.email || verifiedUser.uid,
+            action: 'HIDE_LEADERBOARD_ENTRY',
+            target: id,
+            note: reason || 'Soft-hide by admin',
+            timestamp: Date.now()
+          });
+        } catch (dbErr: any) {
+          console.error('[Admin Hide API] Firestore sync failed:', dbErr instanceof Error ? dbErr.message : String(dbErr));
+        }
+      }
+
+      
+      
+
+      return res.json({ success: true, message: 'Leaderboard entry hidden successfully' });
+    } catch (err) {
+      console.error("[Admin Hide API] Error:", err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to hide leaderboard entry' });
+    }
+  });
+
+  // Admin Moderation: Hard-Delete Leaderboard Entry
+  app.post('/api/admin/leaderboard/delete', async (req, res) => {
+    try {
+      const verifiedUser = await verifyFirebaseUserToken(req);
+      if (!verifiedUser) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+      if (!isUserAdmin(verifiedUser)) {
+        return res.status(403).json({ success: false, error: 'Forbidden: Admin authorization required' });
+      }
+      const { id, reason } = req.body || {};
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
+      }
+
+      const db = getAdminDb();
+      if (db) {
+        try {
+          const docRef = db.collection('leaderboardResults').doc(id);
+          const snap = await docRef.get();
+          if (snap.exists) {
+            await docRef.delete();
+          }
+
+          await db.collection('adminAuditLogs').add({
+            actor: verifiedUser.email || verifiedUser.uid,
+            action: 'DELETE_LEADERBOARD_ENTRY',
+            target: id,
+            note: reason || 'Permanently deleted by admin',
+            timestamp: Date.now()
+          });
+        } catch (dbErr: any) {
+          console.error('[Admin Delete API] Firestore sync failed:', dbErr instanceof Error ? dbErr.message : String(dbErr));
+        }
+      }
+
+      
+
+      return res.json({ success: true, message: 'Leaderboard entry deleted permanently' });
+    } catch (err) {
+      console.error("[Admin Delete API] Error:", err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to delete leaderboard entry' });
+    }
+  });
+
+  // Public Research Dataset Retrieval Endpoint with complete cursor-based pagination
+  app.get('/api/research/dataset', async (req, res) => {
+    try {
+      const rawType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : null;
+      const assessmentType = rawType && rawType !== 'all' ? normalizeAssessmentType(rawType) : null;
+      const ageGroup = typeof req.query.ageGroup === 'string' && req.query.ageGroup !== 'all' ? req.query.ageGroup.trim() : null;
+      const completedAtMonth = typeof req.query.completedAtMonth === 'string' && req.query.completedAtMonth !== 'all' ? req.query.completedAtMonth.trim() : null;
+      const limitCount = req.query.limit ? Math.min(Math.max(1, parseInt(String(req.query.limit), 10) || 1000), 5000) : 1000;
+      const cursor = typeof req.query.cursor === 'string' && req.query.cursor.trim() ? req.query.cursor.trim() : null;
+
+      const db = getAdminDb();
+      if (!db) {
+        return res.status(503).json({ success: false, error: 'Database service unavailable', records: [] });
+      }
+
+      const records: any[] = [];
+
+      try {
+        let q: FirebaseFirestore.Query = db.collection('publicDataset');
+
+        if (assessmentType) {
+          const aliases = assessmentType === 'color-recognition'
+            ? ['color-recognition', 'colour-recognition', 'color-test']
+            : [assessmentType];
+          if (aliases.length === 1) {
+            q = q.where('assessmentType', '==', aliases[0]);
+          } else {
+            q = q.where('assessmentType', 'in', aliases);
+          }
+        }
+
+        if (ageGroup) {
+          q = q.where('ageGroup', '==', ageGroup);
+        }
+
+        if (completedAtMonth) {
+          q = q.where('completedAtMonth', '==', completedAtMonth);
+        }
+
+        // Deterministic ordering by doc ID (or createdAt timestamp)
+        q = q.orderBy('__name__');
+
+        if (cursor) {
+          q = q.startAfter(cursor);
+        }
+
+        q = q.limit(limitCount + 1);
+        const snap = await q.get();
+
+        const hasMore = snap.docs.length > limitCount;
+        const pageDocs = hasMore ? snap.docs.slice(0, limitCount) : snap.docs;
+        const nextCursor = hasMore && pageDocs.length > 0 ? pageDocs[pageDocs.length - 1].id : null;
+
+        pageDocs.forEach(docSnap => {
+          const data = docSnap.data();
+
+          let derivedMonth = data.completedAtMonth;
+          if (!derivedMonth && (data.completedAtTimestamp || data.createdAt)) {
+            const d = new Date(data.completedAtTimestamp || data.createdAt);
+            if (!isNaN(d.getTime())) {
+              derivedMonth = d.toISOString().substring(0, 7);
+            }
+          }
+
+          records.push({
+            id: docSnap.id,
+            assessmentType: normalizeAssessmentType(data.assessmentType || 'visual-reaction'),
+            ageGroup: data.ageGroup || undefined,
+            completedAtMonth: derivedMonth || undefined,
+            completedAtTimestamp: data.completedAtTimestamp || data.createdAt,
+            deviceCategory: data.deviceCategory || data.device || undefined,
+            device: data.device,
+            inputModality: data.inputModality || data.inputMethod,
+            displayRefreshRateHz: data.displayRefreshRateHz || data.refreshRateHz || data.refreshRate,
+            refreshRateHz: data.refreshRateHz || data.refreshRate,
+            provenanceToken: data.provenanceToken,
+            trialsDigest: data.trialsDigest,
+            scoreMetric: data.scoreMetric,
+            averageReactionTime: data.averageReactionTime,
+            medianReactionTime: data.medianReactionTime,
+            fastestReactionTime: data.fastestReactionTime,
+            slowestReactionTime: data.slowestReactionTime,
+            longestSeq: data.longestSeq,
+            highestLevel: data.highestLevel,
+            accuracy: data.accuracy,
+            congruentAvg: data.congruentAvg,
+            incongruentAvg: data.incongruentAvg,
+            interferenceCost: data.interferenceCost,
+            progressionTrials: data.progressionTrials || []
+          });
+        });
+
+        return res.json({
+          success: true,
+          count: records.length,
+          hasMore,
+          nextCursor,
+          records
+        });
+      } catch (dbErr) {
+        console.error('[Research Dataset API] Firestore query error:', dbErr instanceof Error ? dbErr.message : String(dbErr));
+        return res.status(500).json({
+          success: false,
+          error: dbErr instanceof Error ? dbErr.message : 'Database query failed',
+          records: []
+        });
+      }
+    } catch (err) {
+      console.error("[Research Dataset API] Error:", err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to retrieve research dataset', records: [] });
+    }
+  });
+
+  // Public Research Dataset Summary Endpoint
+  app.get('/api/research/dataset/summary', async (req, res) => {
+    try {
+      const db = getAdminDb();
+      if (!db) {
+        return res.status(503).json({ success: false, error: 'Database service unavailable' });
+      }
+
+      const counts: Record<string, number> = {
+        'visual-reaction': 0,
+        'direction': 0,
+        'color-recognition': 0,
+        'block-memory': 0,
+        'number-memory': 0
+      };
+      let totalRecords = 0;
+      let totalTrials = 0;
+
+      try {
+        const snap = await db.collection('publicDataset').limit(5000).get();
+        totalRecords = snap.size;
+        snap.docs.forEach(docSnap => {
+          const data = docSnap.data();
+          const normType = normalizeAssessmentType(data.assessmentType || '');
+          if (normType && counts[normType] !== undefined) {
+            counts[normType]++;
+          }
+          if (Array.isArray(data.progressionTrials)) {
+            totalTrials += data.progressionTrials.length;
+          }
+        });
+      } catch (dbErr) {
+        console.error('[Research Summary API] Firestore query error:', dbErr instanceof Error ? dbErr.message : String(dbErr));
+        return res.status(500).json({
+          success: false,
+          error: dbErr instanceof Error ? dbErr.message : 'Database query failed'
+        });
+      }
+
+      return res.json({
+        success: true,
+        totalRecords,
+        totalTrials,
+        counts
+      });
+    } catch (err) {
+      console.error("[Research Summary API] Error:", err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to generate dataset summary' });
+    }
+  });
+
+  // Mobile Auto-Redirection Middleware
+  app.use((req, res, next) => {
+    const url = req.url || '';
+    const pathname = req.path || '';
+
+    // Direct /mobile without trailing slash to /mobile/
+    if (pathname === '/mobile') {
+      const queryString = url.includes('?') ? '?' + url.split('?')[1] : '';
+      return res.redirect(301, `/mobile/${queryString}`);
+    }
+
+    // Ignore API, mobile assets, or static asset requests
+    if (
+      pathname.startsWith('/api') ||
+      pathname.startsWith('/mobile') ||
+      pathname.startsWith('/admin') ||
+      pathname.match(/\.(js|css|json|png|jpg|jpeg|gif|svg|ico|webmanifest|map|woff2?|ttf|eot)$/i)
+    ) {
+      return next();
+    }
+
+    const isForceMobile = url.includes('force_mobile=1') || url.includes('mobile=1');
+
+    if (isForceMobile) {
+      res.setHeader('Set-Cookie', 'pulse_force_desktop=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
+    }
+
+    // Check for explicit override to view desktop version
+    const cookies = parseCookies(req.headers.cookie);
+    const hasForceDesktop =
+      !isForceMobile &&
+      (url.includes('force_desktop=1') ||
+       url.includes('desktop=1') ||
+       cookies['pulse_force_desktop'] === 'true' ||
+       cookies['pulse_force_desktop'] === '1');
+
+    if (hasForceDesktop) {
+      if (url.includes('force_desktop=1') || url.includes('desktop=1')) {
+        res.setHeader('Set-Cookie', 'pulse_force_desktop=true; Path=/; Max-Age=86400');
+      }
+      return next();
+    }
+
+    if (isForceMobile || isMobileUserAgent(req)) {
+      const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') 
+        ? '/' 
+        : pathname;
+      const targetPath = cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`;
+      const queryString = url.includes('?') ? '?' + url.split('?')[1] : '';
+      res.setHeader('Vary', 'User-Agent, Sec-CH-UA-Mobile');
+      return res.redirect(302, targetPath + queryString);
+    }
+
+    next();
+  });
+
+  // Vite middleware for development
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    const { createServer: createViteServer } = await import('vi' + 'te');
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    
+    // Custom SPA fallback for /mobile routes before Vite's default SPA fallback catches it
+    app.use((req, res, next) => {
+      if (req.method === 'GET' && req.headers.accept?.includes('text/html')) {
+        if (req.path.startsWith('/mobile')) {
+          req.url = '/mobile/index.html';
+        }
+      }
+      next();
+    });
+
+    app.use(vite.middlewares);
+  } else {
+    // In production, server.js lives inside dist/
+    let currentDir = process.cwd();
+    try { if (typeof __dirname !== 'undefined') currentDir = __dirname; } catch (e) {}
+    const distPath = fs.existsSync(path.join(currentDir, 'index.html'))
+      ? currentDir
+      : fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'))
+      ? path.join(process.cwd(), 'dist')
+      : process.cwd();
+
+    app.use(express.static(distPath));
+
+    app.get(['/mobile', '/mobile/*'], (_req, res) => {
+      const mobileHtml = path.join(distPath, 'mobile', 'index.html');
+      if (fs.existsSync(mobileHtml)) {
+        res.sendFile(mobileHtml);
+      } else {
+        res.sendFile(path.join(distPath, 'index.html'));
+      }
+    });
+
+    // SPA fallback for all other routes
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+    if (!process.env.VERCEL && !process.env.VERCEL_ENV && !process.env.NOW_REGION) {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on port ${PORT} (NODE_ENV: ${process.env.NODE_ENV || 'development'})`);
+    });
+  }
+}
+
+startServer();
+export default app;
