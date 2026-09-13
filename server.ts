@@ -187,6 +187,20 @@ function deriveForeperiodCategory(foreperiodMs: number | null | undefined): 'SHO
   return null;
 }
 
+const VRT_SHORT_FOREPERIOD_MIN_MS = 100;
+const VRT_SHORT_FOREPERIOD_MAX_MS = 500;
+const VRT_LONG_FOREPERIOD_MIN_MS = 501;
+const VRT_LONG_FOREPERIOD_MAX_MS = 3000;
+
+function generateVrtForeperiod(prng: () => number): { foreperiodMs: number; foreperiodCategory: 'SHORT' | 'LONG' } {
+  const isShort = prng() < 0.5;
+  const foreperiodMs = isShort
+    ? Math.floor(prng() * (VRT_SHORT_FOREPERIOD_MAX_MS - VRT_SHORT_FOREPERIOD_MIN_MS + 1)) + VRT_SHORT_FOREPERIOD_MIN_MS
+    : Math.floor(prng() * (VRT_LONG_FOREPERIOD_MAX_MS - VRT_LONG_FOREPERIOD_MIN_MS + 1)) + VRT_LONG_FOREPERIOD_MIN_MS;
+  const foreperiodCategory: 'SHORT' | 'LONG' = foreperiodMs <= 500 ? 'SHORT' : 'LONG';
+  return { foreperiodMs, foreperiodCategory };
+}
+
 function normalizeSequenceForDigest(val: unknown): (number | string)[] | string | number | null {
   if (Array.isArray(val)) {
     return val.map(x => (typeof x === 'number' ? x : String(x)));
@@ -399,7 +413,8 @@ function seedPRNG(seedStr: string): () => number {
 
 function validateVisualReactionTrial(
   t: any,
-  index: number
+  index: number,
+  expectedForeperiod: { foreperiodMs: number; foreperiodCategory: 'SHORT' | 'LONG' }
 ): { success: boolean; error?: string; foreperiodMs?: number; foreperiodCategory?: 'SHORT' | 'LONG' } {
   const rawFp = t.foreperiodMs !== null && t.foreperiodMs !== undefined
     ? Number(t.foreperiodMs)
@@ -409,16 +424,20 @@ function validateVisualReactionTrial(
     return { success: false, error: `Invalid or missing foreperiod duration in trial ${index + 1}. Must be an integer between 100ms and 3000ms.` };
   }
 
+  if (rawFp !== expectedForeperiod.foreperiodMs) {
+    return { success: false, error: `Trial ${index + 1} foreperiod duration mismatch (${rawFp}ms vs expected server-authoritative ${expectedForeperiod.foreperiodMs}ms).` };
+  }
+
   const expectedCategory = deriveForeperiodCategory(rawFp);
-  if (!expectedCategory) {
+  if (!expectedCategory || expectedCategory !== expectedForeperiod.foreperiodCategory) {
     return { success: false, error: `Invalid foreperiod category derivation for ${rawFp}ms in trial ${index + 1}.` };
   }
 
-  if (t.foreperiodCategory !== undefined && t.foreperiodCategory !== null && t.foreperiodCategory !== expectedCategory) {
-    return { success: false, error: `Foreperiod category mismatch in trial ${index + 1}: got ${t.foreperiodCategory} for ${rawFp}ms.` };
+  if (t.foreperiodCategory !== undefined && t.foreperiodCategory !== null && t.foreperiodCategory !== expectedForeperiod.foreperiodCategory) {
+    return { success: false, error: `Foreperiod category mismatch in trial ${index + 1}: got ${t.foreperiodCategory} for ${rawFp}ms (expected ${expectedForeperiod.foreperiodCategory}).` };
   }
 
-  return { success: true, foreperiodMs: rawFp, foreperiodCategory: expectedCategory };
+  return { success: true, foreperiodMs: expectedForeperiod.foreperiodMs, foreperiodCategory: expectedForeperiod.foreperiodCategory };
 }
 
 function validateDirectionTrial(
@@ -906,7 +925,22 @@ function validateAndDeriveAssessmentFromTrials(
 
       for (let i = 0; i < trials.length; i++) {
         const t = trials[i];
-        const valRes = validateVisualReactionTrial(t, i);
+
+        const trialNumber = Number(t.trialNumber);
+        let attemptNumber = 1;
+        if (i > 0) {
+          const prevTrialNumber = Number(trials[i - 1].trialNumber);
+          const prevAttempt = Number(trials[i - 1].attemptNumber) || 1;
+          attemptNumber = (trialNumber === prevTrialNumber) ? prevAttempt + 1 : 1;
+        }
+        if (t.attemptNumber !== undefined && t.attemptNumber !== null) {
+          attemptNumber = Number(t.attemptNumber);
+        }
+
+        const prng = seedPRNG(`${sessionId}-reaction-delays-t${trialNumber}-a${attemptNumber}`);
+        const expectedForeperiod = generateVrtForeperiod(prng);
+
+        const valRes = validateVisualReactionTrial(t, i, expectedForeperiod);
         if (!valRes.success) {
           return { success: false, error: valRes.error };
         }

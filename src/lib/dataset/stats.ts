@@ -39,11 +39,24 @@ export function computeNumericStats(rawValues: (number | null | undefined)[]): N
   const count = values.length;
 
   if (count === 0) {
-    return { count: 0, mean: null, median: null, p10: null, p25: null, p75: null, p90: null, min: null, max: null, stdDev: null, iqr: null };
+    return {
+      count: 0,
+      mean: null,
+      median: null,
+      p10: null,
+      p25: null,
+      p75: null,
+      p90: null,
+      min: null,
+      max: null,
+      stdDev: null,
+      iqr: null
+    };
   }
 
   const sum = values.reduce((acc, val) => acc + val, 0);
   const mean = sum / count;
+
   const median = calcPercentile(values, 50);
   const p10 = calcPercentile(values, 10);
   const p25 = calcPercentile(values, 25);
@@ -76,11 +89,18 @@ export function computeNumericStats(rawValues: (number | null | undefined)[]): N
   };
 }
 
-export function computeHistogramBins(rawValues: (number | null | undefined)[], numBins = 8, minOverride?: number, maxOverride?: number): HistogramBin[] {
+export function computeHistogramBins(
+  rawValues: (number | null | undefined)[],
+  numBins = 8,
+  minOverride?: number,
+  maxOverride?: number
+): HistogramBin[] {
   const values = extractSortedValidNumbers(rawValues);
   if (values.length === 0) return [];
+
   const rawMin = minOverride !== undefined ? minOverride : values[0];
   const rawMax = maxOverride !== undefined ? maxOverride : values[values.length - 1];
+
   const min = rawMin;
   const max = rawMax === rawMin ? rawMin + 1 : rawMax;
   const range = max - min;
@@ -92,7 +112,14 @@ export function computeHistogramBins(rawValues: (number | null | undefined)[], n
     const isLast = i === numBins - 1;
     const count = values.filter(v => isLast ? (v >= binStart && v <= binEnd) : (v >= binStart && v < binEnd)).length;
     const percentage = Number(((count / values.length) * 100).toFixed(1));
-    return { binStart: Math.round(binStart), binEnd: Math.round(binEnd), binLabel: `${Math.round(binStart)}–${Math.round(binEnd)}`, count, percentage };
+
+    return {
+      binStart: Math.round(binStart),
+      binEnd: Math.round(binEnd),
+      binLabel: `${Math.round(binStart)}–${Math.round(binEnd)}`,
+      count,
+      percentage
+    };
   });
 }
 
@@ -100,55 +127,143 @@ export function computeSummaryStats(observations: DatasetObservation[]): Dataset
   const totalObservations = observations.length;
   const validObservationsList = observations.filter(o => o.isValid);
   const validObservations = validObservationsList.length;
+
   const sessionIds = new Set(observations.map(o => o.sessionId));
   const totalSessions = sessionIds.size;
-  const validLatencies = validObservationsList.map(o => o.latencyMs).filter((l): l is number => typeof l === 'number' && !isNaN(l) && l > 0);
+
+  const validLatencies = validObservationsList
+    .map(o => o.latencyMs)
+    .filter((l): l is number => typeof l === 'number' && !isNaN(l) && l > 0);
+
   const latencyDist = computeNumericStats(validLatencies);
+
   const accuracyTrials = validObservationsList.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
-  const accuracyRate = accuracyTrials.length > 0 ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1)) : null;
+  const accuracyRate = accuracyTrials.length > 0
+    ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1))
+    : null;
+
   const falseStarts = observations.filter(o => o.validityStatus === 'FALSE_START');
-  const falseStartRate = totalObservations > 0 ? Number(((falseStarts.length / totalObservations) * 100).toFixed(1)) : null;
+  const falseStartRate = totalObservations > 0
+    ? Number(((falseStarts.length / totalObservations) * 100).toFixed(1))
+    : null;
+
   const protocolBreakdown: Record<string, number> = {};
   const ageGroupBreakdown: Record<string, number> = {};
   const modalityBreakdown: Record<string, number> = {};
+
   observations.forEach(o => {
     protocolBreakdown[o.assessmentType] = (protocolBreakdown[o.assessmentType] || 0) + 1;
-    if (o.ageGroup) ageGroupBreakdown[o.ageGroup] = (ageGroupBreakdown[o.ageGroup] || 0) + 1;
-    if (o.inputModality) modalityBreakdown[o.inputModality] = (modalityBreakdown[o.inputModality] || 0) + 1;
+    if (o.ageGroup) {
+      ageGroupBreakdown[o.ageGroup] = (ageGroupBreakdown[o.ageGroup] || 0) + 1;
+    }
+    if (o.inputModality) {
+      modalityBreakdown[o.inputModality] = (modalityBreakdown[o.inputModality] || 0) + 1;
+    }
   });
-  return { totalObservations, validObservations, totalSessions, accuracyRate, falseStartRate, medianLatencyMs: latencyDist.median, meanLatencyMs: latencyDist.mean, iqrLatencyMs: latencyDist.iqr, p10LatencyMs: latencyDist.p10, p90LatencyMs: latencyDist.p90, protocolBreakdown, ageGroupBreakdown, modalityBreakdown };
+
+  return {
+    totalObservations,
+    validObservations,
+    totalSessions,
+    accuracyRate,
+    falseStartRate,
+    medianLatencyMs: latencyDist.median,
+    meanLatencyMs: latencyDist.mean,
+    iqrLatencyMs: latencyDist.iqr,
+    p10LatencyMs: latencyDist.p10,
+    p90LatencyMs: latencyDist.p90,
+    protocolBreakdown,
+    ageGroupBreakdown,
+    modalityBreakdown
+  };
 }
 
 export interface VrtProtocolStats {
-  medianRt: number | null; iqrRt: number | null; p10Rt: number | null; p90Rt: number | null; meanRt: number | null; stdDevRt: number | null; falseStartRate: number | null; shortForeperiodMedianRt: number | null; longForeperiodMedianRt: number | null; histogram: HistogramBin[];
-  foreperiodBreakdown: { category: string; count: number; medianRt: number | null; meanRt: number | null; }[];
+  medianRt: number | null;
+  iqrRt: number | null;
+  p10Rt: number | null;
+  p90Rt: number | null;
+  meanRt: number | null;
+  stdDevRt: number | null;
+  falseStartRate: number | null;
+  shortForeperiodMedianRt: number | null;
+  longForeperiodMedianRt: number | null;
+  histogram: HistogramBin[];
+  foreperiodBreakdown: {
+    category: string;
+    count: number;
+    medianRt: number | null;
+    meanRt: number | null;
+  }[];
 }
 
 export function computeVrtStats(observations: DatasetObservation[]): VrtProtocolStats {
   const vrtObs = observations.filter(o => o.assessmentType === 'visual-reaction');
-  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= 80);
+  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= 100);
   const latencies = validVrt.map(o => o.latencyMs);
   const dist = computeNumericStats(latencies);
+
   const falseStarts = vrtObs.filter(o => o.validityStatus === 'FALSE_START');
   const falseStartRate = vrtObs.length > 0 ? Number(((falseStarts.length / vrtObs.length) * 100).toFixed(1)) : null;
-  const shortFpTrials = validVrt.filter(o => o.foreperiodCategory === 'SHORT' || (typeof o.foreperiodMs === 'number' && o.foreperiodMs >= 100 && o.foreperiodMs <= 500));
-  const longFpTrials = validVrt.filter(o => o.foreperiodCategory === 'LONG' || (typeof o.foreperiodMs === 'number' && o.foreperiodMs >= 501 && o.foreperiodMs <= 3000));
+
+  const shortFpTrials = validVrt.filter(o => {
+    if (o.foreperiodCategory === 'SHORT') return true;
+    if (typeof o.foreperiodMs === 'number') return o.foreperiodMs >= 100 && o.foreperiodMs <= 500;
+    return false;
+  });
+  const longFpTrials = validVrt.filter(o => {
+    if (o.foreperiodCategory === 'LONG') return true;
+    if (typeof o.foreperiodMs === 'number') return o.foreperiodMs >= 501 && o.foreperiodMs <= 3000;
+    return false;
+  });
+
   const shortFpStats = computeNumericStats(shortFpTrials.map(o => o.latencyMs));
   const longFpStats = computeNumericStats(longFpTrials.map(o => o.latencyMs));
+
   const histogram = computeHistogramBins(latencies, 8);
+
   return {
-    medianRt: dist.median, iqrRt: dist.iqr, p10Rt: dist.p10, p90Rt: dist.p90, meanRt: dist.mean, stdDevRt: dist.stdDev, falseStartRate,
-    shortForeperiodMedianRt: shortFpStats.median, longForeperiodMedianRt: longFpStats.median, histogram,
+    medianRt: dist.median,
+    iqrRt: dist.iqr,
+    p10Rt: dist.p10,
+    p90Rt: dist.p90,
+    meanRt: dist.mean,
+    stdDevRt: dist.stdDev,
+    falseStartRate,
+    shortForeperiodMedianRt: shortFpStats.median,
+    longForeperiodMedianRt: longFpStats.median,
+    histogram,
     foreperiodBreakdown: [
-      { category: 'Short Foreperiod (100–500 ms)', count: shortFpTrials.length, medianRt: shortFpStats.median, meanRt: shortFpStats.mean },
-      { category: 'Long Foreperiod (501–3000 ms)', count: longFpTrials.length, medianRt: longFpStats.median, meanRt: longFpStats.mean }
+      {
+        category: 'Short Foreperiod (100–500 ms)',
+        count: shortFpTrials.length,
+        medianRt: shortFpStats.median,
+        meanRt: shortFpStats.mean
+      },
+      {
+        category: 'Long Foreperiod (501–3000 ms)',
+        count: longFpTrials.length,
+        medianRt: longFpStats.median,
+        meanRt: longFpStats.mean
+      }
     ]
   };
 }
 
 export interface DirectionProtocolStats {
-  medianRt: number | null; meanRt: number | null; iqrRt: number | null; p10Rt: number | null; accuracyRate: number | null; errorRate: number | null;
-  directionBreakdown: { direction: string; count: number; accuracy: number | null; medianRt: number | null; }[]; histogram: HistogramBin[];
+  medianRt: number | null;
+  meanRt: number | null;
+  iqrRt: number | null;
+  p10Rt: number | null;
+  accuracyRate: number | null;
+  errorRate: number | null;
+  directionBreakdown: {
+    direction: string;
+    count: number;
+    accuracy: number | null;
+    medianRt: number | null;
+  }[];
+  histogram: HistogramBin[];
 }
 
 export function computeDirectionStats(observations: DatasetObservation[]): DirectionProtocolStats {
@@ -156,29 +271,55 @@ export function computeDirectionStats(observations: DatasetObservation[]): Direc
   const validDrt = drtObs.filter(o => o.isValid && typeof o.latencyMs === 'number');
   const latencies = validDrt.map(o => o.latencyMs);
   const dist = computeNumericStats(latencies);
+
   const accuracyTrials = validDrt.filter(o => o.isCorrect !== null);
-  const accuracyRate = accuracyTrials.length > 0 ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1)) : null;
+  const accuracyRate = accuracyTrials.length > 0
+    ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1))
+    : null;
   const errorRate = accuracyRate !== null ? Number((100 - accuracyRate).toFixed(1)) : null;
+
   const directions = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
   const directionBreakdown = directions.map(dir => {
     const dirTrials = validDrt.filter(o => o.targetDirection?.toUpperCase() === dir);
     const correctCount = dirTrials.filter(o => o.isCorrect === true).length;
     const acc = dirTrials.length > 0 ? Number(((correctCount / dirTrials.length) * 100).toFixed(1)) : null;
     const dirRtStats = computeNumericStats(dirTrials.map(o => o.latencyMs));
-    return { direction: dir, count: dirTrials.length, accuracy: acc, medianRt: dirRtStats.median };
+
+    return {
+      direction: dir,
+      count: dirTrials.length,
+      accuracy: acc,
+      medianRt: dirRtStats.median
+    };
   });
+
   const histogram = computeHistogramBins(latencies, 8);
-  return { medianRt: dist.median, meanRt: dist.mean, iqrRt: dist.iqr, p10Rt: dist.p10, accuracyRate, errorRate, directionBreakdown, histogram };
+
+  return {
+    medianRt: dist.median,
+    meanRt: dist.mean,
+    iqrRt: dist.iqr,
+    p10Rt: dist.p10,
+    accuracyRate,
+    errorRate,
+    directionBreakdown,
+    histogram
+  };
 }
 
 export interface ColourProtocolStats {
   congruentMeanRt: number | null;
   incongruentMeanRt: number | null;
   interferenceCost: number | null;
-  overallMeanRt: number | null;
   overallMedianRt: number | null;
   accuracyRate: number | null;
-  conditionBreakdown: { condition: string; count: number; meanRt: number | null; medianRt: number | null; accuracy: number | null; }[];
+  conditionBreakdown: {
+    condition: string;
+    count: number;
+    meanRt: number | null;
+    medianRt: number | null;
+    accuracy: number | null;
+  }[];
   histogram: HistogramBin[];
 }
 
@@ -186,102 +327,238 @@ export function computeColourStats(observations: DatasetObservation[]): ColourPr
   const crtObs = observations.filter(o => o.assessmentType === 'color-recognition' || o.assessmentType === 'colour-recognition');
   const validCrt = crtObs.filter(o => o.isValid && typeof o.latencyMs === 'number');
   const overallDist = computeNumericStats(validCrt.map(o => o.latencyMs));
+
   const congruentTrials = validCrt.filter(o => o.condition === 'congruent');
   const incongruentTrials = validCrt.filter(o => o.condition === 'incongruent');
+
   const congStats = computeNumericStats(congruentTrials.map(o => o.latencyMs));
   const incongStats = computeNumericStats(incongruentTrials.map(o => o.latencyMs));
+
   const congMean = congStats.mean;
   const incongMean = incongStats.mean;
-  const interferenceCost = incongMean !== null && congMean !== null ? Number((incongMean - congMean).toFixed(1)) : null;
+  const interferenceCost = incongMean !== null && congMean !== null
+    ? Number((incongMean - congMean).toFixed(1))
+    : null;
+
   const accuracyTrials = validCrt.filter(o => o.isCorrect !== null);
-  const accuracyRate = accuracyTrials.length > 0 ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1)) : null;
+  const accuracyRate = accuracyTrials.length > 0
+    ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1))
+    : null;
+
   const congAccTrials = congruentTrials.filter(o => o.isCorrect !== null);
   const incongAccTrials = incongruentTrials.filter(o => o.isCorrect !== null);
+
   const conditionBreakdown = [
-    { condition: 'Congruent (Matching)', count: congruentTrials.length, meanRt: congStats.mean, medianRt: congStats.median, accuracy: congAccTrials.length > 0 ? Number(((congAccTrials.filter(o => o.isCorrect === true).length / congAccTrials.length) * 100).toFixed(1)) : null },
-    { condition: 'Incongruent (Interfering)', count: incongruentTrials.length, meanRt: incongStats.mean, medianRt: incongStats.median, accuracy: incongAccTrials.length > 0 ? Number(((incongAccTrials.filter(o => o.isCorrect === true).length / incongAccTrials.length) * 100).toFixed(1)) : null }
+    {
+      condition: 'Congruent (Matching)',
+      count: congruentTrials.length,
+      meanRt: congStats.mean,
+      medianRt: congStats.median,
+      accuracy: congAccTrials.length > 0 ? Number(((congAccTrials.filter(o => o.isCorrect === true).length / congAccTrials.length) * 100).toFixed(1)) : null
+    },
+    {
+      condition: 'Incongruent (Interfering)',
+      count: incongruentTrials.length,
+      meanRt: incongStats.mean,
+      medianRt: incongStats.median,
+      accuracy: incongAccTrials.length > 0 ? Number(((incongAccTrials.filter(o => o.isCorrect === true).length / incongAccTrials.length) * 100).toFixed(1)) : null
+    }
   ];
+
   const histogram = computeHistogramBins(validCrt.map(o => o.latencyMs), 8);
-  return { congruentMeanRt: congMean, incongruentMeanRt: incongMean, interferenceCost, overallMeanRt: overallDist.mean, overallMedianRt: overallDist.median, accuracyRate, conditionBreakdown, histogram };
+
+  return {
+    congruentMeanRt: congMean,
+    incongruentMeanRt: incongMean,
+    interferenceCost,
+    overallMedianRt: overallDist.median,
+    accuracyRate,
+    conditionBreakdown,
+    histogram
+  };
 }
 
 export interface BlockMemoryProtocolStats {
-  medianSpan: number | null; maxSpan: number | null; meanInterTapRt: number | null; successRate: number | null;
-  spanDistribution: { span: number; count: number; percentage: number; }[];
-  progressionCurve: { sequenceLength: number; attemptCount: number; accuracyRate: number | null; }[];
+  medianSpan: number | null;
+  maxSpan: number | null;
+  meanInterTapRt: number | null;
+  successRate: number | null;
+  spanDistribution: {
+    span: number;
+    count: number;
+    percentage: number;
+  }[];
+  progressionCurve: {
+    level: number;
+    attemptCount: number;
+    accuracyRate: number | null;
+  }[];
 }
 
 export function computeBlockMemoryStats(observations: DatasetObservation[]): BlockMemoryProtocolStats {
   const bmtObs = observations.filter(o => o.assessmentType === 'block-memory');
   const validBmt = bmtObs.filter(o => o.isValid);
-  const spans = validBmt.map(o => o.sequenceLength).filter((s): s is number => typeof s === 'number' && isFinite(s) && s > 0);
+
+  const spans = validBmt.map(o => o.sequenceLength || o.level).filter((s): s is number => typeof s === 'number' && s > 0);
   const spanStats = computeNumericStats(spans);
+
   const interTapTimes = validBmt.map(o => o.interTapTimeMs).filter((t): t is number => typeof t === 'number' && t > 0);
   const interTapStats = computeNumericStats(interTapTimes);
+
   const accuracyTrials = validBmt.filter(o => o.isCorrect !== null);
-  const successRate = accuracyTrials.length > 0 ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1)) : null;
+  const successRate = accuracyTrials.length > 0
+    ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1))
+    : null;
+
   const spanCounts: Record<number, number> = {};
-  spans.forEach(s => { spanCounts[s] = (spanCounts[s] || 0) + 1; });
-  const spanDistribution = Object.keys(spanCounts).map(Number).sort((a, b) => a - b).map(span => ({ span, count: spanCounts[span], percentage: spans.length > 0 ? Number(((spanCounts[span] / spans.length) * 100).toFixed(1)) : 0 }));
-  const uniqueLengths = Array.from(new Set(validBmt.map(o => o.sequenceLength).filter((s): s is number => typeof s === 'number'))).sort((a, b) => a - b);
-  const progressionCurve = uniqueLengths.map(seqLen => {
-    const lengthTrials = validBmt.filter(o => o.sequenceLength === seqLen);
-    const correctCount = lengthTrials.filter(o => o.isCorrect === true).length;
-    const acc = lengthTrials.length > 0 ? Number(((correctCount / lengthTrials.length) * 100).toFixed(1)) : null;
-    return { sequenceLength: seqLen, attemptCount: lengthTrials.length, accuracyRate: acc };
+  spans.forEach(s => {
+    spanCounts[s] = (spanCounts[s] || 0) + 1;
   });
-  return { medianSpan: spanStats.median, maxSpan: spanStats.max, meanInterTapRt: interTapStats.mean, successRate, spanDistribution, progressionCurve };
+
+  const spanDistribution = Object.keys(spanCounts)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map(span => ({
+      span,
+      count: spanCounts[span],
+      percentage: spans.length > 0 ? Number(((spanCounts[span] / spans.length) * 100).toFixed(1)) : 0
+    }));
+
+  const levels = Array.from(new Set(validBmt.map(o => o.level).filter((l): l is number => typeof l === 'number'))).sort((a, b) => a - b);
+  const progressionCurve = levels.map(level => {
+    const levelTrials = validBmt.filter(o => o.level === level);
+    const correctCount = levelTrials.filter(o => o.isCorrect === true).length;
+    const acc = levelTrials.length > 0 ? Number(((correctCount / levelTrials.length) * 100).toFixed(1)) : null;
+
+    return {
+      level,
+      attemptCount: levelTrials.length,
+      accuracyRate: acc
+    };
+  });
+
+  return {
+    medianSpan: spanStats.median,
+    maxSpan: spanStats.max,
+    meanInterTapRt: interTapStats.mean,
+    successRate,
+    spanDistribution,
+    progressionCurve
+  };
 }
 
 export interface NumberMemoryProtocolStats {
-  medianDigitSpan: number | null; maxDigitSpan: number | null; meanEntryLatency: number | null; recallAccuracyRate: number | null;
-  digitSpanDistribution: { digitLength: number; count: number; percentage: number; }[];
-  progressionCurve: { digitLength: number; attemptCount: number; accuracyRate: number | null; }[];
+  medianDigitSpan: number | null;
+  maxDigitSpan: number | null;
+  meanEntryLatency: number | null;
+  recallAccuracyRate: number | null;
+  digitSpanDistribution: {
+    digitLength: number;
+    count: number;
+    percentage: number;
+  }[];
+  progressionCurve: {
+    digitLength: number;
+    attemptCount: number;
+    accuracyRate: number | null;
+  }[];
 }
 
 export function computeNumberMemoryStats(observations: DatasetObservation[]): NumberMemoryProtocolStats {
   const nmtObs = observations.filter(o => o.assessmentType === 'number-memory');
   const validNmt = nmtObs.filter(o => o.isValid);
-  const digitLengths = validNmt.map(o => o.sequenceLength).filter((s): s is number => typeof s === 'number' && isFinite(s) && s > 0);
+
+  const digitLengths = validNmt.map(o => o.sequenceLength || o.level).filter((s): s is number => typeof s === 'number' && s > 0);
   const spanStats = computeNumericStats(digitLengths);
+
   const latencies = validNmt.map(o => o.latencyMs).filter((l): l is number => typeof l === 'number' && l > 0);
   const latencyStats = computeNumericStats(latencies);
+
   const accuracyTrials = validNmt.filter(o => o.isCorrect !== null);
-  const recallAccuracyRate = accuracyTrials.length > 0 ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1)) : null;
+  const recallAccuracyRate = accuracyTrials.length > 0
+    ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1))
+    : null;
+
   const lengthCounts: Record<number, number> = {};
-  digitLengths.forEach(d => { lengthCounts[d] = (lengthCounts[d] || 0) + 1; });
-  const digitSpanDistribution = Object.keys(lengthCounts).map(Number).sort((a, b) => a - b).map(digitLength => ({ digitLength, count: lengthCounts[digitLength], percentage: digitLengths.length > 0 ? Number(((lengthCounts[digitLength] / digitLengths.length) * 100).toFixed(1)) : 0 }));
+  digitLengths.forEach(d => {
+    lengthCounts[d] = (lengthCounts[d] || 0) + 1;
+  });
+
+  const digitSpanDistribution = Object.keys(lengthCounts)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map(digitLength => ({
+      digitLength,
+      count: lengthCounts[digitLength],
+      percentage: digitLengths.length > 0 ? Number(((lengthCounts[digitLength] / digitLengths.length) * 100).toFixed(1)) : 0
+    }));
+
   const uniqueLengths = Array.from(new Set(digitLengths)).sort((a, b) => a - b);
   const progressionCurve = uniqueLengths.map(digitLength => {
-    const lengthTrials = validNmt.filter(o => o.sequenceLength === digitLength);
+    const lengthTrials = validNmt.filter(o => (o.sequenceLength || o.level) === digitLength);
     const correctCount = lengthTrials.filter(o => o.isCorrect === true).length;
     const acc = lengthTrials.length > 0 ? Number(((correctCount / lengthTrials.length) * 100).toFixed(1)) : null;
-    return { digitLength, attemptCount: lengthTrials.length, accuracyRate: acc };
+
+    return {
+      digitLength,
+      attemptCount: lengthTrials.length,
+      accuracyRate: acc
+    };
   });
-  return { medianDigitSpan: spanStats.median, maxDigitSpan: spanStats.max, meanEntryLatency: latencyStats.mean, recallAccuracyRate, digitSpanDistribution, progressionCurve };
+
+  return {
+    medianDigitSpan: spanStats.median,
+    maxDigitSpan: spanStats.max,
+    meanEntryLatency: latencyStats.mean,
+    recallAccuracyRate,
+    digitSpanDistribution,
+    progressionCurve
+  };
 }
 
 export interface SubgroupCohortStat {
-  groupKey: string; groupLabel: string; sampleCount: number; medianLatency: number | null; meanLatency: number | null; accuracyRate: number | null;
+  groupKey: string;
+  groupLabel: string;
+  sampleCount: number;
+  medianLatency: number | null;
+  meanLatency: number | null;
+  accuracyRate: number | null;
 }
 
-export function computeSubgroupStratification(observations: DatasetObservation[], groupBy: 'ageGroup' | 'inputModality' | 'refreshRateHz' | 'completedAtMonth'): SubgroupCohortStat[] {
+export function computeSubgroupStratification(
+  observations: DatasetObservation[],
+  groupBy: 'ageGroup' | 'inputModality' | 'refreshRateHz' | 'completedAtMonth'
+): SubgroupCohortStat[] {
   const groups: Record<string, DatasetObservation[]> = {};
+
   observations.forEach(o => {
     let key = 'unknown';
     if (groupBy === 'ageGroup') key = o.ageGroup || 'unspecified';
     else if (groupBy === 'inputModality') key = o.inputModality || 'unknown';
     else if (groupBy === 'refreshRateHz') key = typeof o.refreshRateHz === 'number' ? `${o.refreshRateHz} Hz` : 'Unspecified';
     else if (groupBy === 'completedAtMonth') key = o.completedAtMonth || 'unspecified';
+
     if (!groups[key]) groups[key] = [];
     groups[key].push(o);
   });
+
   return Object.entries(groups).map(([groupKey, groupObs]) => {
     const validObs = groupObs.filter(o => o.isValid);
     const latencies = validObs.map(o => o.latencyMs).filter((l): l is number => typeof l === 'number' && l > 0);
     const dist = computeNumericStats(latencies);
+
     const accTrials = validObs.filter(o => o.isCorrect !== null);
-    const accRate = accTrials.length > 0 ? Number(((accTrials.filter(o => o.isCorrect === true).length / accTrials.length) * 100).toFixed(1)) : null;
-    return { groupKey, groupLabel: groupKey.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), sampleCount: groupObs.length, medianLatency: dist.median, meanLatency: dist.mean, accuracyRate: accRate };
+    const accRate = accTrials.length > 0
+      ? Number(((accTrials.filter(o => o.isCorrect === true).length / accTrials.length) * 100).toFixed(1))
+      : null;
+
+    return {
+      groupKey,
+      groupLabel: groupKey.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      sampleCount: groupObs.length,
+      medianLatency: dist.median,
+      meanLatency: dist.mean,
+      accuracyRate: accRate
+    };
   });
 }

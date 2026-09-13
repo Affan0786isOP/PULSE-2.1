@@ -14,20 +14,21 @@ export function BlockMemoryDashboard({ observations }: BlockMemoryDashboardProps
   
   const spanDistributionData = useMemo(() => {
     return stats.spanDistribution.map(d => ({
-      label: `Span ${d.span}`,
+      label: `Lvl ${d.span}`,
       value: d.percentage
     }));
   }, [stats]);
 
   const progressionData = useMemo(() => {
     return stats.progressionCurve.map(p => ({
-      x: String(p.sequenceLength),
+      x: String(p.level),
       accuracy: p.accuracyRate
     }));
   }, [stats]);
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Top Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <MetricStatVisual
           label="Median Spatial Span"
@@ -50,6 +51,7 @@ export function BlockMemoryDashboard({ observations }: BlockMemoryDashboardProps
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Main Progression Line */}
         <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-subtle)] p-1 h-[320px]">
           <LineTimeSeriesChart
             title="Spatial Memory Degradation Curve"
