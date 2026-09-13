@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { DatasetObservation } from '../../../lib/dataset/types';
-import { computeVrtStats, computeSubgroupStratification } from '../../../lib/dataset/stats';
+import { computeVrtStats, computeNumericStats, computeSubgroupStratification } from '../../../lib/dataset/stats';
 import { HistogramDistribution } from './HistogramDistribution';
 import { PercentileSummaryVisual } from './PercentileSummaryVisual';
 import { GroupedComparisonChart } from './GroupedComparisonChart';
@@ -13,6 +13,13 @@ interface VisualReactionDashboardProps {
 
 export function VisualReactionDashboard({ observations }: VisualReactionDashboardProps) {
   const stats = useMemo(() => computeVrtStats(observations), [observations]);
+
+  const distributionStats = useMemo(() => {
+    const validLatencies = observations
+      .filter(o => o.assessmentType === 'visual-reaction' && o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= 100)
+      .map(o => o.latencyMs);
+    return computeNumericStats(validLatencies);
+  }, [observations]);
   
   const ageGroupComparison = useMemo(() => {
     return computeSubgroupStratification(observations, 'ageGroup')
@@ -25,7 +32,6 @@ export function VisualReactionDashboard({ observations }: VisualReactionDashboar
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Top Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <MetricStatVisual
           label="Median Reaction Time"
@@ -42,8 +48,8 @@ export function VisualReactionDashboard({ observations }: VisualReactionDashboar
         <MetricStatVisual
           label="Preparatory Latency Decay"
           value={
-            stats.longForeperiodMedianRt && stats.shortForeperiodMedianRt 
-              ? stats.longForeperiodMedianRt - stats.shortForeperiodMedianRt 
+            stats.longForeperiodMedianRt !== null && stats.shortForeperiodMedianRt !== null
+              ? stats.longForeperiodMedianRt - stats.shortForeperiodMedianRt
               : null
           }
           unit="ms"
@@ -52,7 +58,6 @@ export function VisualReactionDashboard({ observations }: VisualReactionDashboar
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Main Distribution Histogram */}
         <HistogramDistribution
           bins={stats.histogram}
           mean={stats.meanRt}
@@ -65,19 +70,7 @@ export function VisualReactionDashboard({ observations }: VisualReactionDashboar
 
         <div className="flex flex-col gap-4">
           <PercentileSummaryVisual
-            stats={{
-              count: 0,
-              min: 0,
-              max: 0,
-              mean: stats.meanRt,
-              median: stats.medianRt,
-              p10: stats.p10Rt,
-              p25: null,
-              p75: null,
-              p90: stats.p90Rt,
-              stdDev: stats.stdDevRt,
-              iqr: stats.iqrRt
-            }}
+            stats={distributionStats}
             title="Parametric Percentiles"
             subtitle="Whisker range with interquartile band (IQR) and median p50"
             unit="ms"
