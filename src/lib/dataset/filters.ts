@@ -93,8 +93,8 @@ export function applyDatasetFilters(
       const roundedHz = Math.round(hz);
       if (filters.refreshRate === '60' && hz !== 60 && roundedHz !== 60) return false;
       if (filters.refreshRate === '120' && hz !== 120 && roundedHz !== 120) return false;
-      // 144+ is a true threshold: values below 144 Hz must never pass because they round to 144.
-      if (filters.refreshRate === '144plus' && Math.round(hz) < 144 && hz < 144) return false;
+      // 144+ is a true threshold: values below 144 Hz must never pass.
+      if (filters.refreshRate === '144plus' && hz < 144) return false;
     }
 
     return true;
