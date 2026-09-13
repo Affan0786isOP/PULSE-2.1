@@ -10,23 +10,19 @@ import { deriveForeperiodCategory } from '../protocolValidators';
 export function normalizeAgeGroupKey(ageGroup?: string | null): DemographicAgeGroup {
   if (!ageGroup || typeof ageGroup !== 'string') return 'unspecified';
   const clean = ageGroup.trim().toLowerCase();
-  
   if (clean === 'all') return 'all';
   if (clean.includes('children') || clean.includes('8–12') || clean.includes('8-12') || clean === '< 13' || clean === '<13') return 'children';
   if (clean.includes('adolescent') || clean.includes('13–17') || clean.includes('13-17')) return 'adolescents';
-  
   if (clean.includes('18–24') || clean.includes('18-24')) return 'legacy-18-24';
   if (clean.includes('25–34') || clean.includes('25-34')) return 'legacy-25-34';
   if (clean.includes('35–54') || clean.includes('35-54')) return 'legacy-35-54';
   if (clean.includes('55–64') || clean.includes('55-64')) return 'legacy-55-64';
   if (clean.includes('65+') || clean.includes('65 plus')) return 'legacy-65-plus';
-
   if (clean.includes('18–25') || clean.includes('18-25') || clean === 'young adults' || clean === 'young adults (18-25)') return 'young-adults';
   if (clean.includes('26–40') || clean.includes('26-40') || clean === 'adults' || clean === 'adults (26-40)') return 'adults';
   if (clean.includes('41–60') || clean.includes('41-60') || clean.includes('middle-aged') || clean.includes('middle aged')) return 'middle-aged';
   if (clean.includes('61–75') || clean.includes('61-75') || clean === 'older adults' || clean === 'older adults (61-75)') return 'older-adults';
   if (clean.includes('76+') || clean.includes('76 plus') || clean === 'seniors' || clean === 'seniors (76+)') return 'seniors';
-
   return 'unspecified';
 }
 
@@ -70,7 +66,6 @@ export function normalizeInputModality(explicitModality?: string): InputModality
 export function normalizeSessionToObservations(record: ResearchSessionRecord): DatasetObservation[] {
   const trials = record.progressionTrials || [];
   const pType = normalizeProtocolType(record.assessmentType);
-
   if (trials.length === 0) return [];
 
   let completedAtMonth = record.completedAtMonth;
@@ -84,13 +79,10 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
   const sessionDeviceCat = record.deviceCategory === 'mobile' || record.device === 'mobile'
     ? 'mobile'
     : (record.deviceCategory === 'desktop' || record.device === 'desktop' ? 'desktop' : 'unknown');
-
   const sessionModality = normalizeInputModality(record.inputModality || record.inputMethod);
   const sessionRefreshRate: number | null = typeof record.displayRefreshRateHz === 'number'
     ? record.displayRefreshRateHz
-    : (typeof record.refreshRateHz === 'number'
-      ? record.refreshRateHz
-      : (typeof record.refreshRate === 'number' ? record.refreshRate : null));
+    : (typeof record.refreshRateHz === 'number' ? record.refreshRateHz : (typeof record.refreshRate === 'number' ? record.refreshRate : null));
 
   return trials.map((t, idx) => {
     const rawRt = t.reactionTime ?? t.inputLatencyMs ?? t.rawRt ?? t.rawReactionTime ?? t.rawLatencyMs;
@@ -98,34 +90,21 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     const isTimeout = t.timedOut === true;
     const isCorrect = typeof t.correct === 'boolean'
       ? t.correct
-      : (typeof t.correctness === 'boolean'
-        ? t.correctness
-        : (typeof t.accuracy === 'number' ? t.accuracy === 1 : null));
+      : (typeof t.correctness === 'boolean' ? t.correctness : (typeof t.accuracy === 'number' ? t.accuracy === 1 : null));
 
     let validityStatus: 'VALID' | 'FALSE_START' | 'TIMEOUT' | 'INCORRECT' | 'ABORTED' = 'VALID';
     let isValid = true;
-
     if (isFalseStart || t.validity === 'FALSE_START_PRE_STIMULUS' || t.validity === 'ANTICIPATORY_TOO_FAST') {
-      isValid = false;
-      validityStatus = 'FALSE_START';
+      isValid = false; validityStatus = 'FALSE_START';
     } else if (isTimeout || t.validity === 'TIMEOUT') {
-      isValid = false;
-      validityStatus = 'TIMEOUT';
+      isValid = false; validityStatus = 'TIMEOUT';
     } else if (t.valid === false || t.validity === 'INVALID' || t.validity === 'ABORTED') {
-      isValid = false;
-      validityStatus = 'ABORTED';
+      isValid = false; validityStatus = 'ABORTED';
     } else if (isCorrect === false || t.validity === 'INCORRECT') {
-      isValid = true;
-      validityStatus = 'INCORRECT';
-    } else {
-      isValid = true;
-      validityStatus = 'VALID';
+      isValid = true; validityStatus = 'INCORRECT';
     }
 
     let foreperiodCategory: 'SHORT' | 'LONG' | null = null;
-    // Numeric foreperiod is authoritative; only fall back to the stored category when
-    // the numeric value is unavailable. This prevents contradictory telemetry from
-    // silently assigning the wrong Short/Long research bucket.
     if (typeof t.foreperiodMs === 'number' && Number.isFinite(t.foreperiodMs)) {
       foreperiodCategory = deriveForeperiodCategory(t.foreperiodMs);
     } else if (t.foreperiodCategory === 'SHORT' || t.foreperiodCategory === 'LONG') {
@@ -135,9 +114,13 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     const explicitTrialModality = normalizeInputModality(t.inputModality || t.inputMethod);
     const trialModality = explicitTrialModality !== 'unknown' ? explicitTrialModality : sessionModality;
     const trialRefreshRate: number | null = typeof t.refreshRateHz === 'number' ? t.refreshRateHz : sessionRefreshRate;
+    const trialNumber = typeof t.trialNumber === 'number' && Number.isFinite(t.trialNumber) ? t.trialNumber : idx + 1;
+    const attemptNumber = typeof t.attemptNumber === 'number' && Number.isFinite(t.attemptNumber) ? t.attemptNumber : 1;
+    const sequenceNumber = typeof t.sequenceNumber === 'number' && Number.isFinite(t.sequenceNumber) ? t.sequenceNumber : idx + 1;
 
     return {
-      obsId: `${record.id}-t${t.trialNumber || idx + 1}`,
+      // Keep retry/sequence identity so repeated trialNumber values cannot collapse into one observation.
+      obsId: `${record.id}-s${sequenceNumber}-t${trialNumber}-a${attemptNumber}`,
       sessionId: record.id,
       assessmentType: pType,
       rawAssessmentType: record.assessmentType,
@@ -147,7 +130,9 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
       deviceCategory: sessionDeviceCat,
       inputModality: trialModality,
       refreshRateHz: trialRefreshRate,
-      trialIndex: t.trialNumber || idx + 1,
+      trialIndex: trialNumber,
+      attemptNumber,
+      sequenceNumber,
       latencyMs: typeof rawRt === 'number' ? rawRt : null,
       rawLatencyMs: typeof t.rawLatencyMs === 'number' ? t.rawLatencyMs : (typeof t.rawRt === 'number' ? t.rawRt : null),
       displayDelayOffsetMs: typeof t.displayDelayOffsetMs === 'number' ? t.displayDelayOffsetMs : null,
