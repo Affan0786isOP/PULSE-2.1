@@ -1,10 +1,4 @@
-import {
-  ProtocolType,
-  DemographicAgeGroup,
-  InputModality,
-  DatasetObservation,
-  ResearchSessionRecord,
-} from './types';
+import { ProtocolType, DemographicAgeGroup, InputModality, DatasetObservation, ResearchSessionRecord } from './types';
 import { deriveForeperiodCategory } from '../protocolValidators';
 
 export function normalizeAgeGroupKey(ageGroup?: string | null): DemographicAgeGroup {
@@ -29,20 +23,7 @@ export function normalizeAgeGroupKey(ageGroup?: string | null): DemographicAgeGr
 export function getAuthoritativeAgeLabel(keyOrLabel?: string | null): string {
   const key = normalizeAgeGroupKey(keyOrLabel);
   switch (key) {
-    case 'children': return 'Children (8–12)';
-    case 'adolescents': return 'Adolescents (13–17)';
-    case 'young-adults': return 'Young adults (18–25)';
-    case 'adults': return 'Adults (26–40)';
-    case 'middle-aged': return 'Middle-aged adults (41–60)';
-    case 'older-adults': return 'Older adults (61–75)';
-    case 'seniors': return 'Seniors (76+)';
-    case 'legacy-18-24': return 'Legacy (18–24)';
-    case 'legacy-25-34': return 'Legacy (25–34)';
-    case 'legacy-35-54': return 'Legacy (35–54)';
-    case 'legacy-55-64': return 'Legacy (55–64)';
-    case 'legacy-65-plus': return 'Legacy (65+)';
-    case 'all': return 'All Cohorts';
-    default: return 'Unspecified';
+    case 'children': return 'Children (8–12)'; case 'adolescents': return 'Adolescents (13–17)'; case 'young-adults': return 'Young adults (18–25)'; case 'adults': return 'Adults (26–40)'; case 'middle-aged': return 'Middle-aged adults (41–60)'; case 'older-adults': return 'Older adults (61–75)'; case 'seniors': return 'Seniors (76+)'; case 'legacy-18-24': return 'Legacy (18–24)'; case 'legacy-25-34': return 'Legacy (25–34)'; case 'legacy-35-54': return 'Legacy (35–54)'; case 'legacy-55-64': return 'Legacy (55–64)'; case 'legacy-65-plus': return 'Legacy (65+)'; case 'all': return 'All Cohorts'; default: return 'Unspecified';
   }
 }
 
@@ -67,49 +48,32 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
   const trials = record.progressionTrials || [];
   const pType = normalizeProtocolType(record.assessmentType);
   if (trials.length === 0) return [];
-
   let completedAtMonth = record.completedAtMonth;
   if (!completedAtMonth && typeof record.completedAtTimestamp === 'number') {
     const d = new Date(record.completedAtTimestamp);
     if (!isNaN(d.getTime())) completedAtMonth = d.toISOString().substring(0, 7);
   }
   completedAtMonth = completedAtMonth || 'unspecified';
-
   const sessionAgeGroup = normalizeAgeGroupKey(record.ageGroup);
-  const sessionDeviceCat = record.deviceCategory === 'mobile' || record.device === 'mobile'
-    ? 'mobile'
-    : (record.deviceCategory === 'desktop' || record.device === 'desktop' ? 'desktop' : 'unknown');
+  const sessionDeviceCat = record.deviceCategory === 'mobile' || record.device === 'mobile' ? 'mobile' : (record.deviceCategory === 'desktop' || record.device === 'desktop' ? 'desktop' : 'unknown');
   const sessionModality = normalizeInputModality(record.inputModality || record.inputMethod);
-  const sessionRefreshRate: number | null = typeof record.displayRefreshRateHz === 'number'
-    ? record.displayRefreshRateHz
-    : (typeof record.refreshRateHz === 'number' ? record.refreshRateHz : (typeof record.refreshRate === 'number' ? record.refreshRate : null));
+  const sessionRefreshRate: number | null = typeof record.displayRefreshRateHz === 'number' ? record.displayRefreshRateHz : (typeof record.refreshRateHz === 'number' ? record.refreshRateHz : (typeof record.refreshRate === 'number' ? record.refreshRate : null));
 
   return trials.map((t, idx) => {
     const rawRt = t.reactionTime ?? t.inputLatencyMs ?? t.rawRt ?? t.rawReactionTime ?? t.rawLatencyMs;
     const isFalseStart = t.falseStart === true || (typeof rawRt === 'number' && rawRt < 100 && (pType === 'visual-reaction' || pType === 'direction' || pType === 'color-recognition'));
     const isTimeout = t.timedOut === true;
-    const isCorrect = typeof t.correct === 'boolean'
-      ? t.correct
-      : (typeof t.correctness === 'boolean' ? t.correctness : (typeof t.accuracy === 'number' ? t.accuracy === 1 : null));
-
+    const isCorrect = typeof t.correct === 'boolean' ? t.correct : (typeof t.correctness === 'boolean' ? t.correctness : (typeof t.accuracy === 'number' ? t.accuracy === 1 : null));
     let validityStatus: 'VALID' | 'FALSE_START' | 'TIMEOUT' | 'INCORRECT' | 'ABORTED' = 'VALID';
     let isValid = true;
-    if (isFalseStart || t.validity === 'FALSE_START_PRE_STIMULUS' || t.validity === 'ANTICIPATORY_TOO_FAST') {
-      isValid = false; validityStatus = 'FALSE_START';
-    } else if (isTimeout || t.validity === 'TIMEOUT') {
-      isValid = false; validityStatus = 'TIMEOUT';
-    } else if (t.valid === false || t.validity === 'INVALID' || t.validity === 'ABORTED') {
-      isValid = false; validityStatus = 'ABORTED';
-    } else if (isCorrect === false || t.validity === 'INCORRECT') {
-      isValid = true; validityStatus = 'INCORRECT';
-    }
+    if (isFalseStart || t.validity === 'FALSE_START_PRE_STIMULUS' || t.validity === 'ANTICIPATORY_TOO_FAST') { isValid = false; validityStatus = 'FALSE_START'; }
+    else if (isTimeout || t.validity === 'TIMEOUT') { isValid = false; validityStatus = 'TIMEOUT'; }
+    else if (t.valid === false || t.validity === 'INVALID' || t.validity === 'ABORTED') { isValid = false; validityStatus = 'ABORTED'; }
+    else if (isCorrect === false || t.validity === 'INCORRECT') { isValid = true; validityStatus = 'INCORRECT'; }
 
     let foreperiodCategory: 'SHORT' | 'LONG' | null = null;
-    if (typeof t.foreperiodMs === 'number' && Number.isFinite(t.foreperiodMs)) {
-      foreperiodCategory = deriveForeperiodCategory(t.foreperiodMs);
-    } else if (t.foreperiodCategory === 'SHORT' || t.foreperiodCategory === 'LONG') {
-      foreperiodCategory = t.foreperiodCategory;
-    }
+    if (typeof t.foreperiodMs === 'number' && Number.isFinite(t.foreperiodMs)) foreperiodCategory = deriveForeperiodCategory(t.foreperiodMs);
+    else if (t.foreperiodCategory === 'SHORT' || t.foreperiodCategory === 'LONG') foreperiodCategory = t.foreperiodCategory;
 
     const explicitTrialModality = normalizeInputModality(t.inputModality || t.inputMethod);
     const trialModality = explicitTrialModality !== 'unknown' ? explicitTrialModality : sessionModality;
@@ -119,8 +83,7 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     const sequenceNumber = typeof t.sequenceNumber === 'number' && Number.isFinite(t.sequenceNumber) ? t.sequenceNumber : idx + 1;
 
     return {
-      // Keep retry/sequence identity so repeated trialNumber values cannot collapse into one observation.
-      obsId: `${record.id}-s${sequenceNumber}-t${trialNumber}-a${attemptNumber}`,
+      obsId: `${record.id}-o${idx + 1}-s${sequenceNumber}-t${trialNumber}-a${attemptNumber}`,
       sessionId: record.id,
       assessmentType: pType,
       rawAssessmentType: record.assessmentType,
