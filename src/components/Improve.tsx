@@ -18,7 +18,6 @@ import {
   ChevronLeft,
   ChevronRight,
   BrainCircuit,
-  Play,
   ArrowRight,
   ShieldAlert,
   Sparkles,
