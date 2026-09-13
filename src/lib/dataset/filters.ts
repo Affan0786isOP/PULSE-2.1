@@ -88,12 +88,13 @@ export function applyDatasetFilters(
 
     // 6. Display Refresh filter
     if (filters.refreshRate && filters.refreshRate !== 'all') {
-      if (obs.refreshRateHz === null || obs.refreshRateHz === undefined) return false;
+      if (obs.refreshRateHz === null || obs.refreshRateHz === undefined || !Number.isFinite(obs.refreshRateHz)) return false;
       const hz = obs.refreshRateHz;
       const roundedHz = Math.round(hz);
       if (filters.refreshRate === '60' && hz !== 60 && roundedHz !== 60) return false;
       if (filters.refreshRate === '120' && hz !== 120 && roundedHz !== 120) return false;
-      if (filters.refreshRate === '144plus' && hz < 144 && roundedHz < 144) return false;
+      // 144+ is a true threshold: values below 144 Hz must never pass because they round to 144.
+      if (filters.refreshRate === '144plus' && hz < 144) return false;
     }
 
     return true;
