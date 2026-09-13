@@ -23,33 +23,16 @@ export function ColourRecognitionDashboard({ observations }: ColourRecognitionDa
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Top Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <MetricStatVisual
-          label="Inhibitory Control Cost"
-          value={stats.interferenceCost}
-          unit="ms"
-          subtext="Latency penalty for incongruency"
-        />
-        <MetricStatVisual
-          label="Congruent Reflex RT"
-          value={stats.congruentMeanRt}
-          unit="ms"
-          subtext="Mean semantic matching latency"
-        />
-        <MetricStatVisual
-          label="Incongruent Semantic RT"
-          value={stats.incongruentMeanRt}
-          unit="ms"
-          subtext="Mean semantic interference latency"
-        />
+        <MetricStatVisual label="Inhibitory Control Cost" value={stats.interferenceCost} unit="ms" subtext="Latency penalty for incongruency" />
+        <MetricStatVisual label="Congruent Reflex RT" value={stats.congruentMeanRt} unit="ms" subtext="Mean semantic matching latency" />
+        <MetricStatVisual label="Incongruent Semantic RT" value={stats.incongruentMeanRt} unit="ms" subtext="Mean semantic interference latency" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Main Distribution Histogram */}
         <HistogramDistribution
           bins={stats.histogram}
-          mean={stats.overallMedianRt}
+          mean={stats.overallMeanRt}
           median={stats.overallMedianRt}
           title="Semantic Interference Latency Density"
           subtitle="Combined density distribution of both congruent and incongruent trials"
@@ -62,20 +45,15 @@ export function ColourRecognitionDashboard({ observations }: ColourRecognitionDa
             title="Stroop Effect Latency Delta"
             subtitle="Mean reaction processing delay segmented by stimulus congruency"
             data={stroopComparisonData}
-            series={[
-              { key: 'meanLatency', label: 'Mean RT (ms)', color: CHART_PALETTE.primary }
-            ]}
+            series={[{ key: 'meanLatency', label: 'Mean RT (ms)', color: CHART_PALETTE.primary }]}
             categoryKey="category"
             height={200}
           />
-          
           <GroupedComparisonChart
             title="Inhibitory Control Accuracy"
             subtitle="Correct decision probability segmented by stimulus congruency"
             data={stroopComparisonData}
-            series={[
-              { key: 'accuracy', label: 'Accuracy (%)', color: CHART_PALETTE.success }
-            ]}
+            series={[{ key: 'accuracy', label: 'Accuracy (%)', color: CHART_PALETTE.success }]}
             categoryKey="category"
             height={200}
             unit="%"
