@@ -15,14 +15,12 @@ export function normalizeAgeGroupKey(ageGroup?: string | null): DemographicAgeGr
   if (clean.includes('children') || clean.includes('8–12') || clean.includes('8-12') || clean === '< 13' || clean === '<13') return 'children';
   if (clean.includes('adolescent') || clean.includes('13–17') || clean.includes('13-17')) return 'adolescents';
   
-  // Map exact legacy number strings to distinct legacy keys FIRST
   if (clean.includes('18–24') || clean.includes('18-24')) return 'legacy-18-24';
   if (clean.includes('25–34') || clean.includes('25-34')) return 'legacy-25-34';
   if (clean.includes('35–54') || clean.includes('35-54')) return 'legacy-35-54';
   if (clean.includes('55–64') || clean.includes('55-64')) return 'legacy-55-64';
   if (clean.includes('65+') || clean.includes('65 plus')) return 'legacy-65-plus';
 
-  // Map exact modern number strings to their strict buckets
   if (clean.includes('18–25') || clean.includes('18-25') || clean === 'young adults' || clean === 'young adults (18-25)') return 'young-adults';
   if (clean.includes('26–40') || clean.includes('26-40') || clean === 'adults' || clean === 'adults (26-40)') return 'adults';
   if (clean.includes('41–60') || clean.includes('41-60') || clean.includes('middle-aged') || clean.includes('middle aged')) return 'middle-aged';
@@ -65,9 +63,7 @@ export function normalizeProtocolType(type: string): ProtocolType {
 export function normalizeInputModality(explicitModality?: string): InputModality {
   if (!explicitModality) return 'unknown';
   const m = explicitModality.toLowerCase().trim();
-  if (m === 'touch' || m === 'mouse' || m === 'keyboard') {
-    return m;
-  }
+  if (m === 'touch' || m === 'mouse' || m === 'keyboard') return m;
   return 'unknown';
 }
 
@@ -75,16 +71,12 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
   const trials = record.progressionTrials || [];
   const pType = normalizeProtocolType(record.assessmentType);
 
-  if (trials.length === 0) {
-    return [];
-  }
+  if (trials.length === 0) return [];
 
   let completedAtMonth = record.completedAtMonth;
   if (!completedAtMonth && typeof record.completedAtTimestamp === 'number') {
     const d = new Date(record.completedAtTimestamp);
-    if (!isNaN(d.getTime())) {
-      completedAtMonth = d.toISOString().substring(0, 7);
-    }
+    if (!isNaN(d.getTime())) completedAtMonth = d.toISOString().substring(0, 7);
   }
   completedAtMonth = completedAtMonth || 'unspecified';
 
@@ -94,7 +86,6 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     : (record.deviceCategory === 'desktop' || record.device === 'desktop' ? 'desktop' : 'unknown');
 
   const sessionModality = normalizeInputModality(record.inputModality || record.inputMethod);
-
   const sessionRefreshRate: number | null = typeof record.displayRefreshRateHz === 'number'
     ? record.displayRefreshRateHz
     : (typeof record.refreshRateHz === 'number'
@@ -105,12 +96,12 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     const rawRt = t.reactionTime ?? t.inputLatencyMs ?? t.rawRt ?? t.rawReactionTime ?? t.rawLatencyMs;
     const isFalseStart = t.falseStart === true || (typeof rawRt === 'number' && rawRt < 100 && (pType === 'visual-reaction' || pType === 'direction' || pType === 'color-recognition'));
     const isTimeout = t.timedOut === true;
-    const isCorrect = typeof t.correct === 'boolean' 
-      ? t.correct 
-      : (typeof t.correctness === 'boolean' 
-        ? t.correctness 
+    const isCorrect = typeof t.correct === 'boolean'
+      ? t.correct
+      : (typeof t.correctness === 'boolean'
+        ? t.correctness
         : (typeof t.accuracy === 'number' ? t.accuracy === 1 : null));
-    
+
     let validityStatus: 'VALID' | 'FALSE_START' | 'TIMEOUT' | 'INCORRECT' | 'ABORTED' = 'VALID';
     let isValid = true;
 
@@ -124,7 +115,6 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
       isValid = false;
       validityStatus = 'ABORTED';
     } else if (isCorrect === false || t.validity === 'INCORRECT') {
-      // In research assessments, an incorrect response on a completed trial is a valid trial with an incorrect outcome
       isValid = true;
       validityStatus = 'INCORRECT';
     } else {
@@ -133,19 +123,18 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     }
 
     let foreperiodCategory: 'SHORT' | 'LONG' | null = null;
-    if (t.foreperiodCategory === 'SHORT' || t.foreperiodCategory === 'LONG') {
-      foreperiodCategory = t.foreperiodCategory;
-    } else if (typeof t.foreperiodMs === 'number') {
+    // Numeric foreperiod is authoritative; only fall back to the stored category when
+    // the numeric value is unavailable. This prevents contradictory telemetry from
+    // silently assigning the wrong Short/Long research bucket.
+    if (typeof t.foreperiodMs === 'number' && Number.isFinite(t.foreperiodMs)) {
       foreperiodCategory = deriveForeperiodCategory(t.foreperiodMs);
+    } else if (t.foreperiodCategory === 'SHORT' || t.foreperiodCategory === 'LONG') {
+      foreperiodCategory = t.foreperiodCategory;
     }
 
-    const trialModality = normalizeInputModality(t.inputModality || t.inputMethod) !== 'unknown'
-      ? normalizeInputModality(t.inputModality || t.inputMethod)
-      : sessionModality;
-
-    const trialRefreshRate: number | null = typeof t.refreshRateHz === 'number'
-      ? t.refreshRateHz
-      : sessionRefreshRate;
+    const explicitTrialModality = normalizeInputModality(t.inputModality || t.inputMethod);
+    const trialModality = explicitTrialModality !== 'unknown' ? explicitTrialModality : sessionModality;
+    const trialRefreshRate: number | null = typeof t.refreshRateHz === 'number' ? t.refreshRateHz : sessionRefreshRate;
 
     return {
       obsId: `${record.id}-t${t.trialNumber || idx + 1}`,
