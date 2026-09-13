@@ -16,7 +16,7 @@ export function VisualReactionDashboard({ observations }: VisualReactionDashboar
 
   const distributionStats = useMemo(() => {
     const validLatencies = observations
-      .filter(o => o.assessmentType === 'visual-reaction' && o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= 100)
+      .filter(o => o.assessmentType === 'visual-reaction' && o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= 80)
       .map(o => o.latencyMs);
     return computeNumericStats(validLatencies);
   }, [observations]);
@@ -43,7 +43,7 @@ export function VisualReactionDashboard({ observations }: VisualReactionDashboar
           label="Anticipatory False Starts"
           value={stats.falseStartRate}
           unit="%"
-          subtext="Responses < 100ms"
+          subtext="Responses < 80ms"
         />
         <MetricStatVisual
           label="Preparatory Latency Decay"

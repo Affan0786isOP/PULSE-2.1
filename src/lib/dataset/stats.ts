@@ -126,7 +126,7 @@ export interface VrtProtocolStats {
 
 export function computeVrtStats(observations: DatasetObservation[]): VrtProtocolStats {
   const vrtObs = observations.filter(o => o.assessmentType === 'visual-reaction');
-  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= 100);
+  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= 80);
   const latencies = validVrt.map(o => o.latencyMs);
   const dist = computeNumericStats(latencies);
   const falseStarts = vrtObs.filter(o => o.validityStatus === 'FALSE_START');
@@ -208,7 +208,7 @@ export function computeColourStats(observations: DatasetObservation[]): ColourPr
 export interface BlockMemoryProtocolStats {
   medianSpan: number | null; maxSpan: number | null; meanInterTapRt: number | null; successRate: number | null;
   spanDistribution: { span: number; count: number; percentage: number; }[];
-  progressionCurve: { level: number; attemptCount: number; accuracyRate: number | null; }[];
+  progressionCurve: { sequenceLength: number; attemptCount: number; accuracyRate: number | null; }[];
 }
 
 export function computeBlockMemoryStats(observations: DatasetObservation[]): BlockMemoryProtocolStats {
@@ -223,12 +223,12 @@ export function computeBlockMemoryStats(observations: DatasetObservation[]): Blo
   const spanCounts: Record<number, number> = {};
   spans.forEach(s => { spanCounts[s] = (spanCounts[s] || 0) + 1; });
   const spanDistribution = Object.keys(spanCounts).map(Number).sort((a, b) => a - b).map(span => ({ span, count: spanCounts[span], percentage: spans.length > 0 ? Number(((spanCounts[span] / spans.length) * 100).toFixed(1)) : 0 }));
-  const levels = Array.from(new Set(validBmt.map(o => o.level).filter((l): l is number => typeof l === 'number'))).sort((a, b) => a - b);
-  const progressionCurve = levels.map(level => {
-    const levelTrials = validBmt.filter(o => o.level === level);
-    const correctCount = levelTrials.filter(o => o.isCorrect === true).length;
-    const acc = levelTrials.length > 0 ? Number(((correctCount / levelTrials.length) * 100).toFixed(1)) : null;
-    return { level, attemptCount: levelTrials.length, accuracyRate: acc };
+  const uniqueLengths = Array.from(new Set(validBmt.map(o => o.sequenceLength).filter((s): s is number => typeof s === 'number'))).sort((a, b) => a - b);
+  const progressionCurve = uniqueLengths.map(seqLen => {
+    const lengthTrials = validBmt.filter(o => o.sequenceLength === seqLen);
+    const correctCount = lengthTrials.filter(o => o.isCorrect === true).length;
+    const acc = lengthTrials.length > 0 ? Number(((correctCount / lengthTrials.length) * 100).toFixed(1)) : null;
+    return { sequenceLength: seqLen, attemptCount: lengthTrials.length, accuracyRate: acc };
   });
   return { medianSpan: spanStats.median, maxSpan: spanStats.max, meanInterTapRt: interTapStats.mean, successRate, spanDistribution, progressionCurve };
 }
