@@ -64,6 +64,9 @@ export type ValidityState = 'VALID' | 'FALSE_START' | 'TIMEOUT' | 'INCORRECT' | 
  */
 export interface RawProgressionTrial {
   trialNumber?: number;
+  trialIndex?: number;
+  sequenceNumber?: number;
+  attemptNumber?: number;
   reactionTime?: number;
   inputLatencyMs?: number;
   rawRt?: number;

@@ -147,8 +147,13 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
       ? t.refreshRateHz
       : sessionRefreshRate;
 
+    const trialNum = typeof t.trialNumber === 'number' ? t.trialNumber : (idx + 1);
+    const seqNum = typeof t.sequenceNumber === 'number' ? t.sequenceNumber : (idx + 1);
+    const attemptNum = typeof t.attemptNumber === 'number' ? t.attemptNumber : 1;
+    const obsId = `${record.id}-obs${idx}-s${seqNum}-t${trialNum}-a${attemptNum}`;
+
     return {
-      obsId: `${record.id}-t${t.trialNumber || idx + 1}`,
+      obsId,
       sessionId: record.id,
       assessmentType: pType,
       rawAssessmentType: record.assessmentType,
