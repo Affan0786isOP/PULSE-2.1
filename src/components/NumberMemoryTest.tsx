@@ -3,8 +3,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Navbar } from './Navbar';
 import { AgeSelection } from './AgeSelection';
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Delete, Heart, Activity, RefreshCw } from 'lucide-react';
+import { Delete, Heart, RefreshCw } from 'lucide-react';
 import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
