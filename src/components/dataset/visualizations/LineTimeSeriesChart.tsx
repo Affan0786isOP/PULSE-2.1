@@ -47,6 +47,14 @@ interface LineTimeSeriesChartProps {
   emptyMessage?: string;
 }
 
+function parseTemporalString(value: string): Date | null {
+  // Only interpret explicit ISO-like temporal values as dates. Values such as
+  // "1", "2", "3" used by progression charts must remain categorical labels.
+  if (!/^\d{4}-\d{2}(?:-\d{2})?(?:T.*)?$/.test(value)) return null;
+  const parsed = new Date(value);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
 export function LineTimeSeriesChart({
   title,
   subtitle,
@@ -67,34 +75,30 @@ export function LineTimeSeriesChart({
     return Array.isArray(data) && data.length > 0;
   }, [data]);
 
-  // Ensure safe temporal domain for Bklit TimeSeries engine
   const chartData = useMemo(() => {
     if (!hasData) return [];
     const validData = [];
+
     for (let index = 0; index < data.length; index++) {
       const d = data[index];
       const rawX = d[xAxisKey];
-      let dateVal: Date | undefined;
+      let chartX: string | Date | undefined;
 
       if (rawX instanceof Date && !isNaN(rawX.getTime())) {
-        dateVal = rawX;
-      } else if (typeof rawX === "number" && !isNaN(rawX)) {
-        if (rawX > 1000000000) dateVal = new Date(rawX);
+        chartX = rawX;
       } else if (typeof rawX === "string") {
-        const parsed = new Date(rawX);
-        if (!isNaN(parsed.getTime())) dateVal = parsed;
+        chartX = parseTemporalString(rawX) ?? rawX;
       }
 
-      if (dateVal !== undefined) {
+      if (chartX !== undefined) {
         validData.push({
           ...d,
-          __bklit_date: dateVal,
-          __display_label: String(
-            d.label || d[xAxisKey] || `Point ${index + 1}`,
-          ),
+          __bklit_x: chartX,
+          __display_label: String(d.label || d[xAxisKey] || `Point ${index + 1}`),
         });
       }
     }
+
     return validData;
   }, [data, xAxisKey, hasData]);
 
@@ -113,7 +117,7 @@ export function LineTimeSeriesChart({
           <div className="flex-1 min-h-0 relative">
             <LineChart
               data={chartData}
-              xDataKey="__bklit_date"
+              xDataKey="__bklit_x"
               margin={{ top: 20, right: 25, left: 35, bottom: 35 }}
               className="w-full h-full"
             >
@@ -134,12 +138,8 @@ export function LineTimeSeriesChart({
               )}
 
               {series.map((s, idx) => {
-                const color =
-                  s.color ||
-                  CHART_PALETTE.series[idx % CHART_PALETTE.series.length];
-                const dashProps = s.isDashed
-                  ? { dashFromIndex: 0, dashArray: "4 4" }
-                  : {};
+                const color = s.color || CHART_PALETTE.series[idx % CHART_PALETTE.series.length];
+                const dashProps = s.isDashed ? { dashFromIndex: 0, dashArray: "4 4" } : {};
                 const dotProps = s.dot ? { showMarkers: true } : {};
 
                 if (s.withAreaFill) {
@@ -173,9 +173,7 @@ export function LineTimeSeriesChart({
                   series.map((s, idx) => ({
                     label: s.name,
                     value: formatValueWithUnit(point[s.key] as number, unit, 0),
-                    color:
-                      s.color ||
-                      CHART_PALETTE.series[idx % CHART_PALETTE.series.length],
+                    color: s.color || CHART_PALETTE.series[idx % CHART_PALETTE.series.length],
                   }))
                 }
               />
@@ -185,40 +183,20 @@ export function LineTimeSeriesChart({
           {(xAxisLabel || yAxisLabel) && (
             <div className="flex items-center justify-between px-3 pt-2 border-t border-[var(--border-subtle)] text-[11px] font-mono text-[var(--text-muted)] shrink-0">
               {xAxisLabel ? (
-                <span>
-                  X:{" "}
-                  <strong className="text-[var(--text-secondary)]">
-                    {xAxisLabel}
-                  </strong>
-                </span>
-              ) : (
-                <span />
-              )}
+                <span>X: <strong className="text-[var(--text-secondary)]">{xAxisLabel}</strong></span>
+              ) : <span />}
               {yAxisLabel ? (
-                <span>
-                  Y:{" "}
-                  <strong className="text-[var(--text-secondary)]">
-                    {yAxisLabel}
-                  </strong>
-                </span>
-              ) : (
-                <span />
-              )}
+                <span>Y: <strong className="text-[var(--text-secondary)]">{yAxisLabel}</strong></span>
+              ) : <span />}
             </div>
           )}
 
-          {/* Series Legend & Reference Target Display */}
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2 border-t border-[var(--border-subtle)] text-[11px] font-mono shrink-0">
             {series.map((s, idx) => {
-              const color =
-                s.color ||
-                CHART_PALETTE.series[idx % CHART_PALETTE.series.length];
+              const color = s.color || CHART_PALETTE.series[idx % CHART_PALETTE.series.length];
               return (
                 <div key={s.key} className="flex items-center gap-1.5">
-                  <span
-                    className="w-3 h-0.5 rounded-full shrink-0"
-                    style={{ backgroundColor: color }}
-                  />
+                  <span className="w-3 h-0.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
                   <span className="text-[var(--text-secondary)]">{s.name}</span>
                 </div>
               );
@@ -226,12 +204,7 @@ export function LineTimeSeriesChart({
             {referenceLineY !== undefined && (
               <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
                 <span className="w-3 h-0.5 border-b border-dashed border-amber-400" />
-                <span>
-                  {referenceLineLabel || "Baseline"}:{" "}
-                  <strong className="text-amber-400">
-                    {referenceLineY} {unit}
-                  </strong>
-                </span>
+                <span>{referenceLineLabel || "Baseline"}: <strong className="text-amber-400">{referenceLineY} {unit}</strong></span>
               </div>
             )}
           </div>
