@@ -34,7 +34,7 @@ export async function fetchResearchDataset(): Promise<{
     const batchSize = 1000;
 
     while (hasMore) {
-      const url = new URL('/api/research/dataset', window.location.origin);
+      const url = new URL('/api/research/dataset', typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
       url.searchParams.set('limit', String(batchSize));
       if (cursor) {
         url.searchParams.set('cursor', cursor);

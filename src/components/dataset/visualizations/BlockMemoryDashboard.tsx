@@ -21,7 +21,7 @@ export function BlockMemoryDashboard({ observations }: BlockMemoryDashboardProps
 
   const progressionData = useMemo(() => {
     return stats.progressionCurve.map(p => ({
-      x: String(p.level),
+      x: String(p.sequenceLength),
       accuracy: p.accuracyRate
     }));
   }, [stats]);

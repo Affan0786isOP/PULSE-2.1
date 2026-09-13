@@ -60,14 +60,19 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
   const sessionRefreshRate: number | null = typeof record.displayRefreshRateHz === 'number' ? record.displayRefreshRateHz : (typeof record.refreshRateHz === 'number' ? record.refreshRateHz : (typeof record.refreshRate === 'number' ? record.refreshRate : null));
 
   return trials.map((t, idx) => {
-    const rawRt = t.reactionTime ?? t.inputLatencyMs ?? t.rawRt ?? t.rawReactionTime ?? t.rawLatencyMs;
-    const isFalseStart = t.falseStart === true || (typeof rawRt === 'number' && rawRt < 100 && (pType === 'visual-reaction' || pType === 'direction' || pType === 'color-recognition'));
+    let rawRt = t.reactionTime ?? t.inputLatencyMs ?? t.rawRt ?? t.rawReactionTime ?? t.rawLatencyMs;
+    if (rawRt == null && typeof t.responseDetectedAtPerfMs === 'number' && typeof t.stimulusPresentedAtPerfMs === 'number') {
+      rawRt = t.responseDetectedAtPerfMs - t.stimulusPresentedAtPerfMs;
+    }
+
+    const isFalseStart = t.falseStart === true || (typeof rawRt === 'number' && rawRt < 80 && (pType === 'visual-reaction' || pType === 'direction' || pType === 'color-recognition'));
     const isTimeout = t.timedOut === true;
     const isCorrect = typeof t.correct === 'boolean' ? t.correct : (typeof t.correctness === 'boolean' ? t.correctness : (typeof t.accuracy === 'number' ? t.accuracy === 1 : null));
     let validityStatus: 'VALID' | 'FALSE_START' | 'TIMEOUT' | 'INCORRECT' | 'ABORTED' = 'VALID';
     let isValid = true;
     if (isFalseStart || t.validity === 'FALSE_START_PRE_STIMULUS' || t.validity === 'ANTICIPATORY_TOO_FAST') { isValid = false; validityStatus = 'FALSE_START'; }
     else if (isTimeout || t.validity === 'TIMEOUT') { isValid = false; validityStatus = 'TIMEOUT'; }
+    else if (t.valid === false && (t.validity === 'FALSE_START' || t.validity === 'FALSE_START_PRE_STIMULUS')) { isValid = false; validityStatus = 'FALSE_START'; }
     else if (t.valid === false || t.validity === 'INVALID' || t.validity === 'ABORTED') { isValid = false; validityStatus = 'ABORTED'; }
     else if (isCorrect === false || t.validity === 'INCORRECT') { isValid = true; validityStatus = 'INCORRECT'; }
 
