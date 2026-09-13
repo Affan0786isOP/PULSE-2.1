@@ -12,6 +12,7 @@ import {
   HistogramBin,
   DatasetSummaryStats
 } from './types';
+import { deriveForeperiodCategory } from '../protocolValidators';
 
 export function extractSortedValidNumbers(values: (number | null | undefined)[]): number[] {
   return values
@@ -207,14 +208,16 @@ export function computeVrtStats(observations: DatasetObservation[]): VrtProtocol
   const falseStartRate = vrtObs.length > 0 ? Number(((falseStarts.length / vrtObs.length) * 100).toFixed(1)) : null;
 
   const shortFpTrials = validVrt.filter(o => {
-    if (o.foreperiodCategory === 'SHORT') return true;
-    if (typeof o.foreperiodMs === 'number') return o.foreperiodMs >= 100 && o.foreperiodMs <= 500;
-    return false;
+    if (typeof o.foreperiodMs === 'number') {
+      return deriveForeperiodCategory(o.foreperiodMs) === 'SHORT';
+    }
+    return o.foreperiodCategory === 'SHORT';
   });
   const longFpTrials = validVrt.filter(o => {
-    if (o.foreperiodCategory === 'LONG') return true;
-    if (typeof o.foreperiodMs === 'number') return o.foreperiodMs >= 501 && o.foreperiodMs <= 3000;
-    return false;
+    if (typeof o.foreperiodMs === 'number') {
+      return deriveForeperiodCategory(o.foreperiodMs) === 'LONG';
+    }
+    return o.foreperiodCategory === 'LONG';
   });
 
   const shortFpStats = computeNumericStats(shortFpTrials.map(o => o.latencyMs));

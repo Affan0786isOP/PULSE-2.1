@@ -39,7 +39,7 @@ interface SectionMeta {
 const SECTION_METADATA: Record<AssessmentId | 'data-explorer', SectionMeta> = {
   'visual-reaction': {
     title: 'VISUAL REACTION PROTOCOL (SRT)',
-    subtitle: 'Simple reaction latency telemetry, parametric percentile distributions, skewness analysis, and foreperiod preparatory delay effects (1,000 ms to 4,000 ms).',
+    subtitle: 'Simple reaction latency telemetry, parametric percentile distributions, skewness analysis, and foreperiod preparatory delay effects (100 ms to 3,000 ms).',
     protocolKey: 'visual-reaction',
     icon: Zap,
     plannedVisualizations: [

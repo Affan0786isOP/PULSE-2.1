@@ -933,9 +933,6 @@ function validateAndDeriveAssessmentFromTrials(
           const prevAttempt = Number(trials[i - 1].attemptNumber) || 1;
           attemptNumber = (trialNumber === prevTrialNumber) ? prevAttempt + 1 : 1;
         }
-        if (t.attemptNumber !== undefined && t.attemptNumber !== null) {
-          attemptNumber = Number(t.attemptNumber);
-        }
 
         const prng = seedPRNG(`${sessionId}-reaction-delays-t${trialNumber}-a${attemptNumber}`);
         const expectedForeperiod = generateVrtForeperiod(prng);

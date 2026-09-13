@@ -133,10 +133,10 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     }
 
     let foreperiodCategory: 'SHORT' | 'LONG' | null = null;
-    if (t.foreperiodCategory === 'SHORT' || t.foreperiodCategory === 'LONG') {
-      foreperiodCategory = t.foreperiodCategory;
-    } else if (typeof t.foreperiodMs === 'number') {
+    if (typeof t.foreperiodMs === 'number') {
       foreperiodCategory = deriveForeperiodCategory(t.foreperiodMs);
+    } else if (t.foreperiodCategory === 'SHORT' || t.foreperiodCategory === 'LONG') {
+      foreperiodCategory = t.foreperiodCategory;
     }
 
     const trialModality = normalizeInputModality(t.inputModality || t.inputMethod) !== 'unknown'
