@@ -1,0 +1,6 @@
+{
+  "name": "PULSE Evaluator",
+  "description": "Precision User Latency and Stimulus Evaluator",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

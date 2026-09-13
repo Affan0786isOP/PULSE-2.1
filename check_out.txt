@@ -1,0 +1,411 @@
+
+> react-example@0.0.0 check
+> node check.mjs src/ && cd mobile && node ../check.mjs src/
+
+
+[1msrc/components/AddToHomeScreenModal.tsx[0m
+  [90m 274  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/BlockMemoryTest.tsx[0m
+  [90m 573  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/DirectionTest.tsx[0m
+  [90m 698  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/NumberMemoryTest.tsx[0m
+  [90m 573  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/ReactionTest.tsx[0m
+  [90m 632  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/SettingsModal.tsx[0m
+  [90m 350  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/admin/AdminOverview.tsx[0m
+  [90m 364  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 419  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 454  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/admin/DatasetQuality.tsx[0m
+  [90m 351  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/index.css[0m
+  [90m   1  advisory overused-font[0m  inter via Google Fonts
+        [90mA monoculture face. The rule is share-and-context, not the name, so this needs your judgement: is it doing the display work of a page whose brief never asked for it?[0m
+        [90m→ A system stack for body is fine. Pick a display face derived from the subject.[0m
+  [90m   6  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 224  advisory overused-font[0m  space grotesk as first family
+        [90mA monoculture face. The rule is share-and-context, not the name, so this needs your judgement: is it doing the display work of a page whose brief never asked for it?[0m
+        [90m→ A system stack for body is fine. Pick a display face derived from the subject.[0m
+  [90m 283  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1m56 files[0m  [31m0 error[0m  [33m0 warn[0m  [90m14 advisory[0m
+[90mStatic source checks only. Absence of findings is not evidence of good design.[0m
+
+[1msrc/components/AddToHomeScreenModal.tsx[0m
+  [33m 103  warn     border-plus-shadow[0m  border + shadow
+        [90mA hairline says flat and defined; a wide blur says floating. Committing to both on one element is physically contradictory.[0m
+        [90m→ Pick one: a defined edge, or elevation. In dense UI prefer a tonal surface step.[0m
+  [33m 139  warn     no-active-state[0m  file styles :hover but never :active
+        [90mThis file styles hover but never :active, so a press has no visual receipt. Rated the strongest single item in the audit.[0m
+        [90m→ Add an :active state; respond on pointer-down, not on release.[0m
+  [33m 256  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [90m 295  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/AgeSelection.tsx[0m
+  [33m 116  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 160  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+
+[1msrc/components/Analytics.tsx[0m
+  [33m  33  warn     no-active-state[0m  file styles :hover but never :active
+        [90mThis file styles hover but never :active, so a press has no visual receipt. Rated the strongest single item in the audit.[0m
+        [90m→ Add an :active state; respond on pointer-down, not on release.[0m
+  [33m  33  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [90m  34  advisory decorative-motion[0m  <BarChart2 size={36} className="relative z-10 animate-pulse"
+        [90mMotion applied because a page should feel alive rather than because something changed.[0m
+        [90m→ Give each animation a named purpose, or delete it.[0m
+  [33m  76  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+
+[1msrc/components/Assessments.tsx[0m
+  [33m 108  warn     no-active-state[0m  file styles :hover but never :active
+        [90mThis file styles hover but never :active, so a press has no visual receipt. Rated the strongest single item in the audit.[0m
+        [90m→ Add an :active state; respond on pointer-down, not on release.[0m
+
+[1msrc/components/BlockMemoryTest.tsx[0m
+  [33m 431  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 432  warn     ease-in-ui[0m  ease-in utility
+        [90mease-in delays movement at the moment the user is watching most closely.[0m
+        [90m→ Use a strong ease-out.[0m
+  [33m 530  warn     flat-type-scale[0m  3 sizes spanning 14-20px, ratio 1.43 (< 2.0)
+        [90mMany type sizes spanning a narrow range. The failure is too many steps that all look alike, not too few.[0m
+        [90m→ Fewer steps, more contrast. Span more than 2x, and use weight and color for hierarchy.[0m
+  [90m 573  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [33m 578  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 646  warn     ease-in-ui[0m  ease-in utility
+        [90mease-in delays movement at the moment the user is watching most closely.[0m
+        [90m→ Use a strong ease-out.[0m
+
+[1msrc/components/ColorTest.tsx[0m
+  [33m  41  warn     ai-palette-hex[0m  #a855f7
+        [90mA canonical generated-palette literal. The gradient pair #667eea to #764ba2 is the most-generated in existence.[0m
+        [90m→ Derive the accent from the subject. If purple is right here, use a hue you chose and built a ramp for.[0m
+  [33m 486  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [90m 486  advisory material-default-ease[0m  Material default curve
+        [90mcubic-bezier(0.4, 0, 0.2, 1) is the Material default and is the motion equivalent of indigo-500.[0m
+        [90m→ Choose a curve and record it in the decision sheet.[0m
+  [33m 487  warn     ease-in-ui[0m  ease-in utility
+        [90mease-in delays movement at the moment the user is watching most closely.[0m
+        [90m→ Use a strong ease-out.[0m
+  [33m 772  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 823  warn     border-plus-shadow[0m  border + shadow
+        [90mA hairline says flat and defined; a wide blur says floating. Committing to both on one element is physically contradictory.[0m
+        [90m→ Pick one: a defined edge, or elevation. In dense UI prefer a tonal surface step.[0m
+  [33m 914  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+
+[1msrc/components/Dataset.tsx[0m
+  [90m 103  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 117  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 121  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [33m 143  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 522  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 543  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 557  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [90m 586  advisory decorative-motion[0m  <div className="flex flex-col gap-4 sm:gap-6 w-full min-w-0 
+        [90mMotion applied because a page should feel alive rather than because something changed.[0m
+        [90m→ Give each animation a named purpose, or delete it.[0m
+  [31m 629  error    padding-conflict[0m  p-* with py-12
+        [90mConflicting utilities in one class string. Which wins is decided by emitted-stylesheet order, not by the order written, so the author could not have predicted or checked the result.[0m
+        [90m→ Remove one.[0m
+  [31m 652  error    padding-conflict[0m  p-* with py-12
+        [90mConflicting utilities in one class string. Which wins is decided by emitted-stylesheet order, not by the order written, so the author could not have predicted or checked the result.[0m
+        [90m→ Remove one.[0m
+  [33m 668  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [90m 761  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 837  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 903  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 982  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m1045  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/DirectionDataset.tsx[0m
+  [90m 205  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 209  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 221  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 241  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 270  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 305  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 326  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [90m 352  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/DirectionTest.tsx[0m
+  [33m 498  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [90m 499  advisory tracking-crushed[0m  tracking-tighter = -0.05em
+        [90mTracking at or past -0.05em costs legibility. Note this is exactly Tailwind tracking-tighter, so the framework default lands on the trigger.[0m
+        [90m→ Tighten optically at the shipping size, around -0.02em.[0m
+  [33m 499  warn     ease-in-ui[0m  ease-in utility
+        [90mease-in delays movement at the moment the user is watching most closely.[0m
+        [90m→ Use a strong ease-out.[0m
+  [33m 500  warn     ease-in-ui[0m  ease-in utility
+        [90mease-in delays movement at the moment the user is watching most closely.[0m
+        [90m→ Use a strong ease-out.[0m
+  [90m 698  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [33m 706  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+
+[1msrc/components/Home.tsx[0m
+  [33m  79  warn     flat-type-scale[0m  3 sizes spanning 12-16px, ratio 1.33 (< 2.0)
+        [90mMany type sizes spanning a narrow range. The failure is too many steps that all look alike, not too few.[0m
+        [90m→ Fewer steps, more contrast. Span more than 2x, and use weight and color for hierarchy.[0m
+  [33m 105  warn     no-active-state[0m  file styles :hover but never :active
+        [90mThis file styles hover but never :active, so a press has no visual receipt. Rated the strongest single item in the audit.[0m
+        [90m→ Add an :active state; respond on pointer-down, not on release.[0m
+  [90m 105  advisory decorative-motion[0m  <div className="w-8 h-8 rounded-lg bg-[var(--accent-subtle)]
+        [90mMotion applied because a page should feel alive rather than because something changed.[0m
+        [90m→ Give each animation a named purpose, or delete it.[0m
+  [33m 375  warn     layout-animation[0m  className="w-full bg-[var(--surface-1)] hover:bg-[var(--surface-2)] bo
+        [90mAnimating a layout-driving property forces layout every frame.[0m
+        [90m→ Animate transform and opacity. For height use grid-template-rows.[0m
+
+[1msrc/components/Improve.tsx[0m
+  [33m 158  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+
+[1msrc/components/Leaderboard.tsx[0m
+  [33m 103  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 126  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 159  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 174  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [90m 180  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [33m 181  warn     border-plus-shadow[0m  border + shadow
+        [90mA hairline says flat and defined; a wide blur says floating. Committing to both on one element is physically contradictory.[0m
+        [90m→ Pick one: a defined edge, or elevation. In dense UI prefer a tonal surface step.[0m
+  [33m 212  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+
+[1msrc/components/LeaderboardOptIn.tsx[0m
+  [33m 126  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 133  warn     no-active-state[0m  file styles :hover but never :active
+        [90mThis file styles hover but never :active, so a press has no visual receipt. Rated the strongest single item in the audit.[0m
+        [90m→ Add an :active state; respond on pointer-down, not on release.[0m
+  [33m 143  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 169  warn     layout-animation[0m  className="w-full h-8 bg-[var(--surface-1)] border border-[var(--borde
+        [90mAnimating a layout-driving property forces layout every frame.[0m
+        [90m→ Animate transform and opacity. For height use grid-template-rows.[0m
+  [31m 169  error    outline-none[0m  outline removed, no :focus-visible in file
+        [90moutline removed with no focus replacement in this file. This deletes a working default and strands keyboard users.[0m
+        [90m→ Add :focus-visible with a 2px ring at 3:1 contrast.[0m
+
+[1msrc/components/Navbar.tsx[0m
+  [33m  33  warn     no-active-state[0m  file styles :hover but never :active
+        [90mThis file styles hover but never :active, so a press has no visual receipt. Rated the strongest single item in the audit.[0m
+        [90m→ Add an :active state; respond on pointer-down, not on release.[0m
+
+[1msrc/components/NotFound.tsx[0m
+  [33m  28  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m  31  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+
+[1msrc/components/NumberMemoryTest.tsx[0m
+  [33m 397  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 398  warn     ease-in-ui[0m  ease-in utility
+        [90mease-in delays movement at the moment the user is watching most closely.[0m
+        [90m→ Use a strong ease-out.[0m
+  [33m 428  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [90m 573  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/ReactionTest.tsx[0m
+  [33m 474  warn     ease-in-ui[0m  ease-in utility
+        [90mease-in delays movement at the moment the user is watching most closely.[0m
+        [90m→ Use a strong ease-out.[0m
+  [33m 475  warn     flat-type-scale[0m  4 sizes spanning 14-20px, ratio 1.43 (< 2.0)
+        [90mMany type sizes spanning a narrow range. The failure is too many steps that all look alike, not too few.[0m
+        [90m→ Fewer steps, more contrast. Span more than 2x, and use weight and color for hierarchy.[0m
+  [33m 475  warn     ease-in-ui[0m  ease-in utility
+        [90mease-in delays movement at the moment the user is watching most closely.[0m
+        [90m→ Use a strong ease-out.[0m
+  [33m 600  warn     no-active-state[0m  file styles :hover but never :active
+        [90mThis file styles hover but never :active, so a press has no visual receipt. Rated the strongest single item in the audit.[0m
+        [90m→ Add an :active state; respond on pointer-down, not on release.[0m
+  [90m 632  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+  [33m 646  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [90m 646  advisory material-default-ease[0m  Material default curve
+        [90mcubic-bezier(0.4, 0, 0.2, 1) is the Material default and is the motion equivalent of indigo-500.[0m
+        [90m→ Choose a curve and record it in the decision sheet.[0m
+
+[1msrc/components/ResearchExportHub.tsx[0m
+  [33m 204  warn     flat-type-scale[0m  3 sizes spanning 12-20px, ratio 1.67 (< 2.0)
+        [90mMany type sizes spanning a narrow range. The failure is too many steps that all look alike, not too few.[0m
+        [90m→ Fewer steps, more contrast. Span more than 2x, and use weight and color for hierarchy.[0m
+  [33m 217  warn     border-plus-shadow[0m  border + shadow
+        [90mA hairline says flat and defined; a wide blur says floating. Committing to both on one element is physically contradictory.[0m
+        [90m→ Pick one: a defined edge, or elevation. In dense UI prefer a tonal surface step.[0m
+  [33m 237  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+  [33m 245  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+
+[1msrc/components/SettingsModal.tsx[0m
+  [33m 249  warn     border-plus-shadow[0m  border + shadow
+        [90mA hairline says flat and defined; a wide blur says floating. Committing to both on one element is physically contradictory.[0m
+        [90m→ Pick one: a defined edge, or elevation. In dense UI prefer a tonal surface step.[0m
+  [33m 271  warn     no-active-state[0m  file styles :hover but never :active
+        [90mThis file styles hover but never :active, so a press has no visual receipt. Rated the strongest single item in the audit.[0m
+        [90m→ Add an :active state; respond on pointer-down, not on release.[0m
+  [90m 347  advisory round-stat[0m  100%
+        [90mA stat band where every figure is suspiciously round.[0m
+        [90m→ Real numbers with real precision, or remove the band.[0m
+
+[1msrc/components/WelcomeModal.tsx[0m
+  [33m  72  warn     border-plus-shadow[0m  border + shadow
+        [90mA hairline says flat and defined; a wide blur says floating. Committing to both on one element is physically contradictory.[0m
+        [90m→ Pick one: a defined edge, or elevation. In dense UI prefer a tonal surface step.[0m
+  [33m 158  warn     transition-all[0m  transition-all
+        [90mtransition-all animates properties you did not choose, including layout properties.[0m
+        [90m→ List the properties explicitly.[0m
+
+[1msrc/components/ui/Skeleton.tsx[0m
+  [90m   9  advisory decorative-motion[0m  className={`animate-pulse rounded-md bg-[var(--surface-2)]/6
+        [90mMotion applied because a page should feel alive rather than because something changed.[0m
+        [90m→ Give each animation a named purpose, or delete it.[0m
+
+[1msrc/index.css[0m
+  [90m   1  advisory overused-font[0m  inter via Google Fonts
+        [90mA monoculture face. The rule is share-and-context, not the name, so this needs your judgement: is it doing the display work of a page whose brief never asked for it?[0m
+        [90m→ A system stack for body is fine. Pick a display face derived from the subject.[0m
+  [90m   7  advisory overused-font[0m  inter as first family
+        [90mA monoculture face. The rule is share-and-context, not the name, so this needs your judgement: is it doing the display work of a page whose brief never asked for it?[0m
+        [90m→ A system stack for body is fine. Pick a display face derived from the subject.[0m
+  [90m 184  advisory overused-font[0m  space grotesk as first family
+        [90mA monoculture face. The rule is share-and-context, not the name, so this needs your judgement: is it doing the display work of a page whose brief never asked for it?[0m
+        [90m→ A system stack for body is fine. Pick a display face derived from the subject.[0m
+  [90m 188  advisory overused-font[0m  inter as first family
+        [90mA monoculture face. The rule is share-and-context, not the name, so this needs your judgement: is it doing the display work of a page whose brief never asked for it?[0m
+        [90m→ A system stack for body is fine. Pick a display face derived from the subject.[0m
+
+[1m46 files[0m  [31m3 error[0m  [33m62 warn[0m  [90m34 advisory[0m
+[90mStatic source checks only. Absence of findings is not evidence of good design.[0m

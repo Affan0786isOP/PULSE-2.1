@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+Allow: /assessments
+Allow: /leaderboard
+Allow: /dataset
+Allow: /analytics
+Allow: /improve
+Allow: /privacy
+Allow: /reaction-test
+Allow: /direction-test
+Allow: /block-memory
+Allow: /number-memory
+Allow: /colour-recognition
+
+# Exclude private/admin routes
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin/*
+
+Sitemap: https://pulse-lab.in/sitemap.xml

@@ -1,0 +1,105 @@
+{
+  "entities": {
+    "publicDatasetDoc": {
+      "title": "PublicDatasetDoc",
+      "description": "Anonymized aggregate assessment observation for open cognitive research.",
+      "type": "object",
+      "properties": {
+        "ageGroup": { "type": "string" },
+        "assessmentType": { "type": "string" },
+        "schemaVersion": { "type": "number" },
+        "assessmentVersion": { "type": "string" },
+        "protocolVersion": { "type": "string" },
+        "datasetSchemaVersion": { "type": "string" },
+        "metricsVersion": { "type": "string" },
+        "completedAtMonth": { "type": "string" },
+        "provenanceToken": { "type": "string" },
+        "deviceCategory": { "type": "string" },
+        "device": { "type": "string" },
+        "progressionTrials": { "type": "array" },
+        "temporalDynamics": { "type": "object" }
+      },
+      "required": [
+        "ageGroup",
+        "assessmentType",
+        "schemaVersion",
+        "assessmentVersion",
+        "protocolVersion",
+        "datasetSchemaVersion",
+        "metricsVersion",
+        "completedAtMonth",
+        "provenanceToken",
+        "deviceCategory",
+        "device",
+        "progressionTrials"
+      ]
+    },
+    "trialObservation": {
+      "title": "TrialObservation",
+      "description": "Raw granular trial-level psychometric measurement.",
+      "type": "object",
+      "properties": {
+        "participantId": { "type": "string" },
+        "experimentId": { "type": "string" },
+        "condition": { "type": "string" },
+        "test": { "type": "string" },
+        "trialNumber": { "type": "number" },
+        "stimulusTimestamp": { "type": "number" },
+        "responseTimestamp": { "type": "number" },
+        "reactionTime": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "falseStart": { "type": "boolean" },
+        "timestamp": { "type": "string" },
+        "device": { "type": "string" },
+        "screenWidth": { "type": "number" },
+        "screenHeight": { "type": "number" },
+        "ageGroup": { "type": "string" }
+      },
+      "required": [
+        "participantId",
+        "experimentId",
+        "condition",
+        "test",
+        "trialNumber",
+        "stimulusTimestamp",
+        "responseTimestamp",
+        "reactionTime",
+        "accuracy",
+        "falseStart",
+        "timestamp",
+        "device",
+        "screenWidth",
+        "screenHeight",
+        "ageGroup"
+      ]
+    },
+    "leaderboardResult": {
+      "title": "LeaderboardResult",
+      "description": "Global leaderboard score entry.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "assessmentType": { "type": "string" },
+        "scoreMetric": { "type": "number" },
+        "ageGroup": { "type": "string" },
+        "provenanceToken": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["displayName", "assessmentType", "scoreMetric", "ageGroup", "provenanceToken", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/publicDataset/{docId}": {
+      "schema": "publicDatasetDoc",
+      "description": "Anonymized assessment sessions."
+    },
+    "/trialObservations/{docId}": {
+      "schema": "trialObservation",
+      "description": "Immutable raw granular trial measurements."
+    },
+    "/leaderboardResults/{docId}": {
+      "schema": "leaderboardResult",
+      "description": "Global leaderboard entries."
+    }
+  }
+}

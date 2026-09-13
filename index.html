@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#030508" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f1f5f9" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PULSE" />
+    <meta name="application-name" content="PULSE" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+    <title>PULSE Evaluator</title>
+    <meta name="description" content="Precision User Latency and Stimulus Evaluator" />
+    <meta property="og:title" content="PULSE Evaluator" />
+    <meta property="og:description" content="Precision User Latency and Stimulus Evaluator" />
+    <script>
+      (function() {
+        // Instant Mobile Device Auto-Redirection
+        try {
+          var search = window.location.search || '';
+          
+          var isForceMobile = search.indexOf('force_mobile=1') !== -1 || search.indexOf('mobile=1') !== -1;
+          // Allow explicit clear of force_desktop flag
+          if (isForceMobile) {
+            try {
+              sessionStorage.removeItem('pulse_force_desktop');
+              localStorage.removeItem('pulse_force_desktop');
+              document.cookie = "pulse_force_desktop=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            } catch(e) {}
+          }
+
+          var isForceDesktop = !isForceMobile && (search.indexOf('force_desktop=1') !== -1 || 
+                               search.indexOf('desktop=1') !== -1 ||
+                               sessionStorage.getItem('pulse_force_desktop') === 'true');
+
+          if (!isForceMobile && (search.indexOf('force_desktop=1') !== -1 || search.indexOf('desktop=1') !== -1)) {
+            sessionStorage.setItem('pulse_force_desktop', 'true');
+            try {
+              document.cookie = "pulse_force_desktop=true; path=/; max-age=86400";
+            } catch(e) {}
+          }
+
+          var pathname = window.location.pathname || '';
+          var isAdmin = pathname.indexOf('/admin') === 0;
+
+          if (!isForceDesktop && !isAdmin && !pathname.startsWith('/mobile')) {
+            var ua = navigator.userAgent || navigator.vendor || window.opera || '';
+            var isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone|SamsungBrowser|MiuiBrowser|UCBrowser/i.test(ua);
+            var isTouchMac = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0)) && /Macintosh/i.test(ua);
+            
+            var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+            var isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+            var screenW = window.screen ? Math.min(window.screen.width, window.screen.height) : 0;
+            var innerW = window.innerWidth || 0;
+            var isSmallScreen = (screenW > 0 && screenW <= 768) || (innerW > 0 && innerW <= 768);
+
+            if (isForceMobile || isMobileUA || isTouchMac || ((hasTouch || isCoarse) && isSmallScreen)) {
+              var cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
+              var targetPath = (cleanPath === '/' ? '/mobile/' : ('/mobile' + cleanPath)) + search + (window.location.hash || '');
+              window.location.replace(targetPath);
+              return;
+            }
+          }
+        } catch(e) {}
+
+        // Register Service Worker for PWA Add-to-Home-Screen support
+        if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js').catch(function(err) {
+              console.log('SW registration note:', err);
+            });
+          });
+        }
+
+        // Instant Settings & Theme Application
+        function applySavedSettings() {
+          try {
+            var raw = localStorage.getItem('pulse_user_settings');
+            var settings = raw ? JSON.parse(raw) : null;
+            var themeMode = (settings && settings.themeMode) || 'system';
+            var isDark = themeMode === 'dark' ? true : (themeMode === 'light' ? false : (!window.matchMedia || window.matchMedia('(prefers-color-scheme: dark)').matches));
+            var theme = isDark ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.style.colorScheme = theme;
+            if (isDark) {
+              document.documentElement.classList.add('dark');
+              document.documentElement.classList.remove('light');
+            } else {
+              document.documentElement.classList.add('light');
+              document.documentElement.classList.remove('dark');
+            }
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) {
+              meta.setAttribute('content', isDark ? '#030508' : '#f1f5f9');
+            }
+            if (settings && settings.reducedMotionEnabled) {
+              document.documentElement.setAttribute('data-reduced-motion', 'true');
+              document.documentElement.classList.add('reduced-motion');
+            }
+            if (settings && settings.exhibitionModeEnabled) {
+              document.documentElement.setAttribute('data-exhibition-mode', 'true');
+              document.documentElement.classList.add('exhibition-mode');
+            }
+          } catch(e) {}
+        }
+
+        applySavedSettings();
+        if (window.matchMedia) {
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+            try {
+              var raw = localStorage.getItem('pulse_user_settings');
+              var settings = raw ? JSON.parse(raw) : null;
+              if (!settings || settings.themeMode === 'system') {
+                applySavedSettings();
+              }
+            } catch(e) {}
+          });
+        }
+      })();
+    </script>
+    <style>
+      html, body {
+        background-color: var(--bg-base, #030508);
+        color: var(--text-main, #ffffff);
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        width: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+      #root {
+        min-height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+  </head>
+  <body class="bg-[var(--bg-base)] text-[var(--text-main)] antialiased selection:bg-cyan-500/30">
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

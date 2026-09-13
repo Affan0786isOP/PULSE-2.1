@@ -1,0 +1,64 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "leaderboardResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assessmentType", "order": "ASCENDING" },
+        { "fieldPath": "scoreMetric", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboardResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assessmentType", "order": "ASCENDING" },
+        { "fieldPath": "scoreMetric", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboardResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assessmentType", "order": "ASCENDING" },
+        { "fieldPath": "hidden", "order": "ASCENDING" },
+        { "fieldPath": "scoreMetric", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboardResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assessmentType", "order": "ASCENDING" },
+        { "fieldPath": "hidden", "order": "ASCENDING" },
+        { "fieldPath": "scoreMetric", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicDataset",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assessmentType", "order": "ASCENDING" },
+        { "fieldPath": "completedAtTimestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicDataset",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ageGroup", "order": "ASCENDING" },
+        { "fieldPath": "completedAtTimestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicDataset",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assessmentType", "order": "ASCENDING" },
+        { "fieldPath": "ageGroup", "order": "ASCENDING" },
+        { "fieldPath": "completedAtTimestamp", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

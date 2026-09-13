@@ -1,0 +1,69 @@
+{
+  "name": "PULSE Evaluator - Precision Reaction & Memory Benchmark",
+  "short_name": "PULSE",
+  "description": "Precision User Latency & Stimulus Evaluator. Sub-millisecond visual reaction time, spatial directional discrimination, color recognition, and working memory tests.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#030508",
+  "theme_color": "#030508",
+  "categories": ["utilities", "health", "games", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Reaction Time Test",
+      "short_name": "Reaction",
+      "description": "Simple visual reaction latency test",
+      "url": "/reaction-test",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Directional Discrimination",
+      "short_name": "Direction",
+      "description": "Arrow cue decision speed test",
+      "url": "/direction-test",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Spatial Block Memory",
+      "short_name": "Memory",
+      "description": "Spatial sequence working memory test",
+      "url": "/block-memory",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Color Recognition",
+      "short_name": "Color Test",
+      "description": "Stroop color match latency test",
+      "url": "/colour-recognition",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

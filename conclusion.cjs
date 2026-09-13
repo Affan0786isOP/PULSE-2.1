@@ -1,0 +1,4 @@
+console.log("The leaderboard issue the user is reporting: 'The leaderboard is not sync with the data i see in firebase. Why?'");
+console.log("Answer: The server is failing to fetch from Firestore because it's missing the FIREBASE_SERVICE_ACCOUNT environment variable (getting PERMISSION_DENIED).");
+console.log("As a result, the server ONLY serves what is in its in-memory map `authoritativeLeaderboardEntries` (which only contains data from users who submitted a score *while this specific server instance was running*).");
+console.log("Additionally, the client-side fallback query in `src/lib/firestore.ts` was previously using `where('hidden', '==', false)`. In Firebase, if a document doesn't have the `hidden` field, it won't match this query. The screenshot might show documents that lack this field.");

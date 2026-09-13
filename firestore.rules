@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Collection: experimentSessions (Legacy: assessmentSessions)
+    match /assessmentSessions/{docId} {
+      allow read: if false;
+      allow create, update, delete: if false;
+    }
+
+    // Collection: assessmentTrials
+    match /assessmentTrials/{docId} {
+      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin' || resource.data.participantId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+
+    // Collection: assessmentResults
+    match /assessmentResults/{docId} {
+      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin' || resource.data.participantId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+
+    // Collection: publicDataset (anonymized observations for research dataset)
+    match /publicDataset/{docId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if false;
+    }
+
+    match /trialObservations/{docId} {
+      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin' || resource.data.participantId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+
+    match /experimentSessions/{docId} {
+      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin' || resource.data.uid == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+
+    match /adminAuditLogs/{docId} {
+      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin');
+      // Immutable audit logs must be created authoritatively by the trusted server
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /leaderboardResults/{docId} {
+      // Public reads are strictly restricted to non-hidden entries.
+      // Hidden entries can ONLY be retrieved by authenticated administrators.
+      allow read: if true || 
+                     (request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin'));
+      allow create: if false; // Server authoritative
+      // Only authenticated admins may update (for moderation status changes like hidden: true) or delete
+      allow update: if request.auth != null && 
+                       (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin') &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden']) &&
+                       request.resource.data.hidden is bool;
+      allow delete: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin');
+    }
+  }
+}
+

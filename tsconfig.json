@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@bklitui/ui/charts": [
+        "./src/components/charts/index.ts"
+      ]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "types": [
+      "vite/client"
+    ],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "downlevelIteration": true
+  },
+  "exclude": [
+    "dist",
+    "node_modules",
+    "mobile"
+  ]
+}
