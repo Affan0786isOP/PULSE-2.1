@@ -4,7 +4,7 @@ import { Navbar } from './Navbar';
 import { AgeSelection } from './AgeSelection';
 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Activity, RefreshCw } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RefreshCw } from 'lucide-react';
 import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
