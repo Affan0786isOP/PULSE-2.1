@@ -205,50 +205,48 @@ export function exportObservationsToCSV(observations: DatasetObservation[], file
     'TrialsDigest'
   ];
 
-  const rows = observations.map(o => [
-    o.obsId,
-    o.sessionId,
-    o.assessmentType,
-    o.ageGroup,
-    o.completedAtMonth,
-    o.completedAtTimestamp ?? '',
-    o.deviceCategory ?? '',
-    o.inputModality,
-    o.refreshRateHz !== null ? o.refreshRateHz : '',
-    o.trialIndex,
-    o.latencyMs !== null ? o.latencyMs : '',
-    o.rawLatencyMs !== null && o.rawLatencyMs !== undefined ? o.rawLatencyMs : '',
-    o.displayDelayOffsetMs !== null && o.displayDelayOffsetMs !== undefined ? o.displayDelayOffsetMs : '',
-    o.isValid ? 'TRUE' : 'FALSE',
-    o.isCorrect !== null ? (o.isCorrect ? 'TRUE' : 'FALSE') : '',
-    o.validityStatus,
-    o.qualityFlag ?? '',
-    o.foreperiodMs ?? '',
-    o.foreperiodCategory ?? '',
-    o.targetDirection ?? '',
-    o.chosenDirection ?? '',
-    o.targetColor ?? '',
-    o.chosenColor ?? '',
-    o.wordName ?? '',
-    o.wordColor ?? '',
-    o.condition ?? '',
-    o.instruction ?? '',
-    o.userResponse ?? '',
-    o.level ?? '',
-    o.sequenceLength ?? '',
-    o.interTapTimeMs ?? '',
-    o.responseDurationMs ?? '',
-    o.stimulusScheduledAtPerfMs ?? '',
-    o.stimulusPresentedAtPerfMs ?? '',
-    o.responseDetectedAtPerfMs ?? '',
-    o.provenanceToken ?? '',
-    o.trialsDigest ?? ''
-  ]);
+  const escapeCSV = (val: any) => `"${String(val).replace(/"/g, '""')}"`;
 
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-  ].join('\n');
+  const csvContent = headers.join(',') + '\n' +
+    observations.map(o => [
+      o.obsId,
+      o.sessionId,
+      o.assessmentType,
+      o.ageGroup,
+      o.completedAtMonth,
+      o.completedAtTimestamp ?? '',
+      o.deviceCategory ?? '',
+      o.inputModality,
+      o.refreshRateHz !== null ? o.refreshRateHz : '',
+      o.trialIndex,
+      o.latencyMs !== null ? o.latencyMs : '',
+      o.rawLatencyMs !== null && o.rawLatencyMs !== undefined ? o.rawLatencyMs : '',
+      o.displayDelayOffsetMs !== null && o.displayDelayOffsetMs !== undefined ? o.displayDelayOffsetMs : '',
+      o.isValid ? 'TRUE' : 'FALSE',
+      o.isCorrect !== null ? (o.isCorrect ? 'TRUE' : 'FALSE') : '',
+      o.validityStatus,
+      o.qualityFlag ?? '',
+      o.foreperiodMs ?? '',
+      o.foreperiodCategory ?? '',
+      o.targetDirection ?? '',
+      o.chosenDirection ?? '',
+      o.targetColor ?? '',
+      o.chosenColor ?? '',
+      o.wordName ?? '',
+      o.wordColor ?? '',
+      o.condition ?? '',
+      o.instruction ?? '',
+      o.userResponse ?? '',
+      o.level ?? '',
+      o.sequenceLength ?? '',
+      o.interTapTimeMs ?? '',
+      o.responseDurationMs ?? '',
+      o.stimulusScheduledAtPerfMs ?? '',
+      o.stimulusPresentedAtPerfMs ?? '',
+      o.responseDetectedAtPerfMs ?? '',
+      o.provenanceToken ?? '',
+      o.trialsDigest ?? ''
+    ].map(escapeCSV).join(',')).join('\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
