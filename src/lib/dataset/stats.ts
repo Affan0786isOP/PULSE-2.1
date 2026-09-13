@@ -311,6 +311,7 @@ export interface ColourProtocolStats {
   congruentMeanRt: number | null;
   incongruentMeanRt: number | null;
   interferenceCost: number | null;
+  overallMeanRt: number | null;
   overallMedianRt: number | null;
   accuracyRate: number | null;
   conditionBreakdown: {
@@ -371,6 +372,7 @@ export function computeColourStats(observations: DatasetObservation[]): ColourPr
     congruentMeanRt: congMean,
     incongruentMeanRt: incongMean,
     interferenceCost,
+    overallMeanRt: overallDist.mean,
     overallMedianRt: overallDist.median,
     accuracyRate,
     conditionBreakdown,
@@ -399,7 +401,9 @@ export function computeBlockMemoryStats(observations: DatasetObservation[]): Blo
   const bmtObs = observations.filter(o => o.assessmentType === 'block-memory');
   const validBmt = bmtObs.filter(o => o.isValid);
 
-  const spans = validBmt.map(o => o.sequenceLength || o.level).filter((s): s is number => typeof s === 'number' && s > 0);
+  const spans = validBmt
+    .map(o => o.sequenceLength)
+    .filter((s): s is number => typeof s === 'number' && isFinite(s) && s > 0);
   const spanStats = computeNumericStats(spans);
 
   const interTapTimes = validBmt.map(o => o.interTapTimeMs).filter((t): t is number => typeof t === 'number' && t > 0);
@@ -468,7 +472,9 @@ export function computeNumberMemoryStats(observations: DatasetObservation[]): Nu
   const nmtObs = observations.filter(o => o.assessmentType === 'number-memory');
   const validNmt = nmtObs.filter(o => o.isValid);
 
-  const digitLengths = validNmt.map(o => o.sequenceLength || o.level).filter((s): s is number => typeof s === 'number' && s > 0);
+  const digitLengths = validNmt
+    .map(o => o.sequenceLength)
+    .filter((s): s is number => typeof s === 'number' && isFinite(s) && s > 0);
   const spanStats = computeNumericStats(digitLengths);
 
   const latencies = validNmt.map(o => o.latencyMs).filter((l): l is number => typeof l === 'number' && l > 0);
@@ -495,7 +501,7 @@ export function computeNumberMemoryStats(observations: DatasetObservation[]): Nu
 
   const uniqueLengths = Array.from(new Set(digitLengths)).sort((a, b) => a - b);
   const progressionCurve = uniqueLengths.map(digitLength => {
-    const lengthTrials = validNmt.filter(o => (o.sequenceLength || o.level) === digitLength);
+    const lengthTrials = validNmt.filter(o => o.sequenceLength === digitLength);
     const correctCount = lengthTrials.filter(o => o.isCorrect === true).length;
     const acc = lengthTrials.length > 0 ? Number(((correctCount / lengthTrials.length) * 100).toFixed(1)) : null;
 
@@ -518,47 +524,3 @@ export function computeNumberMemoryStats(observations: DatasetObservation[]): Nu
 
 export interface SubgroupCohortStat {
   groupKey: string;
-  groupLabel: string;
-  sampleCount: number;
-  medianLatency: number | null;
-  meanLatency: number | null;
-  accuracyRate: number | null;
-}
-
-export function computeSubgroupStratification(
-  observations: DatasetObservation[],
-  groupBy: 'ageGroup' | 'inputModality' | 'refreshRateHz' | 'completedAtMonth'
-): SubgroupCohortStat[] {
-  const groups: Record<string, DatasetObservation[]> = {};
-
-  observations.forEach(o => {
-    let key = 'unknown';
-    if (groupBy === 'ageGroup') key = o.ageGroup || 'unspecified';
-    else if (groupBy === 'inputModality') key = o.inputModality || 'unknown';
-    else if (groupBy === 'refreshRateHz') key = typeof o.refreshRateHz === 'number' ? `${o.refreshRateHz} Hz` : 'Unspecified';
-    else if (groupBy === 'completedAtMonth') key = o.completedAtMonth || 'unspecified';
-
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(o);
-  });
-
-  return Object.entries(groups).map(([groupKey, groupObs]) => {
-    const validObs = groupObs.filter(o => o.isValid);
-    const latencies = validObs.map(o => o.latencyMs).filter((l): l is number => typeof l === 'number' && l > 0);
-    const dist = computeNumericStats(latencies);
-
-    const accTrials = validObs.filter(o => o.isCorrect !== null);
-    const accRate = accTrials.length > 0
-      ? Number(((accTrials.filter(o => o.isCorrect === true).length / accTrials.length) * 100).toFixed(1))
-      : null;
-
-    return {
-      groupKey,
-      groupLabel: groupKey.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-      sampleCount: groupObs.length,
-      medianLatency: dist.median,
-      meanLatency: dist.mean,
-      accuracyRate: accRate
-    };
-  });
-}
