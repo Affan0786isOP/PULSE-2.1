@@ -334,7 +334,7 @@ export interface BmtStats {
     percentage: number;
   }[];
   progressionCurve: {
-    level: number;
+    sequenceLength: number;
     attemptCount: number;
     accuracyRate: number | null;
   }[];
