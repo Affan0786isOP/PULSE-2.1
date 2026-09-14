@@ -4,6 +4,7 @@ import { Navbar } from './Navbar';
 import { SEO } from './SEO';
 import { useDatasetPipeline } from '../lib/dataset';
 import { DatasetHeader } from './dataset/DatasetHeader';
+import { DatasetFilterBar } from './dataset/DatasetFilterBar';
 import { DatasetContentSlot } from './dataset/DatasetContentSlot';
 import { SkeletonTable } from './ui/Skeleton';
 import { AlertCircle, RefreshCw, Database, FilterX, Play, RotateCcw, ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Table } from 'lucide-react';
@@ -26,8 +27,13 @@ export function Dataset({ onNavigate }: DatasetProps) {
   const {
     totalObservationsCount,
     totalSessionsCount,
+    filteredObservationsCount,
+    filters,
+    setFilters,
     isFiltered,
+    activeFilterCount,
     resetFilters,
+    availableMonths,
     activeAssessment,
     setActiveAssessment,
     datasetMode,
@@ -73,6 +79,20 @@ export function Dataset({ onNavigate }: DatasetProps) {
           totalSessions={totalSessionsCount}
           onRefresh={refresh}
         />
+
+        {/* Global Dataset Filter Bar */}
+        {!loading && !error && !isEmptyDataset && (
+          <DatasetFilterBar
+            filters={filters}
+            setFilters={setFilters}
+            resetFilters={resetFilters}
+            activeFilterCount={activeFilterCount}
+            isFiltered={isFiltered}
+            availableMonths={availableMonths}
+            filteredCount={filteredObservationsCount}
+            totalCount={totalObservationsCount}
+          />
+        )}
 
         {/* Protocol Selector with Left & Right Arrows (Only show if dataset is not empty/error and we are in assessment mode) */}
         {!loading && !error && !isEmptyDataset && datasetMode === 'assessment' && (
@@ -206,18 +226,19 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     <FilterX size={24} />
                   </div>
                   <h3 className="text-base font-bold text-[var(--text-main)] mb-1">
-                    {datasetMode === 'data-explorer' && isFiltered
+                    {isFiltered
                       ? "No Observations Match Active Filters"
                       : "No Valid Observations Available"}
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] mb-5 leading-relaxed">
-                    {datasetMode === 'data-explorer' && isFiltered
-                      ? `${totalObservationsCount.toLocaleString()} total observations exist, but none match the current explorer filters.`
+                    {isFiltered
+                      ? `${totalObservationsCount.toLocaleString()} total observations exist, but none match the current active filters in this section.`
                       : "No valid observations match the data quality requirements for this section."}
                   </p>
-                  {datasetMode === 'data-explorer' && isFiltered && (
+                  {isFiltered && (
                     <button
                       type="button"
+                      id="dataset-empty-reset-filters-btn"
                       onClick={resetFilters}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] border border-[var(--border-subtle)] hover:border-[var(--cyan-primary)] text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer active:scale-95"
                     >
