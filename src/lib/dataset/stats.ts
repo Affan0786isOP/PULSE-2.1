@@ -205,7 +205,7 @@ export interface VrtProtocolStats {
 
 export function computeVrtStats(observations: DatasetObservation[]): VrtProtocolStats {
   const vrtObs = observations.filter(o => o.assessmentType === 'visual-reaction');
-  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number');
+  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs > 0);
   const latencies = validVrt.map(o => o.latencyMs);
   const dist = computeNumericStats(latencies);
 
@@ -281,7 +281,7 @@ export interface DirectionProtocolStats {
 
 export function computeDirectionStats(observations: DatasetObservation[]): DirectionProtocolStats {
   const drtObs = observations.filter(o => o.assessmentType === 'direction');
-  const validDrt = drtObs.filter(o => o.isValid && typeof o.latencyMs === 'number');
+  const validDrt = drtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs > 0);
   const latencies = validDrt.map(o => o.latencyMs);
   const dist = computeNumericStats(latencies);
 
@@ -340,7 +340,7 @@ export interface ColourProtocolStats {
 
 export function computeColourStats(observations: DatasetObservation[]): ColourProtocolStats {
   const crtObs = observations.filter(o => o.assessmentType === 'color-recognition' || o.assessmentType === 'colour-recognition');
-  const validCrt = crtObs.filter(o => o.isValid && typeof o.latencyMs === 'number');
+  const validCrt = crtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs > 0);
   const overallDist = computeNumericStats(validCrt.map(o => o.latencyMs));
 
   const congruentTrials = validCrt.filter(o => o.condition === 'congruent');

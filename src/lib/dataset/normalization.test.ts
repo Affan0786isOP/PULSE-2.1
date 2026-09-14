@@ -180,4 +180,55 @@ describe('Observation Normalization Correctness (STAT-05/06 Fixes)', () => {
     expect(obs[1].foreperiodMs).toBe(1500);
     expect(obs[1].foreperiodCategory).toBe('LONG');
   });
+
+  it('TIM-01: display-delay offset bringing reactionTime < 80ms preserves physiological validity when rawLatencyMs >= 80ms', () => {
+    const trials: RawProgressionTrial[] = [
+      {
+        valid: true,
+        validity: 'VALID',
+        falseStart: false,
+        timedOut: false,
+        rawLatencyMs: 85,
+        reactionTime: 72, // 85ms - 13ms display offset
+        displayDelayOffsetMs: 13,
+        foreperiodMs: 300,
+        foreperiodCategory: 'SHORT'
+      }
+    ];
+    const session = makeSession('visual-reaction', trials);
+    const obs = normalizeSessionToObservations(session);
+
+    expect(obs.length).toBe(1);
+    expect(obs[0].isValid).toBe(true);
+    expect(obs[0].validityStatus).toBe('VALID');
+    expect(obs[0].latencyMs).toBe(72);
+    expect(obs[0].rawLatencyMs).toBe(85);
+  });
+
+  it('TIM-01: rejects impossible or non-positive RTs (<= 0) as invalid ABORTED observations', () => {
+    const trials: RawProgressionTrial[] = [
+      {
+        valid: true,
+        reactionTime: 0,
+        rawLatencyMs: 0,
+        falseStart: false,
+        timedOut: false
+      },
+      {
+        valid: true,
+        reactionTime: -15,
+        rawLatencyMs: -15,
+        falseStart: false,
+        timedOut: false
+      }
+    ];
+    const session = makeSession('visual-reaction', trials);
+    const obs = normalizeSessionToObservations(session);
+
+    expect(obs.length).toBe(2);
+    expect(obs[0].isValid).toBe(false);
+    expect(obs[0].validityStatus).toBe('ABORTED');
+    expect(obs[1].isValid).toBe(false);
+    expect(obs[1].validityStatus).toBe('ABORTED');
+  });
 });

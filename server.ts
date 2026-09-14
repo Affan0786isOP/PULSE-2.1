@@ -232,13 +232,14 @@ function computeCanonicalTrialsDigest(trials: Record<string, any>[]): string {
     const falseStart = t.falseStart === true;
     const timedOut = t.timedOut === true;
     const valid = typeof t.valid === 'boolean' ? t.valid : (!falseStart && !timedOut);
+    const isVrtTrial = t.test === 'visual-reaction' || t.assessmentType === 'visual-reaction';
     const correct = typeof t.correct === 'boolean'
       ? t.correct
       : (typeof t.correctness === 'boolean'
           ? t.correctness
-          : (typeof t.accuracy === 'number' ? t.accuracy === 1 : valid));
+          : (typeof t.accuracy === 'number' ? t.accuracy === 1 : (isVrtTrial ? valid : null)));
     const correctness = correct;
-    const accuracy = typeof t.accuracy === 'number' ? t.accuracy : (correct ? 1 : 0);
+    const accuracy = typeof t.accuracy === 'number' ? t.accuracy : (correct === true ? 1 : 0);
 
     const foreperiodMs = typeof t.foreperiodMs === 'number' ? t.foreperiodMs : null;
     const foreperiodCategory = typeof t.foreperiodCategory === 'string' && (t.foreperiodCategory === 'SHORT' || t.foreperiodCategory === 'LONG')
@@ -2209,8 +2210,8 @@ async function startServer() {
             ? t.correct
             : (typeof t.correctness === 'boolean'
                 ? t.correctness
-                : (typeof t.accuracy === 'number' ? t.accuracy === 1 : isValid));
-          const accuracyVal = typeof t.accuracy === 'number' ? t.accuracy : (isCorrect ? 1 : 0);
+                : (typeof t.accuracy === 'number' ? t.accuracy === 1 : (assessmentType === 'visual-reaction' ? isValid : null)));
+          const accuracyVal = typeof t.accuracy === 'number' ? t.accuracy : (isCorrect === true ? 1 : 0);
 
           const trialPayload: Record<string, any> = {
             participantId: verifiedUser.uid, // Strictly bound to verified Firebase UID

@@ -474,6 +474,7 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
             const q = query(
               colRef,
               where('assessmentType', '==', alias),
+              where('hidden', '==', false),
               orderBy('scoreMetric', aliasDirection),
               limit(100)
             );

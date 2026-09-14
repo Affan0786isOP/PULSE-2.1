@@ -103,7 +103,22 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
 
   return trials.map((t, idx) => {
     const rawRt = t.reactionTime ?? t.inputLatencyMs ?? t.rawRt ?? t.rawReactionTime ?? t.rawLatencyMs;
-    const isFalseStart = t.falseStart === true || (typeof rawRt === 'number' && rawRt < VRT_MIN_VALID_RT_MS && (pType === 'visual-reaction' || pType === 'direction' || pType === 'color-recognition'));
+    const physiologicalRt = typeof t.rawLatencyMs === 'number'
+      ? t.rawLatencyMs
+      : (typeof t.rawReactionTime === 'number'
+        ? t.rawReactionTime
+        : (typeof t.rawRt === 'number'
+          ? t.rawRt
+          : (typeof t.reactionTime === 'number' ? t.reactionTime : (typeof t.inputLatencyMs === 'number' ? t.inputLatencyMs : null))));
+
+    const isSpeedAssessment = pType === 'visual-reaction' || pType === 'direction' || pType === 'color-recognition';
+    const isPhysiologicallySubThreshold = typeof physiologicalRt === 'number' && physiologicalRt < VRT_MIN_VALID_RT_MS && isSpeedAssessment;
+
+    const isFalseStart = t.falseStart === true ||
+      t.validity === 'FALSE_START_PRE_STIMULUS' ||
+      t.validity === 'ANTICIPATORY_TOO_FAST' ||
+      (t.valid !== true && isPhysiologicallySubThreshold);
+
     const isTimeout = t.timedOut === true;
     const isCorrect = typeof t.correct === 'boolean' 
       ? t.correct 
@@ -120,7 +135,7 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     } else if (isTimeout || t.validity === 'TIMEOUT') {
       isValid = false;
       validityStatus = 'TIMEOUT';
-    } else if (t.valid === false || t.validity === 'INVALID' || t.validity === 'ABORTED') {
+    } else if (t.valid === false || t.validity === 'INVALID' || t.validity === 'ABORTED' || (typeof rawRt === 'number' && rawRt <= 0)) {
       isValid = false;
       validityStatus = 'ABORTED';
     } else if (isCorrect === false || t.validity === 'INCORRECT') {
