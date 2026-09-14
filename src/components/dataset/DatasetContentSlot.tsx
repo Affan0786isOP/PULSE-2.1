@@ -21,6 +21,7 @@ import { DirectionDashboard } from './visualizations/DirectionDashboard';
 import { ColourRecognitionDashboard } from './visualizations/ColourRecognitionDashboard';
 import { BlockMemoryDashboard } from './visualizations/BlockMemoryDashboard';
 import { NumberMemoryDashboard } from './visualizations/NumberMemoryDashboard';
+import { DataExplorer } from './DataExplorer';
 
 interface DatasetContentSlotProps {
   activeAssessment: AssessmentId;
@@ -193,12 +194,8 @@ export function DatasetContentSlot({
       </div>
 
       {datasetMode === 'data-explorer' ? (
-        <div className="flex-1 min-h-[300px] bg-[var(--bg-panel)]/30 border border-dashed border-[var(--border-subtle)] rounded-xl flex flex-col items-center justify-center p-6 text-center mb-6">
-          <Info size={32} className="text-[var(--text-muted)] mb-4" />
-          <h3 className="font-bold text-[var(--text-secondary)] mb-2">Data Explorer In Development</h3>
-          <p className="text-xs text-[var(--text-muted)] max-w-sm">
-            The raw tabular data view is currently under development. This space will host the fully paginated, exportable raw telemetry viewer.
-          </p>
+        <div className="flex-1 pb-6">
+          <DataExplorer observations={sectionObservations} />
         </div>
       ) : (
         <div className="flex-1 pb-6">
