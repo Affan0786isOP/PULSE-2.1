@@ -1508,9 +1508,10 @@ function validateAndDeriveAssessmentFromTrials(
         t.accuracy = isCorrect ? 1 : 0;
         t.correct = isCorrect;
         t.correctness = isCorrect;
-        t.valid = isCorrect;
-        t.validity = isCorrect ? 'VALID' : 'INCORRECT';
-        t.qualityFlag = isCorrect ? null : 'ACCURACY_ERROR';
+        const clientValid = t.valid !== false && t.validity !== 'ABORTED' && !t.timedOut && !t.falseStart;
+        t.valid = clientValid;
+        t.validity = clientValid ? (isCorrect ? 'VALID' : 'INCORRECT') : (t.validity || 'INVALID');
+        t.qualityFlag = clientValid ? (isCorrect ? null : 'ACCURACY_ERROR') : t.qualityFlag;
 
         if (isCorrect) {
           totalCorrect++;
@@ -1592,9 +1593,10 @@ function validateAndDeriveAssessmentFromTrials(
         t.accuracy = isCorrect ? 1 : 0;
         t.correct = isCorrect;
         t.correctness = isCorrect;
-        t.valid = isCorrect;
-        t.validity = isCorrect ? 'VALID' : 'INCORRECT';
-        t.qualityFlag = isCorrect ? null : 'ACCURACY_ERROR';
+        const clientValid = t.valid !== false && t.validity !== 'ABORTED' && !t.timedOut && !t.falseStart;
+        t.valid = clientValid;
+        t.validity = clientValid ? (isCorrect ? 'VALID' : 'INCORRECT') : (t.validity || 'INVALID');
+        t.qualityFlag = clientValid ? (isCorrect ? null : 'ACCURACY_ERROR') : t.qualityFlag;
 
         if (isCorrect) {
           totalCorrect++;

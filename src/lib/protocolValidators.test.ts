@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { deriveForeperiodCategory } from './protocolValidators';
+import { deriveForeperiodCategory, VRT_MIN_VALID_RT_MS, VRT_MIN_FOREPERIOD_MS, VRT_MAX_FOREPERIOD_MS, VRT_TIMEOUT_MS } from './protocolValidators';
+
+describe('VRT Constants', () => {
+  it('should maintain strict dataset bounds', () => {
+    expect(VRT_MIN_VALID_RT_MS).toBe(80);
+    expect(VRT_MIN_FOREPERIOD_MS).toBe(100);
+    expect(VRT_MAX_FOREPERIOD_MS).toBe(3000);
+    expect(VRT_TIMEOUT_MS).toBe(3000);
+  });
+});
 
 describe('deriveForeperiodCategory', () => {
   describe('Valid inputs - SHORT category', () => {

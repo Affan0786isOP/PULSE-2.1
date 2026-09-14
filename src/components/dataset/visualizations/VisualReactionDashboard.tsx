@@ -173,14 +173,14 @@ export function VisualReactionDashboard({ observations }: VisualReactionDashboar
         <div className="flex flex-col gap-4">
           <PercentileSummaryVisual
             stats={{
-              count: 0,
-              min: 0,
-              max: 0,
+              count: stats.count,
+              min: stats.minRt,
+              max: stats.maxRt,
               mean: stats.meanRt,
               median: stats.medianRt,
               p10: stats.p10Rt,
-              p25: null,
-              p75: null,
+              p25: stats.p25Rt,
+              p75: stats.p75Rt,
               p90: stats.p90Rt,
               stdDev: stats.stdDevRt,
               iqr: stats.iqrRt

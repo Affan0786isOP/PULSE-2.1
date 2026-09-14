@@ -180,9 +180,14 @@ export function computeSummaryStats(observations: DatasetObservation[]): Dataset
 }
 
 export interface VrtProtocolStats {
+  count: number;
+  minRt: number | null;
+  maxRt: number | null;
   medianRt: number | null;
   iqrRt: number | null;
   p10Rt: number | null;
+  p25Rt: number | null;
+  p75Rt: number | null;
   p90Rt: number | null;
   meanRt: number | null;
   stdDevRt: number | null;
@@ -200,7 +205,7 @@ export interface VrtProtocolStats {
 
 export function computeVrtStats(observations: DatasetObservation[]): VrtProtocolStats {
   const vrtObs = observations.filter(o => o.assessmentType === 'visual-reaction');
-  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= VRT_MIN_VALID_RT_MS);
+  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number');
   const latencies = validVrt.map(o => o.latencyMs);
   const dist = computeNumericStats(latencies);
 
@@ -226,9 +231,14 @@ export function computeVrtStats(observations: DatasetObservation[]): VrtProtocol
   const histogram = computeHistogramBins(latencies, 8);
 
   return {
+    count: dist.count,
+    minRt: dist.min,
+    maxRt: dist.max,
     medianRt: dist.median,
     iqrRt: dist.iqr,
     p10Rt: dist.p10,
+    p25Rt: dist.p25,
+    p75Rt: dist.p75,
     p90Rt: dist.p90,
     meanRt: dist.mean,
     stdDevRt: dist.stdDev,
@@ -284,8 +294,9 @@ export function computeDirectionStats(observations: DatasetObservation[]): Direc
   const directions = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
   const directionBreakdown = directions.map(dir => {
     const dirTrials = validDrt.filter(o => o.targetDirection?.toUpperCase() === dir);
-    const correctCount = dirTrials.filter(o => o.isCorrect === true).length;
-    const acc = dirTrials.length > 0 ? Number(((correctCount / dirTrials.length) * 100).toFixed(1)) : null;
+    const accTrials = dirTrials.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
+    const correctCount = accTrials.filter(o => o.isCorrect === true).length;
+    const acc = accTrials.length > 0 ? Number(((correctCount / accTrials.length) * 100).toFixed(1)) : null;
     const dirRtStats = computeNumericStats(dirTrials.map(o => o.latencyMs));
 
     return {
@@ -429,11 +440,12 @@ export function computeBlockMemoryStats(observations: DatasetObservation[]): Blo
       percentage: spans.length > 0 ? Number(((spanCounts[span] / spans.length) * 100).toFixed(1)) : 0
     }));
 
-  const levels = Array.from(new Set(validBmt.map(o => o.level).filter((l): l is number => typeof l === 'number'))).sort((a, b) => a - b);
-  const progressionCurve = levels.map(level => {
-    const levelTrials = validBmt.filter(o => o.level === level);
-    const correctCount = levelTrials.filter(o => o.isCorrect === true).length;
-    const acc = levelTrials.length > 0 ? Number(((correctCount / levelTrials.length) * 100).toFixed(1)) : null;
+  const uniqueSpans = Array.from(new Set(spans)).sort((a, b) => a - b);
+  const progressionCurve = uniqueSpans.map(level => {
+    const levelTrials = validBmt.filter(o => (o.sequenceLength ?? (typeof o.level === 'number' && o.level > 0 ? o.level + 1 : null)) === level);
+    const accTrials = levelTrials.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
+    const correctCount = accTrials.filter(o => o.isCorrect === true).length;
+    const acc = accTrials.length > 0 ? Number(((correctCount / accTrials.length) * 100).toFixed(1)) : null;
 
     return {
       level,
@@ -501,8 +513,9 @@ export function computeNumberMemoryStats(observations: DatasetObservation[]): Nu
   const uniqueLengths = Array.from(new Set(digitLengths)).sort((a, b) => a - b);
   const progressionCurve = uniqueLengths.map(digitLength => {
     const lengthTrials = validNmt.filter(o => (o.sequenceLength ?? (typeof o.level === 'number' && o.level > 0 ? o.level + 2 : null)) === digitLength);
-    const correctCount = lengthTrials.filter(o => o.isCorrect === true).length;
-    const acc = lengthTrials.length > 0 ? Number(((correctCount / lengthTrials.length) * 100).toFixed(1)) : null;
+    const accTrials = lengthTrials.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
+    const correctCount = accTrials.filter(o => o.isCorrect === true).length;
+    const acc = accTrials.length > 0 ? Number(((correctCount / accTrials.length) * 100).toFixed(1)) : null;
 
     return {
       digitLength,

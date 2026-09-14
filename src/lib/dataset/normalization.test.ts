@@ -1,0 +1,183 @@
+import { describe, it, expect } from 'vitest';
+import { normalizeSessionToObservations } from './normalization';
+import { ResearchSessionRecord, RawProgressionTrial } from './types';
+
+// Helper to construct a minimal session
+function makeSession(
+  assessmentType: string,
+  trials: RawProgressionTrial[]
+): ResearchSessionRecord {
+  return {
+    id: 'test-session',
+    assessmentType,
+    ageGroup: 'Adults (26–40)',
+    completedAtMonth: '2023-10',
+    completedAtTimestamp: Date.now(),
+    deviceCategory: 'desktop',
+    inputModality: 'mouse',
+    displayRefreshRateHz: 60,
+    progressionTrials: trials,
+  };
+}
+
+describe('Observation Normalization Correctness (STAT-05/06 Fixes)', () => {
+  it('correct BMT trial remains valid + correct=true', () => {
+    const trials: RawProgressionTrial[] = [
+      {
+        valid: true,
+        validity: 'VALID',
+        correct: true,
+        correctness: true,
+        reactionTime: 500,
+        level: 1,
+      },
+    ];
+    const session = makeSession('block-memory', trials);
+    const obs = normalizeSessionToObservations(session);
+    
+    expect(obs.length).toBe(1);
+    expect(obs[0].isValid).toBe(true);
+    expect(obs[0].validityStatus).toBe('VALID');
+    expect(obs[0].isCorrect).toBe(true);
+  });
+
+  it('incorrect BMT trial remains valid + correct=false', () => {
+    const trials: RawProgressionTrial[] = [
+      {
+        valid: true, // From server canonicalization fix
+        validity: 'INCORRECT',
+        correct: false,
+        correctness: false,
+        reactionTime: 500,
+        level: 1,
+      },
+    ];
+    const session = makeSession('block-memory', trials);
+    const obs = normalizeSessionToObservations(session);
+    
+    expect(obs.length).toBe(1);
+    expect(obs[0].isValid).toBe(true); // Should remain valid
+    expect(obs[0].validityStatus).toBe('INCORRECT');
+    expect(obs[0].isCorrect).toBe(false);
+  });
+
+  it('correct NMT trial remains valid + correct=true', () => {
+    const trials: RawProgressionTrial[] = [
+      {
+        valid: true,
+        validity: 'VALID',
+        correct: true,
+        correctness: true,
+        reactionTime: 500,
+        level: 1,
+      },
+    ];
+    const session = makeSession('number-memory', trials);
+    const obs = normalizeSessionToObservations(session);
+    
+    expect(obs.length).toBe(1);
+    expect(obs[0].isValid).toBe(true);
+    expect(obs[0].validityStatus).toBe('VALID');
+    expect(obs[0].isCorrect).toBe(true);
+  });
+
+  it('incorrect NMT trial remains valid + correct=false', () => {
+    const trials: RawProgressionTrial[] = [
+      {
+        valid: true,
+        validity: 'INCORRECT',
+        correct: false,
+        correctness: false,
+        reactionTime: 500,
+        level: 1,
+      },
+    ];
+    const session = makeSession('number-memory', trials);
+    const obs = normalizeSessionToObservations(session);
+    
+    expect(obs.length).toBe(1);
+    expect(obs[0].isValid).toBe(true);
+    expect(obs[0].validityStatus).toBe('INCORRECT');
+    expect(obs[0].isCorrect).toBe(false);
+  });
+
+  it('genuinely invalid/aborted memory trials remain invalid', () => {
+    const trials: RawProgressionTrial[] = [
+      {
+        valid: false,
+        validity: 'ABORTED',
+        correct: false, // Or undefined
+        reactionTime: 500,
+      },
+    ];
+    const session = makeSession('block-memory', trials);
+    const obs = normalizeSessionToObservations(session);
+    
+    expect(obs.length).toBe(1);
+    expect(obs[0].isValid).toBe(false);
+    expect(obs[0].validityStatus).toBe('ABORTED');
+  });
+
+  it('downstream normalization preserves the distinction between timeout and incorrect', () => {
+    const trials: RawProgressionTrial[] = [
+      {
+        valid: false,
+        validity: 'TIMEOUT',
+        timedOut: true,
+        correct: false,
+        reactionTime: 5000,
+      },
+      {
+        valid: true,
+        validity: 'INCORRECT',
+        correct: false,
+        reactionTime: 500,
+      }
+    ];
+    const session = makeSession('number-memory', trials);
+    const obs = normalizeSessionToObservations(session);
+    
+    expect(obs.length).toBe(2);
+    // Trial 1: Timeout
+    expect(obs[0].isValid).toBe(false);
+    expect(obs[0].validityStatus).toBe('TIMEOUT');
+    // Trial 2: Incorrect
+    expect(obs[1].isValid).toBe(true);
+    expect(obs[1].validityStatus).toBe('INCORRECT');
+  });
+
+  it('VRT: preserves false-start/timeout semantics and foreperiod telemetry', () => {
+    const trials: RawProgressionTrial[] = [
+      {
+        valid: false,
+        validity: 'FALSE_START',
+        falseStart: true,
+        reactionTime: 10,
+        foreperiodMs: 250,
+        foreperiodCategory: 'SHORT'
+      },
+      {
+        valid: true,
+        validity: 'VALID',
+        reactionTime: 250,
+        foreperiodMs: 1500,
+        foreperiodCategory: 'LONG'
+      }
+    ];
+    const session = makeSession('visual-reaction', trials);
+    const obs = normalizeSessionToObservations(session);
+    
+    expect(obs.length).toBe(2);
+    // Trial 1: False start
+    expect(obs[0].isValid).toBe(false);
+    expect(obs[0].validityStatus).toBe('FALSE_START');
+    expect(obs[0].foreperiodMs).toBe(250);
+    expect(obs[0].foreperiodCategory).toBe('SHORT');
+    
+    // Trial 2: Valid long foreperiod
+    expect(obs[1].isValid).toBe(true);
+    expect(obs[1].validityStatus).toBe('VALID');
+    expect(obs[1].foreperiodMs).toBe(1500);
+    expect(obs[1].foreperiodCategory).toBe('LONG');
+  });
+});

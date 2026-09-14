@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from 'motion/react';
 import { Navbar } from "./Navbar";
 import { getRandomizedFacts } from "../data/facts";
 import { SEO } from "./SEO";
+import { HookSidebar } from "./ui/hook-sidebar";
+import { ScrollProgress } from "./ui/scroll-progress";
 import {
   Moon,
   Droplet,
@@ -24,6 +26,14 @@ import {
   Sparkles,
 } from "lucide-react";
 
+const improveSections = [
+  { id: "factors", label: "Physiological Factors" },
+  { id: "checklist", label: "Action Checklist" },
+  { id: "ledger", label: "Research Ledger" },
+  { id: "expectations", label: "Expectation Management" },
+  { id: "recommendations", label: "System Recommendations" },
+];
+
 export function Improve({
   onNavigate,
 }: {
@@ -32,6 +42,8 @@ export function Improve({
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
   const [currentSlide, setCurrentSlide] = useState(0);
   const [facts] = useState<string[]>(() => getRandomizedFacts());
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLElement>(null);
 
   const toggleChecklist = (index: number) => {
     const newChecked = new Set(checkedItems);
@@ -101,6 +113,28 @@ export function Improve({
     return () => clearInterval(timer);
   }, [facts.length]);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the most visible section
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = improveSections.findIndex(s => s.id === entry.target.id);
+            if (idx !== -1) setActiveIndex(idx);
+          }
+        });
+      },
+      { root: scrollContainerRef.current, rootMargin: "-20% 0px -50% 0px", threshold: 0.1 }
+    );
+
+    improveSections.forEach(sec => {
+      const el = document.getElementById(sec.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-cyan-500/30 relative">
       <SEO 
@@ -110,35 +144,62 @@ export function Improve({
       <Navbar currentView="improve" onNavigate={onNavigate} onBack={() => onNavigate('home')} />
 
       <main 
-        className="flex-1 overflow-y-auto bg-transparent relative pt-8 pb-20 pb-safe px-safe"
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto bg-transparent relative pt-8 pb-32 pb-safe px-safe"
         style={{
-          paddingBottom: 'max(5rem, calc(2rem + env(safe-area-inset-bottom, 0px)))',
+          paddingBottom: 'max(8rem, calc(4rem + env(safe-area-inset-bottom, 0px)))',
           paddingLeft: 'max(1.5rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(1.5rem, env(safe-area-inset-right, 0px))'
         }}
       >
-        <motion.div 
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="w-full max-w-5xl mx-auto px-6 lg:px-12 relative z-10 flex flex-col gap-12"
-        >
-          {/* Header Section */}
-          <div className="text-center md:text-left border-b border-[var(--border-subtle)] pb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-xs font-mono mb-3">
-              <Sparkles size={13} />
-              <span>PERFORMANCE OPTIMIZATION</span>
-            </div>
-            <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)] mb-3">
-              Improving Reaction Speed &amp; Accuracy
-            </h1>
-            <p className="text-[var(--text-secondary)] text-sm sm:text-base max-w-2xl leading-relaxed">
-              Research-backed protocols, physiological variables, and actionable habits to maintain optimal cognitive latency and decision speed.
-            </p>
-          </div>
+        <div className="fixed bottom-16 sm:bottom-8 left-1/2 -translate-x-1/2 z-50">
+          <ScrollProgress 
+            sections={improveSections}
+            containerRef={scrollContainerRef}
+            offset={100}
+          />
+        </div>
 
-          {/* Section: Physiological Factors */}
-          <section>
+        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 xl:gap-16">
+          <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-8 self-start z-10 px-6 lg:px-0 order-2 lg:order-1 flex justify-center lg:justify-start">
+            <div className="w-full max-w-xs sm:max-w-sm lg:max-w-none bg-[var(--surface-1)]/50 lg:bg-transparent p-4 lg:p-0 rounded-xl border border-[var(--border-subtle)] lg:border-none shadow-sm lg:shadow-none mb-8 lg:mb-0">
+              <HookSidebar
+                items={improveSections}
+                value={activeIndex}
+                onChange={(idx) => {
+                  const id = improveSections[idx].id;
+                  const el = document.getElementById(id);
+                  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                color="var(--accent)"
+                label="Sections"
+                className="w-full"
+              />
+            </div>
+          </aside>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="flex-1 min-w-0 px-6 lg:px-0 relative z-10 flex flex-col gap-12 order-1 lg:order-2"
+          >
+            {/* Header Section */}
+            <div className="text-center md:text-left border-b border-[var(--border-subtle)] pb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-xs font-mono mb-3">
+                <Sparkles size={13} />
+                <span>PERFORMANCE OPTIMIZATION</span>
+              </div>
+              <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)] mb-3">
+                Improving Reaction Speed &amp; Accuracy
+              </h1>
+              <p className="text-[var(--text-secondary)] text-sm sm:text-base max-w-2xl leading-relaxed">
+                Research-backed protocols, physiological variables, and actionable habits to maintain optimal cognitive latency and decision speed.
+              </p>
+            </div>
+
+            {/* Section: Physiological Factors */}
+            <section id="factors" className="scroll-mt-8">
             <div className="mb-6 text-center md:text-left">
               <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
                 VARIABLE MATRIX
@@ -245,7 +306,7 @@ export function Improve({
           </section>
 
           {/* Section: Action Checklist */}
-          <section>
+          <section id="checklist" className="scroll-mt-8">
             <div className="mb-6 text-center md:text-left">
               <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
                 HABIT OPTIMIZATION
@@ -317,7 +378,7 @@ export function Improve({
           </section>
 
           {/* Section: Research Ledger */}
-          <section>
+          <section id="ledger" className="scroll-mt-8">
             <div className="mb-4 text-center md:text-left">
               <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
                 NEUROSCIENCE RESEARCH
@@ -377,7 +438,7 @@ export function Improve({
           </section>
 
           {/* Section: Can Everyone Improve? */}
-          <section>
+          <section id="expectations" className="scroll-mt-8">
             <div className="mb-4 text-center md:text-left">
               <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
                 EXPECTATION MANAGEMENT
@@ -397,7 +458,7 @@ export function Improve({
           </section>
 
           {/* Section: System Recommendations */}
-          <section>
+          <section id="recommendations" className="scroll-mt-8">
             <div className="mb-6 text-center md:text-left">
               <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
                 PULSE PROTOCOL
@@ -472,7 +533,8 @@ export function Improve({
               </button>
             </div>
           </section>
-        </motion.div>
+          </motion.div>
+        </div>
       </main>
     </div>
   );

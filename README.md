@@ -47,7 +47,7 @@ PULSE is architected as a full-stack, cloud-native web application supporting bo
 
 To prevent automated bot submissions and metric tampering, PULSE employs a multi-tiered cryptographic provenance model:
 
-1. **Server-Side HMAC Attestation:** Assessment payloads must submit raw per-trial observations (timestamps, stimulus deltas, response inputs). The backend validates physiological plausibility thresholds (e.g. $80\text{ms} \le \text{RT} \le 3600000\text{ms}$) and generates a 64-character SHA-256 HMAC token.
+1. **Server-Side HMAC Attestation:** Assessment payloads must submit raw per-trial observations (timestamps, stimulus deltas, response inputs). The backend validates physiological plausibility thresholds (e.g. $80\text{ms} \le \text{RT} \le 3000\text{ms}$) and generates a 64-character SHA-256 HMAC token.
 2. **Chronological Trial Verification:** Trial timestamps are verified for monotonic forward progression to prevent simulated or replayed observation arrays.
 3. **Rate Limiting:** Express API endpoints apply IP-based rate limiting (`express-rate-limit`) to prevent automated flooding.
 4. **Firestore Security Rules:** Access rules enforce schema validation v1, anonymous authentication requirements, and strict read/write boundaries for public dataset records.
@@ -85,8 +85,11 @@ npm run lint
 
 ### Production Build & Launch
 ```bash
-# Build desktop SPA, mobile PWA, and bundle CJS Express server
+# Build desktop SPA and bundle ESM Express server
 npm run build
+
+# Build mobile PWA interface
+npm run build:mobile
 
 # Start production server
 npm run start

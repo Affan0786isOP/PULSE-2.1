@@ -24,6 +24,7 @@ function seedPRNG(seedStr: string): () => number {
   };
 }
 import { getCachedRefreshRate } from '../lib/refreshRateDetector';
+import { useRefreshRate } from '../lib/useRefreshRate';
 import { safeUUID } from '../lib/utils';
 import { VRT_MIN_FOREPERIOD_MS, VRT_MAX_FOREPERIOD_MS, VRT_TIMEOUT_MS, VRT_MIN_VALID_RT_MS, generateVrtForeperiod, ForeperiodCategory } from '../lib/protocolValidators';
 import { CountdownOverlay } from './CountdownOverlay';
@@ -45,6 +46,7 @@ const MAX_DELAY = VRT_MAX_FOREPERIOD_MS;
 
 
 export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => void }) {
+  useRefreshRate();
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(false);
@@ -139,7 +141,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   }, []);
 
   const calculateAndFinalizeMetrics = (data: TrialData[]) => {
-    const legalRuns = data.filter(t => !t.falseStart && !t.timedOut && t.latency >= 80 && t.latency < 3000).map(t => t.latency);
+    const legalRuns = data.filter(t => !t.falseStart && !t.timedOut && (t.rawLatency ?? t.latency) >= 80 && (t.rawLatency ?? t.latency) < 3000).map(t => t.latency);
     const rawRuns = data.filter(t => !t.falseStart && !t.timedOut && (t.rawLatency !== undefined ? t.rawLatency : t.latency) >= 80 && (t.rawLatency !== undefined ? t.rawLatency : t.latency) < 3000).map(t => t.rawLatency !== undefined ? t.rawLatency : t.latency);
     const totalFalseStarts = falseStartsCountRef.current;
 

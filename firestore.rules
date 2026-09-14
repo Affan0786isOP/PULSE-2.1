@@ -46,7 +46,7 @@ service cloud.firestore {
     match /leaderboardResults/{docId} {
       // Public reads are strictly restricted to non-hidden entries.
       // Hidden entries can ONLY be retrieved by authenticated administrators.
-      allow read: if true || 
+      allow read: if resource.data.hidden == false || 
                      (request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin'));
       allow create: if false; // Server authoritative
       // Only authenticated admins may update (for moderation status changes like hidden: true) or delete

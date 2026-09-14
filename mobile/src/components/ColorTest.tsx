@@ -23,6 +23,7 @@ function seedPRNG(seedStr: string): () => number {
   };
 }
 import { getCachedRefreshRate } from '../lib/refreshRateDetector';
+import { useRefreshRate } from '../lib/useRefreshRate';
 import { CountdownOverlay } from './CountdownOverlay';
 
 type EngineState = 'READY' | 'STARTING' | 'STIMULUS_ACTIVE' | 'FEEDBACK' | 'REPORT' | 'UNMOUNTED';
@@ -44,6 +45,7 @@ const COLORS = [
 
 
 export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }) {
+  useRefreshRate();
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(false);

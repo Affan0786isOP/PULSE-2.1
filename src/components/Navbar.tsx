@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { SettingsModal } from './SettingsModal';
 import { WelcomeModal, isWelcomeSeenInMemory } from './WelcomeModal';
+import { GooeyNav } from './ui/gooey-nav';
 
 export function Navbar({ onNavigate, currentView, onBack, title, rightContent }: { onNavigate: (view: string) => void, currentView: string, onBack?: () => void, title?: string, rightContent?: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -73,30 +74,15 @@ export function Navbar({ onNavigate, currentView, onBack, title, rightContent }:
         )}
       </div>
 
-      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6 lg:gap-8 h-full">
-        {navItems.map(item => {
-          const isActive = activeId === item.id;
-          return (
-            <button type="button"
-              key={`desktop-nav-${item.id}`}
-              onClick={() => onNavigate(item.id)}
-              className={`h-full relative py-4 flex items-center text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer active:scale-[0.97] ${
-                isActive 
-                  ? 'text-[var(--text-primary)] font-semibold' 
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              {item.label}
-              {isActive && (
-                <motion.span 
-                  layoutId="desktop-navbar-active"
-                  className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)]" 
-                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                />
-              )}
-            </button>
-          );
-        })}
+      <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center h-full">
+        <GooeyNav
+          items={navItems.map(item => item.label)}
+          value={navItems.findIndex(i => i.id === activeId) >= 0 ? navItems.findIndex(i => i.id === activeId) : 0}
+          onChange={(index) => onNavigate(navItems[index].id)}
+          size="sm"
+          activeColor="var(--accent)"
+          activeLabelColor="white"
+        />
       </div>
 
       <div className="flex items-center gap-2">

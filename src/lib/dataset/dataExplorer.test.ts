@@ -35,6 +35,17 @@ describe('Data Explorer Observation Integration', () => {
         expect(explorerObs[i].obsId).toBe(`obs-${i + 1}`);
       }
     });
+
+    it('receives only pre-filtered observations with no unfiltered leakage', () => {
+      // Simulate pipeline: pre-filter the observations
+      const filtered = sampleObservations.filter(o => o.assessmentType === 'direction');
+      const explorerObs = selectObservationsForSection(filtered, 'data-explorer');
+      
+      expect(explorerObs).toHaveLength(30); // Half of the 60 mock obs
+      explorerObs.forEach(obs => {
+        expect(obs.assessmentType).toBe('direction');
+      });
+    });
   });
 
   describe('Pagination Calculation Semantics', () => {
