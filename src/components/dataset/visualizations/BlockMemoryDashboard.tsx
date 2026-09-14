@@ -14,7 +14,7 @@ export function BlockMemoryDashboard({ observations }: BlockMemoryDashboardProps
   
   const spanDistributionData = useMemo(() => {
     return stats.spanDistribution.map(d => ({
-      label: `Lvl ${d.span}`,
+      label: `${d.span} Blocks`,
       value: d.percentage
     }));
   }, [stats]);

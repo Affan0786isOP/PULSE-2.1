@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { DatasetObservation } from '../../../lib/dataset/types';
 import { computeVrtStats, computeSubgroupStratification } from '../../../lib/dataset/stats';
+import { VRT_MIN_VALID_RT_MS } from '../../../lib/protocolValidators';
 import { HistogramDistribution } from './HistogramDistribution';
 import { PercentileSummaryVisual } from './PercentileSummaryVisual';
 import { GroupedComparisonChart } from './GroupedComparisonChart';
@@ -37,7 +38,7 @@ export function VisualReactionDashboard({ observations }: VisualReactionDashboar
           label="Anticipatory False Starts"
           value={stats.falseStartRate}
           unit="%"
-          subtext="Responses < 100ms"
+          subtext={`Responses < ${VRT_MIN_VALID_RT_MS}ms`}
         />
         <MetricStatVisual
           label="Preparatory Latency Decay"

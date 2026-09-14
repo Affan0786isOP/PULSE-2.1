@@ -5,7 +5,7 @@ import {
   DatasetObservation,
   ResearchSessionRecord,
 } from './types';
-import { deriveForeperiodCategory } from '../protocolValidators';
+import { deriveForeperiodCategory, VRT_MIN_VALID_RT_MS } from '../protocolValidators';
 
 export function normalizeAgeGroupKey(ageGroup?: string | null): DemographicAgeGroup {
   if (!ageGroup || typeof ageGroup !== 'string') return 'unspecified';
@@ -103,7 +103,7 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
 
   return trials.map((t, idx) => {
     const rawRt = t.reactionTime ?? t.inputLatencyMs ?? t.rawRt ?? t.rawReactionTime ?? t.rawLatencyMs;
-    const isFalseStart = t.falseStart === true || (typeof rawRt === 'number' && rawRt < 100 && (pType === 'visual-reaction' || pType === 'direction' || pType === 'color-recognition'));
+    const isFalseStart = t.falseStart === true || (typeof rawRt === 'number' && rawRt < VRT_MIN_VALID_RT_MS && (pType === 'visual-reaction' || pType === 'direction' || pType === 'color-recognition'));
     const isTimeout = t.timedOut === true;
     const isCorrect = typeof t.correct === 'boolean' 
       ? t.correct 
@@ -183,7 +183,13 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
       condition: t.condition === 'congruent' ? 'congruent' : (t.condition === 'incongruent' ? 'incongruent' : null),
       instruction: t.instruction || null,
       level: typeof t.level === 'number' ? t.level : null,
-      sequenceLength: typeof t.sequenceLength === 'number' ? t.sequenceLength : null,
+      sequenceLength: typeof t.sequenceLength === 'number'
+        ? t.sequenceLength
+        : (pType === 'block-memory' && typeof t.level === 'number' && t.level > 0
+            ? t.level + 1
+            : (pType === 'number-memory' && typeof t.level === 'number' && t.level > 0
+                ? t.level + 2
+                : null)),
       interTapTimeMs: typeof t.interTapTimeMs === 'number' ? t.interTapTimeMs : null,
       responseDurationMs: typeof t.responseDurationMs === 'number' ? t.responseDurationMs : null,
       stimulusScheduledAtPerfMs: typeof t.stimulusScheduledAtPerfMs === 'number' ? t.stimulusScheduledAtPerfMs : null,

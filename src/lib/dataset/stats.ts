@@ -12,7 +12,7 @@ import {
   HistogramBin,
   DatasetSummaryStats
 } from './types';
-import { deriveForeperiodCategory } from '../protocolValidators';
+import { deriveForeperiodCategory, VRT_MIN_VALID_RT_MS } from '../protocolValidators';
 
 export function extractSortedValidNumbers(values: (number | null | undefined)[]): number[] {
   return values
@@ -200,7 +200,7 @@ export interface VrtProtocolStats {
 
 export function computeVrtStats(observations: DatasetObservation[]): VrtProtocolStats {
   const vrtObs = observations.filter(o => o.assessmentType === 'visual-reaction');
-  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= 100);
+  const validVrt = vrtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs >= VRT_MIN_VALID_RT_MS);
   const latencies = validVrt.map(o => o.latencyMs);
   const dist = computeNumericStats(latencies);
 
@@ -314,6 +314,7 @@ export interface ColourProtocolStats {
   congruentMeanRt: number | null;
   incongruentMeanRt: number | null;
   interferenceCost: number | null;
+  overallMeanRt: number | null;
   overallMedianRt: number | null;
   accuracyRate: number | null;
   conditionBreakdown: {
@@ -374,6 +375,7 @@ export function computeColourStats(observations: DatasetObservation[]): ColourPr
     congruentMeanRt: congMean,
     incongruentMeanRt: incongMean,
     interferenceCost,
+    overallMeanRt: overallDist.mean,
     overallMedianRt: overallDist.median,
     accuracyRate,
     conditionBreakdown,
@@ -402,7 +404,7 @@ export function computeBlockMemoryStats(observations: DatasetObservation[]): Blo
   const bmtObs = observations.filter(o => o.assessmentType === 'block-memory');
   const validBmt = bmtObs.filter(o => o.isValid);
 
-  const spans = validBmt.map(o => o.sequenceLength || o.level).filter((s): s is number => typeof s === 'number' && s > 0);
+  const spans = validBmt.map(o => o.sequenceLength ?? (typeof o.level === 'number' && o.level > 0 ? o.level + 1 : null)).filter((s): s is number => typeof s === 'number' && s > 0);
   const spanStats = computeNumericStats(spans);
 
   const interTapTimes = validBmt.map(o => o.interTapTimeMs).filter((t): t is number => typeof t === 'number' && t > 0);
@@ -471,7 +473,7 @@ export function computeNumberMemoryStats(observations: DatasetObservation[]): Nu
   const nmtObs = observations.filter(o => o.assessmentType === 'number-memory');
   const validNmt = nmtObs.filter(o => o.isValid);
 
-  const digitLengths = validNmt.map(o => o.sequenceLength || o.level).filter((s): s is number => typeof s === 'number' && s > 0);
+  const digitLengths = validNmt.map(o => o.sequenceLength ?? (typeof o.level === 'number' && o.level > 0 ? o.level + 2 : null)).filter((s): s is number => typeof s === 'number' && s > 0);
   const spanStats = computeNumericStats(digitLengths);
 
   const latencies = validNmt.map(o => o.latencyMs).filter((l): l is number => typeof l === 'number' && l > 0);
@@ -498,7 +500,7 @@ export function computeNumberMemoryStats(observations: DatasetObservation[]): Nu
 
   const uniqueLengths = Array.from(new Set(digitLengths)).sort((a, b) => a - b);
   const progressionCurve = uniqueLengths.map(digitLength => {
-    const lengthTrials = validNmt.filter(o => (o.sequenceLength || o.level) === digitLength);
+    const lengthTrials = validNmt.filter(o => (o.sequenceLength ?? (typeof o.level === 'number' && o.level > 0 ? o.level + 2 : null)) === digitLength);
     const correctCount = lengthTrials.filter(o => o.isCorrect === true).length;
     const acc = lengthTrials.length > 0 ? Number(((correctCount / lengthTrials.length) * 100).toFixed(1)) : null;
 

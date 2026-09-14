@@ -49,7 +49,7 @@ export function ColourRecognitionDashboard({ observations }: ColourRecognitionDa
         {/* Main Distribution Histogram */}
         <HistogramDistribution
           bins={stats.histogram}
-          mean={stats.overallMedianRt}
+          mean={stats.overallMeanRt}
           median={stats.overallMedianRt}
           title="Semantic Interference Latency Density"
           subtitle="Combined density distribution of both congruent and incongruent trials"
