@@ -41,11 +41,11 @@ const DEVICE_OPTIONS: { value: 'all' | 'desktop' | 'mobile' | 'unknown'; label: 
 ];
 
 const MODALITY_OPTIONS: { value: InputModality; label: string }[] = [
-  { value: 'all', label: 'All Modalities' },
+  { value: 'all', label: 'All Input Methods' },
   { value: 'touch', label: 'Touch' },
   { value: 'mouse', label: 'Mouse' },
   { value: 'keyboard', label: 'Keyboard' },
-  { value: 'unknown', label: 'Unknown Modality' },
+  { value: 'unknown', label: 'Unknown Input' },
 ];
 
 const REFRESH_RATE_OPTIONS: { value: string; label: string }[] = [
@@ -179,11 +179,11 @@ export function DatasetFilterBar({
         {/* 2. Age Group Filter */}
         <div className="flex flex-col gap-1">
           <label htmlFor="filter-age-group" className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] truncate">
-            Age Cohort
+            Age Group
           </label>
           <select
             id="filter-age-group"
-            aria-label="Filter by Age Cohort"
+            aria-label="Filter by Age Group"
             value={filters.ageGroup}
             onChange={handleAgeChange}
             className={getSelectStyle(filters.ageGroup !== 'all')}
@@ -219,7 +219,7 @@ export function DatasetFilterBar({
         {/* 4. Input Modality Filter */}
         <div className="flex flex-col gap-1">
           <label htmlFor="filter-modality" className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] truncate">
-            Input Modality
+            Input Method
           </label>
           <select
             id="filter-modality"

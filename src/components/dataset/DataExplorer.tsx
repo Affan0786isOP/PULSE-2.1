@@ -188,15 +188,15 @@ export function DataExplorer({
                 <th scope="col" className="py-2.5 px-3 font-semibold">Protocol</th>
                 <th scope="col" className="py-2.5 px-3 font-semibold text-center">Trial</th>
                 <th scope="col" className="py-2.5 px-3 font-semibold">Month</th>
-                <th scope="col" className="py-2.5 px-3 font-semibold">Age Cohort</th>
+                <th scope="col" className="py-2.5 px-3 font-semibold">Age Group</th>
                 <th scope="col" className="py-2.5 px-3 font-semibold">Device</th>
-                <th scope="col" className="py-2.5 px-3 font-semibold">Input</th>
+                <th scope="col" className="py-2.5 px-3 font-semibold">Input Method</th>
                 <th scope="col" className="py-2.5 px-3 font-semibold text-right">Refresh</th>
-                <th scope="col" className="py-2.5 px-3 font-semibold text-right">Latency / RT</th>
+                <th scope="col" className="py-2.5 px-3 font-semibold text-right">Reaction Time</th>
                 <th scope="col" className="py-2.5 px-3 font-semibold text-center">Validity</th>
                 <th scope="col" className="py-2.5 px-3 font-semibold text-center">Correct</th>
-                <th scope="col" className="py-2.5 px-3 font-semibold text-right">Wait Time</th>
-                <th scope="col" className="py-2.5 px-3 font-semibold text-center">Wait Type</th>
+                <th scope="col" className="py-2.5 px-3 font-semibold text-right">Delay Time</th>
+                <th scope="col" className="py-2.5 px-3 font-semibold text-center">Delay Type</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-subtle)]/60">
@@ -314,7 +314,7 @@ export function DataExplorer({
                               <div className="flex items-center gap-2">
                                 <Maximize2 size={14} className="text-[var(--cyan-primary)]" />
                                 <span className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--text-main)]">
-                                  Observation Telemetry Record
+                                  Trial Detail Record
                                 </span>
                                 <span className="px-2 py-0.5 rounded text-[10px] bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--cyan-primary)]">
                                   {obs.obsId}
@@ -347,7 +347,7 @@ export function DataExplorer({
                               {/* 1. Identifiers & Context */}
                               <div className="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-1.5">
                                 <div className="text-[10px] uppercase font-bold text-[var(--cyan-primary)] tracking-wider mb-2">
-                                  Core Identification
+                                  Basic Details
                                 </div>
                                 <div className="flex justify-between gap-2">
                                   <span className="text-[var(--text-muted)]">Observation ID:</span>
@@ -382,10 +382,10 @@ export function DataExplorer({
                               {/* 2. Demographic & Hardware Environment */}
                               <div className="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-1.5">
                                 <div className="text-[10px] uppercase font-bold text-[var(--cyan-primary)] tracking-wider mb-2">
-                                  Demographics & Environment
+                                  User & Device Info
                                 </div>
                                 <div className="flex justify-between gap-2">
-                                  <span className="text-[var(--text-muted)]">Age Cohort:</span>
+                                  <span className="text-[var(--text-muted)]">Age Group:</span>
                                   <span className="text-[var(--text-main)]">{obs.ageGroup || '—'}</span>
                                 </div>
                                 <div className="flex justify-between gap-2">
@@ -393,7 +393,7 @@ export function DataExplorer({
                                   <span className="text-[var(--text-main)] capitalize">{obs.deviceCategory || '—'}</span>
                                 </div>
                                 <div className="flex justify-between gap-2">
-                                  <span className="text-[var(--text-muted)]">Input Modality:</span>
+                                  <span className="text-[var(--text-muted)]">Input Method:</span>
                                   <span className="text-[var(--text-main)] capitalize">{obs.inputModality || '—'}</span>
                                 </div>
                                 <div className="flex justify-between gap-2">
@@ -405,14 +405,14 @@ export function DataExplorer({
                               {/* 3. Latency & Timing Calibration */}
                               <div className="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-1.5">
                                 <div className="text-[10px] uppercase font-bold text-[var(--cyan-primary)] tracking-wider mb-2">
-                                  Latency & Timing Calibration
+                                  Timing & Reaction Data
                                 </div>
                                 <div className="flex justify-between gap-2">
-                                  <span className="text-[var(--text-muted)]">Standardized Latency:</span>
+                                  <span className="text-[var(--text-muted)]">Reaction Time:</span>
                                   <span>{typeof obs.latencyMs === 'number' ? `${obs.latencyMs} ms` : formatTelemetryValue(obs.latencyMs)}</span>
                                 </div>
                                 <div className="flex justify-between gap-2">
-                                  <span className="text-[var(--text-muted)]">Raw RT:</span>
+                                  <span className="text-[var(--text-muted)]">Raw Response Time:</span>
                                   <span>{typeof obs.rawLatencyMs === 'number' ? `${obs.rawLatencyMs} ms` : formatTelemetryValue(obs.rawLatencyMs)}</span>
                                 </div>
                                 <div className="flex justify-between gap-2">
@@ -442,7 +442,7 @@ export function DataExplorer({
                               {/* 4. Quality & Validity Classification */}
                               <div className="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-1.5">
                                 <div className="text-[10px] uppercase font-bold text-[var(--cyan-primary)] tracking-wider mb-2">
-                                  Quality & Research Validity
+                                  Data Quality & Validity
                                 </div>
                                 <div className="flex justify-between gap-2">
                                   <span className="text-[var(--text-muted)]">Is Valid:</span>
