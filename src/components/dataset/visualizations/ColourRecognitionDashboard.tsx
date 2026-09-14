@@ -22,65 +22,66 @@ export function ColourRecognitionDashboard({ observations }: ColourRecognitionDa
   }, [stats]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="md:col-span-4">
         <MetricStatVisual
           label="Inhibitory Control Cost"
           value={stats.interferenceCost}
           unit="ms"
-          subtext="Latency penalty for incongruency"
+          subtext="Incongruency delta"
         />
+      </div>
+      <div className="md:col-span-4">
         <MetricStatVisual
-          label="Congruent Reflex RT"
+          label="Congruent RT"
           value={stats.congruentMeanRt}
           unit="ms"
-          subtext="Mean semantic matching latency"
         />
+      </div>
+      <div className="md:col-span-4">
         <MetricStatVisual
-          label="Incongruent Semantic RT"
+          label="Incongruent RT"
           value={stats.incongruentMeanRt}
           unit="ms"
-          subtext="Mean semantic interference latency"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Main Distribution Histogram */}
+      {/* Main Distribution Histogram & Stroop Breakdown Comparisons */}
+      <div className="col-span-1 md:col-span-12 lg:col-span-6">
         <HistogramDistribution
           bins={stats.histogram}
           mean={stats.overallMeanRt}
           median={stats.overallMedianRt}
-          title="Semantic Interference Latency Density"
-          subtitle="Combined density distribution of both congruent and incongruent trials"
+          title="Reaction Time Distribution"
           unit="ms"
-          height={300}
+          height={260}
         />
+      </div>
 
-        <div className="flex flex-col gap-4">
-          <GroupedComparisonChart
-            title="Stroop Effect Latency Delta"
-            subtitle="Mean reaction processing delay segmented by stimulus congruency"
-            data={stroopComparisonData}
-            series={[
-              { key: 'meanLatency', label: 'Mean RT (ms)', color: CHART_PALETTE.primary }
-            ]}
-            categoryKey="category"
-            height={200}
-          />
-          
-          <GroupedComparisonChart
-            title="Inhibitory Control Accuracy"
-            subtitle="Correct decision probability segmented by stimulus congruency"
-            data={stroopComparisonData}
-            series={[
-              { key: 'accuracy', label: 'Accuracy (%)', color: CHART_PALETTE.success }
-            ]}
-            categoryKey="category"
-            height={200}
-            unit="%"
-          />
-        </div>
+      <div className="col-span-1 md:col-span-6 lg:col-span-3">
+        <GroupedComparisonChart
+          title="Stroop Effect (RT)"
+          data={stroopComparisonData}
+          series={[
+            { key: 'meanLatency', label: 'Mean RT (ms)', color: CHART_PALETTE.primary }
+          ]}
+          categoryKey="category"
+          height={260}
+        />
+      </div>
+
+      <div className="col-span-1 md:col-span-6 lg:col-span-3">
+        <GroupedComparisonChart
+          title="Stroop Effect (Accuracy)"
+          data={stroopComparisonData}
+          series={[
+            { key: 'accuracy', label: 'Accuracy (%)', color: CHART_PALETTE.success }
+          ]}
+          categoryKey="category"
+          height={260}
+          unit="%"
+        />
       </div>
     </div>
   );

@@ -38,20 +38,20 @@ export function MetricStatVisual({
   return (
     <div
       id={id}
-      className={`bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors rounded-xl p-4 flex flex-col justify-between ${className}`}
+      className={`bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors rounded-xl p-3 sm:p-3.5 flex flex-col justify-between ${className}`}
     >
-      <div className="flex items-center justify-between gap-2 mb-2">
+      <div className="flex items-center justify-between gap-2 mb-1.5">
         <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] truncate">
           {label}
         </span>
         {Icon && (
-          <div className="w-6 h-6 rounded-md bg-[var(--bg-panel)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--cyan-primary)] shrink-0">
-            <Icon size={13} />
+          <div className="w-5 h-5 rounded bg-[var(--bg-panel)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--cyan-primary)] shrink-0">
+            <Icon size={12} />
           </div>
         )}
       </div>
 
-      <div className="flex items-baseline gap-1.5 my-1">
+      <div className="flex items-baseline gap-1.5 my-0.5">
         <span className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-main)] tabular-nums tracking-tight">
           {formattedValue}
         </span>
@@ -62,19 +62,21 @@ export function MetricStatVisual({
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2 mt-1">
-        {subtext ? (
-          <span className="text-[10px] font-mono text-[var(--text-secondary)] truncate">
-            {subtext}
-          </span>
-        ) : <div />}
+      {(subtext || badge) && (
+        <div className="flex items-center justify-between gap-2 mt-1">
+          {subtext && (
+            <span className="text-[10px] font-mono text-[var(--text-secondary)] truncate">
+              {subtext}
+            </span>
+          )}
 
-        {badge && (
-          <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider border shrink-0 ${badgeStyles}`}>
-            {badge}
-          </span>
-        )}
-      </div>
+          {badge && (
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider border shrink-0 ${badgeStyles}`}>
+              {badge}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

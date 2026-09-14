@@ -27,55 +27,52 @@ export function BlockMemoryDashboard({ observations }: BlockMemoryDashboardProps
   }, [stats]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="md:col-span-4">
         <MetricStatVisual
           label="Median Spatial Span"
           value={stats.medianSpan}
           unit="blocks"
-          subtext="p50 working memory capacity"
         />
+      </div>
+      <div className="md:col-span-4">
         <MetricStatVisual
-          label="Maximum Span Reached"
+          label="Maximum Span"
           value={stats.maxSpan}
           unit="blocks"
-          subtext="Highest recorded sequence limit"
         />
+      </div>
+      <div className="md:col-span-4">
         <MetricStatVisual
-          label="Overall Success Rate"
+          label="Success Rate"
           value={stats.successRate}
           unit="%"
-          subtext="Global sequence reproduction accuracy"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Main Progression Line */}
-        <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-subtle)] p-1 h-[320px]">
-          <LineTimeSeriesChart
-            title="Spatial Memory Degradation Curve"
-            subtitle="Mean recall accuracy mapped continuously against sequence progression length"
-            data={progressionData}
-            series={[
-              { key: 'accuracy', name: 'Recall Accuracy', color: 'var(--cyan-primary)' }
-            ]}
-            xAxisKey="x"
-            unit="%"
-            height={310}
-          />
-        </div>
+      {/* Progression & Span Distribution */}
+      <div className="col-span-1 md:col-span-12 lg:col-span-7">
+        <LineTimeSeriesChart
+          title="Accuracy by Level"
+          data={progressionData}
+          series={[
+            { key: 'accuracy', name: 'Recall Accuracy', color: 'var(--cyan-primary)' }
+          ]}
+          xAxisKey="x"
+          unit="%"
+          height={260}
+        />
+      </div>
 
-        <div className="flex flex-col gap-4">
-          <BarChartVisual
-            data={spanDistributionData}
-            title="Corsi Block Span Capacity Distribution"
-            subtitle="Relative density of maximum spatial sequence lengths reached across cohort"
-            unit="%"
-            height={320}
-            highlightHighest={true}
-          />
-        </div>
+      <div className="col-span-1 md:col-span-12 lg:col-span-5">
+        <BarChartVisual
+          data={spanDistributionData}
+          title="Memory Span Distribution"
+          unit="%"
+          height={260}
+          highlightHighest={true}
+        />
       </div>
     </div>
   );
