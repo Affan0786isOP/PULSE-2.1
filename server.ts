@@ -2337,7 +2337,22 @@ async function startServer() {
         if (typeof tp.validity === 'string') baseProgressionItem.validity = tp.validity;
         if (tp.qualityFlag !== undefined) baseProgressionItem.qualityFlag = tp.qualityFlag;
 
-        if (assessmentType === 'direction') {
+        if (typeof tp.rawLatencyMs === 'number') baseProgressionItem.rawLatencyMs = tp.rawLatencyMs;
+        if (typeof tp.displayDelayOffsetMs === 'number') baseProgressionItem.displayDelayOffsetMs = tp.displayDelayOffsetMs;
+        if (typeof tp.stimulusScheduledAtPerfMs === 'number') baseProgressionItem.stimulusScheduledAtPerfMs = tp.stimulusScheduledAtPerfMs;
+        if (typeof tp.stimulusPresentedAtPerfMs === 'number') baseProgressionItem.stimulusPresentedAtPerfMs = tp.stimulusPresentedAtPerfMs;
+        if (typeof tp.responseDetectedAtPerfMs === 'number') baseProgressionItem.responseDetectedAtPerfMs = tp.responseDetectedAtPerfMs;
+
+        if (assessmentType === 'visual-reaction') {
+          if (typeof tp.foreperiodMs === 'number') {
+            baseProgressionItem.foreperiodMs = tp.foreperiodMs;
+            baseProgressionItem.foreperiodCategory = typeof tp.foreperiodCategory === 'string'
+              ? tp.foreperiodCategory
+              : deriveForeperiodCategory(tp.foreperiodMs);
+          } else if (typeof tp.foreperiodCategory === 'string') {
+            baseProgressionItem.foreperiodCategory = tp.foreperiodCategory;
+          }
+        } else if (assessmentType === 'direction') {
           if (typeof tp.targetDirection === 'string') baseProgressionItem.targetDirection = tp.targetDirection;
           if (typeof tp.userResponse === 'string' || tp.userResponse === null) baseProgressionItem.userResponse = tp.userResponse;
         } else if (assessmentType === 'color-recognition') {
@@ -2348,7 +2363,11 @@ async function startServer() {
           if (typeof tp.userResponse === 'string' || tp.userResponse === null) baseProgressionItem.userResponse = tp.userResponse;
         } else if (assessmentType === 'block-memory' || assessmentType === 'number-memory') {
           if (typeof tp.level === 'number') baseProgressionItem.level = tp.level;
-          if (typeof tp.sequenceLength === 'number') baseProgressionItem.sequenceLength = tp.sequenceLength;
+          if (typeof tp.sequenceLength === 'number') {
+            baseProgressionItem.sequenceLength = tp.sequenceLength;
+          } else if (typeof tp.level === 'number' && tp.level > 0) {
+            baseProgressionItem.sequenceLength = assessmentType === 'block-memory' ? tp.level + 1 : tp.level + 2;
+          }
           if (tp.generatedSequence !== undefined) baseProgressionItem.generatedSequence = tp.generatedSequence;
           if (tp.playerSequence !== undefined) baseProgressionItem.playerSequence = tp.playerSequence;
           if (typeof tp.responseDurationMs === 'number') baseProgressionItem.responseDurationMs = tp.responseDurationMs;

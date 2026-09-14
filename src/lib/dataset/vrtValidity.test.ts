@@ -412,4 +412,100 @@ describe('VRT Validity and Threshold Integrity (80ms canonical threshold)', () =
       expect(stats.interferenceCost).toBe(300);
     });
   });
+
+  describe('Protocol observation normalization fallbacks & progression telemetry', () => {
+    it('should preserve foreperiodMs and derive foreperiodCategory in VRT progressionTrials and compute preparatory decay', () => {
+      const vrtSession: ResearchSessionRecord = {
+        id: 'vrt-prog-1',
+        assessmentType: 'visual-reaction',
+        ageGroup: 'Adults (26–40)',
+        deviceCategory: 'desktop',
+        device: 'desktop',
+        completedAtMonth: '2026-09',
+        completedAtTimestamp: 1789400000000,
+        progressionTrials: [
+          { trialNumber: 1, reactionTime: 220, foreperiodMs: 250, falseStart: false, timedOut: false },
+          { trialNumber: 2, reactionTime: 260, foreperiodMs: 1500, falseStart: false, timedOut: false }
+        ]
+      };
+
+      const [obs1, obs2] = normalizeSessionToObservations(vrtSession);
+      expect(obs1.foreperiodMs).toBe(250);
+      expect(obs1.foreperiodCategory).toBe('SHORT');
+      expect(obs2.foreperiodMs).toBe(1500);
+      expect(obs2.foreperiodCategory).toBe('LONG');
+
+      const stats = computeVrtStats([obs1, obs2]);
+      expect(stats.shortForeperiodMedianRt).toBe(220);
+      expect(stats.longForeperiodMedianRt).toBe(260);
+      expect(stats.longForeperiodMedianRt! - stats.shortForeperiodMedianRt!).toBe(40);
+    });
+
+    it('should derive chosenDirection from userResponse in direction CRT trials', () => {
+      const dirSession: ResearchSessionRecord = {
+        id: 'dir-sess-1',
+        assessmentType: 'direction',
+        ageGroup: 'Adults (26–40)',
+        deviceCategory: 'desktop',
+        device: 'desktop',
+        completedAtMonth: '2026-09',
+        completedAtTimestamp: 1789400000000,
+        progressionTrials: [
+          { trialNumber: 1, reactionTime: 350, targetDirection: 'left', userResponse: 'left', correct: true, falseStart: false, timedOut: false }
+        ]
+      };
+
+      const [obs] = normalizeSessionToObservations(dirSession);
+      expect(obs.targetDirection).toBe('left');
+      expect(obs.chosenDirection).toBe('left');
+      expect(obs.userResponse).toBe('left');
+    });
+
+    it('should derive targetColor, chosenColor, and condition in colour recognition trials', () => {
+      const colorSession: ResearchSessionRecord = {
+        id: 'color-sess-1',
+        assessmentType: 'color-recognition',
+        ageGroup: 'Adults (26–40)',
+        deviceCategory: 'desktop',
+        device: 'desktop',
+        completedAtMonth: '2026-09',
+        completedAtTimestamp: 1789400000000,
+        progressionTrials: [
+          {
+            trialNumber: 1,
+            reactionTime: 420,
+            instruction: 'WORD',
+            wordName: 'RED',
+            wordColor: 'BLUE',
+            userResponse: 'RED',
+            correct: true,
+            falseStart: false,
+            timedOut: false
+          },
+          {
+            trialNumber: 2,
+            reactionTime: 480,
+            instruction: 'COLOR',
+            wordName: 'RED',
+            wordColor: 'GREEN',
+            userResponse: 'GREEN',
+            correct: true,
+            falseStart: false,
+            timedOut: false
+          }
+        ]
+      };
+
+      const [obs1, obs2] = normalizeSessionToObservations(colorSession);
+      // Trial 1: task is WORD, so target is RED, condition is incongruent, choice is RED
+      expect(obs1.targetColor).toBe('RED');
+      expect(obs1.chosenColor).toBe('RED');
+      expect(obs1.condition).toBe('incongruent');
+
+      // Trial 2: task is COLOR, so target is GREEN, condition is incongruent, choice is GREEN
+      expect(obs2.targetColor).toBe('GREEN');
+      expect(obs2.chosenColor).toBe('GREEN');
+      expect(obs2.condition).toBe('incongruent');
+    });
+  });
 });
