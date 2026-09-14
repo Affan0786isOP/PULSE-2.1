@@ -161,30 +161,20 @@ export function Improve({
         />
 
         <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 xl:gap-16">
-          <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-8 self-start z-10 px-6 lg:px-0 order-1 lg:order-1 flex flex-col">
-            <div className="w-full bg-[var(--surface-1)] lg:bg-transparent rounded-xl border border-[var(--border-subtle)] lg:border-none shadow-sm lg:shadow-none mb-8 lg:mb-0 overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden w-full p-4 flex items-center justify-between font-semibold text-sm text-[var(--text-primary)] cursor-pointer bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-colors"
-              >
-                <span>Section Navigation</span>
-                <ChevronDown className={`transition-transform duration-200 ${sidebarOpen ? 'rotate-180' : ''}`} size={16} />
-              </button>
-              <div className={`p-4 pt-0 lg:p-0 ${sidebarOpen ? 'block' : 'hidden'} lg:block border-t border-[var(--border-subtle)] lg:border-none mt-2 lg:mt-0`}>
-                <HookSidebar
-                  items={improveSections}
-                  value={activeIndex}
-                  onChange={(idx) => {
-                    const id = improveSections[idx].id;
-                    const el = document.getElementById(id);
-                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                    setSidebarOpen(false); // Close mobile sidebar after navigating
-                  }}
-                  color="var(--accent)"
-                  className="w-full"
-                />
-              </div>
+          <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-8 self-start z-10 px-4 sm:px-6 lg:px-0 order-1 lg:order-1 flex justify-center lg:justify-start">
+            <div className="w-full max-w-full sm:max-w-sm lg:max-w-none bg-[var(--surface-1)]/60 backdrop-blur-sm lg:bg-transparent p-3 sm:p-4 lg:p-0 rounded-xl border border-[var(--border-subtle)] lg:border-none shadow-sm lg:shadow-none mb-4 lg:mb-0">
+              <HookSidebar
+                items={improveSections}
+                value={activeIndex}
+                onChange={(idx) => {
+                  const id = improveSections[idx].id;
+                  const el = document.getElementById(id);
+                  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                color="var(--accent)"
+                label="Sections"
+                className="w-full [&_[data-slot=hook-sidebar-label]]:pb-1.5 [&_[data-slot=hook-sidebar-label]]:text-xs lg:[&_[data-slot=hook-sidebar-label]]:pb-3 lg:[&_[data-slot=hook-sidebar-label]]:text-sm [&_[data-slot=hook-sidebar-item]]:py-1 [&_[data-slot=hook-sidebar-item]]:text-xs sm:[&_[data-slot=hook-sidebar-item]]:text-sm lg:[&_[data-slot=hook-sidebar-item]]:py-1.5"
+              />
             </div>
           </aside>
 
