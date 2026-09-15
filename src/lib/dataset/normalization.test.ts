@@ -231,4 +231,56 @@ describe('Observation Normalization Correctness (STAT-05/06 Fixes)', () => {
     expect(obs[1].isValid).toBe(false);
     expect(obs[1].validityStatus).toBe('ABORTED');
   });
+
+  it('normalizes legacy research sessions lacking progressionTrials into valid summary observations', () => {
+    const session: ResearchSessionRecord = {
+      id: 'legacy-color-session',
+      assessmentType: 'color-recognition',
+      ageGroup: 'Adolescents (13–17)',
+      averageReactionTime: 1956.85,
+      medianReactionTime: 1969.4,
+      fastestReactionTime: 1121.7,
+      slowestReactionTime: 3019.5,
+      accuracy: 100,
+      completedAtMonth: '2026-08',
+      progressionTrials: []
+    };
+    const obs = normalizeSessionToObservations(session);
+
+    expect(obs.length).toBe(1);
+    expect(obs[0].obsId).toBe('legacy-color-session-summary');
+    expect(obs[0].assessmentType).toBe('color-recognition');
+    expect(obs[0].isValid).toBe(true);
+    expect(obs[0].latencyMs).toBe(1969.4);
+    expect(obs[0].isCorrect).toBe(true);
+    expect(obs[0].ageGroup).toBe('adolescents');
+  });
+
+  it('normalizes various colour-recognition naming formats and aliases robustly', () => {
+    const variants = [
+      'color-recognition',
+      'colour-recognition',
+      'Colour Recognition',
+      'color recognition',
+      'colour-test',
+      'color-test',
+      'colour_recognition',
+      'color-rec'
+    ];
+
+    for (const v of variants) {
+      const session: ResearchSessionRecord = {
+        id: `session-${v}`,
+        assessmentType: v,
+        ageGroup: 'Children (8–12)',
+        medianReactionTime: 1200,
+        completedAtMonth: '2026-08',
+        progressionTrials: []
+      };
+      const obs = normalizeSessionToObservations(session);
+      expect(obs.length).toBe(1);
+      expect(obs[0].assessmentType).toBe('color-recognition');
+      expect(obs[0].isValid).toBe(true);
+    }
+  });
 });

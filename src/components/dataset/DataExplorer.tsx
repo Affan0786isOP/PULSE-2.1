@@ -15,6 +15,7 @@ import {
   Check
 } from 'lucide-react';
 import { DatasetObservation } from '../../lib/dataset/types';
+import { getAuthoritativeAgeLabel } from '../../lib/dataset/normalization';
 
 interface DataExplorerProps {
   observations: DatasetObservation[];
@@ -260,7 +261,7 @@ export function DataExplorer({
 
                       {/* Age Cohort */}
                       <td className="py-2 px-3 text-[11px] text-[var(--text-secondary)] whitespace-nowrap">
-                        {obs.ageGroup || '—'}
+                        {getAuthoritativeAgeLabel(obs.ageGroup)}
                       </td>
 
                       {/* Device Category */}

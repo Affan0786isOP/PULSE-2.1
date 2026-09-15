@@ -53,10 +53,11 @@ export function getAuthoritativeAgeLabel(keyOrLabel?: string | null): string {
 }
 
 export function normalizeProtocolType(type: string): ProtocolType {
-  const t = type.toLowerCase().trim();
-  if (t === 'reaction-test' || t === 'reaction' || t === 'visual-reaction') return 'visual-reaction';
-  if (t === 'direction-test' || t === 'direction') return 'direction';
-  if (t === 'color-recognition' || t === 'colour-recognition' || t === 'color-test' || t === 'color') return 'color-recognition';
+  if (!type || typeof type !== 'string') return 'unknown';
+  const t = type.toLowerCase().trim().replace(/[_\s]+/g, '-');
+  if (t === 'reaction-test' || t === 'reaction' || t === 'visual-reaction' || t === 'visual' || t === 'visual-reaction-test') return 'visual-reaction';
+  if (t === 'direction-test' || t === 'direction' || t === 'direction-reflex') return 'direction';
+  if (t === 'color-recognition' || t === 'colour-recognition' || t === 'color-test' || t === 'colour-test' || t === 'color' || t === 'colour' || t === 'color-rec' || t === 'colour-rec') return 'color-recognition';
   if (t === 'block-memory-test' || t === 'block-memory' || t === 'block') return 'block-memory';
   if (t === 'number-memory-test' || t === 'number-memory' || t === 'number') return 'number-memory';
   return 'unknown';
@@ -74,10 +75,6 @@ export function normalizeInputModality(explicitModality?: string): InputModality
 export function normalizeSessionToObservations(record: ResearchSessionRecord): DatasetObservation[] {
   const trials = record.progressionTrials || [];
   const pType = normalizeProtocolType(record.assessmentType);
-
-  if (trials.length === 0) {
-    return [];
-  }
 
   let completedAtMonth = record.completedAtMonth;
   if (!completedAtMonth && typeof record.completedAtTimestamp === 'number') {
@@ -100,6 +97,63 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     : (typeof record.refreshRateHz === 'number'
       ? record.refreshRateHz
       : (typeof record.refreshRate === 'number' ? record.refreshRate : null));
+
+  if (trials.length === 0) {
+    const latency = typeof record.medianReactionTime === 'number'
+      ? record.medianReactionTime
+      : (typeof record.averageReactionTime === 'number'
+        ? record.averageReactionTime
+        : (typeof record.scoreMetric === 'number' ? record.scoreMetric : null));
+
+    const hasValidMetrics = latency !== null || typeof record.highestLevel === 'number' || typeof record.longestSeq === 'number';
+    if (!hasValidMetrics) {
+      return [];
+    }
+
+    const accuracyVal = typeof record.accuracy === 'number' ? record.accuracy : 100;
+    const isCorrect = accuracyVal > 0;
+
+    return [{
+      obsId: `${record.id}-summary`,
+      sessionId: record.id,
+      assessmentType: pType,
+      rawAssessmentType: record.assessmentType,
+      ageGroup: sessionAgeGroup,
+      completedAtMonth,
+      completedAtTimestamp: record.completedAtTimestamp,
+      deviceCategory: sessionDeviceCat,
+      inputModality: sessionModality,
+      refreshRateHz: sessionRefreshRate,
+      trialIndex: 1,
+      latencyMs: latency,
+      rawLatencyMs: latency,
+      displayDelayOffsetMs: null,
+      isCorrect,
+      isValid: true,
+      validityStatus: 'VALID',
+      qualityFlag: null,
+      foreperiodMs: null,
+      foreperiodCategory: null,
+      targetDirection: null,
+      chosenDirection: null,
+      userResponse: null,
+      targetColor: null,
+      chosenColor: null,
+      wordName: null,
+      wordColor: null,
+      condition: null,
+      instruction: null,
+      level: typeof record.highestLevel === 'number' ? record.highestLevel : null,
+      sequenceLength: typeof record.longestSeq === 'number' ? record.longestSeq : null,
+      interTapTimeMs: null,
+      responseDurationMs: null,
+      stimulusScheduledAtPerfMs: null,
+      stimulusPresentedAtPerfMs: null,
+      responseDetectedAtPerfMs: null,
+      provenanceToken: record.provenanceToken || null,
+      trialsDigest: record.trialsDigest || null
+    }];
+  }
 
   return trials.map((t, idx) => {
     const rawRt = t.reactionTime ?? t.inputLatencyMs ?? t.rawRt ?? t.rawReactionTime ?? t.rawLatencyMs;

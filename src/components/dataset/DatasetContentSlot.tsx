@@ -5,12 +5,6 @@ import {
   DatasetMode
 } from '../../lib/dataset/types';
 import { Table } from 'lucide-react';
-
-import { VisualReactionDashboard } from './visualizations/VisualReactionDashboard';
-import { DirectionDashboard } from './visualizations/DirectionDashboard';
-import { ColourRecognitionDashboard } from './visualizations/ColourRecognitionDashboard';
-import { BlockMemoryDashboard } from './visualizations/BlockMemoryDashboard';
-import { NumberMemoryDashboard } from './visualizations/NumberMemoryDashboard';
 import { DataExplorer } from './DataExplorer';
 
 interface DatasetContentSlotProps {
@@ -20,7 +14,7 @@ interface DatasetContentSlotProps {
 }
 
 export function DatasetContentSlot({
-  activeAssessment,
+  activeAssessment: _activeAssessment,
   datasetMode,
   sectionObservations
 }: DatasetContentSlotProps) {
@@ -54,12 +48,8 @@ export function DatasetContentSlot({
           <DataExplorer observations={sectionObservations} />
         </div>
       ) : (
-        <div className="flex-1">
-          {activeAssessment === 'visual-reaction' && <VisualReactionDashboard observations={sectionObservations} />}
-          {activeAssessment === 'direction' && <DirectionDashboard observations={sectionObservations} />}
-          {activeAssessment === 'colour-recognition' && <ColourRecognitionDashboard observations={sectionObservations} />}
-          {activeAssessment === 'block-memory' && <BlockMemoryDashboard observations={sectionObservations} />}
-          {activeAssessment === 'number-memory' && <NumberMemoryDashboard observations={sectionObservations} />}
+        <div className="flex-1 min-h-[300px] flex items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-card)]/30 text-[var(--text-muted)] font-mono text-xs">
+          <span>Analytics & Visualization System Reset — Ready for Dataset 2.0</span>
         </div>
       )}
     </div>

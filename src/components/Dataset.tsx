@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from './Navbar';
 import { SEO } from './SEO';
 import { useDatasetPipeline } from '../lib/dataset';
 import { DatasetHeader } from './dataset/DatasetHeader';
+import { DatasetFilterBar } from './dataset/DatasetFilterBar';
 import { DatasetContentSlot } from './dataset/DatasetContentSlot';
 import { SkeletonTable } from './ui/Skeleton';
-import { AlertCircle, RefreshCw, Database, Play, ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Table } from 'lucide-react';
+import { AlertCircle, RefreshCw, Database, Play, ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Table, RotateCcw } from 'lucide-react';
 import { AssessmentId } from '../lib/dataset/types';
+import { normalizeProtocolType } from '../lib/dataset/normalization';
 
 const PROTOCOLS: { id: AssessmentId; name: string; icon: React.ElementType; unit: string }[] = [
   { id: 'visual-reaction', name: 'VISUAL REACTION', icon: Zap, unit: 'ms' },
@@ -25,6 +27,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
   const {
     totalObservationsCount,
     totalSessionsCount,
+    filteredObservationsCount,
     activeAssessment,
     setActiveAssessment,
     datasetMode,
@@ -33,14 +36,24 @@ export function Dataset({ onNavigate }: DatasetProps) {
     loading,
     error,
     isEmptyDataset,
-    refresh
+    refresh,
+    filters,
+    setFilters,
+    resetFilters,
+    activeFilterCount,
+    isFiltered,
+    availableMonths
   } = pipeline;
 
   const currentIndex = PROTOCOLS.findIndex(p => p.id === activeAssessment);
 
   const handlePrevProtocol = () => {
     const prevIdx = (currentIndex - 1 + PROTOCOLS.length) % PROTOCOLS.length;
-    setActiveAssessment(PROTOCOLS[prevIdx].id);
+    const targetId = PROTOCOLS[prevIdx].id;
+    setActiveAssessment(targetId);
+    if (filters.assessmentType !== 'all' && normalizeProtocolType(filters.assessmentType) !== normalizeProtocolType(targetId)) {
+      setFilters(prev => ({ ...prev, assessmentType: 'all' }));
+    }
     if (datasetMode !== 'assessment') {
       setDatasetMode('assessment');
     }
@@ -48,11 +61,26 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   const handleNextProtocol = () => {
     const nextIdx = (currentIndex + 1) % PROTOCOLS.length;
-    setActiveAssessment(PROTOCOLS[nextIdx].id);
+    const targetId = PROTOCOLS[nextIdx].id;
+    setActiveAssessment(targetId);
+    if (filters.assessmentType !== 'all' && normalizeProtocolType(filters.assessmentType) !== normalizeProtocolType(targetId)) {
+      setFilters(prev => ({ ...prev, assessmentType: 'all' }));
+    }
     if (datasetMode !== 'assessment') {
       setDatasetMode('assessment');
     }
   };
+
+  // Keep protocol tab and protocol filter in harmony
+  useEffect(() => {
+    if (filters.assessmentType !== 'all') {
+      const normalized = normalizeProtocolType(filters.assessmentType);
+      const match = PROTOCOLS.find(p => normalizeProtocolType(p.id) === normalized);
+      if (match && match.id !== activeAssessment) {
+        setActiveAssessment(match.id);
+      }
+    }
+  }, [filters.assessmentType, activeAssessment, setActiveAssessment]);
 
   const validSectionObservations = sectionObservations.filter(o => o.isValid);
   const isSectionEmpty = !loading && !error && !isEmptyDataset && 
@@ -74,6 +102,20 @@ export function Dataset({ onNavigate }: DatasetProps) {
           totalSessions={totalSessionsCount}
           onRefresh={refresh}
         />
+
+        {/* Global Filter Bar */}
+        {!loading && !error && !isEmptyDataset && (
+          <DatasetFilterBar
+            filters={filters}
+            setFilters={setFilters}
+            resetFilters={resetFilters}
+            activeFilterCount={activeFilterCount}
+            isFiltered={isFiltered}
+            availableMonths={availableMonths}
+            filteredCount={filteredObservationsCount}
+            totalCount={totalObservationsCount}
+          />
+        )}
 
         {/* Dense Research Toolbar: Protocol Tabs + Explorer Mode Switch */}
         {!loading && !error && !isEmptyDataset && (
@@ -217,9 +259,22 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   <h3 className="text-sm font-bold text-[var(--text-main)] mb-1">
                     No Data Available
                   </h3>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    No valid data available for this section yet.
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
+                    {isFiltered
+                      ? "Active filters exclude all records for this assessment protocol."
+                      : "No valid data available for this section yet."}
                   </p>
+                  {isFiltered && (
+                    <button
+                      type="button"
+                      id="dataset-empty-reset-filters-btn"
+                      onClick={resetFilters}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] border border-[var(--border-subtle)] hover:border-[var(--cyan-primary)] text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer active:scale-95"
+                    >
+                      <RotateCcw size={13} />
+                      <span>Reset Filters</span>
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
