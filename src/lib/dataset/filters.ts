@@ -7,7 +7,8 @@ export const DEFAULT_DATASET_FILTERS: DatasetFilters = {
   deviceCategory: 'all',
   inputModality: 'all',
   completedAtMonth: 'all',
-  refreshRate: 'all'
+  refreshRate: 'all',
+  validity: 'all'
 };
 
 /**
@@ -20,6 +21,7 @@ export function isFilterActive(filters: DatasetFilters): boolean {
     (Boolean(filters.deviceCategory) && filters.deviceCategory !== 'all') ||
     filters.inputModality !== 'all' ||
     (Boolean(filters.refreshRate) && filters.refreshRate !== 'all') ||
+    (Boolean(filters.validity) && filters.validity !== 'all') ||
     (filters.completedAtMonth !== 'all' || (Boolean(filters.temporalBucket) && filters.temporalBucket !== 'all'))
   );
 }
@@ -34,6 +36,7 @@ export function countActiveFilters(filters: DatasetFilters): number {
   if (filters.deviceCategory && filters.deviceCategory !== 'all') count++;
   if (filters.inputModality !== 'all') count++;
   if (filters.refreshRate && filters.refreshRate !== 'all') count++;
+  if (filters.validity && filters.validity !== 'all') count++;
   if (filters.completedAtMonth !== 'all' || (filters.temporalBucket && filters.temporalBucket !== 'all')) count++;
   return count;
 }
@@ -94,6 +97,13 @@ export function applyDatasetFilters(
       if (filters.refreshRate === '60' && hz !== 60 && roundedHz !== 60) return false;
       if (filters.refreshRate === '120' && hz !== 120 && roundedHz !== 120) return false;
       if (filters.refreshRate === '144plus' && hz < 144 && roundedHz < 144) return false;
+    }
+
+    // 7. Validity State filter
+    if (filters.validity && filters.validity !== 'all') {
+      if (obs.validityStatus !== filters.validity) {
+        return false;
+      }
     }
 
     return true;

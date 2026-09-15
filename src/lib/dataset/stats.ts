@@ -282,10 +282,11 @@ export interface DirectionProtocolStats {
 export function computeDirectionStats(observations: DatasetObservation[]): DirectionProtocolStats {
   const drtObs = observations.filter(o => o.assessmentType === 'direction');
   const validDrt = drtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs > 0);
-  const latencies = validDrt.map(o => o.latencyMs);
+  const validCorrectDrt = validDrt.filter(o => o.isCorrect === true);
+  const latencies = validCorrectDrt.map(o => o.latencyMs);
   const dist = computeNumericStats(latencies);
 
-  const accuracyTrials = validDrt.filter(o => o.isCorrect !== null);
+  const accuracyTrials = validDrt.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
   const accuracyRate = accuracyTrials.length > 0
     ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1))
     : null;
@@ -297,7 +298,8 @@ export function computeDirectionStats(observations: DatasetObservation[]): Direc
     const accTrials = dirTrials.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
     const correctCount = accTrials.filter(o => o.isCorrect === true).length;
     const acc = accTrials.length > 0 ? Number(((correctCount / accTrials.length) * 100).toFixed(1)) : null;
-    const dirRtStats = computeNumericStats(dirTrials.map(o => o.latencyMs));
+    const dirCorrectTrials = dirTrials.filter(o => o.isCorrect === true);
+    const dirRtStats = computeNumericStats(dirCorrectTrials.map(o => o.latencyMs));
 
     return {
       direction: dir,
@@ -341,13 +343,17 @@ export interface ColourProtocolStats {
 export function computeColourStats(observations: DatasetObservation[]): ColourProtocolStats {
   const crtObs = observations.filter(o => o.assessmentType === 'color-recognition' || o.assessmentType === 'colour-recognition');
   const validCrt = crtObs.filter(o => o.isValid && typeof o.latencyMs === 'number' && o.latencyMs > 0);
-  const overallDist = computeNumericStats(validCrt.map(o => o.latencyMs));
+  const validCorrectCrt = validCrt.filter(o => o.isCorrect === true);
+  const overallDist = computeNumericStats(validCorrectCrt.map(o => o.latencyMs));
 
   const congruentTrials = validCrt.filter(o => o.condition === 'congruent');
   const incongruentTrials = validCrt.filter(o => o.condition === 'incongruent');
 
-  const congStats = computeNumericStats(congruentTrials.map(o => o.latencyMs));
-  const incongStats = computeNumericStats(incongruentTrials.map(o => o.latencyMs));
+  const congCorrectTrials = congruentTrials.filter(o => o.isCorrect === true);
+  const incongCorrectTrials = incongruentTrials.filter(o => o.isCorrect === true);
+
+  const congStats = computeNumericStats(congCorrectTrials.map(o => o.latencyMs));
+  const incongStats = computeNumericStats(incongCorrectTrials.map(o => o.latencyMs));
 
   const congMean = congStats.mean;
   const incongMean = incongStats.mean;
@@ -355,13 +361,13 @@ export function computeColourStats(observations: DatasetObservation[]): ColourPr
     ? Number((incongMean - congMean).toFixed(1))
     : null;
 
-  const accuracyTrials = validCrt.filter(o => o.isCorrect !== null);
+  const accuracyTrials = validCrt.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
   const accuracyRate = accuracyTrials.length > 0
     ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1))
     : null;
 
-  const congAccTrials = congruentTrials.filter(o => o.isCorrect !== null);
-  const incongAccTrials = incongruentTrials.filter(o => o.isCorrect !== null);
+  const congAccTrials = congruentTrials.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
+  const incongAccTrials = incongruentTrials.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
 
   const conditionBreakdown = [
     {
@@ -380,7 +386,7 @@ export function computeColourStats(observations: DatasetObservation[]): ColourPr
     }
   ];
 
-  const histogram = computeHistogramBins(validCrt.map(o => o.latencyMs), 8);
+  const histogram = computeHistogramBins(validCorrectCrt.map(o => o.latencyMs), 8);
 
   return {
     congruentMeanRt: congMean,
@@ -418,10 +424,14 @@ export function computeBlockMemoryStats(observations: DatasetObservation[]): Blo
   const spans = validBmt.map(o => o.sequenceLength ?? (typeof o.level === 'number' && o.level > 0 ? o.level + 1 : null)).filter((s): s is number => typeof s === 'number' && s > 0);
   const spanStats = computeNumericStats(spans);
 
+  const correctBmt = validBmt.filter(o => o.isCorrect === true);
+  const correctSpans = correctBmt.map(o => o.sequenceLength ?? (typeof o.level === 'number' && o.level > 0 ? o.level + 1 : null)).filter((s): s is number => typeof s === 'number' && s > 0);
+  const correctSpanStats = computeNumericStats(correctSpans);
+
   const interTapTimes = validBmt.map(o => o.interTapTimeMs).filter((t): t is number => typeof t === 'number' && t > 0);
   const interTapStats = computeNumericStats(interTapTimes);
 
-  const accuracyTrials = validBmt.filter(o => o.isCorrect !== null);
+  const accuracyTrials = validBmt.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
   const successRate = accuracyTrials.length > 0
     ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1))
     : null;
@@ -456,7 +466,7 @@ export function computeBlockMemoryStats(observations: DatasetObservation[]): Blo
 
   return {
     medianSpan: spanStats.median,
-    maxSpan: spanStats.max,
+    maxSpan: correctSpanStats.max,
     meanInterTapRt: interTapStats.mean,
     successRate,
     spanDistribution,
@@ -488,10 +498,14 @@ export function computeNumberMemoryStats(observations: DatasetObservation[]): Nu
   const digitLengths = validNmt.map(o => o.sequenceLength ?? (typeof o.level === 'number' && o.level > 0 ? o.level + 2 : null)).filter((s): s is number => typeof s === 'number' && s > 0);
   const spanStats = computeNumericStats(digitLengths);
 
+  const correctNmt = validNmt.filter(o => o.isCorrect === true);
+  const correctDigitLengths = correctNmt.map(o => o.sequenceLength ?? (typeof o.level === 'number' && o.level > 0 ? o.level + 2 : null)).filter((s): s is number => typeof s === 'number' && s > 0);
+  const correctSpanStats = computeNumericStats(correctDigitLengths);
+
   const latencies = validNmt.map(o => o.latencyMs).filter((l): l is number => typeof l === 'number' && l > 0);
   const latencyStats = computeNumericStats(latencies);
 
-  const accuracyTrials = validNmt.filter(o => o.isCorrect !== null);
+  const accuracyTrials = validNmt.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
   const recallAccuracyRate = accuracyTrials.length > 0
     ? Number(((accuracyTrials.filter(o => o.isCorrect === true).length / accuracyTrials.length) * 100).toFixed(1))
     : null;
@@ -526,7 +540,7 @@ export function computeNumberMemoryStats(observations: DatasetObservation[]): Nu
 
   return {
     medianDigitSpan: spanStats.median,
-    maxDigitSpan: spanStats.max,
+    maxDigitSpan: correctSpanStats.max,
     meanEntryLatency: latencyStats.mean,
     recallAccuracyRate,
     digitSpanDistribution,
@@ -565,7 +579,7 @@ export function computeSubgroupStratification(
     const latencies = validObs.map(o => o.latencyMs).filter((l): l is number => typeof l === 'number' && l > 0);
     const dist = computeNumericStats(latencies);
 
-    const accTrials = validObs.filter(o => o.isCorrect !== null);
+    const accTrials = validObs.filter(o => o.isCorrect !== null && o.isCorrect !== undefined);
     const accRate = accTrials.length > 0
       ? Number(((accTrials.filter(o => o.isCorrect === true).length / accTrials.length) * 100).toFixed(1))
       : null;

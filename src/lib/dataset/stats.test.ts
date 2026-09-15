@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   computeDirectionStats,
+  computeColourStats,
   computeBlockMemoryStats,
   computeNumberMemoryStats,
   computeVrtStats,
@@ -11,6 +12,7 @@ import { DatasetObservation } from './types';
 function makeObs(overrides: Partial<DatasetObservation>): DatasetObservation {
   return {
     obsId: 'test-obs',
+    researchRecordId: 'test-session',
     sessionId: 'test-session',
     assessmentType: 'visual-reaction',
     completedAtMonth: '2023-10',
@@ -139,5 +141,74 @@ describe('Statistics Engine Correctness (STAT Fixes)', () => {
     expect(shortBreakdown?.medianRt).toBe(310);
     expect(longBreakdown?.count).toBe(2);
     expect(longBreakdown?.medianRt).toBe(210);
+  });
+
+  it('Direction: RT metrics exclude incorrect trials while accuracy denominator includes them', () => {
+    const obs = [
+      makeObs({ assessmentType: 'direction', targetDirection: 'UP', isCorrect: true, latencyMs: 200, isValid: true }),
+      makeObs({ assessmentType: 'direction', targetDirection: 'UP', isCorrect: false, latencyMs: 500, isValid: true, validityStatus: 'INCORRECT' }),
+    ];
+    const stats = computeDirectionStats(obs);
+
+    // Median and Mean RT should be 200 (only the valid correct trial), NOT 350
+    expect(stats.medianRt).toBe(200);
+    expect(stats.meanRt).toBe(200);
+    // Accuracy should be 50% (1 correct out of 2)
+    expect(stats.accuracyRate).toBe(50);
+    expect(stats.errorRate).toBe(50);
+
+    const upStats = stats.directionBreakdown.find(d => d.direction === 'UP');
+    expect(upStats?.count).toBe(2);
+    expect(upStats?.medianRt).toBe(200);
+    expect(upStats?.accuracy).toBe(50);
+  });
+
+  it('Colour: RT metrics and interference cost include ONLY valid correct trials', () => {
+    const obs = [
+      makeObs({ assessmentType: 'colour-recognition', condition: 'congruent', isCorrect: true, latencyMs: 300, isValid: true }),
+      makeObs({ assessmentType: 'colour-recognition', condition: 'congruent', isCorrect: false, latencyMs: 900, isValid: true, validityStatus: 'INCORRECT' }),
+      makeObs({ assessmentType: 'colour-recognition', condition: 'incongruent', isCorrect: true, latencyMs: 450, isValid: true }),
+      makeObs({ assessmentType: 'colour-recognition', condition: 'incongruent', isCorrect: false, latencyMs: 1200, isValid: true, validityStatus: 'INCORRECT' }),
+    ];
+    const stats = computeColourStats(obs);
+
+    // Congruent mean RT should be 300 (excluding 900)
+    expect(stats.congruentMeanRt).toBe(300);
+    // Incongruent mean RT should be 450 (excluding 1200)
+    expect(stats.incongruentMeanRt).toBe(450);
+    // Interference cost should be 450 - 300 = 150
+    expect(stats.interferenceCost).toBe(150);
+    // Overall RT should also exclude incorrect trials: median of [300, 450] = 375
+    expect(stats.overallMedianRt).toBe(375);
+    // Accuracy includes all valid trials: 2 / 4 = 50%
+    expect(stats.accuracyRate).toBe(50);
+  });
+
+  it('Block Memory: maxSpan uses only successful attempts while accuracy denominator includes failed attempts', () => {
+    const obs = [
+      makeObs({ assessmentType: 'block-memory', sequenceLength: 4, isCorrect: true, isValid: true, validityStatus: 'VALID' }),
+      makeObs({ assessmentType: 'block-memory', sequenceLength: 5, isCorrect: true, isValid: true, validityStatus: 'VALID' }),
+      makeObs({ assessmentType: 'block-memory', sequenceLength: 6, isCorrect: false, isValid: true, validityStatus: 'INCORRECT' }),
+    ];
+    const stats = computeBlockMemoryStats(obs);
+
+    // maxSpan should be 5 (only successful attempts), NOT 6
+    expect(stats.maxSpan).toBe(5);
+    // successRate should include all 3 attempts: 2 / 3 = 66.7%
+    expect(stats.successRate).toBe(66.7);
+  });
+
+  it('Number Memory: maxDigitSpan uses only successful attempts while accuracy denominator includes failed attempts', () => {
+    const obs = [
+      makeObs({ assessmentType: 'number-memory', sequenceLength: 5, isCorrect: true, isValid: true, validityStatus: 'VALID' }),
+      makeObs({ assessmentType: 'number-memory', sequenceLength: 6, isCorrect: true, isValid: true, validityStatus: 'VALID' }),
+      makeObs({ assessmentType: 'number-memory', sequenceLength: 7, isCorrect: false, isValid: true, validityStatus: 'INCORRECT' }),
+    ];
+    const stats = computeNumberMemoryStats(obs);
+
+    // maxDigitSpan should be 6 (only successful attempts), NOT 7
+    expect(stats.maxDigitSpan).toBe(6);
+    // recallAccuracyRate should include all 3 attempts: 2 / 3 = 66.7%
+    expect(stats.recallAccuracyRate).toBe(66.7);
   });
 });

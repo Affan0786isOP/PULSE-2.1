@@ -283,4 +283,58 @@ describe('Observation Normalization Correctness (STAT-05/06 Fixes)', () => {
       expect(obs[0].isValid).toBe(true);
     }
   });
+
+  it('record without progressionTrials produces 0 observations and no synthetic trials', () => {
+    const session = makeSession('visual-reaction', []);
+    const obs = normalizeSessionToObservations(session);
+    expect(obs).toEqual([]);
+  });
+
+  it('normalizes researchRecordId alongside sessionId', () => {
+    const session = makeSession('direction', [
+      { valid: true, correct: true, reactionTime: 250, targetDirection: 'UP' }
+    ]);
+    session.id = 'rec-uuid-123';
+    const obs = normalizeSessionToObservations(session);
+    expect(obs.length).toBe(1);
+    expect(obs[0].sessionId).toBe('rec-uuid-123');
+    expect(obs[0].researchRecordId).toBe('rec-uuid-123');
+  });
+
+  it('strict validity precedence: FALSE_START > TIMEOUT > ABORTED > INCORRECT > VALID', () => {
+    const trial1: RawProgressionTrial = {
+      valid: false,
+      falseStart: true,
+      timedOut: true,
+      reactionTime: 10
+    };
+    const trial2: RawProgressionTrial = {
+      valid: false,
+      timedOut: true,
+      validity: 'ABORTED',
+      reactionTime: 3000
+    };
+    const trial3: RawProgressionTrial = {
+      valid: true,
+      correct: false,
+      reactionTime: 400
+    };
+    const trial4: RawProgressionTrial = {
+      valid: true,
+      correct: true,
+      reactionTime: 350
+    };
+    const obs = normalizeSessionToObservations(makeSession('direction', [trial1, trial2, trial3, trial4]));
+    expect(obs[0].validityStatus).toBe('FALSE_START');
+    expect(obs[0].isValid).toBe(false);
+
+    expect(obs[1].validityStatus).toBe('TIMEOUT');
+    expect(obs[1].isValid).toBe(false);
+
+    expect(obs[2].validityStatus).toBe('INCORRECT');
+    expect(obs[2].isValid).toBe(true);
+
+    expect(obs[3].validityStatus).toBe('VALID');
+    expect(obs[3].isValid).toBe(true);
+  });
 });

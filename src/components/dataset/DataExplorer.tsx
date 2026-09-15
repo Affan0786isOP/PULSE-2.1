@@ -185,7 +185,7 @@ export function DataExplorer({
                   <span className="sr-only">Inspect Details</span>
                 </th>
                 <th scope="col" className="py-2.5 px-3 font-semibold">Observation ID</th>
-                <th scope="col" className="py-2.5 px-3 font-semibold">Session ID</th>
+                <th scope="col" className="py-2.5 px-3 font-semibold">Research Record ID</th>
                 <th scope="col" className="py-2.5 px-3 font-semibold">Protocol</th>
                 <th scope="col" className="py-2.5 px-3 font-semibold text-center">Trial</th>
                 <th scope="col" className="py-2.5 px-3 font-semibold">Month</th>
@@ -237,10 +237,10 @@ export function DataExplorer({
                         </span>
                       </td>
 
-                      {/* Session ID */}
+                      {/* Research Record ID */}
                       <td className="py-2 px-3 font-mono text-[11px] text-[var(--text-muted)] whitespace-nowrap">
-                        <span title={obs.sessionId}>
-                          {obs.sessionId.length > 12 ? `${obs.sessionId.slice(0, 12)}…` : obs.sessionId}
+                        <span title={obs.researchRecordId || obs.sessionId}>
+                          {(obs.researchRecordId || obs.sessionId).length > 12 ? `${(obs.researchRecordId || obs.sessionId).slice(0, 12)}…` : (obs.researchRecordId || obs.sessionId)}
                         </span>
                       </td>
 
@@ -355,8 +355,8 @@ export function DataExplorer({
                                   <span className="text-[var(--text-main)] truncate max-w-[140px]" title={obs.obsId}>{obs.obsId}</span>
                                 </div>
                                 <div className="flex justify-between gap-2">
-                                  <span className="text-[var(--text-muted)]">Session ID:</span>
-                                  <span className="text-[var(--text-main)] truncate max-w-[140px]" title={obs.sessionId}>{obs.sessionId}</span>
+                                  <span className="text-[var(--text-muted)]">Research Record ID:</span>
+                                  <span className="text-[var(--text-main)] truncate max-w-[140px]" title={obs.researchRecordId || obs.sessionId}>{obs.researchRecordId || obs.sessionId}</span>
                                 </div>
                                 <div className="flex justify-between gap-2">
                                   <span className="text-[var(--text-muted)]">Protocol:</span>

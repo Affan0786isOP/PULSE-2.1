@@ -261,7 +261,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       const stimWall = stimulusWallTimestamp.current || (responseWallTime - Math.round(rawDelta));
 
       const isFalseStart = rawDelta < 80;
-      const isValid = correct && !isFalseStart && rawDelta < 3000;
+      const isUsable = !isFalseStart && rawDelta < 3000;
 
       const newDataset = [...trialDatasetRef.current, {
         trial: trialIndex,
@@ -299,9 +299,11 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         rawReactionTime: Number(rawDelta.toFixed(2)),
         displayDelayOffsetMs: offsetMs,
         accuracy: correct ? 1 : 0,
+        correct,
         falseStart: isFalseStart,
         timedOut: false,
-        valid: isValid,
+        valid: isUsable,
+        validity: isFalseStart ? 'FALSE_START' : (rawDelta >= 3000 ? 'TIMEOUT' : (correct ? 'VALID' : 'INCORRECT')),
         ageGroup: selectedAgeGroup || undefined,
         notes: `word:${currentWord.name},color:${currentColor.name},task:${currentInstruction},condition:${condition}`
       });

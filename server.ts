@@ -1509,10 +1509,11 @@ function validateAndDeriveAssessmentFromTrials(
         t.accuracy = isCorrect ? 1 : 0;
         t.correct = isCorrect;
         t.correctness = isCorrect;
-        const clientValid = t.valid !== false && t.validity !== 'ABORTED' && !t.timedOut && !t.falseStart;
-        t.valid = clientValid;
-        t.validity = clientValid ? (isCorrect ? 'VALID' : 'INCORRECT') : (t.validity || 'INVALID');
-        t.qualityFlag = clientValid ? (isCorrect ? null : 'ACCURACY_ERROR') : t.qualityFlag;
+        const isAborted = t.validity === 'ABORTED' || t.timedOut === true || t.falseStart === true;
+        const isValidAttempt = !isAborted;
+        t.valid = isValidAttempt;
+        t.validity = isValidAttempt ? (isCorrect ? 'VALID' : 'INCORRECT') : (t.validity || 'ABORTED');
+        t.qualityFlag = isValidAttempt ? (isCorrect ? null : 'ACCURACY_ERROR') : t.qualityFlag;
 
         if (isCorrect) {
           totalCorrect++;
@@ -1594,10 +1595,11 @@ function validateAndDeriveAssessmentFromTrials(
         t.accuracy = isCorrect ? 1 : 0;
         t.correct = isCorrect;
         t.correctness = isCorrect;
-        const clientValid = t.valid !== false && t.validity !== 'ABORTED' && !t.timedOut && !t.falseStart;
-        t.valid = clientValid;
-        t.validity = clientValid ? (isCorrect ? 'VALID' : 'INCORRECT') : (t.validity || 'INVALID');
-        t.qualityFlag = clientValid ? (isCorrect ? null : 'ACCURACY_ERROR') : t.qualityFlag;
+        const isAborted = t.validity === 'ABORTED' || t.timedOut === true || t.falseStart === true;
+        const isValidAttempt = !isAborted;
+        t.valid = isValidAttempt;
+        t.validity = isValidAttempt ? (isCorrect ? 'VALID' : 'INCORRECT') : (t.validity || 'ABORTED');
+        t.qualityFlag = isValidAttempt ? (isCorrect ? null : 'ACCURACY_ERROR') : t.qualityFlag;
 
         if (isCorrect) {
           totalCorrect++;
@@ -2205,7 +2207,12 @@ async function startServer() {
 
           const isFalseStart = t.falseStart === true;
           const isTimedOut = t.timedOut === true;
-          const isValid = typeof t.valid === 'boolean' ? t.valid : (!isFalseStart && !isTimedOut);
+          const isAborted = t.validity === 'ABORTED' || (typeof rawRt === 'number' && rawRt <= 0);
+          const isCompletedResponse = !isFalseStart && !isTimedOut && !isAborted;
+          const isIncorrectResponse = isCompletedResponse && (t.correct === false || t.validity === 'INCORRECT');
+          const isValid = isIncorrectResponse
+            ? true
+            : (typeof t.valid === 'boolean' ? t.valid : isCompletedResponse);
           const isCorrect = typeof t.correct === 'boolean'
             ? t.correct
             : (typeof t.correctness === 'boolean'
@@ -2319,9 +2326,9 @@ async function startServer() {
       const docId = crypto.randomUUID();
 
       // Rule 5: publicDataset must NOT expose Firebase UID, participantId, sessionId or other direct identity/session identifiers
-      // Extract progressionTrials strictly from server-canonicalized trialPayloads (max 5 trials)
+      // Extract progressionTrials strictly from server-canonicalized trialPayloads (all canonical trials)
       const isSpeedAssessment = assessmentType === 'visual-reaction' || assessmentType === 'direction' || assessmentType === 'color-recognition';
-      const progressionTrials = trialPayloads.slice(0, 5).map(({ data: tp }: { data: Record<string, any> }, idx: number) => {
+      const progressionTrials = trialPayloads.map(({ data: tp }: { data: Record<string, any> }, idx: number) => {
         const trialNumber = typeof tp.trialNumber === 'number' ? tp.trialNumber : (idx + 1);
         const rawRt = typeof tp.reactionTime === 'number' ? tp.reactionTime : (typeof tp.reactionTimeMs === 'number' ? tp.reactionTimeMs : null);
         const falseStart = tp.falseStart === true;
@@ -3175,7 +3182,7 @@ async function startServer() {
 
           records.push({
             id: docSnap.id,
-            assessmentType: normalizeAssessmentType(data.assessmentType || 'visual-reaction'),
+            assessmentType: normalizeAssessmentType(data.assessmentType || 'unknown'),
             ageGroup: data.ageGroup || undefined,
             completedAtMonth: derivedMonth || undefined,
             completedAtTimestamp: data.completedAtTimestamp || data.createdAt,

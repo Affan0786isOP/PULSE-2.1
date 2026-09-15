@@ -444,9 +444,11 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       rawReactionTime: Number(rawLatency.toFixed(2)),
       displayDelayOffsetMs: offsetMs,
       accuracy: isCorrect ? 1 : 0,
+      correct: isCorrect,
       falseStart: false,
       timedOut: false,
-      valid: isCorrect,
+      valid: true,
+      validity: isCorrect ? 'VALID' : 'INCORRECT',
       ageGroup: selectedAgeGroup || undefined
     });
   };

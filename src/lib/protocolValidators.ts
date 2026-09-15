@@ -131,7 +131,7 @@ export function isValidBaseObservation(obs: Record<string, unknown>): boolean {
   if (typeof obs.device !== 'string' || (obs.device !== 'desktop' && obs.device !== 'mobile')) return false;
 
   // Progression Trials
-  if (!Array.isArray(obs.progressionTrials) || obs.progressionTrials.length > 5) return false;
+  if (!Array.isArray(obs.progressionTrials)) return false;
   for (const pt of obs.progressionTrials) {
     if (!pt || typeof pt !== 'object') return false;
     if (typeof pt.trialNumber !== 'number' || !Number.isInteger(pt.trialNumber) || pt.trialNumber < 1) return false;

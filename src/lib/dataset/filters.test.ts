@@ -251,4 +251,43 @@ describe('Dataset Filter Engine Integration', () => {
       expect(countActiveFilters(filters)).toBe(2);
     });
   });
+
+  describe('7. Validity Filtering', () => {
+    const validityObservations: DatasetObservation[] = [
+      { ...sampleObservations[0], obsId: 'v-1', validityStatus: 'VALID', isValid: true },
+      { ...sampleObservations[0], obsId: 'v-2', validityStatus: 'INCORRECT', isValid: true },
+      { ...sampleObservations[0], obsId: 'v-3', validityStatus: 'FALSE_START', isValid: false },
+      { ...sampleObservations[0], obsId: 'v-4', validityStatus: 'TIMEOUT', isValid: false },
+      { ...sampleObservations[0], obsId: 'v-5', validityStatus: 'ABORTED', isValid: false },
+    ];
+
+    it('returns all when validity is "all"', () => {
+      const filters: DatasetFilters = { ...DEFAULT_DATASET_FILTERS, validity: 'all' };
+      const result = applyDatasetFilters(validityObservations, filters);
+      expect(result).toHaveLength(5);
+      expect(isFilterActive(filters)).toBe(false);
+    });
+
+    it('filters by VALID', () => {
+      const filters: DatasetFilters = { ...DEFAULT_DATASET_FILTERS, validity: 'VALID' };
+      const result = applyDatasetFilters(validityObservations, filters);
+      expect(result).toHaveLength(1);
+      expect(result[0].obsId).toBe('v-1');
+      expect(isFilterActive(filters)).toBe(true);
+    });
+
+    it('filters by INCORRECT', () => {
+      const filters: DatasetFilters = { ...DEFAULT_DATASET_FILTERS, validity: 'INCORRECT' };
+      const result = applyDatasetFilters(validityObservations, filters);
+      expect(result).toHaveLength(1);
+      expect(result[0].obsId).toBe('v-2');
+    });
+
+    it('filters by FALSE_START', () => {
+      const filters: DatasetFilters = { ...DEFAULT_DATASET_FILTERS, validity: 'FALSE_START' };
+      const result = applyDatasetFilters(validityObservations, filters);
+      expect(result).toHaveLength(1);
+      expect(result[0].obsId).toBe('v-3');
+    });
+  });
 });

@@ -59,6 +59,8 @@ export type InputModality = 'touch' | 'mouse' | 'keyboard' | 'unknown' | 'all';
 
 export type ValidityState = 'VALID' | 'FALSE_START' | 'TIMEOUT' | 'INCORRECT' | 'ABORTED';
 
+export type ValidityFilter = 'all' | ValidityState;
+
 /**
  * Raw Progression Trial stored in PULSE session record
  */
@@ -144,6 +146,7 @@ export interface ResearchSessionRecord {
  */
 export interface DatasetObservation {
   obsId: string;
+  researchRecordId?: string;
   sessionId: string;
   assessmentType: string;
   rawAssessmentType?: string | null;
@@ -194,6 +197,7 @@ export interface DatasetFilters {
   inputModality: InputModality;
   deviceCategory?: 'all' | 'desktop' | 'mobile' | 'unknown';
   refreshRate: string; // 'all' | '60' | '120' | '144plus'
+  validity?: ValidityFilter; // 'all' | 'VALID' | 'INCORRECT' | 'FALSE_START' | 'TIMEOUT' | 'ABORTED'
 }
 
 /**

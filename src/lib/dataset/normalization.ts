@@ -183,13 +183,13 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
     let validityStatus: 'VALID' | 'FALSE_START' | 'TIMEOUT' | 'INCORRECT' | 'ABORTED' = 'VALID';
     let isValid = true;
 
-    if (isFalseStart || t.validity === 'FALSE_START_PRE_STIMULUS' || t.validity === 'ANTICIPATORY_TOO_FAST') {
+    if (isFalseStart || t.validity === 'FALSE_START' || t.validity === 'FALSE_START_PRE_STIMULUS' || t.validity === 'ANTICIPATORY_TOO_FAST') {
       isValid = false;
       validityStatus = 'FALSE_START';
     } else if (isTimeout || t.validity === 'TIMEOUT') {
       isValid = false;
       validityStatus = 'TIMEOUT';
-    } else if (t.valid === false || t.validity === 'INVALID' || t.validity === 'ABORTED' || (typeof rawRt === 'number' && rawRt <= 0)) {
+    } else if (t.validity === 'ABORTED' || (typeof rawRt === 'number' && rawRt <= 0) || (t.valid === false && isCorrect !== false && t.validity !== 'INCORRECT')) {
       isValid = false;
       validityStatus = 'ABORTED';
     } else if (isCorrect === false || t.validity === 'INCORRECT') {
@@ -223,6 +223,7 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
 
     return {
       obsId,
+      researchRecordId: record.id,
       sessionId: record.id,
       assessmentType: pType,
       rawAssessmentType: record.assessmentType,
