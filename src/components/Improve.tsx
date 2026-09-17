@@ -228,7 +228,7 @@ export function Improve({
                 {
                   icon: Moon,
                   title: "Sleep Deprivation",
-                  desc: "Inadequate rest impairs cognitive processing and increases reaction latency.",
+                  desc: "Inadequate rest is associated with degraded cognitive processing and higher reaction latency.",
                   reduces: true,
                 },
                 {
@@ -264,7 +264,7 @@ export function Improve({
                 {
                   icon: Apple,
                   title: "Balanced Nutrition",
-                  desc: "Stable blood glucose prevents cognitive dips and attention drift.",
+                  desc: "Stable blood glucose supports consistent cognitive focus and attention stamina.",
                   reduces: false,
                 },
                 {
@@ -282,7 +282,7 @@ export function Improve({
                 {
                   icon: Coffee,
                   title: "Caffeine Intake",
-                  desc: "Moderate caffeine temporary increases alertness and visual processing speed.",
+                  desc: "Moderate caffeine can temporarily support alertness and visual processing speed.",
                   reduces: false,
                 },
               ].map((factor, i) => (
