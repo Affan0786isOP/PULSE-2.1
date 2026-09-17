@@ -48,20 +48,12 @@ export function AddToHomeScreenModal({
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      const unlock = acquireScrollLock();
-      return () => {
-        unlock();
-      };
-    }
-  }, [isOpen]);
-
-  useModalAccessibility({
+  const { zIndex } = useModalAccessibility({
     isOpen,
     onClose,
     dialogRef,
-    initialFocusRef: closeButtonRef
+    initialFocusRef: closeButtonRef,
+    modalId: 'mobile-pwa-install-modal'
   });
 
   const handleInstallClick = async () => {
@@ -90,7 +82,8 @@ export function AddToHomeScreenModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+          style={{ zIndex }}
+          className="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
         >
           {/* Backdrop click */}
           <motion.div
@@ -99,7 +92,9 @@ export function AddToHomeScreenModal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/80 backdrop-blur-md cursor-pointer"
-            onClick={handleClose}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) handleClose();
+            }}
           />
 
           <motion.div
@@ -108,11 +103,13 @@ export function AddToHomeScreenModal({
             aria-modal="true"
             aria-labelledby="mobile-pwa-modal-title"
             id="mobile-pwa-install-modal"
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, y: 30, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.96 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-t-2xl sm:rounded-xl shadow-2xl overflow-hidden text-left max-h-[90vh] flex flex-col my-auto"
+            className="relative z-10 w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-t-2xl sm:rounded-xl shadow-2xl overflow-hidden text-left max-h-[90vh] flex flex-col my-auto outline-none"
             style={{
               paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px))'
             }}

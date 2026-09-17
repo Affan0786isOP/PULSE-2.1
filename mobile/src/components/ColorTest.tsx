@@ -645,6 +645,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         currentView="colour-recognition" 
         onNavigate={onNavigate} 
         onBack={() => onNavigate('assessments')}
+        isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'}
       />
       
       <main 

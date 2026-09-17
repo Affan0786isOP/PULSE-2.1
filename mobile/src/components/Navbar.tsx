@@ -10,13 +10,15 @@ export function Navbar({
   currentView,
   onBack,
   title,
-  rightContent
+  rightContent,
+  isAssessmentActive = false
 }: {
   onNavigate: (view: string) => void;
   currentView?: string;
   onBack?: () => void;
   title?: string | React.ReactNode;
   rightContent?: React.ReactNode;
+  isAssessmentActive?: boolean;
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
@@ -110,13 +112,19 @@ export function Navbar({
           <button 
             type="button"
             id="mobile-nav-settings-btn"
+            disabled={isAssessmentActive}
+            aria-disabled={isAssessmentActive}
+            title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings"}
             onClick={() => {
-              triggerHaptic('tap');
-              setIsSettingsOpen(true);
+              if (!isAssessmentActive) {
+                triggerHaptic('tap');
+                setIsSettingsOpen(true);
+              }
             }}
             aria-label="Settings"
-            title="Settings"
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer"
+            className={`w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 ${
+              isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+            }`}
           >
             <Settings size={15} />
           </button>

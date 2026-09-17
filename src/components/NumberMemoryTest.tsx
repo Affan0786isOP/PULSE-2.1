@@ -563,6 +563,7 @@ return (
         currentView="number-memory" 
         onNavigate={onNavigate} 
         onBack={() => onNavigate('assessments')}
+        isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'}
       />
       
       <main 

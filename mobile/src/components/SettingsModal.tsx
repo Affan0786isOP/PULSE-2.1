@@ -91,21 +91,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   }, [isOpen]);
 
-  // Safe reference-counted modal scroll-lock
-  useEffect(() => {
-    if (isOpen) {
-      const unlock = acquireScrollLock();
-      return () => {
-        unlock();
-      };
-    }
-  }, [isOpen]);
-
-  useModalAccessibility({
+  const { zIndex } = useModalAccessibility({
     isOpen,
     onClose,
     dialogRef,
-    initialFocusRef: closeButtonRef
+    initialFocusRef: closeButtonRef,
+    modalId: 'mobile-settings-modal'
   });
 
   useEffect(() => {
@@ -279,10 +270,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="mobile-settings-modal-heading"
+              style={{ zIndex }}
+              className="fixed inset-0 flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
             >
               {/* Backdrop */}
               <motion.div
@@ -290,14 +279,20 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                onClick={onClose}
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) onClose();
+                }}
                 className="fixed inset-0 bg-black/75 backdrop-blur-md cursor-pointer"
               />
 
               {/* Modal Card */}
               <motion.div
                 ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="mobile-settings-modal-heading"
                 tabIndex={-1}
+                onClick={(e) => e.stopPropagation()}
                 initial={{ opacity: 0, scale: 0.95, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 12 }}

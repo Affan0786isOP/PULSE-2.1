@@ -11,13 +11,15 @@ export function Navbar({
   currentView, 
   onBack, 
   title, 
-  rightContent 
+  rightContent,
+  isAssessmentActive = false
 }: { 
   onNavigate: (view: string) => void;
   currentView: string;
   onBack?: () => void;
   title?: string;
   rightContent?: React.ReactNode;
+  isAssessmentActive?: boolean;
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -143,9 +145,15 @@ export function Navbar({
           <button type="button"
             id="navbar-settings-btn"
             aria-label="Settings"
-            title="Settings & Calibration"
-            onClick={() => setIsSettingsOpen(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[color,background-color,border-color,transform] cursor-pointer"
+            disabled={isAssessmentActive}
+            aria-disabled={isAssessmentActive}
+            title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings & Calibration"}
+            onClick={() => {
+              if (!isAssessmentActive) setIsSettingsOpen(true);
+            }}
+            className={`w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[color,background-color,border-color,transform] ${
+              isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+            }`}
           >
             <Settings size={16} />
           </button>
@@ -211,8 +219,18 @@ export function Navbar({
                 <button type="button"
                   id="mobile-menu-settings-btn"
                   aria-label="Settings"
-                  onClick={() => { setIsMobileMenuOpen(false); setIsSettingsOpen(true); }}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
+                  disabled={isAssessmentActive}
+                  aria-disabled={isAssessmentActive}
+                  title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings"}
+                  onClick={() => { 
+                    if (!isAssessmentActive) {
+                      setIsMobileMenuOpen(false); 
+                      setIsSettingsOpen(true); 
+                    }
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors ${
+                    isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+                  }`}
                 >
                   <Settings size={14} />
                   <span>Settings</span>

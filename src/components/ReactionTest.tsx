@@ -765,6 +765,7 @@ return (
         currentView="reaction-test" 
         onNavigate={onNavigate} 
         onBack={() => onNavigate('assessments')}
+        isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'}
       />
       
       <main 

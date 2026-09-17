@@ -52,20 +52,12 @@ export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    if (isOpen) {
-      const unlock = acquireScrollLock();
-      return () => {
-        unlock();
-      };
-    }
-  }, [isOpen]);
-
-  useModalAccessibility({
+  const { zIndex } = useModalAccessibility({
     isOpen,
     onClose,
     dialogRef,
-    initialFocusRef: closeButtonRef
+    initialFocusRef: closeButtonRef,
+    modalId: 'welcome-modal'
   });
 
   const handleClose = () => {
@@ -85,29 +77,33 @@ export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     <AnimatePresence>
       {isOpen && (
         <div 
-          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="welcome-modal-heading"
+          className="fixed inset-0 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+          style={{ zIndex }}
         >
           {/* Opaque dark backdrop */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md"
-            onClick={handleClose}
+            className="fixed inset-0 bg-black/80 backdrop-blur-md cursor-pointer"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) handleClose();
+            }}
           />
 
           {/* Modal Container */}
           <motion.div
             ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="welcome-modal-heading"
             tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="relative z-10 w-full max-w-[420px] bg-[#0b101b] border border-white/20 rounded-2xl p-5 sm:p-6 flex flex-col font-sans text-[#e8ecf3] my-auto select-none outline-none"
+            className="relative z-10 w-full max-w-[420px] bg-[#0b101b] border border-white/20 rounded-2xl p-5 sm:p-6 flex flex-col font-sans text-[#e8ecf3] my-auto outline-none"
             style={{ backgroundColor: '#0b101b' }}
           >
             {/* Header */}
