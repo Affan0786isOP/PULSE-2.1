@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Activity, ArrowLeft, Settings, Info } from 'lucide-react';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SettingsModal } from './SettingsModal';
 import { WelcomeModal } from './WelcomeModal';
+
+import { resolveActiveNavId } from '../lib/navigation';
+export { resolveActiveNavId };
 
 export function Navbar({
   onNavigate,
@@ -23,6 +26,9 @@ export function Navbar({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const activeId = resolveActiveNavId(currentView, location.pathname);
 
   const handleBack = () => {
     triggerHaptic('tap');
@@ -32,21 +38,21 @@ export function Navbar({
     }
 
     // Real back behavior: check if previous in-app history exists
-    if (typeof window !== 'undefined' && window.history.state && window.history.state.idx > 0) {
+    if (typeof window !== 'undefined' && window.history.state && (window.history.state.idx > 0 || window.history.length > 1)) {
       navigate(-1);
     } else {
       onNavigate('home');
     }
   };
 
-  const isHome = currentView === 'home' || !currentView;
+  const isHome = activeId === 'home' || location.pathname === '/' || location.pathname === '/mobile/' || location.pathname === '/mobile';
 
   return (
     <>
       <nav 
         role="navigation"
         aria-label="Mobile Navigation"
-        data-current-view={currentView || 'home'}
+        data-current-view={activeId || 'home'}
         className="w-full shrink-0 flex items-center justify-between px-3.5 py-2.5 bg-[var(--surface-0)] z-40 relative border-b border-[var(--border-subtle)]"
         style={{ 
           paddingTop: 'max(0.6rem, env(safe-area-inset-top, 0.6rem))', 

@@ -15,20 +15,8 @@ const HOME_SCHEMA = {
 };
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const { isReady, isAuthenticated, authError, retryAuth } = useAuth();
+  const { isReady, isConnecting, isAuthenticated, authError, retryAuth } = useAuth();
   const refreshInfo = useRefreshRate();
-
-  if (!isReady) {
-    return (
-      <div className="min-h-[100dvh] bg-transparent text-[var(--text-primary)] flex flex-col items-center justify-center p-6 text-center font-sans">
-        <div className="flex flex-col items-center">
-          <div className="w-8 h-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin mb-3" />
-          <div className="text-sm font-semibold tracking-normal text-[var(--text-primary)]">PULSE</div>
-          <div className="text-xs text-[var(--text-muted)] mt-1">Initializing assessment environment...</div>
-        </div>
-      </div>
-    );
-  }
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -98,7 +86,9 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono">
                 <Monitor size={12} className="text-[var(--accent)]" />
-                <span>{refreshInfo.hz} Hz (+{refreshInfo.displayDelayOffsetMs} ms frame offset)</span>
+                <span>
+                  {refreshInfo.hz} Hz ({refreshInfo.source === 'measured' ? 'Measured' : refreshInfo.source === 'estimated' ? 'Estimated' : 'Fallback'})
+                </span>
               </div>
             </motion.div>
 
@@ -107,17 +97,18 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <div className="flex items-center gap-2.5">
                   <AlertCircle size={16} className="shrink-0 text-rose-400" />
                   <div className="text-xs">
-                    <span className="font-semibold text-rose-200">Firebase Connection Required: </span>
-                    <span>{authError} Valid server authentication is required for assessments.</span>
+                    <span className="font-semibold text-rose-200">Firebase Connection Notice: </span>
+                    <span>{authError} Assessment session tracking will retry automatically.</span>
                   </div>
                 </div>
                 <button 
                   type="button" 
                   onClick={() => retryAuth()}
-                  className="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 active:bg-rose-500/40 active:scale-[0.97] text-rose-200 text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0"
+                  disabled={isConnecting}
+                  className="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 active:bg-rose-500/40 active:scale-[0.97] text-rose-200 text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 disabled:opacity-50"
                 >
-                  <RefreshCw size={12} />
-                  <span>Retry Connection</span>
+                  <RefreshCw size={12} className={isConnecting ? "animate-spin" : ""} />
+                  <span>{isConnecting ? "Retrying..." : "Retry Connection"}</span>
                 </button>
               </motion.div>
             )}
@@ -143,7 +134,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium text-sm px-6 py-3 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 <span>Start assessments</span>
-                <ArrowRight size={16} />
+                {isConnecting && !isReady ? (
+                  <RefreshCw size={14} className="animate-spin text-slate-950" />
+                ) : (
+                  <ArrowRight size={16} />
+                )}
               </motion.button>
             </motion.div>
           </motion.div>

@@ -90,7 +90,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
         title="Dataset & Data Explorer | PULSE Mobile"
         description="Explore anonymized reaction time and cognitive performance data from the global PULSE research dataset."
       />
-      <Navbar currentView="dataset" onNavigate={onNavigate} onBack={() => onNavigate('home')} title="DATASET" />
+      <Navbar currentView="dataset" onNavigate={onNavigate} title="DATASET" />
 
       <main 
         className="flex-1 w-full max-w-4xl mx-auto px-3 py-4 flex flex-col gap-3 overflow-y-auto"

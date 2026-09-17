@@ -151,9 +151,9 @@ export function Improve({
     <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-cyan-500/30 relative">
       <SEO 
         title="Calibrating & Improving Input Latency | PULSE"
-        description="Learn how hardware factors like screen refresh rate, browser rendering pipelines, and input devices influence measured sensory-motor latencies."
+        description="Learn how hardware factors like screen refresh rate, browser rendering pipelines, and input devices influence measured response latency."
       />
-      <Navbar currentView="improve" onNavigate={onNavigate} onBack={() => onNavigate('home')} />
+      <Navbar currentView="improve" onNavigate={onNavigate} />
 
       <main 
         ref={scrollContainerRef}

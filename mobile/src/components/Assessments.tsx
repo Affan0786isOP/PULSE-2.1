@@ -67,7 +67,6 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       <Navbar 
         currentView="assessments" 
         onNavigate={onNavigate} 
-        onBack={() => onNavigate('home')} 
         title="Assessments"
       />
       

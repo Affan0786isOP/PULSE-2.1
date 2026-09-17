@@ -59,10 +59,10 @@ export function Improve({
     <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-cyan-500/30 relative">
       <SEO 
         title="Calibrating & Improving Input Latency | PULSE Mobile"
-        description="Learn how hardware factors like screen refresh rate, browser rendering pipelines, and input devices influence measured sensory-motor latencies."
+        description="Learn how hardware factors like screen refresh rate, browser rendering pipelines, and input devices influence measured response latency."
       />
       {/* Navbar Header */}
-      <Navbar currentView="improve" onNavigate={onNavigate} onBack={() => onNavigate('home')} title="IMPROVE" />
+      <Navbar currentView="improve" onNavigate={onNavigate} title="IMPROVE" />
 
       <main 
         className="flex-1 overflow-y-auto bg-transparent relative pt-4 pb-20 pb-safe px-safe"

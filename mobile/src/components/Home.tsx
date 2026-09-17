@@ -10,7 +10,7 @@ import { triggerHaptic } from '../lib/settingsStore';
 import { SEO } from './SEO';
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const { isReady, authError, retryAuth } = useAuth();
+  const { isReady, isConnecting, authError, retryAuth } = useAuth();
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
@@ -39,18 +39,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
     }
   };
 
-  if (!isReady) {
-    return (
-      <div className="h-[100dvh] bg-transparent text-[var(--text-primary)] flex flex-col items-center justify-center p-6 text-center font-sans">
-        <div className="flex flex-col items-center">
-          <div className="w-8 h-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin mb-3" />
-          <div className="text-sm font-semibold tracking-normal text-[var(--text-primary)]">PULSE Mobile</div>
-          <div className="text-xs text-[var(--text-muted)] mt-1">Initializing assessment environment...</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-[100dvh] bg-transparent text-[var(--text-primary)] font-sans relative flex flex-col justify-between">
       <SEO 
@@ -59,27 +47,27 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       />
       {/* Top Header Minimal & Compact */}
       <header 
-        className="w-full flex items-center justify-between px-4 py-2.5 z-20 shrink-0 border-b border-[var(--border-subtle)] bg-[var(--surface-0)]" 
+        className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 z-20 shrink-0 border-b border-[var(--border-subtle)] bg-[var(--surface-0)]" 
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0.75rem))' }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           <button type="button"
             id="mobile-home-logo-btn"
             onClick={() => { triggerHaptic('tap'); onNavigate('home'); }}
-            className="flex items-center gap-2.5 cursor-pointer group"
+            className="flex items-center gap-2 cursor-pointer group shrink-0"
             title="PULSE Home"
           >
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shadow-xs transition-transform group-hover:scale-105">
-              <Activity size={18} className="stroke-[2.5]" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shadow-xs transition-transform group-hover:scale-105">
+              <Activity size={16} className="stroke-[2.5]" />
             </div>
-            <span className="font-heading font-extrabold text-base tracking-tight text-[var(--text-primary)] leading-none">
+            <span className="font-heading font-extrabold text-sm sm:text-base tracking-tight text-[var(--text-primary)] leading-none">
               PULSE
             </span>
           </button>
         </div>
         
         {/* Header Action Buttons (Install, Fullscreen, Info, Settings) */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {!pwa.isStandalone && !pwa.isInstalled && (
             <button type="button"
               id="mobile-install-btn"
@@ -87,11 +75,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 triggerHaptic('tap');
                 await pwa.promptInstall();
               }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
               title="Install App"
             >
               <Download size={12} />
-              <span>Install</span>
+              <span className="hidden min-[360px]:inline">Install</span>
             </button>
           )}
 
@@ -99,11 +87,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             <button type="button"
               id="mobile-fullscreen-btn"
               onClick={() => { triggerHaptic('tap'); handleToggleFullscreen(); }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
               title={pwa.isBrowserFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
             >
               {pwa.isBrowserFullscreen ? <Minimize2 size={12} className="text-[var(--accent)]" /> : <Maximize2 size={12} />}
-              <span>{pwa.isBrowserFullscreen ? "Exit" : "Fullscreen"}</span>
+              <span className="hidden min-[360px]:inline">{pwa.isBrowserFullscreen ? "Exit" : "Fullscreen"}</span>
             </button>
           )}
 
@@ -146,17 +134,12 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="flex flex-col items-center text-center w-full pt-1"
         >
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-5 h-5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-              <Activity className="w-3.5 h-3.5 stroke-[2.2]" />
-            </div>
-            <h1 className="text-base font-bold tracking-tight text-[var(--text-primary)] leading-none">
-              PULSE
-            </h1>
-          </div>
+          <h1 className="text-sm sm:text-base font-bold tracking-tight text-[var(--text-primary)] leading-snug px-1">
+            Precision Latency &amp; Cognitive Benchmarks
+          </h1>
 
-          <p className="text-[var(--text-muted)] text-[11px] font-normal px-2 leading-tight">
-            Precision User Latency &amp; Stimulus Evaluator
+          <p className="text-[var(--text-muted)] text-[11px] font-normal px-2 leading-tight mt-0.5">
+            Research-grade sensory reaction and working memory evaluator
           </p>
 
           {authError && (
@@ -164,17 +147,18 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <div className="flex items-center gap-2">
                 <AlertCircle size={14} className="shrink-0 text-rose-400" />
                 <div className="text-[10px] leading-tight">
-                  <span className="font-semibold text-rose-200">Auth Error: </span>
-                  <span>Server connection required for tests.</span>
+                  <span className="font-semibold text-rose-200">Notice: </span>
+                  <span>Session tracking will retry automatically.</span>
                 </div>
               </div>
               <button 
                 type="button" 
                 onClick={() => { triggerHaptic('tap'); retryAuth(); }}
-                className="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+                disabled={isConnecting}
+                className="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50"
               >
-                <RefreshCw size={10} />
-                <span>Retry</span>
+                <RefreshCw size={10} className={isConnecting ? "animate-spin" : ""} />
+                <span>{isConnecting ? "Retrying..." : "Retry"}</span>
               </button>
             </div>
           )}
@@ -232,7 +216,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 Review
               </h3>
               <p className="text-[11px] text-[var(--text-secondary)] leading-snug">
-                Get your score instantly, compare with benchmarks, and track your progress over time.
+                Get your score instantly, compare against verified cohort benchmarks, and track your personal bests.
               </p>
             </div>
           </div>
@@ -258,7 +242,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             className="w-full rounded-md bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium py-3 px-4 flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
           >
             <span className="text-sm font-semibold">Start assessments</span>
-            <ArrowRight className="w-4 h-4" />
+            {isConnecting && !isReady ? (
+              <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
+            ) : (
+              <ArrowRight className="w-4 h-4" />
+            )}
           </motion.button>
 
           {/* Menu Grid - 2x2 with clear touch targets */}

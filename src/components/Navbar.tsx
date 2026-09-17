@@ -6,6 +6,9 @@ import { SettingsModal } from './SettingsModal';
 import { WelcomeModal, isWelcomeSeenInMemory } from './WelcomeModal';
 import { GooeyNav } from './ui/gooey-nav';
 
+import { resolveActiveNavId } from '../lib/navigation';
+export { resolveActiveNavId };
+
 export function Navbar({ 
   onNavigate, 
   currentView, 
@@ -59,14 +62,15 @@ export function Navbar({
     { id: 'privacy', label: 'Privacy' }
   ];
 
-  const activeId = currentView || (isHome ? 'home' : '');
+  const activeId = resolveActiveNavId(currentView, location.pathname);
+  const activeIndex = navItems.findIndex(i => i.id === activeId);
 
   const handleBack = () => {
     if (onBack) {
       onBack();
       return;
     }
-    if (typeof window !== 'undefined' && window.history.state && window.history.state.idx > 0) {
+    if (typeof window !== 'undefined' && window.history.state && (window.history.state.idx > 0 || window.history.length > 1)) {
       navigate(-1);
     } else {
       onNavigate('home');
@@ -125,7 +129,7 @@ export function Navbar({
       <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center h-full">
         <GooeyNav
           items={navItems.map(item => item.label)}
-          value={navItems.findIndex(i => i.id === activeId) >= 0 ? navItems.findIndex(i => i.id === activeId) : 0}
+          value={activeIndex >= 0 ? activeIndex : -1}
           onChange={(index) => onNavigate(navItems[index].id)}
           size="sm"
           activeColor="var(--accent)"

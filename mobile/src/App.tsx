@@ -75,8 +75,10 @@ function App() {
       case 'home': navigate('/'); break;
       case 'assessments': navigate('/assessments'); break;
       case 'leaderboard': navigate('/leaderboard'); break;
-      case 'analytics': navigate('/leaderboard'); break;
-      case 'dataset': navigate('/dataset'); break;
+      case 'dataset':
+      case 'analytics':
+        navigate('/dataset');
+        break;
       case 'improve': navigate('/improve'); break;
       case 'visual-reaction':
       case 'reaction-test':
@@ -132,6 +134,7 @@ function App() {
                   <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
                   <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
+                  <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
                   <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                   <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                   <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />

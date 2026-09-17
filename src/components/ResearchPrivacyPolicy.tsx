@@ -11,7 +11,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
         description="Our commitment to transparent research standards, strict data anonymization, telemetry consent guidelines, and open scientific integrity."
         canonicalUrl="https://pulse-lab.in/privacy"
       />
-      <Navbar currentView="privacy" onNavigate={onNavigate} onBack={() => onNavigate('home')} />
+      <Navbar currentView="privacy" onNavigate={onNavigate} />
       
       <main 
         className="flex-1 w-full max-w-3xl mx-auto px-4 py-8"
