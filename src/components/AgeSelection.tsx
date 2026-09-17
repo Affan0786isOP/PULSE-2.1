@@ -65,6 +65,9 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
           <p className="font-mono text-[var(--text-muted)] text-xs mt-1">
             Calibrates normative baselines &amp; cognitive research data
           </p>
+          <p className="font-mono text-[11px] text-[var(--text-muted)] mt-1.5 opacity-80 max-w-md mx-auto leading-relaxed">
+            Age is used for data collection and scientific analysis in the dataset and will not affect the difficulty of the games.
+          </p>
         </div>
 
         {/* 2-Column Responsive Grid of Age Cohorts */}
