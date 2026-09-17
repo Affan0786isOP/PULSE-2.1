@@ -1,11 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from 'motion/react';
 import { Navbar } from "./Navbar";
-import { getRandomizedFacts } from "../data/facts";
+import {
+  PHYSIOLOGICAL_FACTORS,
+  PREPARATION_HABITS,
+  getRandomizedResearchEntries,
+  loadPersistedChecklist,
+  savePersistedChecklist,
+  clearPersistedChecklist,
+  ResearchEntry,
+  EvidenceType,
+} from "../data/facts";
 import { SEO } from "./SEO";
 import { HookSidebar } from "./ui/hook-sidebar";
 import { ScrollProgress } from "./ui/scroll-progress";
-import { isReducedMotionActive } from "../lib/settingsStore";
+import { isReducedMotionActive, playAudioCue } from "../lib/settingsStore";
 import {
   Moon,
   Droplet,
@@ -23,6 +32,10 @@ import {
   BrainCircuit,
   ArrowRight,
   Sparkles,
+  BookOpen,
+  RotateCcw,
+  ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 
 const improveSections = [
@@ -33,113 +46,120 @@ const improveSections = [
   { id: "recommendations", label: "System Recommendations" },
 ];
 
+const FACTOR_ICONS: Record<string, React.ElementType> = {
+  Moon,
+  Droplet,
+  Activity,
+  User,
+  Target,
+  Dumbbell,
+  Apple,
+  Brain,
+  Monitor,
+  Coffee,
+};
+
+function getEvidenceBadge(type: EvidenceType) {
+  switch (type) {
+    case "established":
+      return {
+        label: "Established Evidence",
+        className: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+      };
+    case "association":
+      return {
+        label: "Statistical Association",
+        className: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+      };
+    case "interpretation":
+      return {
+        label: "Theoretical Model",
+        className: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+      };
+    case "practical_protocol":
+      return {
+        label: "Practical Protocol",
+        className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      };
+    default:
+      return {
+        label: "Scientific Finding",
+        className: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+      };
+  }
+}
+
 export function Improve({
   onNavigate,
 }: {
   onNavigate: (view: string) => void;
 }) {
-  const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+  const [checkedItems, setCheckedItems] = useState<Set<number>>(() => loadPersistedChecklist());
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [facts] = useState<string[]>(() => getRandomizedFacts());
+  const [researchEntries] = useState<ResearchEntry[]>(() => getRandomizedResearchEntries());
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLedgerPaused, setIsLedgerPaused] = useState(false);
   const [ledgerTimerReset, setLedgerTimerReset] = useState(0);
   const scrollContainerRef = useRef<HTMLElement>(null);
 
   const toggleChecklist = (index: number) => {
-    const newChecked = new Set(checkedItems);
-    if (newChecked.has(index)) {
-      newChecked.delete(index);
-    } else {
-      newChecked.add(index);
-    }
-    setCheckedItems(newChecked);
+    playAudioCue("click");
+    setCheckedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      savePersistedChecklist(next);
+      return next;
+    });
   };
 
-  const checklistItems = [
-    {
-      title: "Sleep 8–9 hours",
-      desc: "Adequate sleep supports sustained attention and consistent cognitive performance.",
-    },
-    {
-      title: "Exercise regularly",
-      desc: "Regular aerobic activity supports overall brain health and cognitive function.",
-    },
-    {
-      title: "Stay hydrated",
-      desc: "Proper hydration is linked to better focus and sustained attention.",
-    },
-    {
-      title: "Practice reaction-based tasks",
-      desc: "Practicing assessments can help you become more familiar with the tasks and improve your scores.",
-    },
-    {
-      title: "Improve hand-eye coordination",
-      desc: "Physical activities like juggling can help improve general hand-eye coordination.",
-    },
-    {
-      title: "Limit excessive screen time",
-      desc: "Taking breaks from screens can help reduce eye strain and maintain focus.",
-    },
-    {
-      title: "Take regular breaks",
-      desc: "Using structured focus intervals prevents mental fatigue and keeps you sharp.",
-    },
-    {
-      title: "Eat balanced meals",
-      desc: "A balanced diet supports overall brain health and sustained energy levels.",
-    },
-    {
-      title: "Maintain good posture",
-      desc: "Correct ergonomics can prevent discomfort and help you stay focused during tasks.",
-    },
-    {
-      title: "Manage stress",
-      desc: "Lowering daily stress helps you focus better and react faster.",
-    },
-    {
-      title: "Practice consistently",
-      desc: "Consistent practice helps you become more familiar with tasks and can improve consistency.",
-    },
-  ];
+  const handleResetChecklist = () => {
+    playAudioCue("click");
+    clearPersistedChecklist();
+    setCheckedItems(new Set());
+  };
 
-  const optimizationPercentage = Math.round(
-    (checkedItems.size / checklistItems.length) * 100,
+  const habitCompletionPercentage = Math.round(
+    (checkedItems.size / PREPARATION_HABITS.length) * 100,
   );
 
   useEffect(() => {
     if (isLedgerPaused || isReducedMotionActive()) return;
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % facts.length);
+      setCurrentSlide((prev) => (prev + 1) % researchEntries.length);
     }, 7000);
     return () => clearInterval(timer);
-  }, [facts.length, isLedgerPaused, ledgerTimerReset]);
+  }, [researchEntries.length, isLedgerPaused, ledgerTimerReset]);
 
   const handlePrevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + facts.length) % facts.length);
+    playAudioCue("click");
+    setCurrentSlide((prev) => (prev - 1 + researchEntries.length) % researchEntries.length);
     setLedgerTimerReset((c) => c + 1);
   };
 
   const handleNextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % facts.length);
+    playAudioCue("click");
+    setCurrentSlide((prev) => (prev + 1) % researchEntries.length);
     setLedgerTimerReset((c) => c + 1);
   };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the most visible section
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const idx = improveSections.findIndex(s => s.id === entry.target.id);
+            const idx = improveSections.findIndex((s) => s.id === entry.target.id);
             if (idx !== -1) setActiveIndex(idx);
           }
         });
       },
-      { root: scrollContainerRef.current, rootMargin: "-20% 0px -50% 0px", threshold: 0.1 }
+      { root: scrollContainerRef.current, rootMargin: "-15% 0px -45% 0px", threshold: 0.1 }
     );
 
-    improveSections.forEach(sec => {
+    improveSections.forEach((sec) => {
       const el = document.getElementById(sec.id);
       if (el) observer.observe(el);
     });
@@ -147,11 +167,14 @@ export function Improve({
     return () => observer.disconnect();
   }, []);
 
+  const activeEntry = researchEntries[currentSlide] || researchEntries[0];
+  const activeEvidence = getEvidenceBadge(activeEntry.evidenceType);
+
   return (
     <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-cyan-500/30 relative">
       <SEO 
-        title="Calibrating & Improving Input Latency | PULSE"
-        description="Learn how hardware factors like screen refresh rate, browser rendering pipelines, and input devices influence measured response latency."
+        title="Evidence-Based Performance & Latency Optimization | PULSE"
+        description="Explore peer-reviewed research, physiological factors, and habit preparation protocols to support cognitive response consistency and minimize latency."
       />
       <Navbar currentView="improve" onNavigate={onNavigate} />
 
@@ -199,359 +222,368 @@ export function Improve({
             <div className="text-center md:text-left border-b border-[var(--border-subtle)] pb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-xs font-mono mb-3">
                 <Sparkles size={13} />
-                <span>PERFORMANCE OPTIMIZATION</span>
+                <span>SCIENTIFIC PROTOCOL</span>
               </div>
               <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)] mb-3">
-                Improving Reaction Speed &amp; Accuracy
+                Evidence-Based Performance &amp; Consistency
               </h1>
               <p className="text-[var(--text-secondary)] text-sm sm:text-base max-w-2xl leading-relaxed">
-                Research-backed protocols, physiological variables, and actionable habits to maintain optimal cognitive latency and decision speed.
+                Peer-reviewed research, physiological variables, and structured habit protocols to understand response latency and sustain measurement consistency.
               </p>
             </div>
 
-            {/* Section: Physiological Factors */}
+            {/* Section 1: Physiological Factors */}
             <section id="factors" className="scroll-mt-8">
-            <div className="mb-6 text-center md:text-left">
-              <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                VARIABLE MATRIX
-              </span>
-              <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
-                What Affects Your Reaction Time?
-              </h2>
-              <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-2xl">
-                Your latency is dynamic and responds directly to biological state, environmental cues, and fatigue levels.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-              {[
-                {
-                  icon: Moon,
-                  title: "Sleep Deprivation",
-                  desc: "Inadequate rest is associated with degraded cognitive processing and higher reaction latency.",
-                  reduces: true,
-                },
-                {
-                  icon: Droplet,
-                  title: "Hydration Level",
-                  desc: "Mild dehydration negatively affects sustained attention and working memory.",
-                  reduces: false,
-                },
-                {
-                  icon: Activity,
-                  title: "Acute Stress",
-                  desc: "High acute stress can introduce variability in decision-making and motor response consistency.",
-                  reduces: true,
-                },
-                {
-                  icon: User,
-                  title: "Age-Related Variance",
-                  desc: "Processing speed typically peaks in early adulthood with gradual cohort variance observed across age groups.",
-                  reduces: true,
-                },
-                {
-                  icon: Target,
-                  title: "Targeted Practice",
-                  desc: "Familiarity with visual cues reduces cognitive load and response uncertainty.",
-                  reduces: false,
-                },
-                {
-                  icon: Dumbbell,
-                  title: "Physical Exercise",
-                  desc: "Aerobic activity increases cerebral blood flow and supports neural plasticity.",
-                  reduces: false,
-                },
-                {
-                  icon: Apple,
-                  title: "Balanced Nutrition",
-                  desc: "Stable blood glucose supports consistent cognitive focus and attention stamina.",
-                  reduces: false,
-                },
-                {
-                  icon: Brain,
-                  title: "Mental Fatigue",
-                  desc: "Extended cognitive strain increases error rates and lengthens decision time.",
-                  reduces: true,
-                },
-                {
-                  icon: Monitor,
-                  title: "Screen Fatigue",
-                  desc: "Prolonged screen focus without breaks can induce visual discomfort and temporarily affect attentional stamina.",
-                  reduces: true,
-                },
-                {
-                  icon: Coffee,
-                  title: "Caffeine Intake",
-                  desc: "Moderate caffeine can temporarily support alertness and visual processing speed.",
-                  reduces: false,
-                },
-              ].map((factor, i) => (
-                <div
-                  key={`factor-${factor.title}-${i}`}
-                  className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-4.5 flex flex-col justify-between shadow-sm"
-                >
-                  <div>
-                    <div className="w-8 h-8 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] mb-3">
-                      <factor.icon size={16} />
-                    </div>
-                    <h3 className="font-heading text-[var(--text-primary)] font-semibold text-sm mb-1">
-                      {factor.title}
-                    </h3>
-                    <p className="text-[var(--text-secondary)] text-xs leading-relaxed mb-3">
-                      {factor.desc}
-                    </p>
-                  </div>
-                  <span
-                    className={`inline-flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded border w-fit ${
-                      factor.reduces
-                        ? "bg-[var(--danger)]/10 text-[var(--danger)] border-[var(--danger)]/20"
-                        : "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20"
-                    }`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${factor.reduces ? 'bg-[var(--danger)]' : 'bg-[var(--success)]'}`} />
-                    {factor.reduces ? "Associated with higher latency" : "Supports response consistency"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Section: Action Checklist */}
-          <section id="checklist" className="scroll-mt-8">
-            <div className="mb-6 text-center md:text-left">
-              <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                HABIT OPTIMIZATION
-              </span>
-              <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
-                Action Checklist
-              </h2>
-              <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-2xl">
-                Self-reported lifestyle habits that support physiological stability and response consistency.
-              </p>
-            </div>
-
-            <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 shadow-sm">
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-xs sm:text-sm text-[var(--text-primary)]">
-                    Habit Preparation Checklist
-                  </span>
-                  <span className="text-[var(--accent)] font-mono text-xs font-semibold">
-                    {checkedItems.size} of {checklistItems.length} HABITS CHECKED
-                  </span>
-                </div>
-                <div className="w-full h-2 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
-                  <div
-                    className="w-full h-full bg-[var(--accent)] origin-left transition-transform duration-300 ease-out rounded-full"
-                    style={{ transform: `scaleX(${optimizationPercentage / 100})` }}
-                  ></div>
-                </div>
+              <div className="mb-6 text-center md:text-left">
+                <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
+                  VARIABLE MATRIX
+                </span>
+                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
+                  What Affects Measured Reaction Time?
+                </h2>
+                <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-2xl">
+                  Response latency is dynamic and reflects biological states, environmental cues, hardware pipelines, and fatigue levels.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                {checklistItems.map((item, index) => {
-                  const isChecked = checkedItems.has(index);
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+                {PHYSIOLOGICAL_FACTORS.map((factor) => {
+                  const IconComp = FACTOR_ICONS[factor.iconName] || Brain;
+                  const evidence = getEvidenceBadge(factor.evidenceType);
                   return (
-                    <button
-                      type="button"
-                      key={`chk-${item.title}-${index}`}
-                      onClick={() => toggleChecklist(index)}
-                      className={`flex text-left gap-3.5 p-3.5 rounded-lg border cursor-pointer transition-[background-color,border-color,transform] active:scale-[0.99] ${
-                        isChecked
-                          ? "bg-[var(--accent-subtle)] border-[var(--accent)]/40 text-[var(--text-primary)]"
-                          : "bg-[var(--surface-2)] border-[var(--border-subtle)] hover:border-[var(--border-default)] active:bg-[var(--surface-3)] text-[var(--text-secondary)]"
-                      }`}
+                    <div
+                      key={`factor-${factor.id}`}
+                      className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-4.5 flex flex-col justify-between shadow-sm transition-colors hover:border-[var(--border-default)]"
                     >
-                      <div
-                        className={`w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                          isChecked
-                            ? "bg-[var(--accent)] text-slate-950 font-bold"
-                            : "bg-[var(--surface-1)] border border-[var(--border-strong)] text-transparent"
-                        }`}
-                      >
-                        <Check size={13} strokeWidth={3} />
-                      </div>
                       <div>
-                        <h4
-                          className="font-semibold text-xs sm:text-sm mb-0.5 text-[var(--text-primary)]"
-                        >
-                          {item.title}
-                        </h4>
-                        <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] leading-relaxed">
-                          {item.desc}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="w-8 h-8 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
+                            <IconComp size={16} />
+                          </div>
+                          <span
+                            className={`font-mono text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${evidence.className}`}
+                          >
+                            {evidence.label}
+                          </span>
+                        </div>
+                        <h3 className="font-heading text-[var(--text-primary)] font-semibold text-sm mb-1">
+                          {factor.title}
+                        </h3>
+                        <p className="text-[var(--text-secondary)] text-xs leading-relaxed mb-3">
+                          {factor.desc}
                         </p>
                       </div>
-                    </button>
+                      <span
+                        className={`inline-flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded border w-fit ${
+                          factor.reduces
+                            ? "bg-[var(--danger)]/10 text-[var(--danger)] border-[var(--danger)]/20"
+                            : "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${factor.reduces ? 'bg-[var(--danger)]' : 'bg-[var(--success)]'}`} />
+                        {factor.reduces ? "Associated with higher latency" : "Supports response consistency"}
+                      </span>
+                    </div>
                   );
                 })}
               </div>
-            </div>
-          </section>
+            </section>
 
-          {/* Section: Research Ledger */}
-          <section id="ledger" className="scroll-mt-8">
-            <div className="mb-4 text-center md:text-left">
-              <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                NEUROSCIENCE RESEARCH
-              </span>
-              <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                Synaptic Insights &amp; Findings
-              </h2>
-            </div>
-
-            <div 
-              onMouseEnter={() => setIsLedgerPaused(true)}
-              onMouseLeave={() => setIsLedgerPaused(false)}
-              onFocus={() => setIsLedgerPaused(true)}
-              onBlur={() => setIsLedgerPaused(false)}
-              className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm"
-            >
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[var(--border-subtle)]">
-                <div className="flex items-center gap-2">
-                  <BrainCircuit size={18} className="text-[var(--accent)]" />
-                  <span className="font-heading text-xs font-semibold text-[var(--text-primary)] tracking-wide uppercase">
-                    Research Observation
+            {/* Section 2: Action Checklist */}
+            <section id="checklist" className="scroll-mt-8">
+              <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
+                    HABIT PREPARATION
                   </span>
-                </div>
-                <span className="font-mono text-xs text-[var(--text-muted)]">
-                  {(currentSlide + 1).toString().padStart(2, "0")} / {facts.length.toString().padStart(2, "0")}
-                </span>
-              </div>
-
-              <p className="font-sans text-base sm:text-lg font-normal leading-relaxed text-[var(--text-primary)] mb-6 min-h-[70px] flex items-center">
-                "{facts[currentSlide]}"
-              </p>
-
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-[var(--text-muted)] font-mono hidden sm:inline-block">
-                  Calibrated research summary
-                </span>
-                <div className="flex items-center gap-2 ml-auto">
-                  <button
-                    type="button"
-                    onClick={handlePrevSlide}
-                    className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-1)] text-[var(--text-primary)] transition-colors cursor-pointer flex items-center justify-center"
-                    aria-label="Previous observation"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNextSlide}
-                    className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-1)] text-[var(--text-primary)] transition-colors cursor-pointer flex items-center justify-center"
-                    aria-label="Next observation"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Section: Can Everyone Improve? */}
-          <section id="expectations" className="scroll-mt-8">
-            <div className="mb-4 text-center md:text-left">
-              <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                EXPECTATION MANAGEMENT
-              </span>
-              <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                Can Everyone Improve Their Results?
-              </h2>
-            </div>
-            <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 space-y-3 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed shadow-sm">
-              <p>
-                While absolute physiological limits set a floor on neural transmission speed, day-to-day variance is heavily driven by focus drift, fatigue, and environmental distractions.
-              </p>
-              <p>
-                By practicing consistent sleep hygiene, minimizing input latency in your setup, and engaging in structured assessment tasks, you can minimize preventable performance dips and achieve higher consistency.
-              </p>
-              <div className="pt-2 border-t border-[var(--border-subtle)]">
-                <p className="text-xs text-[var(--text-muted)] italic leading-relaxed">
-                  <strong className="text-[var(--text-primary)] not-italic font-semibold">Important Distinction:</strong> Performance gains on repetitive benchmark tasks largely reflect task familiarity, stimulus anticipation, and procedural practice effects rather than generalized expansion of innate cognitive capacity.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Section: System Recommendations */}
-          <section id="recommendations" className="scroll-mt-8">
-            <div className="mb-6 text-center md:text-left">
-              <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                PULSE PROTOCOL
-              </span>
-              <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
-                System Recommendations
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {[
-                {
-                  num: "01",
-                  title: "Train Consistently",
-                  desc: "Short daily sessions of 5–10 minutes yield better task familiarity than sporadic long sessions.",
-                },
-                {
-                  num: "02",
-                  title: "Incorporate Rest",
-                  desc: "Avoid back-to-back testing without rest to prevent eye fatigue and attention degradation.",
-                },
-                {
-                  num: "03",
-                  title: "Prioritize Accuracy",
-                  desc: "Establish low error rates first before attempting to maximize raw execution speed.",
-                },
-                {
-                  num: "04",
-                  title: "Peak Alertness",
-                  desc: "Test when fully alert to establish true biological baselines rather than fatigued state.",
-                },
-                {
-                  num: "05",
-                  title: "Track Baseline Trends",
-                  desc: "Evaluate progress across multi-week rolling averages rather than individual trial spikes.",
-                },
-              ].map((tip, i) => (
-                <div
-                  key={`tip-${tip.num}-${tip.title}-${i}`}
-                  className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-sm flex flex-col justify-between"
-                >
-                  <div className="font-mono text-xs font-semibold text-[var(--accent)] mb-2">
-                    RECOMMENDATION {tip.num}
-                  </div>
-                  <h3 className="font-heading font-semibold text-sm text-[var(--text-primary)] mb-1">
-                    {tip.title}
-                  </h3>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    {tip.desc}
+                  <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-1">
+                    Daily Habit Preparation Checklist
+                  </h2>
+                  <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-2xl">
+                    Self-reported lifestyle habits that support physiological stability and test-retest consistency.
                   </p>
                 </div>
-              ))}
-            </div>
-          </section>
+                {checkedItems.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleResetChecklist}
+                    className="self-center sm:self-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-mono transition-colors cursor-pointer"
+                  >
+                    <RotateCcw size={12} />
+                    <span>Reset Checklist</span>
+                  </button>
+                )}
+              </div>
 
-          {/* Bottom Actions */}
-          <section className="pt-4 text-center border-t border-[var(--border-subtle)]">
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => onNavigate("assessments")}
-                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium text-xs tracking-wider uppercase px-6 py-3 rounded-md transition-colors font-bold cursor-pointer inline-flex items-center justify-center gap-2 shadow-sm"
+              <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 shadow-sm">
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-xs sm:text-sm text-[var(--text-primary)]">
+                      Preparation Adherence
+                    </span>
+                    <span className="text-[var(--accent)] font-mono text-xs font-semibold">
+                      {checkedItems.size} of {PREPARATION_HABITS.length} HABITS CHECKED ({habitCompletionPercentage}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
+                    <div
+                      className="w-full h-full bg-[var(--accent)] origin-left transition-transform duration-300 ease-out rounded-full"
+                      style={{ transform: `scaleX(${habitCompletionPercentage / 100})` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {PREPARATION_HABITS.map((item, index) => {
+                    const isChecked = checkedItems.has(index);
+                    return (
+                      <button
+                        type="button"
+                        key={`chk-${item.id}-${index}`}
+                        onClick={() => toggleChecklist(index)}
+                        className={`flex text-left gap-3.5 p-3.5 rounded-lg border cursor-pointer transition-[background-color,border-color,transform] active:scale-[0.99] ${
+                          isChecked
+                            ? "bg-[var(--accent-subtle)] border-[var(--accent)]/40 text-[var(--text-primary)]"
+                            : "bg-[var(--surface-2)] border-[var(--border-subtle)] hover:border-[var(--border-default)] active:bg-[var(--surface-3)] text-[var(--text-secondary)]"
+                        }`}
+                      >
+                        <div
+                          className={`w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                            isChecked
+                              ? "bg-[var(--accent)] text-slate-950 font-bold"
+                              : "bg-[var(--surface-1)] border border-[var(--border-strong)] text-transparent"
+                          }`}
+                        >
+                          <Check size={13} strokeWidth={3} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <h4 className="font-semibold text-xs sm:text-sm text-[var(--text-primary)]">
+                              {item.title}
+                            </h4>
+                            <span className="font-mono text-[9px] text-[var(--text-muted)] uppercase px-1 py-0.2 rounded bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+                              {item.category}
+                            </span>
+                          </div>
+                          <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] leading-relaxed">
+                            {item.desc}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-5 pt-4 border-t border-[var(--border-subtle)] flex items-center gap-2 text-[11px] text-[var(--text-muted)] font-mono">
+                  <ShieldCheck size={14} className="text-[var(--accent)] shrink-0" />
+                  <span>
+                    Habit adherence supports baseline testing consistency and minimizes fatigue dips; it is not a direct measure of cognitive intelligence.
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            {/* Section 3: Research Ledger */}
+            <section id="ledger" className="scroll-mt-8">
+              <div className="mb-4 text-center md:text-left">
+                <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
+                  NEUROSCIENCE RESEARCH LEDGER
+                </span>
+                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+                  Synaptic Insights &amp; Findings
+                </h2>
+              </div>
+
+              <div 
+                onMouseEnter={() => setIsLedgerPaused(true)}
+                onMouseLeave={() => setIsLedgerPaused(false)}
+                onFocus={() => setIsLedgerPaused(true)}
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    setIsLedgerPaused(false);
+                  }
+                }}
+                className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm"
               >
-                <span>Take assessments</span>
-                <ArrowRight size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate("home")}
-                className="border border-[var(--border-default)] hover:border-[var(--border-strong)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-primary)] font-medium text-xs tracking-wider uppercase px-6 py-3 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center gap-2"
-              >
-                <span>Return home</span>
-              </button>
-            </div>
-          </section>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
+                      <BrainCircuit size={16} />
+                    </div>
+                    <div>
+                      <span className="font-heading text-xs font-semibold text-[var(--text-primary)] tracking-wide uppercase block">
+                        {activeEntry.domain}
+                      </span>
+                      <span className={`font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded border inline-block mt-0.5 ${activeEvidence.className}`}>
+                        {activeEvidence.label}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="font-mono text-xs text-[var(--text-muted)]">
+                    {(currentSlide + 1).toString().padStart(2, "0")} / {researchEntries.length.toString().padStart(2, "0")}
+                  </span>
+                </div>
+
+                <p className="font-sans text-base sm:text-lg font-normal leading-relaxed text-[var(--text-primary)] mb-6 min-h-[60px] flex items-center">
+                  "{activeEntry.statement}"
+                </p>
+
+                {/* Provenance Box */}
+                <div className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg p-3.5 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <BookOpen size={14} className="text-[var(--accent)] shrink-0" />
+                    <div>
+                      <span className="text-[var(--text-primary)] font-medium">
+                        {activeEntry.citation.source}
+                      </span>
+                      <span className="text-[var(--text-muted)] font-mono ml-1.5">
+                        ({activeEntry.citation.year}) — {activeEntry.citation.reference}
+                      </span>
+                    </div>
+                  </div>
+                  {activeEntry.citation.doi && (
+                    <span className="text-[10px] font-mono text-[var(--text-muted)] bg-[var(--surface-1)] px-2 py-0.5 rounded border border-[var(--border-subtle)] inline-flex items-center gap-1 w-fit">
+                      <span>DOI: {activeEntry.citation.doi}</span>
+                      <ExternalLink size={10} />
+                    </span>
+                  )}
+                </div>
+
+                {/* Carousel Controls */}
+                <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
+                  <span className="text-xs text-[var(--text-muted)] font-mono hidden sm:inline-block">
+                    Peer-reviewed scientific citation
+                  </span>
+                  <div className="flex items-center gap-2 ml-auto">
+                    <button
+                      type="button"
+                      onClick={handlePrevSlide}
+                      className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 text-[var(--text-primary)] transition-all cursor-pointer flex items-center justify-center"
+                      aria-label="Previous observation"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextSlide}
+                      className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 text-[var(--text-primary)] transition-all cursor-pointer flex items-center justify-center"
+                      aria-label="Next observation"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Section 4: Expectation Management */}
+            <section id="expectations" className="scroll-mt-8">
+              <div className="mb-4 text-center md:text-left">
+                <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
+                  EXPECTATION MANAGEMENT
+                </span>
+                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+                  Can Everyone Improve Their Results?
+                </h2>
+              </div>
+              <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 space-y-3.5 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed shadow-sm">
+                <p>
+                  While absolute physiological limits set a floor on neural transmission speed, day-to-day variance is heavily driven by focus drift, sleep debt, and environmental distractions.
+                </p>
+                <p>
+                  By practicing consistent sleep hygiene, minimizing input latency in your physical hardware setup, and engaging in structured assessment tasks, you can minimize preventable performance dips and achieve higher consistency.
+                </p>
+                <div className="pt-3 border-t border-[var(--border-subtle)] space-y-2">
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    <strong className="text-[var(--text-primary)] font-semibold">Practice &amp; Familiarity Effects:</strong> Longitudinal performance gains on repetitive benchmark tasks largely reflect procedural familiarity, stimulus anticipation, and motor pattern learning rather than generalized expansion of innate cognitive capacity.
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    <strong className="text-[var(--text-primary)] font-semibold">Age Cohort Variance:</strong> Variations observed across age cohorts reflect normative sensory-motor processing differences across populations rather than an absolute indicator of individual biological decline.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Section 5: System Recommendations */}
+            <section id="recommendations" className="scroll-mt-8">
+              <div className="mb-6 text-center md:text-left">
+                <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
+                  PULSE PROTOCOL
+                </span>
+                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
+                  System Recommendations
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {[
+                  {
+                    num: "01",
+                    title: "Train Consistently",
+                    desc: "Short daily sessions of 5–10 minutes yield better task familiarity than sporadic long sessions.",
+                  },
+                  {
+                    num: "02",
+                    title: "Incorporate Rest",
+                    desc: "Avoid back-to-back testing without rest to prevent eye fatigue and attention degradation.",
+                  },
+                  {
+                    num: "03",
+                    title: "Prioritize Accuracy",
+                    desc: "Establish low error rates first before attempting to maximize raw execution speed.",
+                  },
+                  {
+                    num: "04",
+                    title: "Peak Alertness",
+                    desc: "Test when fully alert to establish true biological baselines rather than fatigued states.",
+                  },
+                  {
+                    num: "05",
+                    title: "Track Baseline Trends",
+                    desc: "Evaluate progress across multi-week rolling averages rather than individual trial spikes.",
+                  },
+                ].map((tip) => (
+                  <div
+                    key={`tip-${tip.num}-${tip.title}`}
+                    className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-sm flex flex-col justify-between hover:border-[var(--border-default)] transition-colors"
+                  >
+                    <div className="font-mono text-xs font-semibold text-[var(--accent)] mb-2">
+                      RECOMMENDATION {tip.num}
+                    </div>
+                    <h3 className="font-heading font-semibold text-sm text-[var(--text-primary)] mb-1">
+                      {tip.title}
+                    </h3>
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                      {tip.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Bottom Actions */}
+            <section className="pt-4 text-center border-t border-[var(--border-subtle)]">
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onNavigate("assessments")}
+                  className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium text-xs tracking-wider uppercase px-6 py-3 rounded-md transition-colors font-bold cursor-pointer inline-flex items-center justify-center gap-2 shadow-sm active:scale-98"
+                >
+                  <span>Take assessments</span>
+                  <ArrowRight size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("home")}
+                  className="border border-[var(--border-default)] hover:border-[var(--border-strong)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-primary)] font-medium text-xs tracking-wider uppercase px-6 py-3 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center gap-2 active:scale-98"
+                >
+                  <span>Return home</span>
+                </button>
+              </div>
+            </section>
           </motion.div>
         </div>
       </main>
     </div>
   );
 }
+

@@ -208,6 +208,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         'pulse_force_mobile',
         'pulse_refresh_rate_cached',
         'pulse_refresh_rate_fp',
+        'pulse_improve_checklist_v1',
         'pulse_user_settings'
       ];
 

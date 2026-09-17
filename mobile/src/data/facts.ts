@@ -387,3 +387,10 @@ export function savePersistedChecklist(checked: Set<number>): void {
     // Ignore storage write issues
   }
 }
+
+export function clearPersistedChecklist(): void {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
+  try {
+    localStorage.removeItem(CHECKLIST_STORAGE_KEY);
+  } catch {}
+}
