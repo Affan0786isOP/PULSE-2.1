@@ -1,6 +1,34 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
+let nextOwnerId = 0;
+
+export function getCanonicalPath(pathname: string): string {
+  let clean = pathname.replace(/^\/mobile(?:\/|$)/, '/');
+  if (!clean.startsWith('/')) clean = '/' + clean;
+  if (clean.length > 1 && clean.endsWith('/')) {
+    clean = clean.slice(0, -1);
+  }
+
+  switch (clean) {
+    case '/visual-reaction':
+      return '/reaction-test';
+    case '/direction':
+      return '/direction-test';
+    case '/color-recognition':
+    case '/color-test':
+      return '/colour-recognition';
+    case '/block-memory-test':
+      return '/block-memory';
+    case '/number-memory-test':
+      return '/number-memory';
+    case '/research-privacy':
+      return '/privacy';
+    default:
+      return clean;
+  }
+}
+
 interface SEOProps {
   title: string;
   description: string;
@@ -24,10 +52,8 @@ export function SEO({
 
   // Mobile URLs canonicalize to their corresponding desktop versions
   const siteUrl = 'https://pulse-lab.in';
-  
-  // Strip '/mobile' prefix and clean path for canonical mapping
-  const cleanPath = location.pathname.replace(/^\/mobile\/?/, '/');
-  const defaultCanonical = `${siteUrl}${cleanPath === '/' ? '' : cleanPath}`;
+  const canonicalPath = getCanonicalPath(location.pathname);
+  const defaultCanonical = `${siteUrl}${canonicalPath === '/' ? '' : canonicalPath}`;
   const finalCanonical = canonicalUrl || defaultCanonical;
 
   useEffect(() => {
@@ -80,6 +106,7 @@ export function SEO({
     updateMetaTag('name', 'twitter:image', ogImage);
 
     // 7. Structured Data (JSON-LD)
+    const currentOwnerId = String(++nextOwnerId);
     let jsonLdScript = document.getElementById('pulse-seo-jsonld') as HTMLScriptElement;
     if (schema) {
       if (!jsonLdScript) {
@@ -88,15 +115,18 @@ export function SEO({
         jsonLdScript.type = 'application/ld+json';
         document.head.appendChild(jsonLdScript);
       }
+      jsonLdScript.setAttribute('data-owner-id', currentOwnerId);
       jsonLdScript.textContent = JSON.stringify(schema);
     } else if (jsonLdScript) {
       jsonLdScript.remove();
     }
 
     return () => {
-      // Cleanup JSON-LD on unmount
+      // Cleanup JSON-LD on unmount only if this effect is still the owner
       const script = document.getElementById('pulse-seo-jsonld');
-      if (script) script.remove();
+      if (script && script.getAttribute('data-owner-id') === currentOwnerId) {
+        script.remove();
+      }
     };
   }, [title, description, finalCanonical, noindex, ogType, ogImage, schema]);
 

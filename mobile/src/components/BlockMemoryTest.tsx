@@ -640,7 +640,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
               nextAssessmentName="Next: Number Memory"
               onRetry={handleStart}
               onNext={() => onNavigate('number-memory')}
-              onViewAnalytics={() => onNavigate('analytics')}
+              onViewLeaderboard={() => onNavigate('leaderboard')}
             >
               {!submissionError && hasSubmittedRef.current && reportStats && sessionId && (
                 <LeaderboardOptIn 

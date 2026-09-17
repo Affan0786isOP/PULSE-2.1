@@ -25,6 +25,7 @@ export interface AssessmentResultRewardProps {
   onRetry: () => void;
   onNext: () => void;
   onViewAnalytics?: () => void;
+  onViewLeaderboard?: () => void;
   nextAssessmentName?: string;
   children?: React.ReactNode;
 }
@@ -82,6 +83,7 @@ export function AssessmentResultReward({
   onRetry,
   onNext,
   onViewAnalytics,
+  onViewLeaderboard = onViewAnalytics,
   nextAssessmentName = 'Next Assessment',
   children
 }: AssessmentResultRewardProps) {
@@ -131,10 +133,10 @@ export function AssessmentResultReward({
     onNext();
   };
 
-  const handleAnalytics = () => {
-    if (onViewAnalytics) {
+  const handleLeaderboard = () => {
+    if (onViewLeaderboard) {
       triggerHaptic('tap');
-      onViewAnalytics();
+      onViewLeaderboard();
     }
   };
 
@@ -240,16 +242,16 @@ export function AssessmentResultReward({
           <ArrowRight size={14} className="shrink-0" />
         </button>
 
-        {onViewAnalytics && (
+        {onViewLeaderboard && (
           <button
             type="button"
-            onClick={onViewAnalytics}
-            id="result-analytics-button"
+            onClick={handleLeaderboard}
+            id="result-leaderboard-button"
             className="min-h-[44px] w-11 h-11 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-95"
-            title="View Analytics"
-            aria-label="View Analytics"
+            title="View Leaderboard & Benchmarks"
+            aria-label="View Leaderboard & Benchmarks"
           >
-            <Activity size={16} />
+            <Trophy size={16} />
           </button>
         )}
       </div>

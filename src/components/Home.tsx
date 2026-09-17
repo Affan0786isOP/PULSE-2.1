@@ -6,17 +6,17 @@ import { useAuth } from '../AuthContext';
 import { useRefreshRate } from '../lib/useRefreshRate';
 import { SEO } from './SEO';
 
+const HOME_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "PULSE — Precision User Latency & Stimulus Evaluator",
+  "url": "https://pulse-lab.in/",
+  "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
+};
+
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isReady, isAuthenticated, authError, retryAuth } = useAuth();
   const refreshInfo = useRefreshRate();
-
-  const homeSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "PULSE — Precision User Latency & Stimulus Evaluator",
-    "url": "https://pulse-lab.in/",
-    "description": "An open-source, browser-based cognitive benchmarking suite measuring sensory-motor reflex, visual discrimination, and working memory with millisecond precision."
-  };
 
   if (!isReady) {
     return (
@@ -45,7 +45,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      
       transition: { duration: 0.35, ease: "easeOut" }
     }
   };
@@ -65,7 +64,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      
       transition: { duration: 0.32, ease: "easeOut" }
     }
   };
@@ -74,8 +72,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
     <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans selection:bg-cyan-500/30 overflow-x-hidden relative flex flex-col justify-between">
       <SEO 
         title="PULSE — Precision User Latency & Stimulus Evaluator"
-        description="An open-source, browser-based cognitive benchmarking suite measuring sensory-motor reflex, visual discrimination, and working memory with millisecond precision."
-        schema={homeSchema}
+        description="An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
+        schema={HOME_SCHEMA}
       />
       {/* Top Navbar Header */}
       <Navbar currentView="home" onNavigate={onNavigate} />
@@ -119,7 +117,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                   className="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 active:bg-rose-500/40 active:scale-[0.97] text-rose-200 text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0"
                 >
                   <RefreshCw size={12} />
-                  <span>Retry</span>
+                  <span>Retry Connection</span>
                 </button>
               </motion.div>
             )}
@@ -129,29 +127,28 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               Measure your reaction time and cognitive performance.
             </motion.h1>
 
-            {/* Description Paragraph */}
+            {/* Description Paragraph - Aligned with actual protocols */}
             <motion.p variants={itemVariants} className="text-[var(--text-secondary)] text-base sm:text-lg max-w-xl font-normal leading-relaxed text-center lg:text-left mb-8">
-              PULSE evaluates human reaction latency, visual search speed, and working memory through research-calibrated assessment protocols.
+              PULSE evaluates visual reaction latency, directional choice speed, and working memory through research-calibrated assessment protocols.
             </motion.p>
 
             {/* Primary Action Button */}
             <motion.div variants={itemVariants} className="flex items-center gap-3">
               <motion.button 
-                type="button"
+                type="button" 
                 id="start-lab-btn"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onNavigate('assessments')}
-                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium text-sm px-6 py-3 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium text-sm px-6 py-3 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 <span>Start assessments</span>
                 <ArrowRight size={16} />
               </motion.button>
-              
             </motion.div>
           </motion.div>
 
-          {/* Right Column: Navigation Cards */}
+          {/* Right Column: Navigation Cards - Native accessible buttons */}
           <motion.div 
             variants={cardsContainerVariants}
             initial="hidden"
@@ -159,16 +156,14 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             className="w-full lg:w-2/5 max-w-[380px] flex flex-col gap-2.5 shrink-0"
           >
             {/* Card 0: LEADERBOARD */}
-            <motion.div 
+            <motion.button 
+              type="button"
               variants={cardItemVariants}
               whileHover={{ x: 3, transition: { duration: 0.15 } }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onNavigate('leaderboard')}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('leaderboard'); } }}
-              tabIndex={0}
-              role="button"
               aria-label="View Leaderboard - Verified cohort rankings"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
+              className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
             >
               <div className="flex items-center gap-3.5">
                 <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
@@ -183,20 +178,18 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                   </div>
                 </div>
               </div>
-              <ArrowRight size={16} className="text-[var(--border-subtle)] shrink-0" />
-            </motion.div>
+              <ArrowRight size={16} className="text-[var(--border-subtle)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
+            </motion.button>
 
             {/* Card 0.5: DATASET */}
-            <motion.div 
+            <motion.button 
+              type="button"
               variants={cardItemVariants}
               whileHover={{ x: 3, transition: { duration: 0.15 } }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onNavigate('dataset')}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('dataset'); } }}
-              tabIndex={0}
-              role="button"
               aria-label="View Open Research Dataset - Population telemetry & observations"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
+              className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
             >
               <div className="flex items-center gap-3.5">
                 <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
@@ -207,24 +200,22 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                     Research Dataset
                   </div>
                   <div className="text-xs text-[var(--text-muted)]">
-                    Population telemetry & observations
+                    Population telemetry &amp; observations
                   </div>
                 </div>
               </div>
               <ArrowRight size={16} className="text-[var(--border-subtle)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
-            </motion.div>
+            </motion.button>
 
             {/* Card 1: IMPROVE */}
-            <motion.div 
+            <motion.button 
+              type="button"
               variants={cardItemVariants}
               whileHover={{ x: 3, transition: { duration: 0.15 } }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onNavigate('improve')}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('improve'); } }}
-              tabIndex={0}
-              role="button"
               aria-label="View Improve - Factors influencing neural latency"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
+              className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
             >
               <div className="flex items-center gap-3.5">
                 <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
@@ -240,19 +231,17 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 </div>
               </div>
               <ArrowRight size={16} className="text-[var(--border-subtle)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
-            </motion.div>
+            </motion.button>
 
             {/* Card 4: PRIVACY POLICY */}
-            <motion.div 
+            <motion.button 
+              type="button"
               variants={cardItemVariants}
               whileHover={{ x: 3, transition: { duration: 0.15 } }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onNavigate('privacy')}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('privacy'); } }}
-              tabIndex={0}
-              role="button"
               aria-label="View Privacy Policy - Research data ethics and anonymization"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
+              className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
             >
               <div className="flex items-center gap-3.5">
                 <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
@@ -263,18 +252,41 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                     Privacy Policy
                   </div>
                   <div className="text-xs text-[var(--text-muted)]">
-                    Research data ethics & anonymization
+                    Research data ethics &amp; anonymization
                   </div>
                 </div>
               </div>
-              <ArrowRight size={16} className="text-[var(--border-subtle)] shrink-0" />
-            </motion.div>
-
+              <ArrowRight size={16} className="text-[var(--border-subtle)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
+            </motion.button>
           </motion.div>
 
         </div>
-
       </main>
+
+      {/* Minimal Footer */}
+      <footer className="w-full border-t border-[var(--border-subtle)] py-4 px-6 sm:px-10 text-center text-xs text-[var(--text-muted)] font-mono z-10 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span>PULSE v2.1</span>
+          <span>•</span>
+          <span>Open Cognitive Benchmark</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button 
+            type="button"
+            onClick={() => onNavigate('privacy')}
+            className="hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+          >
+            Privacy
+          </button>
+          <button 
+            type="button"
+            onClick={() => onNavigate('dataset')}
+            className="hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+          >
+            Dataset
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -1,24 +1,51 @@
 import React, { useState } from 'react';
-import { Activity, ArrowLeft, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Activity, ArrowLeft, Settings, Info } from 'lucide-react';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SettingsModal } from './SettingsModal';
+import { WelcomeModal } from './WelcomeModal';
 
-export function Navbar({ onNavigate, onBack, title, rightContent }: { onNavigate: (view: string) => void, currentView?: string, onBack?: () => void, title?: string | React.ReactNode, rightContent?: React.ReactNode }) {
+export function Navbar({
+  onNavigate,
+  currentView,
+  onBack,
+  title,
+  rightContent
+}: {
+  onNavigate: (view: string) => void;
+  currentView?: string;
+  onBack?: () => void;
+  title?: string | React.ReactNode;
+  rightContent?: React.ReactNode;
+}) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleBack = () => {
     triggerHaptic('tap');
     if (onBack) {
       onBack();
+      return;
+    }
+
+    // Real back behavior: check if previous in-app history exists
+    if (typeof window !== 'undefined' && window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
     } else {
       onNavigate('home');
     }
   };
 
+  const isHome = currentView === 'home' || !currentView;
+
   return (
     <>
       <nav 
-        className="w-full shrink-0 flex items-center justify-between px-3.5 py-2.5 bg-[var(--surface-0)] z-40 relative pt-safe px-safe border-b border-[var(--border-subtle)]"
+        role="navigation"
+        aria-label="Mobile Navigation"
+        data-current-view={currentView || 'home'}
+        className="w-full shrink-0 flex items-center justify-between px-3.5 py-2.5 bg-[var(--surface-0)] z-40 relative border-b border-[var(--border-subtle)]"
         style={{ 
           paddingTop: 'max(0.6rem, env(safe-area-inset-top, 0.6rem))', 
           paddingLeft: 'max(0.75rem, env(safe-area-inset-left, 0.75rem))', 
@@ -26,20 +53,25 @@ export function Navbar({ onNavigate, onBack, title, rightContent }: { onNavigate
         }}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <button type="button" 
-            onClick={handleBack}
-            aria-label="Go Back"
-            title="Go Back"
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer"
-          >
-            <ArrowLeft size={16} />
-          </button>
+          {!isHome && (
+            <button 
+              type="button" 
+              onClick={handleBack}
+              aria-label="Go Back"
+              title="Go Back"
+              className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
           
-          <button type="button" 
+          <button 
+            type="button" 
             onClick={() => onNavigate('home')}
             aria-label="PULSE Home"
+            aria-current={isHome ? 'page' : undefined}
             title="Go to Home"
-            className="flex items-center cursor-pointer group p-0.5 shrink-0"
+            className={`flex items-center cursor-pointer group p-0.5 shrink-0 rounded-md ${isHome ? 'ring-1 ring-[var(--accent)]/40' : ''}`}
           >
             <div className="w-7 h-7 rounded-md bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] transition-colors">
               <Activity size={15} className="stroke-[2.2]" />
@@ -48,7 +80,10 @@ export function Navbar({ onNavigate, onBack, title, rightContent }: { onNavigate
 
           {title && (
             typeof title === 'string' ? (
-              <span className="font-heading font-bold text-sm text-[var(--text-primary)] tracking-normal truncate ml-1">
+              <span 
+                className="font-heading font-bold text-sm text-[var(--text-primary)] tracking-normal truncate ml-1"
+                aria-current={!isHome ? 'page' : undefined}
+              >
                 {title}
               </span>
             ) : (
@@ -59,7 +94,21 @@ export function Navbar({ onNavigate, onBack, title, rightContent }: { onNavigate
 
         <div className="flex items-center gap-1.5 shrink-0">
           {rightContent}
-          <button type="button"
+          <button 
+            type="button"
+            id="mobile-nav-info-btn"
+            onClick={() => {
+              triggerHaptic('tap');
+              setIsWelcomeOpen(true);
+            }}
+            aria-label="App Info"
+            title="Welcome & Info"
+            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer"
+          >
+            <Info size={15} />
+          </button>
+          <button 
+            type="button"
             id="mobile-nav-settings-btn"
             onClick={() => {
               triggerHaptic('tap');
@@ -67,7 +116,7 @@ export function Navbar({ onNavigate, onBack, title, rightContent }: { onNavigate
             }}
             aria-label="Settings"
             title="Settings"
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer"
           >
             <Settings size={15} />
           </button>
@@ -78,7 +127,11 @@ export function Navbar({ onNavigate, onBack, title, rightContent }: { onNavigate
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
       />
+
+      <WelcomeModal
+        isOpen={isWelcomeOpen}
+        onClose={() => setIsWelcomeOpen(false)}
+      />
     </>
   );
 }
-

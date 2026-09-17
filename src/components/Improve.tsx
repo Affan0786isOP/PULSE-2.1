@@ -5,6 +5,7 @@ import { getRandomizedFacts } from "../data/facts";
 import { SEO } from "./SEO";
 import { HookSidebar } from "./ui/hook-sidebar";
 import { ScrollProgress } from "./ui/scroll-progress";
+import { isReducedMotionActive } from "../lib/settingsStore";
 import {
   Moon,
   Droplet,
@@ -19,11 +20,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   BrainCircuit,
-  Play,
   ArrowRight,
-  ShieldAlert,
   Sparkles,
 } from "lucide-react";
 
@@ -44,7 +42,8 @@ export function Improve({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [facts] = useState<string[]>(() => getRandomizedFacts());
   const [activeIndex, setActiveIndex] = useState(0);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLedgerPaused, setIsLedgerPaused] = useState(false);
+  const [ledgerTimerReset, setLedgerTimerReset] = useState(0);
   const scrollContainerRef = useRef<HTMLElement>(null);
 
   const toggleChecklist = (index: number) => {
@@ -109,11 +108,22 @@ export function Improve({
   );
 
   useEffect(() => {
+    if (isLedgerPaused || isReducedMotionActive()) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % facts.length);
     }, 7000);
     return () => clearInterval(timer);
-  }, [facts.length]);
+  }, [facts.length, isLedgerPaused, ledgerTimerReset]);
+
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + facts.length) % facts.length);
+    setLedgerTimerReset((c) => c + 1);
+  };
+
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % facts.length);
+    setLedgerTimerReset((c) => c + 1);
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -158,6 +168,7 @@ export function Improve({
           sections={improveSections}
           containerRef={scrollContainerRef}
           offset={100}
+          className="lg:hidden"
         />
 
         <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 xl:gap-16">
@@ -229,13 +240,13 @@ export function Improve({
                 {
                   icon: Activity,
                   title: "Acute Stress",
-                  desc: "Elevated cortisol interferes with rapid decision-making and motor output.",
+                  desc: "High acute stress can introduce variability in decision-making and motor response consistency.",
                   reduces: true,
                 },
                 {
                   icon: User,
-                  title: "Biological Age",
-                  desc: "Processing speed typically peaks in early adulthood with gradual variance over time.",
+                  title: "Age-Related Variance",
+                  desc: "Processing speed typically peaks in early adulthood with gradual cohort variance observed across age groups.",
                   reduces: true,
                 },
                 {
@@ -265,7 +276,7 @@ export function Improve({
                 {
                   icon: Monitor,
                   title: "Screen Fatigue",
-                  desc: "Continuous optical strain without visual breaks impairs visual search speed.",
+                  desc: "Prolonged screen focus without breaks can induce visual discomfort and temporarily affect attentional stamina.",
                   reduces: true,
                 },
                 {
@@ -298,7 +309,7 @@ export function Improve({
                     }`}
                   >
                     <span className={`w-1.5 h-1.5 rounded-full ${factor.reduces ? 'bg-[var(--danger)]' : 'bg-[var(--success)]'}`} />
-                    {factor.reduces ? "Reduces performance" : "Improves performance"}
+                    {factor.reduces ? "Associated with higher latency" : "Supports response consistency"}
                   </span>
                 </div>
               ))}
@@ -315,7 +326,7 @@ export function Improve({
                 Action Checklist
               </h2>
               <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-2xl">
-                Track and implement these core lifestyle habits to build consistent baseline readiness.
+                Self-reported lifestyle habits that support physiological stability and response consistency.
               </p>
             </div>
 
@@ -323,10 +334,10 @@ export function Improve({
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-medium text-xs sm:text-sm text-[var(--text-primary)]">
-                    Optimization Readiness
+                    Habit Preparation Checklist
                   </span>
                   <span className="text-[var(--accent)] font-mono text-xs font-semibold">
-                    {optimizationPercentage}% COMPLETE
+                    {checkedItems.size} of {checklistItems.length} HABITS CHECKED
                   </span>
                 </div>
                 <div className="w-full h-2 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
@@ -388,7 +399,13 @@ export function Improve({
               </h2>
             </div>
 
-            <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+            <div 
+              onMouseEnter={() => setIsLedgerPaused(true)}
+              onMouseLeave={() => setIsLedgerPaused(false)}
+              onFocus={() => setIsLedgerPaused(true)}
+              onBlur={() => setIsLedgerPaused(false)}
+              className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm"
+            >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-2">
                   <BrainCircuit size={18} className="text-[var(--accent)]" />
@@ -412,11 +429,7 @@ export function Improve({
                 <div className="flex items-center gap-2 ml-auto">
                   <button
                     type="button"
-                    onClick={() =>
-                      setCurrentSlide(
-                        (prev) => (prev - 1 + facts.length) % facts.length,
-                      )
-                    }
+                    onClick={handlePrevSlide}
                     className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-1)] text-[var(--text-primary)] transition-colors cursor-pointer flex items-center justify-center"
                     aria-label="Previous observation"
                   >
@@ -424,9 +437,7 @@ export function Improve({
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      setCurrentSlide((prev) => (prev + 1) % facts.length)
-                    }
+                    onClick={handleNextSlide}
                     className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-1)] text-[var(--text-primary)] transition-colors cursor-pointer flex items-center justify-center"
                     aria-label="Next observation"
                   >
@@ -454,6 +465,11 @@ export function Improve({
               <p>
                 By practicing consistent sleep hygiene, minimizing input latency in your setup, and engaging in structured assessment tasks, you can minimize preventable performance dips and achieve higher consistency.
               </p>
+              <div className="pt-2 border-t border-[var(--border-subtle)]">
+                <p className="text-xs text-[var(--text-muted)] italic leading-relaxed">
+                  <strong className="text-[var(--text-primary)] not-italic font-semibold">Important Distinction:</strong> Performance gains on repetitive benchmark tasks largely reflect task familiarity, stimulus anticipation, and procedural practice effects rather than generalized expansion of innate cognitive capacity.
+                </p>
+              </div>
             </div>
           </section>
 

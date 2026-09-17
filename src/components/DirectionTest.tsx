@@ -794,7 +794,7 @@ return (
                 if (typeof timerRef !== 'undefined' && timerRef.current) timerRef.current.textContent = '000.0';
               }}
               onNext={() => onNavigate('colour-recognition')}
-              onViewAnalytics={() => onNavigate('analytics')}
+              onViewLeaderboard={() => onNavigate('leaderboard')}
             >
               {!submissionError && hasSubmittedRef.current && reportStats && sessionId && (
                 <LeaderboardOptIn 

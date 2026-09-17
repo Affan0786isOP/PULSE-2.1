@@ -93,8 +93,10 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
             className="grid grid-cols-1 gap-3"
           >
             {assessments.map((assessment) => (
-              <motion.div 
+              <motion.button 
                 key={assessment.id}
+                type="button"
+                disabled={assessment.status !== 'AVAILABLE'}
                 variants={itemVariants}
                 whileTap={assessment.status === 'AVAILABLE' ? { scale: 0.98 } : undefined}
                 onClick={() => {
@@ -103,9 +105,9 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                     onNavigate(assessment.id);
                   }
                 }}
-                className={`p-4 border rounded-md flex flex-col transition-colors ${
+                className={`p-4 border rounded-md flex flex-col transition-colors text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   assessment.status === 'AVAILABLE' 
-                    ? 'bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)] cursor-pointer shadow-sm' 
+                    ? 'bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)] cursor-pointer shadow-sm active:scale-[0.99]' 
                     : 'bg-[var(--surface-1)] border-[var(--border-subtle)] opacity-50 cursor-not-allowed'
                 }`}
               >
@@ -127,7 +129,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                     <span>→</span>
                   </div>
                 )}
-              </motion.div>
+              </motion.button>
             ))}
           </motion.div>
         </div>

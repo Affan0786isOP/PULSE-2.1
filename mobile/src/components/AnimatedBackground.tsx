@@ -1,44 +1,33 @@
 import React, { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+
+const READING_ROUTES = ['/privacy', '/research-privacy', '/improve'];
 
 export function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const location = useLocation();
+  const isReadingRoute = READING_ROUTES.some(p => location.pathname.startsWith(p));
 
   useEffect(() => {
+    if (isReadingRoute) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animationFrameId: number;
     let width = 0;
     let height = 0;
 
-    const resize = () => {
-      if (!canvas) return;
+    const render = () => {
+      if (!ctx || !canvas) return;
+
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    resize();
-    window.addEventListener('resize', resize, { passive: true });
-    window.addEventListener('orientationchange', resize, { passive: true });
-
-    const isReducedMotion = () => {
-      return (
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-        document.documentElement.getAttribute('data-reduced-motion') === 'true'
-      );
-    };
-
-    let scanY = 0;
-    let scanSpeed = 0.35;
-
-    const render = () => {
-      if (!ctx) return;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -50,8 +39,6 @@ export function AnimatedBackground() {
       const gridSize = 48;
       const primaryLineColor = isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.035)';
       const crossColor = isDark ? 'rgba(34, 199, 214, 0.25)' : 'rgba(2, 132, 199, 0.22)';
-      const sweepColor = isDark ? 'rgba(34, 199, 214, 0.04)' : 'rgba(2, 132, 199, 0.03)';
-      const scanLineColor = isDark ? 'rgba(34, 199, 214, 0.18)' : 'rgba(2, 132, 199, 0.15)';
 
       // 1. Draw crisp grid lines
       ctx.strokeStyle = primaryLineColor;
@@ -84,41 +71,17 @@ export function AnimatedBackground() {
         }
       }
       ctx.stroke();
-
-      // 3. Subtle horizontal telemetry scanline
-      if (!isReducedMotion()) {
-        scanY += scanSpeed;
-        if (scanY > height + 80) {
-          scanY = -80;
-        }
-
-        const gradient = ctx.createLinearGradient(0, scanY - 60, 0, scanY + 60);
-        gradient.addColorStop(0, 'rgba(0,0,0,0)');
-        gradient.addColorStop(0.5, sweepColor);
-        gradient.addColorStop(1, 'rgba(0,0,0,0)');
-
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, scanY - 60, width, 120);
-
-        ctx.strokeStyle = scanLineColor;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, scanY);
-        ctx.lineTo(width, scanY);
-        ctx.stroke();
-      }
-
-      animationFrameId = requestAnimationFrame(render);
     };
 
     render();
+    window.addEventListener('resize', render, { passive: true });
+    window.addEventListener('orientationchange', render, { passive: true });
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', resize);
-      window.removeEventListener('orientationchange', resize);
+      window.removeEventListener('resize', render);
+      window.removeEventListener('orientationchange', render);
     };
-  }, []);
+  }, [isReadingRoute]);
 
   return (
     <div
@@ -127,10 +90,12 @@ export function AnimatedBackground() {
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
     >
       <div className="absolute inset-0 bg-[var(--surface-0)]" />
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full block"
-      />
+      {!isReadingRoute && (
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full block"
+        />
+      )}
     </div>
   );
 }

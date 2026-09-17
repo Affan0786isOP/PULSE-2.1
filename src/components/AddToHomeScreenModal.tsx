@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -6,22 +6,21 @@ import {
   Smartphone, 
   Share, 
   SquarePlus, 
-  Check, 
   Zap, 
-  Sparkles, 
   Download, 
-  ArrowRight,
   ShieldCheck,
   Maximize2
 } from 'lucide-react';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
+import { acquireScrollLock } from '../lib/modalScrollLock';
+import { useModalAccessibility } from '../lib/modalAccessibility';
 
 interface AddToHomeScreenModalProps {
   isOpen: boolean;
   onClose: () => void;
   isInstalled: boolean;
   isIos: boolean;
-  isSafari: boolean;
+  isSafari?: boolean;
   isInstallable: boolean;
   onPromptInstall: () => Promise<boolean>;
 }
@@ -35,6 +34,8 @@ export function AddToHomeScreenModal({
   onPromptInstall
 }: AddToHomeScreenModalProps) {
   const [mounted, setMounted] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -42,15 +43,19 @@ export function AddToHomeScreenModal({
 
   useEffect(() => {
     if (isOpen) {
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          onClose();
-        }
+      const unlock = acquireScrollLock();
+      return () => {
+        unlock();
       };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isOpen, onClose]);
+  }, [isOpen]);
+
+  useModalAccessibility({
+    isOpen,
+    onClose,
+    dialogRef,
+    initialFocusRef: closeButtonRef
+  });
 
   const handleInstallClick = async () => {
     playAudioCue('click');
@@ -91,6 +96,10 @@ export function AddToHomeScreenModal({
           />
 
           <motion.div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pwa-modal-title"
             id="pwa-install-modal"
             initial={{ opacity: 0, y: 30, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -116,7 +125,7 @@ export function AddToHomeScreenModal({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold font-heading text-[var(--text-primary)]">
+                    <h3 id="pwa-modal-title" className="text-sm font-bold font-heading text-[var(--text-primary)]">
                       Add PULSE to Home Screen
                     </h3>
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[var(--accent-subtle)] border border-[var(--border-subtle)] text-[var(--accent)]">
@@ -124,12 +133,14 @@ export function AddToHomeScreenModal({
                     </span>
                   </div>
                   <p className="text-xs text-[var(--text-muted)]">
-                    Standalone mobile experience &amp; ultra-low latency
+                    Standalone mobile experience &amp; dedicated viewport
                   </p>
                 </div>
               </div>
 
-              <button type="button"
+              <button 
+                ref={closeButtonRef}
+                type="button"
                 id="close-pwa-modal-btn"
                 onClick={handleClose}
                 className="w-7 h-7 rounded-md flex items-center justify-center bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
@@ -152,7 +163,7 @@ export function AddToHomeScreenModal({
                       Installed in Standalone Mode
                     </h4>
                     <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
-                      PULSE is actively running from your Home Screen with browser bar latency stripped and fullscreen timing enabled.
+                      PULSE is running as an installed standalone app with reduced browser chrome.
                     </p>
                   </div>
                 </div>
@@ -164,15 +175,15 @@ export function AddToHomeScreenModal({
                       <div className="w-5 h-5 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] flex items-center justify-center">
                         <Zap size={12} />
                       </div>
-                      <span className="text-xs font-bold text-[var(--text-primary)]">Zero Latency</span>
-                      <span className="text-[10px] text-[var(--text-muted)] leading-tight">Removes browser bars for direct frame timing</span>
+                      <span className="text-xs font-bold text-[var(--text-primary)]">Dedicated Viewport</span>
+                      <span className="text-[10px] text-[var(--text-muted)] leading-tight">Runs in an isolated window free from browser tab controls</span>
                     </div>
 
                     <div className="p-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex flex-col gap-1">
                       <div className="w-5 h-5 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] flex items-center justify-center">
                         <Maximize2 size={12} />
                       </div>
-                      <span className="text-xs font-bold text-[var(--text-primary)]">True Fullscreen</span>
+                      <span className="text-xs font-bold text-[var(--text-primary)]">Direct Touch Area</span>
                       <span className="text-[10px] text-[var(--text-muted)] leading-tight">Edge-to-edge touch targets on mobile</span>
                     </div>
                   </div>
@@ -237,7 +248,7 @@ export function AddToHomeScreenModal({
                   ) : (
                     <div className="space-y-3">
                       <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                        Install PULSE directly to your app drawer or home screen for faster launches and distraction-free benchmark testing.
+                        Install PULSE directly to your device for convenient one-tap launching and a standalone fullscreen viewport.
                       </p>
 
                       {isInstallable ? (
@@ -271,7 +282,7 @@ export function AddToHomeScreenModal({
             {/* Footer Dismiss Button */}
             <div className="px-5 py-3 border-t border-[var(--border-subtle)] bg-[var(--surface-1)] flex items-center justify-between shrink-0">
               <span className="text-[10px] font-mono text-[var(--text-muted)]">
-                {isInstalled ? 'Standalone Mode Ready' : 'Works 100% Offline'}
+                {isInstalled ? 'Standalone Mode Ready' : 'App shell & offline assessments available'}
               </span>
               <button type="button"
                 onClick={handleClose}

@@ -1,43 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, Clock, Gamepad2, BarChart3, Database, ArrowRight, Zap, Monitor, Trophy, Settings, Info, Download, Maximize2, Minimize2, ArrowLeft, ListChecks, BarChart2, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Activity, Database, ArrowRight, Zap, Trophy, Settings, Info, Download, Maximize2, Minimize2, ShieldCheck, AlertCircle, RefreshCw, ListChecks, BarChart2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../AuthContext';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { SettingsModal } from './SettingsModal';
-import { WelcomeModal, isMobileWelcomeSeenInMemory } from './WelcomeModal';
+import { WelcomeModal } from './WelcomeModal';
 import { AddToHomeScreenModal } from './AddToHomeScreenModal';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SEO } from './SEO';
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const { isReady, isAuthenticated, authError, retryAuth } = useAuth();
+  const { isReady, authError, retryAuth } = useAuth();
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  useEffect(() => {
-    const checkFullscreen = () => {
-      const doc = document as any;
-      const active = Boolean(
-        doc.fullscreenElement ||
-        doc.webkitFullscreenElement ||
-        doc.mozFullScreenElement ||
-        doc.msFullscreenElement ||
-        window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true
-      );
-      setIsFullscreen(active);
-    };
-
-    checkFullscreen();
-    document.addEventListener('fullscreenchange', checkFullscreen);
-    document.addEventListener('webkitfullscreenchange', checkFullscreen);
-    return () => {
-      document.removeEventListener('fullscreenchange', checkFullscreen);
-      document.removeEventListener('webkitfullscreenchange', checkFullscreen);
-    };
-  }, []);
 
   const handleToggleFullscreen = async () => {
     try {
@@ -76,10 +52,10 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-transparent text-[var(--text-primary)] font-sans relative flex flex-col justify-between select-none">
+    <div className="min-h-[100dvh] bg-transparent text-[var(--text-primary)] font-sans relative flex flex-col justify-between">
       <SEO 
         title="PULSE Mobile — Precision User Latency & Stimulus Evaluator"
-        description="Browser-based cognitive benchmarking suite optimized for mobile devices. Measure sensory-motor reaction times, directional reflexes, and working memory on the go."
+        description="Browser-based cognitive benchmarking suite optimized for mobile devices. Measure visual reaction times, directional choice speed, and working memory on the go."
       />
       {/* Top Header Minimal & Compact */}
       <header 
@@ -87,7 +63,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0.75rem))' }}
       >
         <div className="flex items-center gap-2">
-          {/* Clickable Prominent Logo Icon & Title */}
           <button type="button"
             id="mobile-home-logo-btn"
             onClick={() => { triggerHaptic('tap'); onNavigate('home'); }}
@@ -103,9 +78,9 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           </button>
         </div>
         
-        {/* Header Action Buttons (Install, Fullscreen, Settings, Info) */}
+        {/* Header Action Buttons (Install, Fullscreen, Info, Settings) */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {!pwa.isInstalled && (
+          {!pwa.isStandalone && !pwa.isInstalled && (
             <button type="button"
               id="mobile-install-btn"
               onClick={async () => {
@@ -120,31 +95,17 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             </button>
           )}
 
-          {/* Non-intrusive Fullscreen Button */}
-          {!pwa.isInstalled && (
+          {!pwa.isStandalone && (
             <button type="button"
               id="mobile-fullscreen-btn"
               onClick={() => { triggerHaptic('tap'); handleToggleFullscreen(); }}
               className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
-              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              title={pwa.isBrowserFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
             >
-              {isFullscreen ? <Minimize2 size={12} className="text-[var(--accent)]" /> : <Maximize2 size={12} />}
-              <span>{isFullscreen ? "Exit" : "Fullscreen"}</span>
+              {pwa.isBrowserFullscreen ? <Minimize2 size={12} className="text-[var(--accent)]" /> : <Maximize2 size={12} />}
+              <span>{pwa.isBrowserFullscreen ? "Exit" : "Fullscreen"}</span>
             </button>
           )}
-
-          <button type="button"
-            id="mobile-settings-btn"
-            onClick={() => {
-              triggerHaptic('tap');
-              setIsSettingsOpen(true);
-            }}
-            className="w-7 h-7 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-            aria-label="Settings"
-            title="Settings"
-          >
-            <Settings size={13} />
-          </button>
 
           <button type="button"
             id="mobile-info-btn"
@@ -158,6 +119,19 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           >
             <Info size={13} />
           </button>
+
+          <button type="button"
+            id="mobile-settings-btn"
+            onClick={() => {
+              triggerHaptic('tap');
+              setIsSettingsOpen(true);
+            }}
+            className="w-7 h-7 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            aria-label="Settings"
+            title="Settings"
+          >
+            <Settings size={13} />
+          </button>
         </div>
       </header>
 
@@ -166,14 +140,12 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         className="w-full flex-1 flex flex-col justify-between items-center px-4 py-3 overflow-y-auto z-10 max-w-sm mx-auto gap-3"
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0.75rem))' }}
       >
-        {/* Compact Horizontal Hero Badge (Logo beside text) */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="flex flex-col items-center text-center w-full pt-1"
         >
-          {/* Logo beside title */}
           <div className="flex items-center gap-2 mb-1">
             <div className="w-5 h-5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
               <Activity className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -183,7 +155,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             </h1>
           </div>
 
-          {/* Subtitle */}
           <p className="text-[var(--text-muted)] text-[11px] font-normal px-2 leading-tight">
             Precision User Latency &amp; Stimulus Evaluator
           </p>
@@ -218,7 +189,9 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         >
           <div className="border-b border-[var(--border-subtle)] pb-2">
             <h2 className="text-xs font-bold text-[var(--text-primary)]">Welcome to PULSE</h2>
-            <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-tight">PULSE is a simple app to test and improve your brain's speed and focus.</p>
+            <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-tight">
+              PULSE is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
+            </p>
             <div className="text-[10px] font-bold text-[var(--accent)] uppercase tracking-wider mt-1.5">How it works:</div>
           </div>
 
@@ -265,7 +238,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           </div>
 
           <div className="border-t border-[var(--border-subtle)] pt-2 text-[10.5px] text-[var(--text-secondary)] leading-tight">
-            You can also check the Leaderboard, view your Analytics, explore the Dataset, and learn how to improve your neural performance.
+            You can also check the Leaderboard, explore the open research Dataset, and learn about evidence-based habits in the Improve guide.
           </div>
         </motion.div>
 
@@ -288,7 +261,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             <ArrowRight className="w-4 h-4" />
           </motion.button>
 
-          {/* Menu Grid (Compact 2x2 with clear touch targets) */}
+          {/* Menu Grid - 2x2 with clear touch targets */}
           <div className="grid grid-cols-2 gap-2 w-full">
             <motion.button 
               type="button" 
@@ -308,6 +281,22 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
             <motion.button 
               type="button" 
+              id="mobile-nav-dataset"
+              whileTap={{ scale: 0.96 }}
+              onClick={() => { triggerHaptic('tap'); onNavigate('dataset'); }}
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+            >
+              <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
+                <Database className="w-3.5 h-3.5" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[var(--text-primary)] font-medium text-xs truncate">Dataset</span>
+                <span className="text-[var(--text-muted)] text-[10px] truncate">Telemetry</span>
+              </div>
+            </motion.button>
+
+            <motion.button 
+              type="button" 
               id="mobile-nav-improve"
               whileTap={{ scale: 0.96 }}
               onClick={() => { triggerHaptic('tap'); onNavigate('improve'); }}
@@ -321,27 +310,23 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <span className="text-[var(--text-muted)] text-[10px] truncate">Neural factors</span>
               </div>
             </motion.button>
-          </div>
 
-          {/* Privacy & Governance Link */}
-          <motion.button 
-            type="button" 
-            id="mobile-nav-privacy"
-            whileTap={{ scale: 0.97 }}
-            onClick={() => { triggerHaptic('tap'); onNavigate('privacy'); }}
-            className="w-full bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center justify-between transition-colors cursor-pointer text-left"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-md bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
-                <ShieldCheck className="w-3.5 h-3.5 stroke-[2.2]" />
+            <motion.button 
+              type="button" 
+              id="mobile-nav-privacy"
+              whileTap={{ scale: 0.96 }}
+              onClick={() => { triggerHaptic('tap'); onNavigate('privacy'); }}
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+            >
+              <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
+                <ShieldCheck className="w-3.5 h-3.5" />
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-[var(--text-primary)] font-medium text-xs truncate">Research Privacy Policy</span>
-                <span className="text-[var(--text-muted)] text-[10px] truncate">Data ethics, anonymization & minor safety</span>
+                <span className="text-[var(--text-primary)] font-medium text-xs truncate">Privacy</span>
+                <span className="text-[var(--text-muted)] text-[10px] truncate">Data ethics</span>
               </div>
-            </div>
-            <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
-          </motion.button>
+            </motion.button>
+          </div>
         </motion.div>
       </main>
 
@@ -370,4 +355,3 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
     </div>
   );
 }
-

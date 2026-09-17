@@ -627,7 +627,7 @@ return (
               nextAssessmentName="Assessments"
               onRetry={handleStart}
               onNext={() => onNavigate('assessments')}
-              onViewAnalytics={() => onNavigate('analytics')}
+              onViewLeaderboard={() => onNavigate('leaderboard')}
             >
               {!submissionError && hasSubmittedRef.current && reportStats && sessionId && (
                 <LeaderboardOptIn 

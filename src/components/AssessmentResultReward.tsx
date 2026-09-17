@@ -25,6 +25,7 @@ export interface AssessmentResultRewardProps {
   onRetry: () => void;
   onNext: () => void;
   onViewAnalytics?: () => void;
+  onViewLeaderboard?: () => void;
   nextAssessmentName?: string;
   children?: React.ReactNode;
 }
@@ -85,6 +86,7 @@ export function AssessmentResultReward({
   onRetry,
   onNext,
   onViewAnalytics,
+  onViewLeaderboard = onViewAnalytics,
   nextAssessmentName = 'Next Assessment',
   children
 }: AssessmentResultRewardProps) {
@@ -226,16 +228,16 @@ export function AssessmentResultReward({
           <ArrowRight size={13} className="shrink-0" />
         </button>
 
-        {onViewAnalytics && (
+        {onViewLeaderboard && (
           <button
             type="button"
-            onClick={onViewAnalytics}
-            id="result-analytics-button"
+            onClick={onViewLeaderboard}
+            id="result-leaderboard-button"
             className="w-10 h-10 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--border-subtle)] active:bg-[var(--surface-3)] active:scale-[0.97] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] flex items-center justify-center transition-[background-color,color,transform] cursor-pointer shrink-0"
-            title="View Analytics"
-            aria-label="View Analytics"
+            title="View Leaderboard & Benchmarks"
+            aria-label="View Leaderboard & Benchmarks"
           >
-            <Activity size={15} />
+            <Trophy size={15} />
           </button>
         )}
       </div>

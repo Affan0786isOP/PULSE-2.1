@@ -3,10 +3,10 @@ import { motion } from 'motion/react';
 import { Navbar } from "./Navbar";
 import { getRandomizedFacts } from "../../../src/data/facts";
 import { SEO } from "./SEO";
+import { isReducedMotionActive } from "../lib/settingsStore";
 import {
   Check,
   ChevronRight,
-  Play,
   BrainCircuit,
   ArrowRight,
   Sparkles,
@@ -20,6 +20,8 @@ export function Improve({
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
   const [currentSlide, setCurrentSlide] = useState(0);
   const [facts] = useState<string[]>(() => getRandomizedFacts());
+  const [isLedgerPaused, setIsLedgerPaused] = useState(false);
+  const [ledgerTimerReset, setLedgerTimerReset] = useState(0);
 
   const toggleChecklist = (index: number) => {
     const newChecked = new Set(checkedItems);
@@ -41,11 +43,17 @@ export function Improve({
   ];
 
   useEffect(() => {
+    if (isLedgerPaused || isReducedMotionActive()) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % facts.length);
     }, 7000);
     return () => clearInterval(timer);
-  }, [facts.length]);
+  }, [facts.length, isLedgerPaused, ledgerTimerReset]);
+
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % facts.length);
+    setLedgerTimerReset((c) => c + 1);
+  };
 
   return (
     <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-cyan-500/30 relative">
@@ -100,10 +108,10 @@ export function Improve({
               <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-lg p-3">
                 <div className="flex items-center gap-1.5 text-[var(--danger)] font-mono text-[10px] font-semibold uppercase tracking-wider mb-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[var(--danger)]" />
-                  <span>Reduces Performance</span>
+                  <span>Associated with Higher Latency</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {["Sleep deprivation", "Acute stress", "Mental fatigue", "Screen fatigue"].map((item) => (
+                  {["Sleep deprivation", "Acute stress", "Mental fatigue", "Screen fatigue", "Age cohort variance"].map((item) => (
                     <span
                       key={item}
                       className="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 text-[11px] px-2 py-0.5 rounded font-sans"
@@ -118,7 +126,7 @@ export function Improve({
               <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-lg p-3">
                 <div className="flex items-center gap-1.5 text-[var(--success)] font-mono text-[10px] font-semibold uppercase tracking-wider mb-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
-                  <span>Improves Performance</span>
+                  <span>Supports Response Consistency</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {["Sleep (8-9h)", "Aerobic exercise", "Hydration", "Balanced nutrition", "Task familiarity"].map((item) => (
@@ -141,15 +149,15 @@ export function Improve({
                 DAILY HABITS
               </span>
               <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
-                Daily Optimization Checklist
+                Daily Habit Preparation
               </h2>
             </div>
 
             <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 flex flex-col gap-2.5">
               <div className="flex justify-between items-center text-xs font-mono">
-                <span className="text-[var(--text-secondary)] font-medium">OPTIMIZATION</span>
+                <span className="text-[var(--text-secondary)] font-medium">HABITS CHECKED</span>
                 <span className="text-[var(--accent)] font-semibold">
-                  {checkedItems.size} / 6 COMPLETE
+                  {checkedItems.size} / 6 SELECTED
                 </span>
               </div>
 
@@ -201,7 +209,13 @@ export function Improve({
               </span>
             </div>
 
-            <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 flex flex-col gap-2 relative">
+            <div 
+              onMouseEnter={() => setIsLedgerPaused(true)}
+              onMouseLeave={() => setIsLedgerPaused(false)}
+              onFocus={() => setIsLedgerPaused(true)}
+              onBlur={() => setIsLedgerPaused(false)}
+              className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 flex flex-col gap-2 relative"
+            >
               <div className="flex items-center justify-between">
                 <span className="font-heading text-xs font-semibold text-[var(--accent)] uppercase tracking-wider flex items-center gap-1.5">
                   <BrainCircuit size={14} />
@@ -219,12 +233,34 @@ export function Improve({
               <div className="flex justify-end pt-1">
                 <button
                   type="button"
-                  onClick={() => setCurrentSlide((prev) => (prev + 1) % facts.length)}
+                  onClick={handleNextSlide}
                   className="flex items-center gap-1 text-[11px] font-mono font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors cursor-pointer active:scale-95"
                 >
                   <span>NEXT OBSERVATION</span>
                   <ChevronRight size={14} />
                 </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Expectation Management */}
+          <section className="flex flex-col gap-2">
+            <div>
+              <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
+                EXPECTATION MANAGEMENT
+              </span>
+              <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
+                Can Everyone Improve?
+              </h2>
+            </div>
+            <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed">
+              <p>
+                Day-to-day reaction latency varies based on sleep, fatigue, and input device responsiveness.
+              </p>
+              <div className="pt-2 border-t border-[var(--border-subtle)]">
+                <p className="text-[11px] text-[var(--text-muted)] italic leading-relaxed">
+                  <strong className="text-[var(--text-primary)] not-italic font-semibold">Important Distinction:</strong> Gains on repetitive benchmark tasks largely reflect task familiarity, stimulus anticipation, and practice effects rather than generalized expansion of innate cognitive capacity.
+                </p>
               </div>
             </div>
           </section>

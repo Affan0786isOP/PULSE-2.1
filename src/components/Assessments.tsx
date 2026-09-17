@@ -93,13 +93,15 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           >
             {assessments.map((assessment) => (
-              <motion.div 
+              <motion.button 
                 key={assessment.id}
+                type="button"
+                disabled={assessment.status !== 'AVAILABLE'}
                 variants={itemVariants}
                 whileHover={assessment.status === 'AVAILABLE' ? { y: -3, transition: { duration: 0.15 } } : undefined}
                 whileTap={assessment.status === 'AVAILABLE' ? { scale: 0.98 } : undefined}
                 onClick={() => assessment.status === 'AVAILABLE' && onNavigate(assessment.id)}
-                className={`relative p-5 border rounded-md flex flex-col h-56 transition-colors ${
+                className={`relative p-5 border rounded-md flex flex-col h-56 transition-colors text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   assessment.status === 'AVAILABLE' 
                     ? 'bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.99] border-[var(--border-subtle)] hover:border-[var(--border-default)] cursor-pointer group shadow-sm' 
                     : 'bg-[var(--surface-1)] border-[var(--border-subtle)] opacity-40 cursor-not-allowed'
@@ -127,7 +129,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                     <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                   </div>
                 )}
-              </motion.div>
+              </motion.button>
             ))}
           </motion.div>
         </div>

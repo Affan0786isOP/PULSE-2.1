@@ -78,12 +78,7 @@ const ScrollProgress = ({
 
   const label = sections.find((s) => s.id === activeId)?.label
 
-  const labelVersion = React.useRef(0)
-  const prevLabel = React.useRef(label)
-  if (label !== prevLabel.current) {
-    prevLabel.current = label
-    labelVersion.current += 1
-  }
+
 
   const collapsedRef = React.useRef<HTMLDivElement>(null)
   const openRef = React.useRef<HTMLDivElement>(null)
@@ -337,7 +332,7 @@ const ScrollProgress = ({
                   <AnimatePresence initial={false}>
                     {label && (
                       <motion.span
-                        key={labelVersion.current}
+                        key={label}
                         data-slot="scroll-progress-label"
                         className="absolute inset-y-0 left-0 flex items-center whitespace-nowrap text-sm font-medium leading-none text-foreground"
                         initial={

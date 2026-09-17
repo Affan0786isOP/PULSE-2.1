@@ -236,9 +236,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
             <DatasetContentSlot
               datasetMode={datasetMode}
               activeAssessment={activeAssessment}
-              loading={loading}
               sectionObservations={sectionObservations}
-              onNavigate={onNavigate}
             />
           </div>
         )}

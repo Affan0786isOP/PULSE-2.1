@@ -135,7 +135,7 @@ export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
 
             <h2 id="welcome-modal-heading" className="text-xl font-bold text-white mb-1.5">Welcome to PULSE - Precision User Latency &amp; Stimulus Evaluator</h2>
             <p className="text-[13.5px] text-[#93a4c1] leading-relaxed mb-3">
-              PULSE is a simple app to test and improve your brain's speed and focus.
+              PULSE is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
             </p>
 
             {/* How it works */}
@@ -173,7 +173,7 @@ export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             </div>
 
             <p className="text-[12px] text-[#8b9bb4] leading-relaxed mb-4">
-              You can also check the Leaderboard, view your Analytics, explore the Dataset, and learn how to improve your neural performance.
+              You can also check the Leaderboard, explore the open research Dataset, and review evidence-based habit recommendations in the Improve guide.
             </p>
 
             {/* Footer Checkbox */}

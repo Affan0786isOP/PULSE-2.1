@@ -715,7 +715,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
                 if (typeof timerRef !== 'undefined' && timerRef.current) timerRef.current.textContent = '000.0';
               }}
               onNext={() => onNavigate('block-memory')}
-              onViewAnalytics={() => onNavigate('analytics')}
+              onViewLeaderboard={() => onNavigate('leaderboard')}
             >
               {!submissionError && hasSubmittedRef.current && reportStats && sessionId && (
                 <LeaderboardOptIn 

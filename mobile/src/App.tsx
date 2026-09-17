@@ -20,9 +20,12 @@ import { ColorTest } from './components/ColorTest';
 import { NotFound } from './components/NotFound';
 
 
+import { evaluateDeviceRouting, syncDeviceRoutingStorage } from './lib/deviceRouting';
+
 // Code-split heavy routes & admin module
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
+const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
 
 const RouteFallback = () => (
   <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center font-sans">
@@ -37,6 +40,31 @@ function App() {
   const [settings] = useSettings();
   useSystemTheme();
 
+  React.useEffect(() => {
+    try {
+      const search = location.search || window.location.search || '';
+      const decision = evaluateDeviceRouting(search);
+      const params = new URLSearchParams(search);
+      const hasRoutingParam = params.has('force_mobile') || params.has('mobile') || params.has('force_desktop') || params.has('desktop');
+
+      syncDeviceRoutingStorage(decision, hasRoutingParam);
+
+      // Symmetrical device routing: if explicit desktop or on desktop screen without mobile override, return to desktop
+      if (decision.isExplicitForceDesktop || (!decision.isExplicitForceMobile && !decision.isMobileDevice)) {
+        const pathname = location.pathname || window.location.pathname || '';
+        const cleanPath = pathname.replace(/^\/mobile\/?/, '/');
+        const targetParams = new URLSearchParams(search);
+        targetParams.delete('force_mobile');
+        targetParams.delete('mobile');
+        targetParams.delete('force_desktop');
+        targetParams.delete('desktop');
+        const targetSearch = targetParams.toString() ? `?${targetParams.toString()}` : '';
+        const targetPath = (cleanPath === '' ? '/' : cleanPath) + targetSearch + (location.hash || window.location.hash || '');
+        window.location.replace(targetPath);
+      }
+    } catch (e) {}
+  }, [location.pathname, location.search, location.hash]);
+
   const handleNavigate = (view: string) => {
     if (view.startsWith('/')) {
       navigate(view);
@@ -47,6 +75,8 @@ function App() {
       case 'home': navigate('/'); break;
       case 'assessments': navigate('/assessments'); break;
       case 'leaderboard': navigate('/leaderboard'); break;
+      case 'analytics': navigate('/leaderboard'); break;
+      case 'dataset': navigate('/dataset'); break;
       case 'improve': navigate('/improve'); break;
       case 'visual-reaction':
       case 'reaction-test':
@@ -101,6 +131,7 @@ function App() {
                   <Route path="/" element={<Home onNavigate={handleNavigate} />} />
                   <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
+                  <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
                   <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                   <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                   <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />

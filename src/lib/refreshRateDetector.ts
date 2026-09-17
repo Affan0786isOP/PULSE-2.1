@@ -71,7 +71,6 @@ export function resetRefreshRateCache(): void {
   if (typeof window !== 'undefined') {
     try {
       localStorage.removeItem(CACHE_KEY);
-      localStorage.removeItem('pulse_refresh_rate_fp');
     } catch {}
   }
   const fallback = snapToRefreshRate(16.67, 'fallback');
