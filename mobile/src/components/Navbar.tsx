@@ -64,9 +64,6 @@ export function Navbar({ onNavigate, onBack, title, rightContent }: { onNavigate
             onClick={() => {
               triggerHaptic('tap');
               setIsSettingsOpen(true);
-              if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('pulse_settings_open'));
-              }
             }}
             aria-label="Settings"
             title="Settings"
@@ -79,12 +76,7 @@ export function Navbar({ onNavigate, onBack, title, rightContent }: { onNavigate
 
       <SettingsModal 
         isOpen={isSettingsOpen} 
-        onClose={() => {
-          setIsSettingsOpen(false);
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('pulse_settings_close'));
-          }
-        }} 
+        onClose={() => setIsSettingsOpen(false)} 
       />
     </>
   );

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Activity, Clock, Gamepad2, BarChart3, Database, ArrowRight, Zap, Monitor, Trophy, Settings, Info, Download, Maximize2, Minimize2, ArrowLeft, ListChecks, BarChart2, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../AuthContext';
-import { useRefreshRate } from '../lib/useRefreshRate';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { SettingsModal } from './SettingsModal';
 import { WelcomeModal, isMobileWelcomeSeenInMemory } from './WelcomeModal';
@@ -12,7 +11,6 @@ import { SEO } from './SEO';
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isReady, isAuthenticated, authError, retryAuth } = useAuth();
-  const refreshInfo = useRefreshRate();
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
@@ -140,9 +138,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             onClick={() => {
               triggerHaptic('tap');
               setIsSettingsOpen(true);
-              if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('pulse_settings_open'));
-              }
             }}
             className="w-7 h-7 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
             aria-label="Settings"
@@ -352,12 +347,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       <SettingsModal 
         isOpen={isSettingsOpen} 
-        onClose={() => {
-          setIsSettingsOpen(false);
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('pulse_settings_close'));
-          }
-        }} 
+        onClose={() => setIsSettingsOpen(false)} 
       />
 
       <WelcomeModal

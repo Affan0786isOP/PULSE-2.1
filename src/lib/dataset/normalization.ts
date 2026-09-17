@@ -99,60 +99,7 @@ export function normalizeSessionToObservations(record: ResearchSessionRecord): D
       : (typeof record.refreshRate === 'number' ? record.refreshRate : null));
 
   if (trials.length === 0) {
-    const latency = typeof record.medianReactionTime === 'number'
-      ? record.medianReactionTime
-      : (typeof record.averageReactionTime === 'number'
-        ? record.averageReactionTime
-        : (typeof record.scoreMetric === 'number' ? record.scoreMetric : null));
-
-    const hasValidMetrics = latency !== null || typeof record.highestLevel === 'number' || typeof record.longestSeq === 'number';
-    if (!hasValidMetrics) {
-      return [];
-    }
-
-    const accuracyVal = typeof record.accuracy === 'number' ? record.accuracy : 100;
-    const isCorrect = accuracyVal > 0;
-
-    return [{
-      obsId: `${record.id}-summary`,
-      sessionId: record.id,
-      assessmentType: pType,
-      rawAssessmentType: record.assessmentType,
-      ageGroup: sessionAgeGroup,
-      completedAtMonth,
-      completedAtTimestamp: record.completedAtTimestamp,
-      deviceCategory: sessionDeviceCat,
-      inputModality: sessionModality,
-      refreshRateHz: sessionRefreshRate,
-      trialIndex: 1,
-      latencyMs: latency,
-      rawLatencyMs: latency,
-      displayDelayOffsetMs: null,
-      isCorrect,
-      isValid: true,
-      validityStatus: 'VALID',
-      qualityFlag: null,
-      foreperiodMs: null,
-      foreperiodCategory: null,
-      targetDirection: null,
-      chosenDirection: null,
-      userResponse: null,
-      targetColor: null,
-      chosenColor: null,
-      wordName: null,
-      wordColor: null,
-      condition: null,
-      instruction: null,
-      level: typeof record.highestLevel === 'number' ? record.highestLevel : null,
-      sequenceLength: typeof record.longestSeq === 'number' ? record.longestSeq : null,
-      interTapTimeMs: null,
-      responseDurationMs: null,
-      stimulusScheduledAtPerfMs: null,
-      stimulusPresentedAtPerfMs: null,
-      responseDetectedAtPerfMs: null,
-      provenanceToken: record.provenanceToken || null,
-      trialsDigest: record.trialsDigest || null
-    }];
+    return [];
   }
 
   return trials.map((t, idx) => {

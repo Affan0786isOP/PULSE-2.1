@@ -18,3 +18,7 @@ export function recordInMemoryTrial(obs: RawTrialObservation): void {
   list.push(obs);
   inMemorySessionTrials.set(obs.experimentId, list);
 }
+
+export function clearInMemorySessionTrials(): void {
+  inMemorySessionTrials.clear();
+}

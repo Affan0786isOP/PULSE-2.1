@@ -10,23 +10,26 @@
  */
 
 export interface RefreshRateInfo {
-  hz: number;                  // Detected display refresh rate (e.g., 60, 75, 120, 144, 240, 360)
+  hz: number;                  // Nominal display refresh rate (e.g., 60, 75, 120, 144, 240, 360)
   frameTimeMs: number;         // Nominal frame interval in ms (e.g., 16.67, 8.33, 6.94)
   displayDelayOffsetMs: number; // Estimated frame midpoint offset in ms (frameTimeMs / 2)
   isEstimated: boolean;
-  status: 'detecting' | 'ready';
+  source: 'measured' | 'estimated' | 'fallback';
+  status: 'detecting' | 'ready' | 'error';
+  error?: string;
 }
 
 const CACHE_KEY = 'pulse_refresh_rate_cached';
+const REFRESH_EVENT = 'pulse_refresh_rate_changed';
 
 let cachedInfo: RefreshRateInfo | null = (() => {
-  if (typeof window !== 'undefined' && false) {
+  if (typeof window !== 'undefined') {
     try {
-      const raw = null;
+      const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed.hz === 'number') {
-          return { ...parsed, status: 'ready' };
+        if (parsed && typeof parsed.hz === 'number' && parsed.status === 'ready') {
+          return parsed as RefreshRateInfo;
         }
       }
     } catch {}
@@ -36,11 +39,28 @@ let cachedInfo: RefreshRateInfo | null = (() => {
 
 let detectionPromise: Promise<RefreshRateInfo> | null = null;
 let activeAnimationFrameId: number | null = null;
+let detectionTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-export function cancelRefreshRateDetection() {
+function broadcastRefreshRate(info: RefreshRateInfo): void {
+  cachedInfo = info;
+  if (typeof window !== 'undefined') {
+    if (info.status === 'ready') {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(info));
+      } catch {}
+    }
+    window.dispatchEvent(new CustomEvent(REFRESH_EVENT, { detail: info }));
+  }
+}
+
+export function cancelRefreshRateDetection(): void {
   if (activeAnimationFrameId !== null && typeof cancelAnimationFrame === 'function') {
     cancelAnimationFrame(activeAnimationFrameId);
     activeAnimationFrameId = null;
+  }
+  if (detectionTimeoutId !== null) {
+    clearTimeout(detectionTimeoutId);
+    detectionTimeoutId = null;
   }
   detectionPromise = null;
 }
@@ -50,15 +70,12 @@ export function resetRefreshRateCache(): void {
   cachedInfo = null;
   if (typeof window !== 'undefined') {
     try {
-      if (false) {
-        ;;
-      }
-      if (false) {
-        ;;
-        ;;
-      }
+      localStorage.removeItem(CACHE_KEY);
+      localStorage.removeItem('pulse_refresh_rate_fp');
     } catch {}
   }
+  const fallback = snapToRefreshRate(16.67, 'fallback');
+  broadcastRefreshRate(fallback);
 }
 
 const STANDARD_RATES = [
@@ -78,9 +95,19 @@ const STANDARD_RATES = [
   { hz: 30, frameMs: 33.33, min: 32.00, max: 34.70 },
 ];
 
-export function snapToRefreshRate(measuredFrameTimeMs: number): RefreshRateInfo {
+export function snapToRefreshRate(
+  measuredFrameTimeMs: number,
+  forcedSource?: 'measured' | 'estimated' | 'fallback'
+): RefreshRateInfo {
   if (measuredFrameTimeMs <= 0 || !Number.isFinite(measuredFrameTimeMs)) {
-    return { hz: 60, frameTimeMs: 16.67, displayDelayOffsetMs: 8.33, isEstimated: true, status: 'ready' };
+    return {
+      hz: 60,
+      frameTimeMs: 16.67,
+      displayDelayOffsetMs: 8.33,
+      isEstimated: true,
+      source: 'fallback',
+      status: 'ready'
+    };
   }
 
   for (const rate of STANDARD_RATES) {
@@ -90,12 +117,13 @@ export function snapToRefreshRate(measuredFrameTimeMs: number): RefreshRateInfo 
         frameTimeMs: rate.frameMs,
         displayDelayOffsetMs: Number((rate.frameMs / 2).toFixed(2)),
         isEstimated: false,
+        source: forcedSource || 'measured',
         status: 'ready'
       };
     }
   }
 
-  // Fallback to calculated hz
+  // Calculated non-standard rate
   const hz = Math.max(30, Math.min(500, Math.round(1000 / measuredFrameTimeMs)));
   const frameTimeMs = Number((1000 / hz).toFixed(2));
   return {
@@ -103,6 +131,7 @@ export function snapToRefreshRate(measuredFrameTimeMs: number): RefreshRateInfo 
     frameTimeMs,
     displayDelayOffsetMs: Number((frameTimeMs / 2).toFixed(2)),
     isEstimated: true,
+    source: forcedSource || 'estimated',
     status: 'ready'
   };
 }
@@ -118,38 +147,66 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
 
   detectionPromise = new Promise<RefreshRateInfo>((resolve) => {
     if (typeof window === 'undefined' || typeof requestAnimationFrame !== 'function') {
-      const defaultInfo = snapToRefreshRate(16.67);
-      cachedInfo = defaultInfo;
-      resolve(defaultInfo);
+      const fallback = snapToRefreshRate(16.67, 'fallback');
+      broadcastRefreshRate(fallback);
+      resolve(fallback);
       return;
     }
 
     const timestamps: number[] = [];
     const SAMPLE_COUNT = 45;
 
+    // Safety timeout: if samples aren't received in 3000ms (e.g. background tab or throttled RAF), fallback safely
+    detectionTimeoutId = setTimeout(() => {
+      cancelRefreshRateDetection();
+      const fallbackInfo: RefreshRateInfo = {
+        hz: 60,
+        frameTimeMs: 16.67,
+        displayDelayOffsetMs: 8.33,
+        isEstimated: true,
+        source: 'fallback',
+        status: 'error',
+        error: 'Calibration timed out'
+      };
+      broadcastRefreshRate(fallbackInfo);
+      resolve(fallbackInfo);
+    }, 3000);
+
     function step(timestamp: number) {
       timestamps.push(timestamp);
       if (timestamps.length < SAMPLE_COUNT) {
         activeAnimationFrameId = requestAnimationFrame(step);
       } else {
+        if (detectionTimeoutId !== null) {
+          clearTimeout(detectionTimeoutId);
+          detectionTimeoutId = null;
+        }
         activeAnimationFrameId = null;
+        detectionPromise = null;
+
         const deltas: number[] = [];
         for (let i = 1; i < timestamps.length; i++) {
           const delta = timestamps[i] - timestamps[i - 1];
-          // Filter out obvious frame drops or abnormal spikes
           if (delta >= 1 && delta <= 50) {
             deltas.push(delta);
           }
         }
 
         if (deltas.length < 10) {
-          const defaultInfo = snapToRefreshRate(16.67);
-          cachedInfo = defaultInfo;
-          resolve(defaultInfo);
+          const fallbackInfo: RefreshRateInfo = {
+            hz: 60,
+            frameTimeMs: 16.67,
+            displayDelayOffsetMs: 8.33,
+            isEstimated: true,
+            source: 'fallback',
+            status: 'error',
+            error: 'Insufficient display frame samples'
+          };
+          broadcastRefreshRate(fallbackInfo);
+          resolve(fallbackInfo);
           return;
         }
 
-        // Sort deltas and take the median/trimmed mean
         deltas.sort((a, b) => a - b);
         const trimStart = Math.floor(deltas.length * 0.2);
         const trimEnd = Math.ceil(deltas.length * 0.8);
@@ -159,12 +216,7 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
         const avgFrameMs = sum / trimmed.length;
 
         const info = snapToRefreshRate(avgFrameMs);
-        cachedInfo = info;
-        if (typeof window !== 'undefined' && false) {
-          try {
-            ;;
-          } catch {}
-        }
+        broadcastRefreshRate(info);
         resolve(info);
       }
     }
@@ -176,5 +228,28 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
 }
 
 export function getCachedRefreshRate(): RefreshRateInfo {
-  return cachedInfo || { hz: 60, frameTimeMs: 16.67, displayDelayOffsetMs: 8.33, isEstimated: true, status: 'detecting' };
+  return (
+    cachedInfo || {
+      hz: 60,
+      frameTimeMs: 16.67,
+      displayDelayOffsetMs: 8.33,
+      isEstimated: true,
+      source: 'fallback',
+      status: 'detecting'
+    }
+  );
+}
+
+// Invalidate calibration if display characteristics materially change
+if (typeof window !== 'undefined') {
+  const handleDisplayChange = () => {
+    if (cachedInfo && cachedInfo.status === 'ready') {
+      // Recompute refresh rate for new display
+      detectRefreshRate(true).catch(() => {});
+    }
+  };
+
+  if (window.screen?.orientation) {
+    window.screen.orientation.addEventListener('change', handleDisplayChange);
+  }
 }

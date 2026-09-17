@@ -1,11 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getSettings, updateSettings, ThemeMode } from './settingsStore';
+import { ThemeMode } from './settingsStore';
 
-export function applyAppTheme(mode: ThemeMode = getSettings().themeMode): 'dark' | 'light' {
+export function applyAppTheme(_mode?: ThemeMode): 'dark' {
   if (typeof window === 'undefined') return 'dark';
 
   const activeTheme = 'dark';
-
   document.documentElement.setAttribute('data-theme', activeTheme);
   document.documentElement.style.colorScheme = activeTheme;
   document.documentElement.classList.add('dark');
@@ -20,53 +19,16 @@ export function applyAppTheme(mode: ThemeMode = getSettings().themeMode): 'dark'
 }
 
 export function useSystemTheme() {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => getSettings().themeMode);
-  const [activeTheme, setActiveTheme] = useState<'dark' | 'light'>(() => {
-    if (typeof window === 'undefined') return 'dark';
-    return applyAppTheme(getSettings().themeMode);
-  });
+  const [activeTheme] = useState<'dark'>('dark');
+  const [themeMode] = useState<ThemeMode>('dark');
 
-  const updateActiveTheme = useCallback((overrideMode?: ThemeMode) => {
-    const currentMode = overrideMode || getSettings().themeMode;
-    setThemeModeState(currentMode);
-    const resolved = applyAppTheme(currentMode);
-    setActiveTheme(resolved);
+  const setThemeMode = useCallback((_newMode: ThemeMode) => {
+    // PULSE is dark-only for precise low-latency visual evaluation
   }, []);
 
-  const changeThemeMode = useCallback((newMode: ThemeMode) => {
-    updateSettings({ themeMode: newMode });
-    updateActiveTheme(newMode);
-  }, [updateActiveTheme]);
-
   useEffect(() => {
-    // Initial sync
-    updateActiveTheme();
+    applyAppTheme();
+  }, []);
 
-    const mediaQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
-    const handleMediaChange = () => {
-      if (getSettings().themeMode === 'system') {
-        updateActiveTheme('system');
-      }
-    };
-
-    if (mediaQuery) {
-      mediaQuery.addEventListener('change', handleMediaChange);
-    }
-
-    const handleCustomEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<ThemeMode>;
-      updateActiveTheme(customEvent.detail || getSettings().themeMode);
-    };
-
-    window.addEventListener('pulse_theme_changed', handleCustomEvent);
-
-    return () => {
-      if (mediaQuery) {
-        mediaQuery.removeEventListener('change', handleMediaChange);
-      }
-      window.removeEventListener('pulse_theme_changed', handleCustomEvent);
-    };
-  }, [updateActiveTheme]);
-
-  return { activeTheme, themeMode, setThemeMode: changeThemeMode };
+  return { activeTheme, themeMode, setThemeMode };
 }

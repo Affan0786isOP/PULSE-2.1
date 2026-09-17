@@ -100,7 +100,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono">
                 <Monitor size={12} className="text-[var(--accent)]" />
-                <span>{refreshInfo.hz} Hz ({refreshInfo.displayDelayOffsetMs} ms frame offset)</span>
+                <span>{refreshInfo.hz} Hz (+{refreshInfo.displayDelayOffsetMs} ms frame offset)</span>
               </div>
             </motion.div>
 

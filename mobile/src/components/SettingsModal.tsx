@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -13,19 +13,24 @@ import {
   RefreshCw, 
   Trash2, 
   Check,
-  Sun,
-  Moon,
-  Laptop,
   Download,
   Sliders
 } from 'lucide-react';
 import { useRefreshRate } from '../lib/useRefreshRate';
 import { detectRefreshRate, resetRefreshRateCache } from '../lib/refreshRateDetector';
 import { resetPendingSyncQueue } from '../lib/trialStore';
-import { useSettings, playAudioCue, triggerHaptic, ThemeMode } from '../lib/settingsStore';
-import { useSystemTheme } from '../lib/useSystemTheme';
+import { clearInMemorySessionTrials } from '../lib/inMemorySessionStore';
+import { 
+  useSettings, 
+  playAudioCue, 
+  triggerHaptic, 
+  resetSettingsToDefaults,
+  isHapticsSupported 
+} from '../lib/settingsStore';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { AddToHomeScreenModal } from './AddToHomeScreenModal';
+import { acquireScrollLock } from '../lib/modalScrollLock';
+import { useModalAccessibility } from '../lib/modalAccessibility';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -35,28 +40,35 @@ interface SettingsModalProps {
 type SettingsTab = 'general' | 'feedback' | 'calibration';
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const hookRefreshInfo = useRefreshRate();
-  const [localRefreshInfo, setLocalRefreshInfo] = useState(hookRefreshInfo);
-  useEffect(() => { setLocalRefreshInfo(hookRefreshInfo); }, [hookRefreshInfo]);
-  const { activeTheme, themeMode, setThemeMode } = useSystemTheme();
+  const refreshInfo = useRefreshRate();
   const pwa = usePwaInstall();
   const [settings, updateSettingsState] = useSettings();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [isRecalibrating, setIsRecalibrating] = useState(false);
+  const [calibrationError, setCalibrationError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(Boolean(typeof document !== 'undefined' && document.fullscreenElement));
   const [clearedNotice, setClearedNotice] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const wasOpenRef = React.useRef(false);
-  const isMountedRef = React.useRef(true);
+  const wasOpenRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const recalibrateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const hapticsAvailable = isHapticsSupported();
 
   useEffect(() => {
     isMountedRef.current = true;
     setMounted(true);
     return () => {
       isMountedRef.current = false;
+      if (recalibrateTimeoutRef.current) {
+        clearTimeout(recalibrateTimeoutRef.current);
+      }
     };
   }, []);
 
+  // Single authoritative owner of settings-open / settings-close events
   useEffect(() => {
     if (isOpen) {
       wasOpenRef.current = true;
@@ -71,25 +83,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   }, [isOpen]);
 
+  // Safe reference-counted modal scroll-lock
   useEffect(() => {
     if (isOpen) {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-      document.body.style.overflow = 'hidden';
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          onClose();
-        }
-      };
-      window.addEventListener('keydown', handleKeyDown);
+      const unlock = acquireScrollLock();
       return () => {
-        document.body.style.overflow = '';
-        window.removeEventListener('keydown', handleKeyDown);
+        unlock();
       };
-    } else {
-      document.body.style.overflow = '';
     }
-  }, [isOpen, onClose]);
+  }, [isOpen]);
+
+  useModalAccessibility({
+    isOpen,
+    onClose,
+    dialogRef,
+    initialFocusRef: closeButtonRef
+  });
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -101,11 +110,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     };
   }, []);
 
-  const handleSelectTheme = (mode: ThemeMode) => {
-    playAudioCue('click');
-    setThemeMode(mode);
-  };
-
   const handleToggleSound = () => {
     const updated = updateSettingsState({ soundEnabled: !settings.soundEnabled });
     if (updated.soundEnabled) {
@@ -114,6 +118,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   const handleToggleHaptics = () => {
+    if (!hapticsAvailable) return;
     const updated = updateSettingsState({ hapticsEnabled: !settings.hapticsEnabled });
     if (updated.hapticsEnabled) {
       triggerHaptic('success');
@@ -121,6 +126,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   const handleTestHaptic = () => {
+    if (!hapticsAvailable) return;
     triggerHaptic('success');
   };
 
@@ -140,17 +146,30 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   const handleRecalibrateDisplay = async () => {
     setIsRecalibrating(true);
+    setCalibrationError(null);
     playAudioCue('click');
     try {
       const fresh = await detectRefreshRate(true);
-      if (isMountedRef.current) setLocalRefreshInfo(fresh);
-    } finally {
-      setTimeout(() => {
+      if (recalibrateTimeoutRef.current) {
+        clearTimeout(recalibrateTimeoutRef.current);
+      }
+      recalibrateTimeoutRef.current = setTimeout(() => {
         if (isMountedRef.current) {
           setIsRecalibrating(false);
-          playAudioCue('success');
+          if (fresh.status === 'ready' && fresh.source !== 'fallback') {
+            playAudioCue('success');
+          } else if (fresh.status === 'error' || fresh.source === 'fallback') {
+            setCalibrationError(fresh.error || 'Calibration used fallback estimation');
+            playAudioCue('error');
+          }
         }
-      }, 500);
+      }, 400);
+    } catch {
+      if (isMountedRef.current) {
+        setIsRecalibrating(false);
+        setCalibrationError('Calibration failed');
+        playAudioCue('error');
+      }
     }
   };
 
@@ -170,9 +189,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const handleClearCache = () => {
     playAudioCue('click');
     try {
-      resetRefreshRateCache();
-      resetPendingSyncQueue();
-
       const targetedKeys = [
         'pulse_raw_trial_observations',
         'pulse_raw_trial_observations_evicted_count',
@@ -190,17 +206,18 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         'pulse_participant_id',
         'pulse_welcome_seen',
         'pulse_force_desktop',
-        'pulse_refresh_rate_cached'
+        'pulse_refresh_rate_cached',
+        'pulse_refresh_rate_fp',
+        'pulse_user_settings'
       ];
 
-      // Reset runtime in-memory settings to defaults
-      updateSettingsState({
-        soundEnabled: true,
-        hapticsEnabled: true,
-        fullscreenPromptEnabled: true,
-        exhibitionModeEnabled: false,
-        fontScale: 1.0,
+      targetedKeys.forEach(k => {
+        try { localStorage.removeItem(k); } catch {}
       });
+
+      if (typeof sessionStorage !== 'undefined') {
+        try { sessionStorage.removeItem('pulse_force_desktop'); } catch {}
+      }
 
       if (typeof document !== 'undefined') {
         try {
@@ -208,8 +225,15 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         } catch {}
       }
 
+      resetRefreshRateCache();
+      resetPendingSyncQueue();
+      clearInMemorySessionTrials();
+      resetSettingsToDefaults();
+
       setClearedNotice(true);
-      setTimeout(() => setClearedNotice(false), 3000);
+      setTimeout(() => {
+        if (isMountedRef.current) setClearedNotice(false);
+      }, 3000);
     } catch {
       // Ignore
     }
@@ -229,6 +253,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mobile-settings-modal-heading"
             >
               {/* Backdrop */}
               <motion.div
@@ -242,89 +269,93 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
               {/* Modal Card */}
               <motion.div
+                ref={dialogRef}
+                tabIndex={-1}
                 initial={{ opacity: 0, scale: 0.95, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 12 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto max-h-[calc(100dvh-2rem)] sm:max-h-[85dvh]"
+                className="relative w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto max-h-[calc(100dvh-2rem)] sm:max-h-[85dvh] outline-none"
               >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                  <Settings size={14} />
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
+                  <Settings size={15} />
                 </div>
                 <div>
-                  <h2 className="text-xs font-bold tracking-wide uppercase text-[var(--text-primary)] font-mono">
+                  <h2 id="mobile-settings-modal-heading" className="text-xs font-bold tracking-wider uppercase text-[var(--text-primary)] font-mono">
                     System Configuration
                   </h2>
-                  <p className="text-[9px] text-[var(--text-muted)] font-mono">
+                  <p className="text-[10px] text-[var(--text-muted)] font-mono">
                     Preferences &amp; Timing Hardware
                   </p>
                 </div>
               </div>
 
-              <button type="button"
-                id="close-mobile-settings-modal-btn"
+              <button 
+                ref={closeButtonRef}
+                type="button"
+                id="close-settings-modal-btn"
                 onClick={onClose}
                 aria-label="Close Settings"
-                className="w-6 h-6 rounded-md flex items-center justify-center bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-md flex items-center justify-center bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] active:scale-[0.96] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[background-color,color,border-color,transform] cursor-pointer"
               >
-                <X size={14} />
+                <X size={15} />
               </button>
             </div>
 
             {/* Segmented Navigation Tabs */}
-            <div className="px-4 pt-2.5 pb-2 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] shrink-0">
+            <div className="px-5 pt-3 pb-2 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] shrink-0">
               <div className="grid grid-cols-3 gap-1 p-1 bg-[var(--surface-2)] rounded-lg border border-[var(--border-subtle)] text-xs font-mono">
                 <button type="button"
                   onClick={() => { playAudioCue('click'); setActiveTab('general'); }}
-                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer ${
+                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] ${
                     activeTab === 'general'
                       ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'
                   }`}
                 >
-                  <Sliders size={12} />
+                  <Sliders size={13} />
                   <span>General</span>
                 </button>
 
                 <button type="button"
                   onClick={() => { playAudioCue('click'); setActiveTab('feedback'); }}
-                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer ${
+                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] ${
                     activeTab === 'feedback'
                       ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'
                   }`}
                 >
-                  <Volume2 size={12} />
+                  <Volume2 size={13} />
                   <span>Feedback</span>
                 </button>
 
                 <button type="button"
                   onClick={() => { playAudioCue('click'); setActiveTab('calibration'); }}
-                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer ${
+                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] ${
                     activeTab === 'calibration'
                       ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'
                   }`}
                 >
-                  <Monitor size={12} />
+                  <Monitor size={13} />
                   <span>System</span>
                 </button>
               </div>
             </div>
 
             {/* Body content */}
-            <div className="p-4 sm:p-5 overflow-y-auto text-sm space-y-3.5 flex-1 min-h-[260px]">
+            <div className="p-5 overflow-y-auto text-xs space-y-4 flex-1 min-h-[260px]">
               
               {/* TAB 1: GENERAL */}
               {activeTab === 'general' && (
                 <motion.div 
-                  initial={{ opacity: 0 }}
+                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.12 }}
-                  className="space-y-3"
+                  className="space-y-3.5"
                 >
                   {/* Font Scale / Text Density Segment */}
                   <div className="space-y-1.5">
@@ -352,10 +383,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         return (
                           <button
                             type="button"
-                            key={`mobile-font-scale-${opt.scale}`}
-                            id={`mobile-font-scale-${opt.label.replace('%', '')}-btn`}
+                            key={`font-scale-${opt.scale}`}
+                            id={`font-scale-${opt.label.replace('%', '')}-btn`}
                             onClick={() => {
-                              triggerHaptic('tap');
                               playAudioCue('click');
                               updateSettingsState({ fontScale: opt.scale });
                             }}
@@ -374,34 +404,34 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </div>
                   </div>
 
-                  {/* Clean Setting Rows */}
+                  {/* Clean Setting Rows container */}
                   <div className="rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)] overflow-hidden">
-                    {/* Fullscreen Mode */}
-                    <div className="p-2.5 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                          {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                    {/* Fullscreen Atmospheric Mode */}
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
+                          {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                         </div>
                         <div>
-                          <div className="text-xs font-semibold text-[var(--text-primary)]">Fullscreen View</div>
-                          <div className="text-[10px] text-[var(--text-muted)]">Distraction-free environment</div>
+                          <div className="text-xs font-semibold text-[var(--text-primary)]">Fullscreen Focus</div>
+                          <div className="text-[10px] text-[var(--text-muted)]">Distraction-free assessment atmosphere</div>
                         </div>
                       </div>
 
                       <button type="button"
-                        id="toggle-fullscreen-mobile-btn"
+                        id="toggle-fullscreen-btn"
                         onClick={handleToggleFullscreen}
-                        className="px-2 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors"
+                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors"
                       >
                         {isFullscreen ? 'Exit' : 'Enter'}
                       </button>
                     </div>
 
-                    {/* Mobile App */}
-                    <div className="p-2.5 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                          <Smartphone size={13} />
+                    {/* PWA / App Launcher */}
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
+                          <Smartphone size={14} />
                         </div>
                         <div>
                           <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
@@ -413,13 +443,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             )}
                           </div>
                           <div className="text-[10px] text-[var(--text-muted)]">
-                            {pwa.isInstalled ? 'Home screen standalone mode' : 'Add to home screen for direct launch'}
+                            {pwa.isInstalled ? 'Zero-latency home screen mode active' : 'Install for direct 1-tap mobile launch'}
                           </div>
                         </div>
                       </div>
 
                       <button type="button"
-                        id="open-a2hs-guide-mobile-btn"
+                        id="open-a2hs-guide-btn"
                         onClick={async () => {
                           playAudioCue('click');
                           if (pwa.isInstalled) {
@@ -428,9 +458,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             await pwa.promptInstall();
                           }
                         }}
-                        className="px-2 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors flex items-center gap-1"
+                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors flex items-center gap-1.5"
                       >
-                        <Download size={11} />
+                        <Download size={12} />
                         <span>{pwa.isInstalled ? 'Details' : 'Install'}</span>
                       </button>
                     </div>
@@ -444,81 +474,94 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.12 }}
-                  className="space-y-3"
+                  className="space-y-3.5"
                 >
                   <div className="rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)] overflow-hidden">
                     {/* Sound FX Toggle */}
-                    <div className="p-2.5 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                          {settings.soundEnabled ? <Volume2 size={13} /> : <VolumeX size={13} />}
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
+                          {settings.soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
                         </div>
                         <div>
-                          <div className="text-xs font-semibold text-[var(--text-primary)]">Sound Effects</div>
-                          <div className="text-[10px] text-[var(--text-muted)]">Auditory stimulus cues</div>
+                          <div className="text-xs font-semibold text-[var(--text-primary)]">Auditory Stimuli &amp; Sound FX</div>
+                          <div className="text-[10px] text-[var(--text-muted)]">Audio beeps and click feedback</div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {settings.soundEnabled && (
                           <button type="button"
                             onClick={handleTestSound}
-                            className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
                           >
                             Test
                           </button>
                         )}
                         <button type="button"
-                          id="toggle-sound-mobile-btn"
+                          id="toggle-sound-btn"
+                          role="switch"
+                          aria-checked={settings.soundEnabled}
+                          aria-label="Toggle Auditory Stimuli & Sound FX"
                           onClick={handleToggleSound}
                           className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
                             settings.soundEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                           }`}
                         >
                           <span 
-                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${
+                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
                               settings.soundEnabled ? 'translate-x-4' : 'translate-x-0'
                             }`} 
-                          />
+                          >
+                            {settings.soundEnabled ? '✓' : ''}
+                          </span>
                         </button>
                       </div>
                     </div>
 
                     {/* Haptic Vibration Toggle */}
-                    <div className="p-2.5 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                          <Smartphone size={13} />
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
+                          <Smartphone size={14} />
                         </div>
                         <div>
                           <div className="text-xs font-semibold text-[var(--text-primary)]">Haptic Vibration</div>
                           <div className="text-[10px] text-[var(--text-muted)]">
-                            {typeof navigator !== 'undefined' && 'vibrate' in navigator ? 'Tactile pulse on test touch' : 'Tactile feedback'}
+                            {!hapticsAvailable ? 'Not supported on this device/browser' : 'Tactile pulse on button inputs'}
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-1.5">
-                        {settings.hapticsEnabled && (
+                      <div className="flex items-center gap-2">
+                        {settings.hapticsEnabled && hapticsAvailable && (
                           <button type="button"
                             onClick={handleTestHaptic}
-                            className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
                           >
                             Test
                           </button>
                         )}
                         <button type="button"
-                          id="toggle-haptics-mobile-btn"
+                          id="toggle-haptics-btn"
+                          role="switch"
+                          aria-checked={settings.hapticsEnabled && hapticsAvailable}
+                          aria-label="Toggle Haptic Vibration"
+                          disabled={!hapticsAvailable}
                           onClick={handleToggleHaptics}
-                          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-                            settings.hapticsEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
+                          className={`w-9 h-5 rounded-full transition-colors relative ${
+                            !hapticsAvailable
+                              ? 'opacity-40 cursor-not-allowed bg-[var(--surface-3)] border border-[var(--border-subtle)]'
+                              : settings.hapticsEnabled ? 'bg-[var(--accent)] cursor-pointer' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)] cursor-pointer'
                           }`}
                         >
                           <span 
-                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${
-                              settings.hapticsEnabled ? 'translate-x-4' : 'translate-x-0'
+                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
+                              settings.hapticsEnabled && hapticsAvailable ? 'translate-x-4' : 'translate-x-0'
                             }`} 
-                          />
+                          >
+                            {settings.hapticsEnabled && hapticsAvailable ? '✓' : ''}
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -532,101 +575,123 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.12 }}
-                  className="space-y-3"
+                  className="space-y-3.5"
                 >
                   {/* Display Hardware Calibration Card */}
-                  <div className="p-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] space-y-2">
+                  <div className="p-3.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Monitor size={13} className="text-[var(--accent)]" />
+                        <Monitor size={14} className="text-[var(--accent)]" />
                         <span className="font-mono font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]">
                           Display Frame Timing
                         </span>
                       </div>
                       <button type="button"
-                        id="recalibrate-display-mobile-btn"
+                        id="recalibrate-display-btn"
                         onClick={handleRecalibrateDisplay}
                         disabled={isRecalibrating}
-                        className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors disabled:opacity-50"
                       >
                         <RefreshCw size={11} className={isRecalibrating ? 'animate-spin' : ''} />
                         <span>{isRecalibrating ? 'Calibrating...' : 'Recalibrate'}</span>
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-                      <div className="p-2 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
-                        <div className="text-[9px] text-[var(--text-muted)] font-mono uppercase">Refresh Rate</div>
-                        <div className="text-sm font-mono font-bold text-[var(--accent)] mt-0.5">{localRefreshInfo.hz} Hz</div>
+                    <div className="grid grid-cols-2 gap-2 pt-0.5">
+                      <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
+                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Refresh Rate</div>
+                        <div className="text-base font-mono font-bold text-[var(--accent)] mt-0.5">{refreshInfo.hz} Hz</div>
+                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">
+                          {refreshInfo.source === 'measured' ? 'Exact timing' : refreshInfo.source === 'estimated' ? 'Calculated' : 'Fallback baseline'}
+                        </div>
                       </div>
-                      <div className="p-2 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
-                        <div className="text-[9px] text-[var(--text-muted)] font-mono uppercase">Estimated Frame Offset</div>
-                        <div className="text-sm font-mono font-bold text-emerald-400 mt-0.5">-{localRefreshInfo.displayDelayOffsetMs} ms</div>
+                      <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
+                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Frame Offset</div>
+                        <div className="text-base font-mono font-bold text-emerald-400 mt-0.5">+{refreshInfo.displayDelayOffsetMs} ms</div>
+                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">Nominal midpoint</div>
                       </div>
                     </div>
+
+                    {calibrationError && (
+                      <div className="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-mono">
+                        {calibrationError}
+                      </div>
+                    )}
                   </div>
 
                   {/* System Toggles */}
                   <div className="rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)] overflow-hidden">
                     {/* Reduced Motion */}
-                    <div className="p-2.5 flex items-center justify-between">
+                    <div className="p-3 flex items-center justify-between">
                       <div>
                         <div className="text-xs font-semibold text-[var(--text-primary)]">Reduced Motion</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Disables animations</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">Suppresses application animations, background particles, and UI transitions</div>
                       </div>
                       <button type="button"
+                        id="toggle-reduced-motion-btn"
+                        role="switch"
+                        aria-checked={settings.reducedMotionEnabled}
+                        aria-label="Toggle Reduced Motion"
                         onClick={handleToggleReducedMotion}
                         className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
                           settings.reducedMotionEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                         }`}
                       >
                         <span 
-                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
                             settings.reducedMotionEnabled ? 'translate-x-4' : 'translate-x-0'
                           }`} 
-                        />
+                        >
+                          {settings.reducedMotionEnabled ? '✓' : ''}
+                        </span>
                       </button>
                     </div>
 
                     {/* Exhibition Mode */}
-                    <div className="p-2.5 flex items-center justify-between">
+                    <div className="p-3 flex items-center justify-between">
                       <div>
-                        <div className="text-xs font-semibold text-[var(--text-primary)]">Exhibition Mode</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Locks navigation for kiosks</div>
+                        <div className="text-xs font-semibold text-[var(--text-primary)]">Exhibition Kiosk Mode</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">Locks navigation for public testing terminals</div>
                       </div>
                       <button type="button"
+                        id="toggle-exhibition-btn"
+                        role="switch"
+                        aria-checked={settings.exhibitionModeEnabled}
+                        aria-label="Toggle Exhibition Kiosk Mode"
                         onClick={handleToggleExhibition}
                         className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
                           settings.exhibitionModeEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                         }`}
                       >
                         <span 
-                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
                             settings.exhibitionModeEnabled ? 'translate-x-4' : 'translate-x-0'
                           }`} 
-                        />
+                        >
+                          {settings.exhibitionModeEnabled ? '✓' : ''}
+                        </span>
                       </button>
                     </div>
 
                     {/* Reset Cache */}
-                    <div className="p-2.5 flex items-center justify-between">
+                    <div className="p-3 flex items-center justify-between">
                       <div>
-                        <div className="text-xs font-semibold text-[var(--text-primary)]">Reset Local Cache</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Clears transient local UI display cache</div>
+                        <div className="text-xs font-semibold text-[var(--text-primary)]">Clear Local Cache</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">Resets client state, pending sync, and stored preferences</div>
                       </div>
                       <button type="button"
-                        id="clear-session-cache-mobile-btn"
+                        id="clear-session-cache-btn"
                         onClick={handleClearCache}
-                        className="px-2 py-1 rounded-md bg-[var(--surface-1)] hover:bg-rose-500/10 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-rose-500 font-mono text-xs transition-colors cursor-pointer flex items-center gap-1"
+                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-rose-500/10 border border-[var(--border-subtle)] hover:border-rose-500/30 text-[var(--text-secondary)] hover:text-rose-500 font-mono text-xs transition-colors cursor-pointer flex items-center gap-1.5"
                       >
                         {clearedNotice ? (
                           <>
-                            <Check size={11} className="text-emerald-400" />
+                            <Check size={12} className="text-emerald-400" />
                             <span className="text-emerald-400">Done</span>
                           </>
                         ) : (
                           <>
-                            <Trash2 size={11} />
+                            <Trash2 size={12} />
                             <span>Reset</span>
                           </>
                         )}
@@ -639,7 +704,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-2 border-t border-[var(--border-subtle)] bg-[var(--surface-1)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)] shrink-0">
+            <div className="px-5 py-2.5 border-t border-[var(--border-subtle)] bg-[var(--surface-1)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)] shrink-0">
               <span>PULSE Latency Engine</span>
               <span className="text-[var(--accent)]">Precision Calibration</span>
             </div>
@@ -664,4 +729,3 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     </>
   );
 }
-

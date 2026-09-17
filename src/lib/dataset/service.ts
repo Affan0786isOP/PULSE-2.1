@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db, isConfigured } from '../firebase';
 import {
   ResearchSessionRecord,
@@ -8,15 +8,10 @@ import { normalizeProtocolType, normalizeSessionToObservations } from './normali
 
 /**
  * Canonical Research Dataset Fetcher
- * Queries server API `/api/research/dataset` using cursor-based pagination to retrieve the COMPLETE dataset,
- * falling back to paginated direct Firestore SDK if necessary.
+ * Queries server API `/api/research/dataset` using cursor-based pagination to retrieve the COMPLETE dataset
+ * derived from the authoritative hierarchy: experimentSessions → assessmentResults → assessmentTrials.
  * 
- * NOTE ON FALLBACK SOURCE:
- * Both the `/api/research/dataset` endpoint and the direct fallback query use the `publicDataset` collection.
- * The `publicDataset` collection is the canonical public projection written transactionally alongside 
- * the authoritative `experimentSessions` and `assessmentResults` records in `server.ts`.
- * Because both paths query the same canonical projection, they produce identical normalized semantics.
- * 
+ * Privacy boundary is preserved: participant identifiers (UIDs) are never exposed to the client.
  * Propagates errors explicitly without fabricating fake observations or truncating data.
  */
 export async function fetchResearchDataset(): Promise<{
@@ -26,7 +21,7 @@ export async function fetchResearchDataset(): Promise<{
   let fetchedRecords: ResearchSessionRecord[] = [];
   let fetchError: Error | null = null;
 
-  // 1. Try server API endpoint with cursor pagination to retrieve all records
+  // 1. Try server API endpoint with cursor pagination to retrieve all records from authoritative hierarchy
   try {
     let tempRecords: ResearchSessionRecord[] = [];
     let hasMore = true;
@@ -66,7 +61,7 @@ export async function fetchResearchDataset(): Promise<{
     fetchError = apiErr instanceof Error ? apiErr : new Error(String(apiErr));
   }
 
-  // 2. If no server records and Firestore is configured, query Firestore directly with complete pagination
+  // 2. If no server records and Firestore is configured, query authoritative Firestore collections directly
   if (fetchedRecords.length === 0 && isConfigured && db) {
     try {
       let tempRecords: ResearchSessionRecord[] = [];
@@ -76,8 +71,8 @@ export async function fetchResearchDataset(): Promise<{
 
       while (hasMore) {
         let q = lastDoc
-          ? query(collection(db, 'publicDataset'), orderBy('__name__'), startAfter(lastDoc), limit(batchSize))
-          : query(collection(db, 'publicDataset'), orderBy('__name__'), limit(batchSize));
+          ? query(collection(db, 'assessmentResults'), orderBy('__name__'), startAfter(lastDoc), limit(batchSize))
+          : query(collection(db, 'assessmentResults'), orderBy('__name__'), limit(batchSize));
 
         const snap = await getDocs(q);
         if (snap.empty) {
@@ -85,13 +80,34 @@ export async function fetchResearchDataset(): Promise<{
           break;
         }
 
-        const pageRecords = snap.docs.map(docSnap => {
+        const pageRecords: ResearchSessionRecord[] = await Promise.all(snap.docs.map(async (docSnap) => {
           const d = docSnap.data();
           let derivedMonth = d.completedAtMonth;
           if (!derivedMonth && (d.completedAtTimestamp || d.createdAt)) {
             const dateObj = new Date(d.completedAtTimestamp || d.createdAt);
             if (!isNaN(dateObj.getTime())) {
               derivedMonth = dateObj.toISOString().substring(0, 7);
+            }
+          }
+
+          let progressionTrials: any[] = [];
+          if (d.sessionId) {
+            try {
+              const trialsQuery = query(collection(db, 'assessmentTrials'), where('sessionId', '==', d.sessionId));
+              const trialsSnap = await getDocs(trialsQuery);
+              progressionTrials = trialsSnap.docs.map(td => {
+                const t = td.data();
+                // Strictly omit private participantId / uid
+                const { participantId, uid, ...safeData } = t;
+                return safeData;
+              });
+              progressionTrials.sort((a, b) => {
+                const numA = typeof a.trialNumber === 'number' ? a.trialNumber : (typeof a.trialIndex === 'number' ? a.trialIndex : 0);
+                const numB = typeof b.trialNumber === 'number' ? b.trialNumber : (typeof b.trialIndex === 'number' ? b.trialIndex : 0);
+                return numA - numB;
+              });
+            } catch {
+              progressionTrials = [];
             }
           }
 
@@ -119,9 +135,9 @@ export async function fetchResearchDataset(): Promise<{
             congruentAvg: d.congruentAvg,
             incongruentAvg: d.incongruentAvg,
             interferenceCost: d.interferenceCost,
-            progressionTrials: d.progressionTrials || []
+            progressionTrials
           } as ResearchSessionRecord;
-        });
+        }));
 
         tempRecords.push(...pageRecords);
         lastDoc = snap.docs[snap.docs.length - 1];
@@ -132,7 +148,7 @@ export async function fetchResearchDataset(): Promise<{
       fetchedRecords = tempRecords;
 
       if (fetchedRecords.length > 0) {
-        fetchError = null; // Successfully retrieved via direct Firestore
+        fetchError = null;
       }
     } catch (fsErr) {
       if (!fetchError) {

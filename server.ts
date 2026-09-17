@@ -3134,7 +3134,8 @@ async function startServer() {
       const records: any[] = [];
 
       try {
-        let q: FirebaseFirestore.Query = db.collection('publicDataset');
+        // Authoritative Research Hierarchy: experimentSessions → assessmentResults → assessmentTrials
+        let q: FirebaseFirestore.Query = db.collection('assessmentResults');
 
         if (assessmentType) {
           const aliases = assessmentType === 'color-recognition'
@@ -3169,8 +3170,108 @@ async function startServer() {
         const pageDocs = hasMore ? snap.docs.slice(0, limitCount) : snap.docs;
         const nextCursor = hasMore && pageDocs.length > 0 ? pageDocs[pageDocs.length - 1].id : null;
 
+        // Collect session IDs to retrieve linked experimentSessions and complete assessmentTrials
+        const sessionIds = pageDocs
+          .map(docSnap => docSnap.data().sessionId)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0);
+
+        // Batch fetch linked experimentSessions
+        const sessionMap = new Map<string, FirebaseFirestore.DocumentData>();
+        if (sessionIds.length > 0) {
+          const sessionSnaps = await Promise.all(
+            sessionIds.map(id => db.collection('experimentSessions').doc(id).get())
+          );
+          sessionSnaps.forEach(sSnap => {
+            if (sSnap.exists) {
+              sessionMap.set(sSnap.id, sSnap.data()!);
+            }
+          });
+        }
+
+        // Batch fetch canonical assessmentTrials (chunks of 30 for Firestore 'in' limitation)
+        const trialsBySession = new Map<string, any[]>();
+        for (let i = 0; i < sessionIds.length; i += 30) {
+          const chunk = sessionIds.slice(i, i + 30);
+          const trialsSnap = await db.collection('assessmentTrials').where('sessionId', 'in', chunk).get();
+          trialsSnap.docs.forEach(tDoc => {
+            const tData = tDoc.data();
+            const sId = tData.sessionId;
+            if (sId) {
+              if (!trialsBySession.has(sId)) {
+                trialsBySession.set(sId, []);
+              }
+              trialsBySession.get(sId)!.push(tData);
+            }
+          });
+        }
+
         pageDocs.forEach(docSnap => {
           const data = docSnap.data();
+          const sId = data.sessionId;
+          const sessionData = sId ? sessionMap.get(sId) : undefined;
+          const rawTrials = sId ? (trialsBySession.get(sId) || []) : [];
+
+          // Sort trials canonically by trialNumber / trialIndex / sequenceNumber
+          rawTrials.sort((a, b) => {
+            const numA = typeof a.trialNumber === 'number' ? a.trialNumber : (typeof a.trialIndex === 'number' ? a.trialIndex : (typeof a.sequenceNumber === 'number' ? a.sequenceNumber : 0));
+            const numB = typeof b.trialNumber === 'number' ? b.trialNumber : (typeof b.trialIndex === 'number' ? b.trialIndex : (typeof b.sequenceNumber === 'number' ? b.sequenceNumber : 0));
+            return numA - numB;
+          });
+
+          // Sanitize progressionTrials strictly omitting participantId / private UID
+          const sanitizedTrials = rawTrials.map((tp: Record<string, any>, idx: number) => {
+            const trialNumber = typeof tp.trialNumber === 'number' ? tp.trialNumber : (idx + 1);
+            const rawRt = typeof tp.reactionTime === 'number' ? tp.reactionTime : (typeof tp.reactionTimeMs === 'number' ? tp.reactionTimeMs : null);
+            const falseStart = tp.falseStart === true;
+            const timedOut = tp.timedOut === true;
+            const valid = typeof tp.valid === 'boolean' ? tp.valid : (!falseStart && !timedOut);
+
+            const trialItem: Record<string, any> = {
+              trialNumber,
+              trialIndex: typeof tp.trialIndex === 'number' ? tp.trialIndex : trialNumber,
+              sequenceNumber: typeof tp.sequenceNumber === 'number' ? tp.sequenceNumber : trialNumber,
+              attemptNumber: typeof tp.attemptNumber === 'number' ? tp.attemptNumber : 1,
+              reactionTime: rawRt,
+              falseStart,
+              timedOut,
+              valid,
+            };
+
+            if (typeof tp.correct === 'boolean') trialItem.correct = tp.correct;
+            if (typeof tp.correctness === 'boolean') trialItem.correctness = tp.correctness;
+            if (typeof tp.accuracy === 'number') trialItem.accuracy = tp.accuracy;
+            if (typeof tp.validity === 'string') trialItem.validity = tp.validity;
+            if (tp.qualityFlag !== undefined) trialItem.qualityFlag = tp.qualityFlag;
+
+            if (typeof tp.rawLatencyMs === 'number') trialItem.rawLatencyMs = tp.rawLatencyMs;
+            else if (typeof tp.rawReactionTime === 'number') trialItem.rawLatencyMs = tp.rawReactionTime;
+            if (typeof tp.displayDelayOffsetMs === 'number') trialItem.displayDelayOffsetMs = tp.displayDelayOffsetMs;
+
+            if (typeof tp.stimulusScheduledAtPerfMs === 'number') trialItem.stimulusScheduledAtPerfMs = tp.stimulusScheduledAtPerfMs;
+            if (typeof tp.stimulusPresentedAtPerfMs === 'number') trialItem.stimulusPresentedAtPerfMs = tp.stimulusPresentedAtPerfMs;
+            if (typeof tp.responseDetectedAtPerfMs === 'number') trialItem.responseDetectedAtPerfMs = tp.responseDetectedAtPerfMs;
+
+            if (typeof tp.foreperiodMs === 'number') trialItem.foreperiodMs = tp.foreperiodMs;
+            if (typeof tp.foreperiodCategory === 'string') trialItem.foreperiodCategory = tp.foreperiodCategory;
+
+            if (typeof tp.targetDirection === 'string') trialItem.targetDirection = tp.targetDirection;
+            if (typeof tp.chosenDirection === 'string') trialItem.chosenDirection = tp.chosenDirection;
+            if (typeof tp.userResponse === 'string' || tp.userResponse === null) trialItem.userResponse = tp.userResponse;
+
+            if (typeof tp.targetColor === 'string') trialItem.targetColor = tp.targetColor;
+            if (typeof tp.chosenColor === 'string') trialItem.chosenColor = tp.chosenColor;
+            if (typeof tp.wordName === 'string') trialItem.wordName = tp.wordName;
+            if (typeof tp.wordColor === 'string') trialItem.wordColor = tp.wordColor;
+            if (typeof tp.condition === 'string') trialItem.condition = tp.condition;
+            if (typeof tp.instruction === 'string') trialItem.instruction = tp.instruction;
+
+            if (typeof tp.level === 'number') trialItem.level = tp.level;
+            if (typeof tp.sequenceLength === 'number') trialItem.sequenceLength = tp.sequenceLength;
+            if (typeof tp.interTapTimeMs === 'number') trialItem.interTapTimeMs = tp.interTapTimeMs;
+            if (typeof tp.responseDurationMs === 'number') trialItem.responseDurationMs = tp.responseDurationMs;
+
+            return trialItem;
+          });
 
           let derivedMonth = data.completedAtMonth;
           if (!derivedMonth && (data.completedAtTimestamp || data.createdAt)) {
@@ -3183,28 +3284,28 @@ async function startServer() {
           records.push({
             id: docSnap.id,
             assessmentType: normalizeAssessmentType(data.assessmentType || 'unknown'),
-            ageGroup: data.ageGroup || undefined,
+            ageGroup: data.ageGroup || sessionData?.ageGroup || undefined,
             completedAtMonth: derivedMonth || undefined,
             completedAtTimestamp: data.completedAtTimestamp || data.createdAt,
-            deviceCategory: data.deviceCategory || data.device || undefined,
-            device: data.device,
-            inputModality: data.inputModality || data.inputMethod,
-            displayRefreshRateHz: data.displayRefreshRateHz || data.refreshRateHz || data.refreshRate,
-            refreshRateHz: data.refreshRateHz || data.refreshRate,
+            deviceCategory: sessionData?.deviceCategory || sessionData?.device || undefined,
+            device: sessionData?.device || sessionData?.deviceCategory || undefined,
+            inputModality: sessionData?.inputModality || sessionData?.inputMethod || undefined,
+            displayRefreshRateHz: sessionData?.displayRefreshRateHz || sessionData?.refreshRateHz || undefined,
+            refreshRateHz: sessionData?.refreshRateHz || sessionData?.displayRefreshRateHz || undefined,
             provenanceToken: data.provenanceToken,
             trialsDigest: data.trialsDigest,
             scoreMetric: data.scoreMetric,
-            averageReactionTime: data.averageReactionTime,
-            medianReactionTime: data.medianReactionTime,
-            fastestReactionTime: data.fastestReactionTime,
-            slowestReactionTime: data.slowestReactionTime,
-            longestSeq: data.longestSeq,
-            highestLevel: data.highestLevel,
-            accuracy: data.accuracy,
-            congruentAvg: data.congruentAvg,
-            incongruentAvg: data.incongruentAvg,
-            interferenceCost: data.interferenceCost,
-            progressionTrials: data.progressionTrials || []
+            averageReactionTime: data.derivedMetrics?.averageReactionTime ?? data.averageReactionTime,
+            medianReactionTime: data.derivedMetrics?.medianReactionTime ?? data.medianReactionTime,
+            fastestReactionTime: data.derivedMetrics?.fastestReactionTime ?? data.fastestReactionTime,
+            slowestReactionTime: data.derivedMetrics?.slowestReactionTime ?? data.slowestReactionTime,
+            longestSeq: data.derivedMetrics?.longestSeq ?? data.longestSeq,
+            highestLevel: data.derivedMetrics?.highestLevel ?? data.highestLevel,
+            accuracy: data.derivedMetrics?.accuracy ?? data.accuracy,
+            congruentAvg: data.derivedMetrics?.congruentAvg ?? data.congruentAvg,
+            incongruentAvg: data.derivedMetrics?.incongruentAvg ?? data.incongruentAvg,
+            interferenceCost: data.derivedMetrics?.interferenceCost ?? data.interferenceCost,
+            progressionTrials: sanitizedTrials
           });
         });
 
@@ -3248,7 +3349,7 @@ async function startServer() {
       let totalTrials = 0;
 
       try {
-        const snap = await db.collection('publicDataset').limit(5000).get();
+        const snap = await db.collection('assessmentResults').limit(5000).get();
         totalRecords = snap.size;
         snap.docs.forEach(docSnap => {
           const data = docSnap.data();
@@ -3256,10 +3357,9 @@ async function startServer() {
           if (normType && counts[normType] !== undefined) {
             counts[normType]++;
           }
-          if (Array.isArray(data.progressionTrials)) {
-            totalTrials += data.progressionTrials.length;
-          }
         });
+        const trialsSnap = await db.collection('assessmentTrials').limit(10000).get();
+        totalTrials = trialsSnap.size;
       } catch (dbErr) {
         console.error('[Research Summary API] Firestore query error:', dbErr instanceof Error ? dbErr.message : String(dbErr));
         return res.status(500).json({

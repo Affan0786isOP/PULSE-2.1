@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -13,21 +13,24 @@ import {
   RefreshCw, 
   Trash2, 
   Check,
-  Sun,
-  Moon,
-  Laptop,
   Download,
-  ShieldCheck,
-  Sliders,
-  Sparkles
+  Sliders
 } from 'lucide-react';
 import { useRefreshRate } from '../lib/useRefreshRate';
 import { detectRefreshRate, resetRefreshRateCache } from '../lib/refreshRateDetector';
 import { resetPendingSyncQueue } from '../lib/trialStore';
-import { useSettings, playAudioCue, triggerHaptic, ThemeMode } from '../lib/settingsStore';
-import { useSystemTheme } from '../lib/useSystemTheme';
+import { clearInMemorySessionTrials } from '../lib/inMemorySessionStore';
+import { 
+  useSettings, 
+  playAudioCue, 
+  triggerHaptic, 
+  resetSettingsToDefaults,
+  isHapticsSupported 
+} from '../lib/settingsStore';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { AddToHomeScreenModal } from './AddToHomeScreenModal';
+import { acquireScrollLock } from '../lib/modalScrollLock';
+import { useModalAccessibility } from '../lib/modalAccessibility';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -37,28 +40,35 @@ interface SettingsModalProps {
 type SettingsTab = 'general' | 'feedback' | 'calibration';
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const hookRefreshInfo = useRefreshRate();
-  const [localRefreshInfo, setLocalRefreshInfo] = useState(hookRefreshInfo);
-  useEffect(() => { setLocalRefreshInfo(hookRefreshInfo); }, [hookRefreshInfo]);
-  const { activeTheme, themeMode, setThemeMode } = useSystemTheme();
+  const refreshInfo = useRefreshRate();
   const pwa = usePwaInstall();
   const [settings, updateSettingsState] = useSettings();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [isRecalibrating, setIsRecalibrating] = useState(false);
+  const [calibrationError, setCalibrationError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(Boolean(typeof document !== 'undefined' && document.fullscreenElement));
   const [clearedNotice, setClearedNotice] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const wasOpenRef = React.useRef(false);
-  const isMountedRef = React.useRef(true);
+  const wasOpenRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const recalibrateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const hapticsAvailable = isHapticsSupported();
 
   useEffect(() => {
     isMountedRef.current = true;
     setMounted(true);
     return () => {
       isMountedRef.current = false;
+      if (recalibrateTimeoutRef.current) {
+        clearTimeout(recalibrateTimeoutRef.current);
+      }
     };
   }, []);
 
+  // Single authoritative owner of settings-open / settings-close events
   useEffect(() => {
     if (isOpen) {
       wasOpenRef.current = true;
@@ -73,25 +83,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   }, [isOpen]);
 
+  // Safe reference-counted modal scroll-lock
   useEffect(() => {
     if (isOpen) {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-      document.body.style.overflow = 'hidden';
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          onClose();
-        }
-      };
-      window.addEventListener('keydown', handleKeyDown);
+      const unlock = acquireScrollLock();
       return () => {
-        document.body.style.overflow = '';
-        window.removeEventListener('keydown', handleKeyDown);
+        unlock();
       };
-    } else {
-      document.body.style.overflow = '';
     }
-  }, [isOpen, onClose]);
+  }, [isOpen]);
+
+  useModalAccessibility({
+    isOpen,
+    onClose,
+    dialogRef,
+    initialFocusRef: closeButtonRef
+  });
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -103,11 +110,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     };
   }, []);
 
-  const handleSelectTheme = (mode: ThemeMode) => {
-    playAudioCue('click');
-    setThemeMode(mode);
-  };
-
   const handleToggleSound = () => {
     const updated = updateSettingsState({ soundEnabled: !settings.soundEnabled });
     if (updated.soundEnabled) {
@@ -116,6 +118,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   const handleToggleHaptics = () => {
+    if (!hapticsAvailable) return;
     const updated = updateSettingsState({ hapticsEnabled: !settings.hapticsEnabled });
     if (updated.hapticsEnabled) {
       triggerHaptic('success');
@@ -123,6 +126,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   const handleTestHaptic = () => {
+    if (!hapticsAvailable) return;
     triggerHaptic('success');
   };
 
@@ -142,17 +146,30 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   const handleRecalibrateDisplay = async () => {
     setIsRecalibrating(true);
+    setCalibrationError(null);
     playAudioCue('click');
     try {
       const fresh = await detectRefreshRate(true);
-      if (isMountedRef.current) setLocalRefreshInfo(fresh);
-    } finally {
-      setTimeout(() => {
+      if (recalibrateTimeoutRef.current) {
+        clearTimeout(recalibrateTimeoutRef.current);
+      }
+      recalibrateTimeoutRef.current = setTimeout(() => {
         if (isMountedRef.current) {
           setIsRecalibrating(false);
-          playAudioCue('success');
+          if (fresh.status === 'ready' && fresh.source !== 'fallback') {
+            playAudioCue('success');
+          } else if (fresh.status === 'error' || fresh.source === 'fallback') {
+            setCalibrationError(fresh.error || 'Calibration used fallback estimation');
+            playAudioCue('error');
+          }
         }
-      }, 500);
+      }, 400);
+    } catch {
+      if (isMountedRef.current) {
+        setIsRecalibrating(false);
+        setCalibrationError('Calibration failed');
+        playAudioCue('error');
+      }
     }
   };
 
@@ -172,9 +189,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const handleClearCache = () => {
     playAudioCue('click');
     try {
-      resetRefreshRateCache();
-      resetPendingSyncQueue();
-
       const targetedKeys = [
         'pulse_raw_trial_observations',
         'pulse_raw_trial_observations_evicted_count',
@@ -193,17 +207,17 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         'pulse_welcome_seen',
         'pulse_force_desktop',
         'pulse_refresh_rate_cached',
-        'pulse_refresh_rate_fp'
+        'pulse_refresh_rate_fp',
+        'pulse_user_settings'
       ];
 
-      // Reset runtime in-memory settings to defaults
-      updateSettingsState({
-        soundEnabled: true,
-        hapticsEnabled: true,
-        fullscreenPromptEnabled: true,
-        exhibitionModeEnabled: false,
-        fontScale: 1.0,
+      targetedKeys.forEach(k => {
+        try { localStorage.removeItem(k); } catch {}
       });
+
+      if (typeof sessionStorage !== 'undefined') {
+        try { sessionStorage.removeItem('pulse_force_desktop'); } catch {}
+      }
 
       if (typeof document !== 'undefined') {
         try {
@@ -211,8 +225,15 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         } catch {}
       }
 
+      resetRefreshRateCache();
+      resetPendingSyncQueue();
+      clearInMemorySessionTrials();
+      resetSettingsToDefaults();
+
       setClearedNotice(true);
-      setTimeout(() => setClearedNotice(false), 3000);
+      setTimeout(() => {
+        if (isMountedRef.current) setClearedNotice(false);
+      }, 3000);
     } catch {
       // Ignore
     }
@@ -232,6 +253,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="settings-modal-heading"
             >
               {/* Backdrop */}
               <motion.div
@@ -245,11 +269,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
               {/* Modal Card */}
               <motion.div
+                ref={dialogRef}
+                tabIndex={-1}
                 initial={{ opacity: 0, scale: 0.95, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 12 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl overflow-hidden flex flex-col z-10 my-auto max-h-[calc(100dvh-2rem)] sm:max-h-[85dvh]"
+                className="relative w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl overflow-hidden flex flex-col z-10 my-auto max-h-[calc(100dvh-2rem)] sm:max-h-[85dvh] outline-none"
               >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] shrink-0">
@@ -258,7 +284,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <Settings size={15} />
                 </div>
                 <div>
-                  <h2 className="text-xs font-bold tracking-wider uppercase text-[var(--text-primary)] font-mono">
+                  <h2 id="settings-modal-heading" className="text-xs font-bold tracking-wider uppercase text-[var(--text-primary)] font-mono">
                     System Configuration
                   </h2>
                   <p className="text-[10px] text-[var(--text-muted)] font-mono">
@@ -267,7 +293,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </div>
               </div>
 
-              <button type="button"
+              <button 
+                ref={closeButtonRef}
+                type="button"
                 id="close-settings-modal-btn"
                 onClick={onClose}
                 aria-label="Close Settings"
@@ -472,16 +500,21 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         )}
                         <button type="button"
                           id="toggle-sound-btn"
+                          role="switch"
+                          aria-checked={settings.soundEnabled}
+                          aria-label="Toggle Auditory Stimuli & Sound FX"
                           onClick={handleToggleSound}
                           className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
                             settings.soundEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                           }`}
                         >
                           <span 
-                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${
+                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
                               settings.soundEnabled ? 'translate-x-4' : 'translate-x-0'
                             }`} 
-                          />
+                          >
+                            {settings.soundEnabled ? '✓' : ''}
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -495,13 +528,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div>
                           <div className="text-xs font-semibold text-[var(--text-primary)]">Haptic Vibration</div>
                           <div className="text-[10px] text-[var(--text-muted)]">
-                            {typeof navigator !== 'undefined' && 'vibrate' in navigator ? 'Tactile pulse on button inputs' : 'Tactile response for mobile devices'}
+                            {!hapticsAvailable ? 'Not supported on this device/browser' : 'Tactile pulse on button inputs'}
                           </div>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        {settings.hapticsEnabled && (
+                        {settings.hapticsEnabled && hapticsAvailable && (
                           <button type="button"
                             onClick={handleTestHaptic}
                             className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
@@ -511,16 +544,24 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         )}
                         <button type="button"
                           id="toggle-haptics-btn"
+                          role="switch"
+                          aria-checked={settings.hapticsEnabled && hapticsAvailable}
+                          aria-label="Toggle Haptic Vibration"
+                          disabled={!hapticsAvailable}
                           onClick={handleToggleHaptics}
-                          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-                            settings.hapticsEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
+                          className={`w-9 h-5 rounded-full transition-colors relative ${
+                            !hapticsAvailable
+                              ? 'opacity-40 cursor-not-allowed bg-[var(--surface-3)] border border-[var(--border-subtle)]'
+                              : settings.hapticsEnabled ? 'bg-[var(--accent)] cursor-pointer' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)] cursor-pointer'
                           }`}
                         >
                           <span 
-                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${
-                              settings.hapticsEnabled ? 'translate-x-4' : 'translate-x-0'
+                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
+                              settings.hapticsEnabled && hapticsAvailable ? 'translate-x-4' : 'translate-x-0'
                             }`} 
-                          />
+                          >
+                            {settings.hapticsEnabled && hapticsAvailable ? '✓' : ''}
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -558,14 +599,24 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                     <div className="grid grid-cols-2 gap-2 pt-0.5">
                       <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
-                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Refresh Rate</div>
-                        <div className="text-base font-mono font-bold text-[var(--accent)] mt-0.5">{localRefreshInfo.hz} Hz</div>
+                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Refresh Rate</div>
+                        <div className="text-base font-mono font-bold text-[var(--accent)] mt-0.5">{refreshInfo.hz} Hz</div>
+                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">
+                          {refreshInfo.source === 'measured' ? 'Exact timing' : refreshInfo.source === 'estimated' ? 'Calculated' : 'Fallback baseline'}
+                        </div>
                       </div>
                       <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
                         <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Frame Offset</div>
-                        <div className="text-base font-mono font-bold text-emerald-400 mt-0.5">-{localRefreshInfo.displayDelayOffsetMs} ms</div>
+                        <div className="text-base font-mono font-bold text-emerald-400 mt-0.5">+{refreshInfo.displayDelayOffsetMs} ms</div>
+                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">Nominal midpoint</div>
                       </div>
                     </div>
+
+                    {calibrationError && (
+                      <div className="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-mono">
+                        {calibrationError}
+                      </div>
+                    )}
                   </div>
 
                   {/* System Toggles */}
@@ -574,19 +625,25 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <div className="p-3 flex items-center justify-between">
                       <div>
                         <div className="text-xs font-semibold text-[var(--text-primary)]">Reduced Motion</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Disables background particles and scanline movement</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">Suppresses application animations, background particles, and UI transitions</div>
                       </div>
                       <button type="button"
+                        id="toggle-reduced-motion-btn"
+                        role="switch"
+                        aria-checked={settings.reducedMotionEnabled}
+                        aria-label="Toggle Reduced Motion"
                         onClick={handleToggleReducedMotion}
                         className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
                           settings.reducedMotionEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                         }`}
                       >
                         <span 
-                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
                             settings.reducedMotionEnabled ? 'translate-x-4' : 'translate-x-0'
                           }`} 
-                        />
+                        >
+                          {settings.reducedMotionEnabled ? '✓' : ''}
+                        </span>
                       </button>
                     </div>
 
@@ -597,16 +654,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div className="text-[10px] text-[var(--text-muted)]">Locks navigation for public testing terminals</div>
                       </div>
                       <button type="button"
+                        id="toggle-exhibition-btn"
+                        role="switch"
+                        aria-checked={settings.exhibitionModeEnabled}
+                        aria-label="Toggle Exhibition Kiosk Mode"
                         onClick={handleToggleExhibition}
                         className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
                           settings.exhibitionModeEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                         }`}
                       >
                         <span 
-                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform ${
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
                             settings.exhibitionModeEnabled ? 'translate-x-4' : 'translate-x-0'
                           }`} 
-                        />
+                        >
+                          {settings.exhibitionModeEnabled ? '✓' : ''}
+                        </span>
                       </button>
                     </div>
 
@@ -614,7 +677,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <div className="p-3 flex items-center justify-between">
                       <div>
                         <div className="text-xs font-semibold text-[var(--text-primary)]">Clear Local Cache</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Resets transient local UI display cache</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">Resets client state, pending sync, and stored preferences</div>
                       </div>
                       <button type="button"
                         id="clear-session-cache-btn"
@@ -666,4 +729,3 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     </>
   );
 }
-

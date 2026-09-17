@@ -103,8 +103,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
           onRefresh={refresh}
         />
 
-        {/* Global Filter Bar */}
-        {!loading && !error && !isEmptyDataset && (
+        {/* Global Filter Bar - only rendered in Data Explorer mode to keep primary assessment view clean and assessment-first */}
+        {!loading && !error && !isEmptyDataset && datasetMode === 'data-explorer' && (
           <DatasetFilterBar
             filters={filters}
             setFilters={setFilters}

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Trophy, ArrowRight, RotateCcw, Activity, AlertCircle } from 'lucide-react';
 import { AssessmentType, getPersonalBest } from '../lib/firestore';
+import { isReducedMotionActive } from '../lib/settingsStore';
 
 export interface SupportingMetric {
   label: string;
@@ -33,14 +34,14 @@ export interface AssessmentResultRewardProps {
  */
 function useCountUp(targetValue: number, durationMs = 500, decimals = 1): string {
   const [displayVal, setDisplayVal] = useState<number>(() => {
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (typeof window !== 'undefined' && isReducedMotionActive()) {
       return targetValue;
     }
     return targetValue > 10 ? targetValue * 0.6 : 0;
   });
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (typeof window !== 'undefined' && isReducedMotionActive()) {
       setDisplayVal(targetValue);
       return;
     }

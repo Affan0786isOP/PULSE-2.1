@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export type ThemeMode = 'system' | 'dark' | 'light';
+export type ThemeMode = 'dark';
 
 export interface UserSettings {
   soundEnabled: boolean;
@@ -14,7 +14,12 @@ export interface UserSettings {
 
 const SETTINGS_STORAGE_KEY = 'pulse_user_settings';
 
-let cachedSettings: UserSettings | null = null;
+export function getDefaultReducedMotion(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
 const DEFAULT_SETTINGS: UserSettings = {
   soundEnabled: true,
@@ -22,25 +27,88 @@ const DEFAULT_SETTINGS: UserSettings = {
   fullscreenPromptEnabled: true,
   themeMode: 'dark',
   exhibitionModeEnabled: false,
-  reducedMotionEnabled: typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  reducedMotionEnabled: getDefaultReducedMotion(),
   fontScale: 1.0,
 };
 
+let cachedSettings: UserSettings | null = null;
+
+function sanitizeSettings(raw: unknown): UserSettings {
+  const result: UserSettings = {
+    ...DEFAULT_SETTINGS,
+    reducedMotionEnabled: getDefaultReducedMotion()
+  };
+
+  if (!raw || typeof raw !== 'object') {
+    return result;
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  if (typeof obj.soundEnabled === 'boolean') {
+    result.soundEnabled = obj.soundEnabled;
+  }
+  if (typeof obj.hapticsEnabled === 'boolean') {
+    result.hapticsEnabled = obj.hapticsEnabled;
+  }
+  if (typeof obj.fullscreenPromptEnabled === 'boolean') {
+    result.fullscreenPromptEnabled = obj.fullscreenPromptEnabled;
+  }
+  // Dark-only architecture: themeMode is always 'dark'
+  result.themeMode = 'dark';
+
+  if (typeof obj.exhibitionModeEnabled === 'boolean') {
+    result.exhibitionModeEnabled = obj.exhibitionModeEnabled;
+  }
+  if (typeof obj.reducedMotionEnabled === 'boolean') {
+    result.reducedMotionEnabled = obj.reducedMotionEnabled;
+  }
+  if (typeof obj.fontScale === 'number' && Number.isFinite(obj.fontScale) && obj.fontScale >= 0.7 && obj.fontScale <= 1.5) {
+    result.fontScale = obj.fontScale;
+  }
+
+  return result;
+}
+
+export function loadSettings(): UserSettings {
+  if (typeof window === 'undefined') {
+    return { ...DEFAULT_SETTINGS };
+  }
+
+  try {
+    const serialized = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (serialized) {
+      const parsed = JSON.parse(serialized);
+      return sanitizeSettings(parsed);
+    }
+  } catch {
+    // Malformed localStorage gracefully falls back to sanitized defaults
+  }
+
+  return { ...DEFAULT_SETTINGS, reducedMotionEnabled: getDefaultReducedMotion() };
+}
+
 export function getSettings(): UserSettings {
   if (!cachedSettings) {
-    cachedSettings = { ...DEFAULT_SETTINGS, themeMode: 'dark' };
+    cachedSettings = loadSettings();
   }
   return { ...cachedSettings, themeMode: 'dark' };
+}
+
+export function isReducedMotionActive(): boolean {
+  return getSettings().reducedMotionEnabled;
+}
+
+export function isHapticsSupported(): boolean {
+  return typeof navigator !== 'undefined' && 'vibrate' in navigator && typeof navigator.vibrate === 'function';
 }
 
 export function applyDOMSettings(settings: UserSettings = getSettings()) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-  // 1. Resolve & Apply Theme - ALWAYS Dark Mode, Light/System disabled
-  const activeTheme = 'dark';
-
-  document.documentElement.setAttribute('data-theme', activeTheme);
-  document.documentElement.style.colorScheme = activeTheme;
+  // 1. Truthful Theme: ALWAYS Dark Mode
+  document.documentElement.setAttribute('data-theme', 'dark');
+  document.documentElement.style.colorScheme = 'dark';
   document.documentElement.classList.add('dark');
   document.documentElement.classList.remove('light');
 
@@ -49,7 +117,7 @@ export function applyDOMSettings(settings: UserSettings = getSettings()) {
     meta.setAttribute('content', '#030508');
   }
 
-  // 2. Apply Reduced Motion
+  // 2. Authoritative Reduced Motion
   if (settings.reducedMotionEnabled) {
     document.documentElement.setAttribute('data-reduced-motion', 'true');
     document.documentElement.classList.add('reduced-motion');
@@ -58,7 +126,7 @@ export function applyDOMSettings(settings: UserSettings = getSettings()) {
     document.documentElement.classList.remove('reduced-motion');
   }
 
-  // 3. Apply Exhibition Mode
+  // 3. Exhibition Mode
   if (settings.exhibitionModeEnabled) {
     document.documentElement.setAttribute('data-exhibition-mode', 'true');
     document.documentElement.classList.add('exhibition-mode');
@@ -67,7 +135,7 @@ export function applyDOMSettings(settings: UserSettings = getSettings()) {
     document.documentElement.classList.remove('exhibition-mode');
   }
 
-  // 4. Apply Font Scale & Root CSS Variable
+  // 4. Font Scale
   const scale = settings.fontScale ?? 1.0;
   const fontSizePercent = `${Math.round(scale * 100)}%`;
   document.documentElement.style.setProperty('--font-size', fontSizePercent);
@@ -77,21 +145,70 @@ export function applyDOMSettings(settings: UserSettings = getSettings()) {
 
 export function updateSettings(partial: Partial<UserSettings>): UserSettings {
   const current = getSettings();
-  const updated: UserSettings = { ...current, ...partial, themeMode: 'dark' };
-  cachedSettings = updated;
-  applyDOMSettings(updated);
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('pulse_settings_changed', { detail: updated }));
-    if (partial.themeMode !== undefined) {
-      window.dispatchEvent(new CustomEvent('pulse_theme_changed', { detail: partial.themeMode }));
-    }
+  const next: UserSettings = {
+    soundEnabled: partial.soundEnabled !== undefined ? partial.soundEnabled : current.soundEnabled,
+    hapticsEnabled: partial.hapticsEnabled !== undefined ? partial.hapticsEnabled : current.hapticsEnabled,
+    fullscreenPromptEnabled: partial.fullscreenPromptEnabled !== undefined ? partial.fullscreenPromptEnabled : current.fullscreenPromptEnabled,
+    themeMode: 'dark',
+    exhibitionModeEnabled: partial.exhibitionModeEnabled !== undefined ? partial.exhibitionModeEnabled : current.exhibitionModeEnabled,
+    reducedMotionEnabled: partial.reducedMotionEnabled !== undefined ? partial.reducedMotionEnabled : current.reducedMotionEnabled,
+    fontScale: partial.fontScale !== undefined && Number.isFinite(partial.fontScale) ? partial.fontScale : current.fontScale,
+  };
+
+  // Skip rewrite if nothing changed
+  if (
+    current.soundEnabled === next.soundEnabled &&
+    current.hapticsEnabled === next.hapticsEnabled &&
+    current.fullscreenPromptEnabled === next.fullscreenPromptEnabled &&
+    current.exhibitionModeEnabled === next.exhibitionModeEnabled &&
+    current.reducedMotionEnabled === next.reducedMotionEnabled &&
+    current.fontScale === next.fontScale
+  ) {
+    return current;
   }
-  return updated;
+
+  cachedSettings = next;
+  applyDOMSettings(next);
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // Ignore quota/private mode write issues
+    }
+    window.dispatchEvent(new CustomEvent('pulse_settings_changed', { detail: next }));
+  }
+
+  return next;
 }
 
-// Immediately apply default settings on import
+export function resetSettingsToDefaults(): UserSettings {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(SETTINGS_STORAGE_KEY);
+    } catch {}
+  }
+  cachedSettings = { ...DEFAULT_SETTINGS, reducedMotionEnabled: getDefaultReducedMotion() };
+  applyDOMSettings(cachedSettings);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('pulse_settings_changed', { detail: cachedSettings }));
+  }
+  return cachedSettings;
+}
+
+// Immediately apply settings on initial import
 if (typeof window !== 'undefined') {
-  applyDOMSettings();
+  applyDOMSettings(getSettings());
+
+  // Keep in-memory settings synchronized across browser tabs
+  window.addEventListener('storage', (e: StorageEvent) => {
+    if (e.key === SETTINGS_STORAGE_KEY) {
+      const reloaded = loadSettings();
+      cachedSettings = reloaded;
+      applyDOMSettings(reloaded);
+      window.dispatchEvent(new CustomEvent('pulse_settings_changed', { detail: reloaded }));
+    }
+  });
 }
 
 export function useSettings(): [UserSettings, (partial: Partial<UserSettings>) => UserSettings] {
@@ -108,7 +225,6 @@ export function useSettings(): [UserSettings, (partial: Partial<UserSettings>) =
     };
 
     window.addEventListener('pulse_settings_changed', handleSettingsChange);
-
     return () => {
       window.removeEventListener('pulse_settings_changed', handleSettingsChange);
     };
@@ -123,18 +239,30 @@ export function useSettings(): [UserSettings, (partial: Partial<UserSettings>) =
   return [settings, update];
 }
 
-// Simple Web Audio tone synthesizer for audio cues
+// Single shared Web Audio tone synthesizer for audio cues
 
 let sharedAudioCtx: AudioContext | null = null;
+
 function getAudioContext(): AudioContext | null {
-  const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+  if (typeof window === 'undefined') return null;
+  const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
   if (!AudioContextClass) return null;
-  if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
-    sharedAudioCtx = new AudioContextClass();
+
+  try {
+    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+      sharedAudioCtx = new AudioContextClass();
+    }
+    if (sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume().catch(() => {
+        // Safe catch for browser autoplay gesture restrictions
+      });
+    }
+    return sharedAudioCtx;
+  } catch {
+    return null;
   }
-  if (sharedAudioCtx.state === 'suspended') { sharedAudioCtx.resume(); }
-  return sharedAudioCtx;
 }
+
 export function playAudioCue(type: 'click' | 'stimulus' | 'success' | 'error' | 'milestone') {
   const settings = getSettings();
   if (!settings.soundEnabled) return;
@@ -210,7 +338,7 @@ export type HapticPattern = 'tap' | 'stimulus' | 'success' | 'error' | 'mileston
 export function triggerHaptic(type: HapticPattern = 'tap') {
   const settings = getSettings();
   if (!settings.hapticsEnabled) return;
-  if (typeof navigator === 'undefined' || !('vibrate' in navigator)) return;
+  if (!isHapticsSupported()) return;
 
   try {
     if (typeof type === 'number' || Array.isArray(type)) {
@@ -227,6 +355,6 @@ export function triggerHaptic(type: HapticPattern = 'tap') {
       navigator.vibrate([20, 30, 40, 50, 60]);
     }
   } catch {
-    // Ignored
+    // Silently ignore vibration restrictions
   }
 }

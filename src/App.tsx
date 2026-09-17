@@ -1,8 +1,9 @@
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { AuthProvider } from './AuthContext';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
+import { useSettings } from './lib/settingsStore';
 import { useSystemTheme } from './lib/useSystemTheme';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { Home } from './components/Home';
@@ -23,20 +24,7 @@ import { NotFound } from './components/NotFound';
 
 
 
-function parseClientCookies(): Record<string, string> {
-  const cookies: Record<string, string> = {};
-  if (typeof document === 'undefined' || !document.cookie) return cookies;
-  const pairs = document.cookie.split(';');
-  for (const pair of pairs) {
-    const idx = pair.indexOf('=');
-    if (idx > -1) {
-      const key = pair.substring(0, idx).trim();
-      const val = pair.substring(idx + 1).trim();
-      if (key) cookies[key] = decodeURIComponent(val);
-    }
-  }
-  return cookies;
-}
+import { evaluateDeviceRouting, syncDeviceRoutingStorage } from './lib/deviceRouting';
 
 function RedirectToMobile() {
   const location = useLocation();
@@ -66,53 +54,34 @@ const RouteFallback = () => (
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [settings] = useSettings();
   useSystemTheme();
 
   React.useEffect(() => {
     try {
-      const search = window.location.search || '';
+      const pathname = location.pathname || window.location.pathname || '';
+      if (pathname.startsWith('/admin') || pathname.startsWith('/mobile')) return;
 
-      const isForceMobile = search.includes('force_mobile=1') || search.includes('mobile=1');
-
-      if (isForceMobile) {
-        try {
-          document.cookie = "pulse_force_desktop=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        } catch (e) {}
-      }
-
-      const cookies = parseClientCookies();
-      const hasForceDesktopParam = search.includes('force_desktop=1') || search.includes('desktop=1');
-      const hasForceDesktopCookie = cookies['pulse_force_desktop'] === 'true' || cookies['pulse_force_desktop'] === '1';
-
-      if (hasForceDesktopParam) {
-        // Sync cookie to match server's Max-Age=86400 semantics for SPA navigation
-        document.cookie = "pulse_force_desktop=true; path=/; max-age=86400; SameSite=Lax";
-      }
-
-      const isForceDesktop = !isForceMobile && (hasForceDesktopParam || hasForceDesktopCookie);
-
-      if (isForceDesktop) return;
-
-      const pathname = window.location.pathname || '';
-      if (pathname.startsWith('/admin') || pathname.startsWith('/mobile') || pathname.startsWith('/dataset')) return;
-
-      const ua = navigator.userAgent || '';
-      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone|SamsungBrowser|MiuiBrowser|UCBrowser/i.test(ua);
-      const isTouchMac = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0)) && /Macintosh/i.test(ua);
+      const search = location.search || window.location.search || '';
+      const decision = evaluateDeviceRouting(search);
+      const params = new URLSearchParams(search);
+      const hasRoutingParam = params.has('force_mobile') || params.has('mobile') || params.has('force_desktop') || params.has('desktop');
       
-      const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-      const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-      const screenW = window.screen ? Math.min(window.screen.width, window.screen.height) : 0;
-      const innerW = window.innerWidth || 0;
-      const isSmallScreen = (screenW > 0 && screenW <= 768) || (innerW > 0 && innerW <= 768);
+      syncDeviceRoutingStorage(decision, hasRoutingParam);
 
-      if (isForceMobile || isMobileUA || isTouchMac || ((hasTouch || isCoarse) && isSmallScreen)) {
+      if (decision.shouldUseMobile) {
         const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
-        const targetPath = (cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`) + search + (window.location.hash || '');
+        const targetParams = new URLSearchParams(search);
+        targetParams.delete('force_mobile');
+        targetParams.delete('mobile');
+        targetParams.delete('force_desktop');
+        targetParams.delete('desktop');
+        const targetSearch = targetParams.toString() ? `?${targetParams.toString()}` : '';
+        const targetPath = (cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`) + targetSearch + (location.hash || window.location.hash || '');
         window.location.replace(targetPath);
       }
     } catch (e) {}
-  }, [location.pathname]);
+  }, [location.pathname, location.search, location.hash]);
 
   const handleNavigate = (view: string) => {
     if (view.startsWith('/')) {
@@ -125,6 +94,7 @@ function App() {
       case 'mobile': window.location.href = '/mobile/'; break;
       case 'assessments': navigate('/assessments'); break;
       case 'leaderboard': navigate('/leaderboard'); break;
+      case 'analytics': navigate('/leaderboard'); break;
       case 'dataset': navigate('/dataset'); break;
       case 'improve': navigate('/improve'); break;
       case 'visual-reaction':
@@ -158,72 +128,67 @@ function App() {
   };
 
   return (
-    <AuthProvider>
-      <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans overflow-x-hidden selection:bg-cyan-500/30">
-        {/* Global Consistent Animated Canvas Background */}
-        <AnimatedBackground />
-        <VercelAnalytics />
+    <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'never'}>
+      <AuthProvider>
+        <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans overflow-x-hidden selection:bg-cyan-500/30">
+          {/* Global Consistent Animated Canvas Background */}
+          <AnimatedBackground />
+          <VercelAnalytics />
 
-        {/* App Content */}
-        <div 
-          className="relative z-10 min-h-[100dvh] flex flex-col pb-safe pl-safe pr-safe"
-          style={{ 
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-            paddingLeft: 'env(safe-area-inset-left, 0px)',
-            paddingRight: 'env(safe-area-inset-right, 0px)'
-          }}
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="w-full flex-1 flex flex-col"
-            >
-              <React.Suspense fallback={<RouteFallback />}>
-              <Routes location={location}>
-                <Route path="/" element={<Home onNavigate={handleNavigate} />} />
-                <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
-                <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
-                <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
-                <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
-                <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
-                <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />
-                <Route path="/direction-test" element={<DirectionTest onNavigate={handleNavigate} />} />
-                <Route path="/direction" element={<DirectionTest onNavigate={handleNavigate} />} />
-                <Route path="/block-memory" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
-                <Route path="/block-memory-test" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
-                <Route path="/number-memory" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
-                <Route path="/number-memory-test" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
-                <Route path="/colour-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
-                <Route path="/color-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
-                <Route path="/color-test" element={<ColorTest onNavigate={handleNavigate} />} />
-                <Route path="/privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
-                <Route path="/research-privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
-                
-                {/* Admin Routes (Unlisted) */}
-                <Route path="/admin/login" element={<AdminLogin onNavigate={handleNavigate} />} />
-                <Route path="/admin" element={<AdminRoute><AdminLayout initialTab="overview" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/overview" element={<AdminRoute><AdminLayout initialTab="overview" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/moderation" element={<AdminRoute><AdminLayout initialTab="moderation" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/quality" element={<AdminRoute><AdminLayout initialTab="overview" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/export-audit" element={<AdminRoute><AdminLayout initialTab="export-audit" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/audit" element={<AdminRoute><AdminLayout initialTab="export-audit" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                
-                {/* Mobile PWA Routes */}
-                <Route path="/mobile" element={<RedirectToMobile />} />
-                <Route path="/mobile/*" element={<RedirectToMobile />} />
+          {/* App Content */}
+          <div className="relative z-10 min-h-[100dvh] flex flex-col">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="w-full flex-1 flex flex-col"
+              >
+                <React.Suspense fallback={<RouteFallback />}>
+                <Routes location={location}>
+                  <Route path="/" element={<Home onNavigate={handleNavigate} />} />
+                  <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
+                  <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
+                  <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
+                  <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
+                  <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
+                  <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />
+                  <Route path="/direction-test" element={<DirectionTest onNavigate={handleNavigate} />} />
+                  <Route path="/direction" element={<DirectionTest onNavigate={handleNavigate} />} />
+                  <Route path="/block-memory" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
+                  <Route path="/block-memory-test" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
+                  <Route path="/number-memory" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
+                  <Route path="/number-memory-test" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
+                  <Route path="/colour-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
+                  <Route path="/color-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
+                  <Route path="/color-test" element={<ColorTest onNavigate={handleNavigate} />} />
+                  <Route path="/privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
+                  <Route path="/research-privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
+                  
+                  {/* Admin Routes (Unlisted) */}
+                  <Route path="/admin/login" element={<AdminLogin onNavigate={handleNavigate} />} />
+                  <Route path="/admin" element={<AdminRoute><AdminLayout initialTab="overview" onNavigateApp={handleNavigate} /></AdminRoute>} />
+                  <Route path="/admin/overview" element={<AdminRoute><AdminLayout initialTab="overview" onNavigateApp={handleNavigate} /></AdminRoute>} />
+                  <Route path="/admin/moderation" element={<AdminRoute><AdminLayout initialTab="moderation" onNavigateApp={handleNavigate} /></AdminRoute>} />
+                  <Route path="/admin/quality" element={<AdminRoute><AdminLayout initialTab="overview" onNavigateApp={handleNavigate} /></AdminRoute>} />
+                  <Route path="/admin/export-audit" element={<AdminRoute><AdminLayout initialTab="export-audit" onNavigateApp={handleNavigate} /></AdminRoute>} />
+                  <Route path="/admin/audit" element={<AdminRoute><AdminLayout initialTab="export-audit" onNavigateApp={handleNavigate} /></AdminRoute>} />
+                  
+                  {/* Mobile PWA Routes */}
+                  <Route path="/mobile" element={<RedirectToMobile />} />
+                  <Route path="/mobile/*" element={<RedirectToMobile />} />
 
-                <Route path="*" element={<NotFound onNavigate={handleNavigate} />} />
-              </Routes>
-              </React.Suspense>
-            </motion.div>
-          </AnimatePresence>
+                  <Route path="*" element={<NotFound onNavigate={handleNavigate} />} />
+                </Routes>
+                </React.Suspense>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
-    </AuthProvider>
+      </AuthProvider>
+    </MotionConfig>
   );
 }
 

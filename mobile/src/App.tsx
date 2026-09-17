@@ -1,7 +1,8 @@
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { AuthProvider } from './AuthContext';
+import { useSettings } from './lib/settingsStore';
 import { useSystemTheme } from './lib/useSystemTheme';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { Home } from './components/Home';
@@ -33,6 +34,7 @@ const RouteFallback = () => (
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [settings] = useSettings();
   useSystemTheme();
 
   const handleNavigate = (view: string) => {
@@ -77,50 +79,52 @@ function App() {
   };
 
   return (
-    <AuthProvider>
-      <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans flex flex-col selection:bg-cyan-500/30">
-        {/* Global Consistent Animated Canvas Background */}
-        <AnimatedBackground />
+    <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'never'}>
+      <AuthProvider>
+        <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans flex flex-col selection:bg-cyan-500/30">
+          {/* Global Consistent Animated Canvas Background */}
+          <AnimatedBackground />
 
-        {/* App Content */}
-        <div className="relative z-10 flex-1 flex flex-col">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col w-full"
-            >
-              <React.Suspense fallback={<RouteFallback />}>
-              <Routes location={location}>
-                <Route path="/" element={<Home onNavigate={handleNavigate} />} />
-                <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
-                <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
-                <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
-                <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
-                <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />
-                <Route path="/direction-test" element={<DirectionTest onNavigate={handleNavigate} />} />
-                <Route path="/direction" element={<DirectionTest onNavigate={handleNavigate} />} />
-                <Route path="/block-memory" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
-                <Route path="/block-memory-test" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
-                <Route path="/number-memory" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
-                <Route path="/number-memory-test" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
-                <Route path="/colour-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
-                <Route path="/color-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
-                <Route path="/color-test" element={<ColorTest onNavigate={handleNavigate} />} />
-                <Route path="/privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
-                <Route path="/research-privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
+          {/* App Content */}
+          <div className="relative z-10 flex-1 flex flex-col">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="flex-1 flex flex-col w-full"
+              >
+                <React.Suspense fallback={<RouteFallback />}>
+                <Routes location={location}>
+                  <Route path="/" element={<Home onNavigate={handleNavigate} />} />
+                  <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
+                  <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
+                  <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
+                  <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
+                  <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />
+                  <Route path="/direction-test" element={<DirectionTest onNavigate={handleNavigate} />} />
+                  <Route path="/direction" element={<DirectionTest onNavigate={handleNavigate} />} />
+                  <Route path="/block-memory" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
+                  <Route path="/block-memory-test" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
+                  <Route path="/number-memory" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
+                  <Route path="/number-memory-test" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
+                  <Route path="/colour-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
+                  <Route path="/color-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
+                  <Route path="/color-test" element={<ColorTest onNavigate={handleNavigate} />} />
+                  <Route path="/privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
+                  <Route path="/research-privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
 
-                <Route path="*" element={<NotFound onNavigate={handleNavigate} />} />
-              </Routes>
-              </React.Suspense>
-            </motion.div>
-          </AnimatePresence>
+                  <Route path="*" element={<NotFound onNavigate={handleNavigate} />} />
+                </Routes>
+                </React.Suspense>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
-    </AuthProvider>
+      </AuthProvider>
+    </MotionConfig>
   );
 }
 

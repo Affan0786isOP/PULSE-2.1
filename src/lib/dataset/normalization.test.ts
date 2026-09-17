@@ -232,7 +232,7 @@ describe('Observation Normalization Correctness (STAT-05/06 Fixes)', () => {
     expect(obs[1].validityStatus).toBe('ABORTED');
   });
 
-  it('normalizes legacy research sessions lacking progressionTrials into valid summary observations', () => {
+  it('strictly returns empty array for sessions lacking progressionTrials (no synthetic summary observations)', () => {
     const session: ResearchSessionRecord = {
       id: 'legacy-color-session',
       assessmentType: 'color-recognition',
@@ -247,16 +247,11 @@ describe('Observation Normalization Correctness (STAT-05/06 Fixes)', () => {
     };
     const obs = normalizeSessionToObservations(session);
 
-    expect(obs.length).toBe(1);
-    expect(obs[0].obsId).toBe('legacy-color-session-summary');
-    expect(obs[0].assessmentType).toBe('color-recognition');
-    expect(obs[0].isValid).toBe(true);
-    expect(obs[0].latencyMs).toBe(1969.4);
-    expect(obs[0].isCorrect).toBe(true);
-    expect(obs[0].ageGroup).toBe('adolescents');
+    expect(obs.length).toBe(0);
+    expect(obs).toEqual([]);
   });
 
-  it('normalizes various colour-recognition naming formats and aliases robustly', () => {
+  it('normalizes various colour-recognition naming formats and aliases robustly with real trials', () => {
     const variants = [
       'color-recognition',
       'colour-recognition',
@@ -273,21 +268,16 @@ describe('Observation Normalization Correctness (STAT-05/06 Fixes)', () => {
         id: `session-${v}`,
         assessmentType: v,
         ageGroup: 'Children (8–12)',
-        medianReactionTime: 1200,
         completedAtMonth: '2026-08',
-        progressionTrials: []
+        progressionTrials: [
+          { valid: true, correct: true, reactionTime: 450 }
+        ]
       };
       const obs = normalizeSessionToObservations(session);
       expect(obs.length).toBe(1);
       expect(obs[0].assessmentType).toBe('color-recognition');
       expect(obs[0].isValid).toBe(true);
     }
-  });
-
-  it('record without progressionTrials produces 0 observations and no synthetic trials', () => {
-    const session = makeSession('visual-reaction', []);
-    const obs = normalizeSessionToObservations(session);
-    expect(obs).toEqual([]);
   });
 
   it('normalizes researchRecordId alongside sessionId', () => {

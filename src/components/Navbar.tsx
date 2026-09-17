@@ -96,7 +96,7 @@ export function Navbar({ onNavigate, currentView, onBack, title, rightContent }:
               id="navbar-settings-btn"
               aria-label="Settings"
               title="Settings & Calibration"
-              onClick={() => { setIsSettingsOpen(true); if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pulse_settings_open')); }}
+              onClick={() => setIsSettingsOpen(true)}
               className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[color,background-color,border-color,transform] cursor-pointer"
             >
               <Settings size={16} />
@@ -151,7 +151,7 @@ export function Navbar({ onNavigate, currentView, onBack, title, rightContent }:
               <button type="button"
                 id="mobile-menu-settings-btn"
                 aria-label="Settings"
-                onClick={() => { setIsMobileMenuOpen(false); setIsSettingsOpen(true); if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pulse_settings_open')); }}
+                onClick={() => { setIsMobileMenuOpen(false); setIsSettingsOpen(true); }}
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
               >
                 <Settings size={14} />
@@ -174,7 +174,7 @@ export function Navbar({ onNavigate, currentView, onBack, title, rightContent }:
       {/* Global System Settings Modal */}
       <SettingsModal 
         isOpen={isSettingsOpen} 
-        onClose={() => { setIsSettingsOpen(false); if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pulse_settings_close')); }} 
+        onClose={() => setIsSettingsOpen(false)} 
       />
 
       {/* Welcome Modal */}
