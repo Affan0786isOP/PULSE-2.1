@@ -36,7 +36,7 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
 
   return (
     <div 
-      className="h-[100dvh] max-h-[100dvh] w-full bg-transparent text-[var(--text-primary)] flex flex-col justify-between overflow-hidden p-3 select-none p-safe"
+      className="h-[100dvh] max-h-[100dvh] w-full bg-transparent text-[var(--text-primary)] flex flex-col justify-between overflow-hidden p-3 p-safe"
       style={{
         paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))',
         paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))',
@@ -53,7 +53,7 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
             onClick={handleCancel}
             aria-label="Go Back"
             title="Go Back"
-            className="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] cursor-pointer"
+            className="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <ArrowLeft size={16} />
           </button>
@@ -62,7 +62,7 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
             type="button"
             id="age-selection-logo-btn"
             onClick={handleCancel}
-            className="flex items-center cursor-pointer p-0.5"
+            className="flex items-center cursor-pointer p-0.5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg"
             title="PULSE Home"
             aria-label="PULSE Home"
           >
@@ -89,19 +89,20 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
           <div className="w-9 h-9 mx-auto rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] mb-2">
             <User size={16} />
           </div>
-          <h2 className="font-mono text-sm font-bold tracking-tight uppercase text-[var(--text-primary)]">
-            Select Age Cohort
+          <h2 className="font-heading text-base font-bold tracking-tight text-[var(--text-primary)]">
+            Select Your Age Cohort
           </h2>
-          <p className="font-mono text-[var(--text-muted)] text-[11px] mt-0.5">
-            Calibrates normative baselines &amp; research data
-          </p>
-          <p className="font-mono text-[10px] text-[var(--text-muted)] mt-1 opacity-80 max-w-xs mx-auto leading-tight">
-            Age is used for data collection and scientific analysis in the dataset and will not affect the difficulty of the games.
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+            PULSE uses broad age groups to contextualize your performance against empirical research cohorts.
           </p>
         </div>
 
         {/* List of Age Options */}
-        <div className="grid grid-cols-1 gap-1.5 mb-3.5 shrink-0">
+        <div 
+          role="radiogroup" 
+          aria-label="Select your age cohort" 
+          className="grid grid-cols-1 gap-1.5 mb-3.5 shrink-0"
+        >
           {VALID_AGE_GROUPS.map((age, i) => {
             const isSelected = selectedAge === age;
             const meta = AGE_METADATA[age] || { label: age, range: '', icon: User };
@@ -109,6 +110,10 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
 
             return (
               <motion.button
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                aria-label={`${meta.label} (${meta.range})`}
                 initial={{ opacity: 0, x: -6 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.15, delay: i * 0.02 }}
@@ -116,7 +121,7 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
                 key={age}
                 id={`age-option-${age.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
                 onClick={() => handleSelect(age)}
-                className={`w-full min-h-[48px] text-left px-3 py-2 rounded-xl border text-xs font-mono transition-all duration-150 cursor-pointer flex items-center justify-between gap-3 ${
+                className={`w-full min-h-[48px] text-left px-3 py-2 rounded-xl border text-xs font-mono transition-all duration-150 cursor-pointer flex items-center justify-between gap-3 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   isSelected 
                     ? 'bg-[var(--surface-2)] border-[var(--accent)] text-[var(--text-primary)] shadow-sm' 
                     : 'bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:border-[var(--border-default)] hover:text-[var(--text-primary)]'

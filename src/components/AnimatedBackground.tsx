@@ -1,15 +1,24 @@
 import React, { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { isReducedMotionActive } from '../lib/settingsStore';
 
-const READING_ROUTES = ['/privacy', '/research-privacy', '/improve'];
+const READING_ROUTES = [
+  '/privacy',
+  '/research-privacy',
+  '/privacy-policy',
+  '/dataset',
+  '/analytics',
+  '/improve'
+];
 
 export function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const location = useLocation();
   const isReadingRoute = READING_ROUTES.some(p => location.pathname.startsWith(p));
+  const isReducedMotion = isReducedMotionActive();
 
   useEffect(() => {
-    if (isReadingRoute) return;
+    if (isReadingRoute || isReducedMotion) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -45,13 +54,11 @@ export function AnimatedBackground() {
       ctx.lineWidth = 1;
       ctx.beginPath();
 
-      // Vertical lines
       for (let x = 0; x <= width; x += gridSize) {
         ctx.moveTo(x + 0.5, 0);
         ctx.lineTo(x + 0.5, height);
       }
 
-      // Horizontal lines
       for (let y = 0; y <= height; y += gridSize) {
         ctx.moveTo(0, y + 0.5);
         ctx.lineTo(width, y + 0.5);
@@ -64,7 +71,6 @@ export function AnimatedBackground() {
       ctx.lineWidth = 1;
       ctx.beginPath();
 
-      // Draw crosshairs at every 2nd intersection to keep it clean & minimalist
       for (let x = gridSize * 2; x < width; x += gridSize * 2) {
         for (let y = gridSize * 2; y < height; y += gridSize * 2) {
           ctx.moveTo(x - crossSize, y);
@@ -84,7 +90,7 @@ export function AnimatedBackground() {
       window.removeEventListener('resize', render);
       window.removeEventListener('orientationchange', render);
     };
-  }, [isReadingRoute]);
+  }, [isReadingRoute, isReducedMotion]);
 
   return (
     <div
@@ -96,7 +102,7 @@ export function AnimatedBackground() {
       <div className="absolute inset-0 bg-[var(--surface-0)]" />
 
       {/* Subtle Technical Canvas */}
-      {!isReadingRoute && (
+      {!isReadingRoute && !isReducedMotion && (
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full block"

@@ -1,15 +1,30 @@
 import React, { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { isReducedMotionActive } from '../lib/settingsStore';
 
-const READING_ROUTES = ['/privacy', '/research-privacy', '/improve'];
+const READING_ROUTES = [
+  '/privacy',
+  '/research-privacy',
+  '/privacy-policy',
+  '/dataset',
+  '/analytics',
+  '/improve',
+  '/mobile/privacy',
+  '/mobile/research-privacy',
+  '/mobile/privacy-policy',
+  '/mobile/dataset',
+  '/mobile/analytics',
+  '/mobile/improve'
+];
 
 export function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const location = useLocation();
   const isReadingRoute = READING_ROUTES.some(p => location.pathname.startsWith(p));
+  const isReducedMotion = isReducedMotionActive();
 
   useEffect(() => {
-    if (isReadingRoute) return;
+    if (isReadingRoute || isReducedMotion) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -81,7 +96,7 @@ export function AnimatedBackground() {
       window.removeEventListener('resize', render);
       window.removeEventListener('orientationchange', render);
     };
-  }, [isReadingRoute]);
+  }, [isReadingRoute, isReducedMotion]);
 
   return (
     <div
@@ -90,7 +105,7 @@ export function AnimatedBackground() {
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
     >
       <div className="absolute inset-0 bg-[var(--surface-0)]" />
-      {!isReadingRoute && (
+      {!isReadingRoute && !isReducedMotion && (
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full block"

@@ -269,8 +269,11 @@ export function Improve({
                     <button
                       key={`mobile-chk-${item.id}-${index}`}
                       type="button"
+                      role="checkbox"
+                      aria-checked={isChecked}
+                      aria-label={`${item.title}: ${item.desc}`}
                       onClick={() => toggleChecklist(index)}
-                      className={`w-full flex items-center justify-between p-2.5 rounded-lg border text-left transition-colors cursor-pointer active:scale-[0.99] ${
+                      className={`w-full flex items-center justify-between p-2.5 rounded-lg border text-left transition-colors cursor-pointer active:scale-[0.99] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                         isChecked
                           ? "bg-[var(--accent-subtle)] border-[var(--accent)]/40 text-[var(--text-primary)]"
                           : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)]"

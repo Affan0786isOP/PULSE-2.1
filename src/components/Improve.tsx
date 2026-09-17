@@ -339,9 +339,12 @@ export function Improve({
                     return (
                       <button
                         type="button"
+                        role="checkbox"
+                        aria-checked={isChecked}
+                        aria-label={`${item.title}: ${item.desc}`}
                         key={`chk-${item.id}-${index}`}
                         onClick={() => toggleChecklist(index)}
-                        className={`flex text-left gap-3.5 p-3.5 rounded-lg border cursor-pointer transition-[background-color,border-color,transform] active:scale-[0.99] ${
+                        className={`flex text-left gap-3.5 p-3.5 rounded-lg border cursor-pointer transition-[background-color,border-color,transform] active:scale-[0.99] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                           isChecked
                             ? "bg-[var(--accent-subtle)] border-[var(--accent)]/40 text-[var(--text-primary)]"
                             : "bg-[var(--surface-2)] border-[var(--border-subtle)] hover:border-[var(--border-default)] active:bg-[var(--surface-3)] text-[var(--text-secondary)]"
