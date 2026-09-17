@@ -44,7 +44,7 @@ let detectionTimeoutId: ReturnType<typeof setTimeout> | null = null;
 function broadcastRefreshRate(info: RefreshRateInfo): void {
   cachedInfo = info;
   if (typeof window !== 'undefined') {
-    if (info.status === 'ready') {
+    if (info.status === 'ready' && info.source !== 'fallback') {
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify(info));
       } catch {}
@@ -73,8 +73,15 @@ export function resetRefreshRateCache(): void {
       localStorage.removeItem(CACHE_KEY);
     } catch {}
   }
-  const fallback = snapToRefreshRate(16.67, 'fallback');
-  broadcastRefreshRate(fallback);
+  const resetInfo: RefreshRateInfo = {
+    hz: 60,
+    frameTimeMs: 16.67,
+    displayDelayOffsetMs: 8.33,
+    isEstimated: true,
+    source: 'fallback',
+    status: 'detecting'
+  };
+  broadcastRefreshRate(resetInfo);
 }
 
 const STANDARD_RATES = [

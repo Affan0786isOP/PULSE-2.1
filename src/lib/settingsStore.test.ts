@@ -7,6 +7,7 @@ import {
 } from './settingsStore';
 import { snapToRefreshRate, resetRefreshRateCache } from './refreshRateDetector';
 import { acquireScrollLock, resetScrollLock } from './modalScrollLock';
+import { resetPendingSyncQueue } from './trialStore';
 
 class MockStorage {
   private store = new Map<string, string>();
@@ -35,6 +36,7 @@ const mockDocElement = {
 
 beforeAll(() => {
   vi.stubGlobal('localStorage', mockStorage);
+  vi.stubGlobal('sessionStorage', mockStorage);
   vi.stubGlobal('document', {
     body: mockBody,
     documentElement: mockDocElement,
@@ -97,19 +99,30 @@ describe('Settings Store Persistence & Validation', () => {
     expect(recovered.fontScale).toBe(1.0);
   });
 
-  it('sanitizes invalid data types and rejects unsupported theme mode', () => {
+  it('sanitizes invalid data types and rejects unsupported theme mode, clamping fontScale', () => {
     mockStorage.setItem(
       'pulse_user_settings',
       JSON.stringify({
         soundEnabled: 'not-a-bool',
-        fontScale: 9999, // Out of bounds
+        fontScale: 9999, // Out of bounds -> clamped to 1.5
         themeMode: 'light' // Should be coerced to dark
       })
     );
     const sanitized = loadSettings();
     expect(sanitized.soundEnabled).toBe(true); // Default
-    expect(sanitized.fontScale).toBe(1.0); // Default
+    expect(sanitized.fontScale).toBe(1.5); // Clamped
     expect(sanitized.themeMode).toBe('dark'); // Enforced
+  });
+
+  it('clamps fontScale on update within [0.7, 1.5]', () => {
+    const updatedHigh = updateSettings({ fontScale: 10 });
+    expect(updatedHigh.fontScale).toBe(1.5);
+
+    const updatedLow = updateSettings({ fontScale: 0.1 });
+    expect(updatedLow.fontScale).toBe(0.7);
+
+    const updatedValid = updateSettings({ fontScale: 1.15 });
+    expect(updatedValid.fontScale).toBe(1.15);
   });
 
   it('resets settings to defaults cleanly', () => {
@@ -152,6 +165,24 @@ describe('Refresh Rate Calibration Detector', () => {
     expect(fallback.source).toBe('fallback');
     expect(fallback.isEstimated).toBe(true);
     expect(fallback.hz).toBe(60);
+  });
+
+  it('does not persist fallback to localStorage on resetRefreshRateCache', () => {
+    mockStorage.setItem('pulse_refresh_rate_cached', JSON.stringify({ hz: 120, status: 'ready', source: 'measured' }));
+    resetRefreshRateCache();
+    expect(mockStorage.getItem('pulse_refresh_rate_cached')).toBeNull();
+  });
+});
+
+describe('Pending Sync Queue Reset', () => {
+  beforeEach(() => {
+    mockStorage.clear();
+  });
+
+  it('removes pending sync queue from storage on resetPendingSyncQueue', () => {
+    mockStorage.setItem('pulse_pending_sync_queue', JSON.stringify([{ id: 'test-sync' }]));
+    resetPendingSyncQueue();
+    expect(mockStorage.getItem('pulse_pending_sync_queue')).toBeNull();
   });
 });
 

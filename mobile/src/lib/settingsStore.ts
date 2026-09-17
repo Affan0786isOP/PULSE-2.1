@@ -33,10 +33,10 @@ const DEFAULT_SETTINGS: UserSettings = {
 
 let cachedSettings: UserSettings | null = null;
 
-function sanitizeSettings(raw: unknown): UserSettings {
+function sanitizeSettings(raw: unknown, fallback: UserSettings = DEFAULT_SETTINGS): UserSettings {
   const result: UserSettings = {
-    ...DEFAULT_SETTINGS,
-    reducedMotionEnabled: getDefaultReducedMotion()
+    ...fallback,
+    reducedMotionEnabled: fallback.reducedMotionEnabled ?? getDefaultReducedMotion(),
   };
 
   if (!raw || typeof raw !== 'object') {
@@ -63,8 +63,8 @@ function sanitizeSettings(raw: unknown): UserSettings {
   if (typeof obj.reducedMotionEnabled === 'boolean') {
     result.reducedMotionEnabled = obj.reducedMotionEnabled;
   }
-  if (typeof obj.fontScale === 'number' && Number.isFinite(obj.fontScale) && obj.fontScale >= 0.7 && obj.fontScale <= 1.5) {
-    result.fontScale = obj.fontScale;
+  if (typeof obj.fontScale === 'number' && Number.isFinite(obj.fontScale)) {
+    result.fontScale = Math.max(0.7, Math.min(1.5, Math.round(obj.fontScale * 100) / 100));
   }
 
   return result;
@@ -79,7 +79,10 @@ export function loadSettings(): UserSettings {
     const serialized = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (serialized) {
       const parsed = JSON.parse(serialized);
-      return sanitizeSettings(parsed);
+      return sanitizeSettings(parsed, {
+        ...DEFAULT_SETTINGS,
+        reducedMotionEnabled: getDefaultReducedMotion(),
+      });
     }
   } catch {
     // Malformed localStorage gracefully falls back to sanitized defaults
@@ -145,15 +148,7 @@ export function applyDOMSettings(settings: UserSettings = getSettings()) {
 
 export function updateSettings(partial: Partial<UserSettings>): UserSettings {
   const current = getSettings();
-  const next: UserSettings = {
-    soundEnabled: partial.soundEnabled !== undefined ? partial.soundEnabled : current.soundEnabled,
-    hapticsEnabled: partial.hapticsEnabled !== undefined ? partial.hapticsEnabled : current.hapticsEnabled,
-    fullscreenPromptEnabled: partial.fullscreenPromptEnabled !== undefined ? partial.fullscreenPromptEnabled : current.fullscreenPromptEnabled,
-    themeMode: 'dark',
-    exhibitionModeEnabled: partial.exhibitionModeEnabled !== undefined ? partial.exhibitionModeEnabled : current.exhibitionModeEnabled,
-    reducedMotionEnabled: partial.reducedMotionEnabled !== undefined ? partial.reducedMotionEnabled : current.reducedMotionEnabled,
-    fontScale: partial.fontScale !== undefined && Number.isFinite(partial.fontScale) ? partial.fontScale : current.fontScale,
-  };
+  const next = sanitizeSettings(partial, current);
 
   // Skip rewrite if nothing changed
   if (

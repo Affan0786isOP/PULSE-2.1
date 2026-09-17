@@ -82,9 +82,18 @@ export function getDeviceDetails(): { device: string; screenWidth: number; scree
 }
 
 
+const PENDING_SYNC_KEY = 'pulse_pending_sync_queue';
+
 export function getRawTrialObservations(filter?: any): any[] { return []; }
 export async function saveRawTrialObservation(data: any): Promise<any> { return data; }
-export function resetPendingSyncQueue(): void {}
+export function resetPendingSyncQueue(): void {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(PENDING_SYNC_KEY);
+      sessionStorage.removeItem(PENDING_SYNC_KEY);
+    } catch {}
+  }
+}
 export async function flushPendingTrialObservations(): Promise<void> {}
 export async function fetchCloudTrialObservations(limitCount: number = 200): Promise<RawTrialObservation[]> {
   if (!isConfigured || !db) {

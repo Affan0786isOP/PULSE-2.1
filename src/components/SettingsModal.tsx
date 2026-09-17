@@ -17,7 +17,7 @@ import {
   Sliders
 } from 'lucide-react';
 import { useRefreshRate } from '../lib/useRefreshRate';
-import { detectRefreshRate, resetRefreshRateCache } from '../lib/refreshRateDetector';
+import { detectRefreshRate, resetRefreshRateCache, cancelRefreshRateDetection } from '../lib/refreshRateDetector';
 import { resetPendingSyncQueue } from '../lib/trialStore';
 import { clearInMemorySessionTrials } from '../lib/inMemorySessionStore';
 import { 
@@ -65,6 +65,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       if (recalibrateTimeoutRef.current) {
         clearTimeout(recalibrateTimeoutRef.current);
       }
+      cancelRefreshRateDetection();
     };
   }, []);
 
@@ -72,11 +73,18 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   useEffect(() => {
     if (isOpen) {
       wasOpenRef.current = true;
+      setActiveTab('general');
+      setCalibrationError(null);
+      setIsRecalibrating(false);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('pulse_settings_open'));
       }
     } else if (wasOpenRef.current) {
       wasOpenRef.current = false;
+      if (recalibrateTimeoutRef.current) {
+        clearTimeout(recalibrateTimeoutRef.current);
+      }
+      cancelRefreshRateDetection();
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('pulse_settings_close'));
       }
@@ -206,6 +214,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         'pulse_participant_id',
         'pulse_welcome_seen',
         'pulse_force_desktop',
+        'pulse_force_mobile',
         'pulse_refresh_rate_cached',
         'pulse_refresh_rate_fp',
         'pulse_user_settings'
@@ -215,13 +224,31 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         try { localStorage.removeItem(k); } catch {}
       });
 
+      if (typeof localStorage !== 'undefined') {
+        try {
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('pulse_')) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+        } catch {}
+      }
+
       if (typeof sessionStorage !== 'undefined') {
-        try { sessionStorage.removeItem('pulse_force_desktop'); } catch {}
+        try {
+          sessionStorage.removeItem('pulse_force_desktop');
+          sessionStorage.removeItem('pulse_force_mobile');
+          sessionStorage.removeItem('pulse_pending_sync_queue');
+        } catch {}
       }
 
       if (typeof document !== 'undefined') {
         try {
           document.cookie = "pulse_force_desktop=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          document.cookie = "pulse_force_mobile=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         } catch {}
       }
 
