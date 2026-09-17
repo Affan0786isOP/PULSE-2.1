@@ -167,6 +167,20 @@ export function Improve({
     return () => observer.disconnect();
   }, []);
 
+  const selectImproveSection = (index: number) => {
+    if (index < 0 || index >= improveSections.length) return;
+    setActiveIndex(index);
+    const id = improveSections[index]?.id;
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({
+        behavior: isReducedMotionActive() ? "auto" : "smooth",
+        block: "start",
+      });
+    }
+  };
+
   const activeEntry = researchEntries[currentSlide] || researchEntries[0];
   const activeEvidence = getEvidenceBadge(activeEntry.evidenceType);
 
@@ -192,7 +206,7 @@ export function Improve({
           containerRef={scrollContainerRef}
           offset={100}
           activeId={improveSections[activeIndex]?.id}
-          onSelectSection={(_, idx) => setActiveIndex(idx)}
+          onSelectSection={(_, idx) => selectImproveSection(idx)}
           className="lg:hidden"
         />
 
@@ -202,11 +216,7 @@ export function Improve({
               <HookSidebar
                 items={improveSections}
                 value={activeIndex}
-                onChange={(idx) => {
-                  const id = improveSections[idx].id;
-                  const el = document.getElementById(id);
-                  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
+                onChange={selectImproveSection}
                 color="var(--accent)"
                 label="Sections"
                 className="w-full [&_[data-slot=hook-sidebar-label]]:pb-1.5 [&_[data-slot=hook-sidebar-label]]:text-xs lg:[&_[data-slot=hook-sidebar-label]]:pb-3 lg:[&_[data-slot=hook-sidebar-label]]:text-sm [&_[data-slot=hook-sidebar-item]]:py-1 [&_[data-slot=hook-sidebar-item]]:text-xs sm:[&_[data-slot=hook-sidebar-item]]:text-sm lg:[&_[data-slot=hook-sidebar-item]]:py-1.5"

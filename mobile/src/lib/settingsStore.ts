@@ -237,6 +237,18 @@ export function useSettings(): [UserSettings, (partial: Partial<UserSettings>) =
 // Single shared Web Audio tone synthesizer for audio cues
 
 let sharedAudioCtx: AudioContext | null = null;
+let isAudioLifecycleRegistered = false;
+
+export function cleanupAudioContext(): void {
+  if (sharedAudioCtx) {
+    try {
+      if (sharedAudioCtx.state !== 'closed') {
+        sharedAudioCtx.close().catch(() => {});
+      }
+    } catch {}
+    sharedAudioCtx = null;
+  }
+}
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -252,6 +264,12 @@ function getAudioContext(): AudioContext | null {
         // Safe catch for browser autoplay gesture restrictions
       });
     }
+
+    if (!isAudioLifecycleRegistered && typeof window !== 'undefined') {
+      isAudioLifecycleRegistered = true;
+      window.addEventListener('pagehide', cleanupAudioContext);
+    }
+
     return sharedAudioCtx;
   } catch {
     return null;

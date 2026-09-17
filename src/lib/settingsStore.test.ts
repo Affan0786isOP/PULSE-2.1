@@ -4,6 +4,7 @@ import {
   updateSettings,
   resetSettingsToDefaults,
   loadSettings,
+  cleanupAudioContext,
 } from './settingsStore';
 import { snapToRefreshRate, resetRefreshRateCache, detectRefreshRate, cancelRefreshRateDetection, getCachedRefreshRate } from './refreshRateDetector';
 import { acquireScrollLock, resetScrollLock } from './modalScrollLock';
@@ -174,7 +175,6 @@ describe('Refresh Rate Calibration Detector', () => {
   });
 
   it('cancelRefreshRateDetection settles in-flight detection promise without orphaning', async () => {
-    // In node/test environment without rAF, detectRefreshRate settles quickly with fallback
     const promise = detectRefreshRate(true);
     cancelRefreshRateDetection();
     const result = await promise;
@@ -182,11 +182,32 @@ describe('Refresh Rate Calibration Detector', () => {
     expect(result.hz).toBeGreaterThan(0);
   });
 
+  it('repeated cancelRefreshRateDetection calls are harmless and idempotent', () => {
+    cancelRefreshRateDetection();
+    cancelRefreshRateDetection();
+    expect(getCachedRefreshRate()).toBeDefined();
+  });
+
   it('detectRefreshRate after cancellation triggers a clean new detection', async () => {
     cancelRefreshRateDetection();
     const fresh = await detectRefreshRate(true);
     expect(fresh).toBeDefined();
     expect(typeof fresh.hz).toBe('number');
+  });
+
+  it('force detection while earlier detection is pending does not orphan earlier promise', async () => {
+    const firstPromise = detectRefreshRate(true);
+    const secondPromise = detectRefreshRate(true);
+    const [firstResult, secondResult] = await Promise.all([firstPromise, secondPromise]);
+    expect(firstResult).toBeDefined();
+    expect(secondResult).toBeDefined();
+    expect(secondResult.hz).toBeGreaterThan(0);
+  });
+});
+
+describe('AudioContext Lifecycle Cleanup', () => {
+  it('cleanupAudioContext safely cleans up without throwing', () => {
+    expect(() => cleanupAudioContext()).not.toThrow();
   });
 });
 
