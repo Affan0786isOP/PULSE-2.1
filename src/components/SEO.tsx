@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 
 let nextOwnerId = 0;
@@ -23,7 +23,10 @@ export function getCanonicalPath(pathname: string): string {
     case '/number-memory-test':
       return '/number-memory';
     case '/research-privacy':
+    case '/privacy-policy':
       return '/privacy';
+    case '/analytics':
+      return '/dataset';
     default:
       return clean;
   }
@@ -55,6 +58,11 @@ export function SEO({
   const canonicalPath = getCanonicalPath(location.pathname);
   const defaultCanonical = `${siteUrl}${canonicalPath === '/' ? '' : canonicalPath}`;
   const finalCanonical = canonicalUrl || defaultCanonical;
+
+  // Memoize serialized schema string to avoid unnecessary effect triggers when schema object is recreated on render
+  const serializedSchema = useMemo(() => {
+    return schema ? JSON.stringify(schema) : '';
+  }, [schema]);
 
   useEffect(() => {
     // 1. Update Title
@@ -108,7 +116,7 @@ export function SEO({
     // 7. Structured Data (JSON-LD)
     const currentOwnerId = String(++nextOwnerId);
     let jsonLdScript = document.getElementById('pulse-seo-jsonld') as HTMLScriptElement;
-    if (schema) {
+    if (serializedSchema) {
       if (!jsonLdScript) {
         jsonLdScript = document.createElement('script');
         jsonLdScript.id = 'pulse-seo-jsonld';
@@ -116,7 +124,7 @@ export function SEO({
         document.head.appendChild(jsonLdScript);
       }
       jsonLdScript.setAttribute('data-owner-id', currentOwnerId);
-      jsonLdScript.textContent = JSON.stringify(schema);
+      jsonLdScript.textContent = serializedSchema;
     } else if (jsonLdScript) {
       jsonLdScript.remove();
     }
@@ -128,7 +136,7 @@ export function SEO({
         script.remove();
       }
     };
-  }, [title, description, finalCanonical, noindex, ogType, ogImage, schema]);
+  }, [title, description, finalCanonical, noindex, ogType, ogImage, serializedSchema]);
 
   return null;
 }
