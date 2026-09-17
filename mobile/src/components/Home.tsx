@@ -67,14 +67,14 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         
         {/* Header Action Buttons (Install, Fullscreen, Info, Settings) */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-          {!pwa.isStandalone && !pwa.isInstalled && (
+          {pwa.isInstallable && !pwa.isStandalone && !pwa.isInstalled && (
             <button type="button"
               id="mobile-install-btn"
               onClick={async () => {
                 triggerHaptic('tap');
                 await pwa.promptInstall();
               }}
-              className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
               title="Install App"
             >
               <Download size={12} />
@@ -86,7 +86,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             <button type="button"
               id="mobile-fullscreen-btn"
               onClick={() => { triggerHaptic('tap'); handleToggleFullscreen(); }}
-              className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
               title={pwa.isBrowserFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
             >
               {pwa.isBrowserFullscreen ? <Minimize2 size={12} className="text-[var(--accent)]" /> : <Maximize2 size={12} />}
@@ -100,11 +100,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               triggerHaptic('tap');
               setIsWelcomeOpen(true);
             }}
-            className="w-7 h-7 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
             aria-label="App Info"
             title="Welcome & Info"
           >
-            <Info size={13} />
+            <Info size={14} />
           </button>
 
           <button type="button"
@@ -113,11 +113,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               triggerHaptic('tap');
               setIsSettingsOpen(true);
             }}
-            className="w-7 h-7 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
             aria-label="Settings"
             title="Settings"
           >
-            <Settings size={13} />
+            <Settings size={14} />
           </button>
         </div>
       </header>

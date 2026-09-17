@@ -165,7 +165,7 @@ export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 </div>
                 <div>
                   <div className="text-[12.5px] font-semibold text-white mb-0.5">Review</div>
-                  <div className="text-[11.5px] text-[#8b9bb4] leading-snug">Get your score instantly, compare with benchmarks, and track your progress over time.</div>
+                  <div className="text-[11.5px] text-[#8b9bb4] leading-snug">Get your score instantly, evaluate your personal results, and compare against reference benchmarks.</div>
                 </div>
               </div>
             </div>

@@ -193,7 +193,7 @@ export function Improve({
                   <span>Associated with Higher Latency</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {PHYSIOLOGICAL_FACTORS.filter(f => f.reduces).map((factor) => (
+                  {PHYSIOLOGICAL_FACTORS.filter(f => f.impact === 'associated_increase' || (f.impact === undefined && f.reduces)).map((factor) => (
                     <span
                       key={factor.id}
                       className="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 text-[11px] px-2 py-0.5 rounded font-sans"
@@ -211,7 +211,7 @@ export function Improve({
                   <span>Supports Response Consistency</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {PHYSIOLOGICAL_FACTORS.filter(f => !f.reduces).map((factor) => (
+                  {PHYSIOLOGICAL_FACTORS.filter(f => f.impact === 'supports_consistency' || (f.impact === undefined && !f.reduces)).map((factor) => (
                     <span
                       key={factor.id}
                       className="bg-[var(--success)]/10 text-[var(--success)] border border-[var(--success)]/20 text-[11px] px-2 py-0.5 rounded font-sans"

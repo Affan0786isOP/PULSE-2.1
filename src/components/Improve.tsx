@@ -191,6 +191,8 @@ export function Improve({
           sections={improveSections}
           containerRef={scrollContainerRef}
           offset={100}
+          activeId={improveSections[activeIndex]?.id}
+          onSelectSection={(_, idx) => setActiveIndex(idx)}
           className="lg:hidden"
         />
 
@@ -250,6 +252,7 @@ export function Improve({
                 {PHYSIOLOGICAL_FACTORS.map((factor) => {
                   const IconComp = FACTOR_ICONS[factor.iconName] || Brain;
                   const evidence = getEvidenceBadge(factor.evidenceType);
+                  const isHigherLatency = factor.impact === 'associated_increase' || (factor.impact === undefined && factor.reduces);
                   return (
                     <div
                       key={`factor-${factor.id}`}
@@ -275,13 +278,13 @@ export function Improve({
                       </div>
                       <span
                         className={`inline-flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded border w-fit ${
-                          factor.reduces
+                          isHigherLatency
                             ? "bg-[var(--danger)]/10 text-[var(--danger)] border-[var(--danger)]/20"
                             : "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20"
                         }`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${factor.reduces ? 'bg-[var(--danger)]' : 'bg-[var(--success)]'}`} />
-                        {factor.reduces ? "Associated with higher latency" : "Supports response consistency"}
+                        <span className={`w-1.5 h-1.5 rounded-full ${isHigherLatency ? 'bg-[var(--danger)]' : 'bg-[var(--success)]'}`} />
+                        {isHigherLatency ? "Associated with higher latency" : "Supports response consistency"}
                       </span>
                     </div>
                   );

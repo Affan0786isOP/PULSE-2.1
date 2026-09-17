@@ -26,6 +26,8 @@ export type ScrollProgressProps = React.ComponentProps<"div"> & {
   sections?: ScrollProgressSection[]
   containerRef?: React.RefObject<HTMLElement | null>
   offset?: number
+  activeId?: string
+  onSelectSection?: (id: string, index: number) => void
 }
 
 const ScrollProgress = ({
@@ -33,6 +35,8 @@ const ScrollProgress = ({
   sections = [],
   containerRef,
   offset = 120,
+  activeId: activeIdProp,
+  onSelectSection,
   ...props
 }: ScrollProgressProps) => {
   const layoutId = React.useId()
@@ -47,24 +51,24 @@ const ScrollProgress = ({
     mass: 0.3,
   })
 
-  const [activeId, setActiveId] = React.useState(sections[0]?.id)
+  const [internalActiveId, setInternalActiveId] = React.useState(sections[0]?.id)
+  const effectiveActiveId = activeIdProp ?? internalActiveId
   const [open, setOpen] = React.useState(false)
 
-  const scrollLock = React.useRef(false)
-  const scrollLockTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-
   React.useEffect(() => {
+    // Only use internal scroll position calculation if activeId is not controlled externally
+    if (activeIdProp !== undefined) return
+
     const scroller = containerRef?.current ?? window
 
     const update = () => {
-      if (scrollLock.current) return
       const anchor =
         (containerRef?.current?.getBoundingClientRect().top ?? 0) + offset
       const active = [...sections].reverse().find(({ id }) => {
         const top = document.getElementById(id)?.getBoundingClientRect().top
         return top !== undefined && top <= anchor
       })
-      setActiveId(active?.id ?? sections[0]?.id)
+      setInternalActiveId(active?.id ?? sections[0]?.id)
     }
 
     update()
@@ -74,11 +78,9 @@ const ScrollProgress = ({
       scroller.removeEventListener("scroll", update)
       window.removeEventListener("resize", update)
     }
-  }, [sections, containerRef, offset])
+  }, [sections, containerRef, offset, activeIdProp])
 
-  const label = sections.find((s) => s.id === activeId)?.label
-
-
+  const label = sections.find((s) => s.id === effectiveActiveId)?.label
 
   const collapsedRef = React.useRef<HTMLDivElement>(null)
   const openRef = React.useRef<HTMLDivElement>(null)
@@ -131,19 +133,10 @@ const ScrollProgress = ({
     }
   }, [open])
 
-  React.useEffect(() => () => clearTimeout(scrollLockTimer.current), [])
-
   const selectSection = (id: string) => {
-    scrollLock.current = true
-    clearTimeout(scrollLockTimer.current)
-    scrollLockTimer.current = setTimeout(
-      () => {
-        scrollLock.current = false
-      },
-      reduceMotion ? 0 : 700
-    )
-
-    setActiveId(id)
+    setInternalActiveId(id)
+    const idx = sections.findIndex((s) => s.id === id)
+    onSelectSection?.(id, idx)
     setOpen(false)
     document.getElementById(id)?.scrollIntoView({
       behavior: reduceMotion ? "auto" : "smooth",
@@ -220,7 +213,7 @@ const ScrollProgress = ({
                 transition={LAYER_FADE}
               >
                 {sections.map((s, i) => {
-                  const isActive = s.id === activeId
+                  const isActive = s.id === effectiveActiveId
                   return (
                     <li key={s.id}>
                       <button

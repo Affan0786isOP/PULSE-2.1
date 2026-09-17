@@ -5,7 +5,7 @@ import {
   resetSettingsToDefaults,
   loadSettings,
 } from './settingsStore';
-import { snapToRefreshRate, resetRefreshRateCache } from './refreshRateDetector';
+import { snapToRefreshRate, resetRefreshRateCache, detectRefreshRate, cancelRefreshRateDetection, getCachedRefreshRate } from './refreshRateDetector';
 import { acquireScrollLock, resetScrollLock } from './modalScrollLock';
 import { resetPendingSyncQueue } from './trialStore';
 
@@ -171,6 +171,22 @@ describe('Refresh Rate Calibration Detector', () => {
     mockStorage.setItem('pulse_refresh_rate_cached', JSON.stringify({ hz: 120, status: 'ready', source: 'measured' }));
     resetRefreshRateCache();
     expect(mockStorage.getItem('pulse_refresh_rate_cached')).toBeNull();
+  });
+
+  it('cancelRefreshRateDetection settles in-flight detection promise without orphaning', async () => {
+    // In node/test environment without rAF, detectRefreshRate settles quickly with fallback
+    const promise = detectRefreshRate(true);
+    cancelRefreshRateDetection();
+    const result = await promise;
+    expect(result).toBeDefined();
+    expect(result.hz).toBeGreaterThan(0);
+  });
+
+  it('detectRefreshRate after cancellation triggers a clean new detection', async () => {
+    cancelRefreshRateDetection();
+    const fresh = await detectRefreshRate(true);
+    expect(fresh).toBeDefined();
+    expect(typeof fresh.hz).toBe('number');
   });
 });
 

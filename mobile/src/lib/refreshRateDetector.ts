@@ -37,7 +37,9 @@ let cachedInfo: RefreshRateInfo | null = (() => {
   return null;
 })();
 
+let currentGeneration = 0;
 let detectionPromise: Promise<RefreshRateInfo> | null = null;
+let activeResolve: ((info: RefreshRateInfo) => void) | null = null;
 let activeAnimationFrameId: number | null = null;
 let detectionTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -48,12 +50,17 @@ function broadcastRefreshRate(info: RefreshRateInfo): void {
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify(info));
       } catch {}
+    } else if (info.source === 'fallback' || info.status !== 'ready') {
+      try {
+        localStorage.removeItem(CACHE_KEY);
+      } catch {}
     }
     window.dispatchEvent(new CustomEvent(REFRESH_EVENT, { detail: info }));
   }
 }
 
 export function cancelRefreshRateDetection(): void {
+  currentGeneration++;
   if (activeAnimationFrameId !== null && typeof cancelAnimationFrame === 'function') {
     cancelAnimationFrame(activeAnimationFrameId);
     activeAnimationFrameId = null;
@@ -62,10 +69,26 @@ export function cancelRefreshRateDetection(): void {
     clearTimeout(detectionTimeoutId);
     detectionTimeoutId = null;
   }
-  detectionPromise = null;
+  if (activeResolve) {
+    const fallback = cachedInfo || {
+      hz: 60,
+      frameTimeMs: 16.67,
+      displayDelayOffsetMs: 8.33,
+      isEstimated: true,
+      source: 'fallback' as const,
+      status: 'error' as const,
+      error: 'Calibration cancelled'
+    };
+    const resolve = activeResolve;
+    activeResolve = null;
+    detectionPromise = null;
+    resolve(fallback);
+  } else {
+    detectionPromise = null;
+  }
 }
 
-export function resetRefreshRateCache(): void {
+export function resetRefreshRateCache(): Promise<RefreshRateInfo> {
   cancelRefreshRateDetection();
   cachedInfo = null;
   if (typeof window !== 'undefined') {
@@ -82,6 +105,7 @@ export function resetRefreshRateCache(): void {
     status: 'detecting'
   };
   broadcastRefreshRate(resetInfo);
+  return detectRefreshRate(true);
 }
 
 const STANDARD_RATES = [
@@ -145,17 +169,25 @@ export function snapToRefreshRate(
 export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
   if (force) {
     cancelRefreshRateDetection();
-  } else if (cachedInfo && cachedInfo.status === 'ready') {
+  } else if (cachedInfo && cachedInfo.status === 'ready' && cachedInfo.source !== 'fallback') {
     return Promise.resolve(cachedInfo);
   } else if (detectionPromise) {
     return detectionPromise;
   }
 
+  const generation = ++currentGeneration;
+
   detectionPromise = new Promise<RefreshRateInfo>((resolve) => {
+    activeResolve = resolve;
+
     if (typeof window === 'undefined' || typeof requestAnimationFrame !== 'function') {
       const fallback = snapToRefreshRate(16.67, 'fallback');
       broadcastRefreshRate(fallback);
-      resolve(fallback);
+      if (generation === currentGeneration) {
+        activeResolve = null;
+        detectionPromise = null;
+        resolve(fallback);
+      }
       return;
     }
 
@@ -164,7 +196,14 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
 
     // Safety timeout: if samples aren't received in 3000ms (e.g. background tab or throttled RAF), fallback safely
     detectionTimeoutId = setTimeout(() => {
-      cancelRefreshRateDetection();
+      if (generation !== currentGeneration) return;
+
+      if (activeAnimationFrameId !== null && typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(activeAnimationFrameId);
+        activeAnimationFrameId = null;
+      }
+      detectionTimeoutId = null;
+
       const fallbackInfo: RefreshRateInfo = {
         hz: 60,
         frameTimeMs: 16.67,
@@ -175,10 +214,16 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
         error: 'Calibration timed out'
       };
       broadcastRefreshRate(fallbackInfo);
-      resolve(fallbackInfo);
+      if (generation === currentGeneration) {
+        activeResolve = null;
+        detectionPromise = null;
+        resolve(fallbackInfo);
+      }
     }, 3000);
 
     function step(timestamp: number) {
+      if (generation !== currentGeneration) return;
+
       timestamps.push(timestamp);
       if (timestamps.length < SAMPLE_COUNT) {
         activeAnimationFrameId = requestAnimationFrame(step);
@@ -188,7 +233,6 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
           detectionTimeoutId = null;
         }
         activeAnimationFrameId = null;
-        detectionPromise = null;
 
         const deltas: number[] = [];
         for (let i = 1; i < timestamps.length; i++) {
@@ -209,7 +253,11 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
             error: 'Insufficient display frame samples'
           };
           broadcastRefreshRate(fallbackInfo);
-          resolve(fallbackInfo);
+          if (generation === currentGeneration) {
+            activeResolve = null;
+            detectionPromise = null;
+            resolve(fallbackInfo);
+          }
           return;
         }
 
@@ -223,7 +271,11 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
 
         const info = snapToRefreshRate(avgFrameMs);
         broadcastRefreshRate(info);
-        resolve(info);
+        if (generation === currentGeneration) {
+          activeResolve = null;
+          detectionPromise = null;
+          resolve(info);
+        }
       }
     }
 

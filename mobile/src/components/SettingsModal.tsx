@@ -384,7 +384,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--text-primary)]">
-                        Text Scale / Density
+                        Accessibility Text Scale
                       </span>
                       <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase">
                         {Math.round((settings.fontScale || 1.0) * 100)}% ({
