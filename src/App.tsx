@@ -24,14 +24,28 @@ import { NotFound } from './components/NotFound';
 
 
 
-import { evaluateDeviceRouting, syncDeviceRoutingStorage } from './lib/deviceRouting';
+import { 
+  evaluateDeviceRouting, 
+  syncDeviceRoutingStorage,
+  checkAndSetRedirectLoopGuard,
+  clearRedirectLoopGuard 
+} from './lib/deviceRouting';
 
 function RedirectToMobile() {
   const location = useLocation();
   React.useEffect(() => {
+    const currentPath = window.location.pathname;
     const rawPath = location.pathname.startsWith('/mobile') ? location.pathname : `/mobile${location.pathname}`;
     const target = rawPath === '/mobile' ? '/mobile/' : rawPath;
-    window.location.replace(`${target}${location.search}${location.hash}`);
+    const targetUrl = `${target}${location.search}${location.hash}`;
+
+    // Loop breaker for fallback environments where desktop index.html was served for /mobile/*
+    if (currentPath.startsWith('/mobile') && checkAndSetRedirectLoopGuard(targetUrl)) {
+      console.warn('[PULSE] Desktop shell served at /mobile/*; halting redirect to prevent infinite loop.');
+      return;
+    }
+
+    window.location.replace(targetUrl);
   }, [location]);
   return null;
 }
@@ -78,7 +92,12 @@ function App() {
         targetParams.delete('desktop');
         const targetSearch = targetParams.toString() ? `?${targetParams.toString()}` : '';
         const targetPath = (cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`) + targetSearch + (location.hash || window.location.hash || '');
-        window.location.replace(targetPath);
+        
+        if (!checkAndSetRedirectLoopGuard(targetPath)) {
+          window.location.replace(targetPath);
+        }
+      } else {
+        clearRedirectLoopGuard();
       }
     } catch (e) {}
   }, [location.pathname, location.search, location.hash]);

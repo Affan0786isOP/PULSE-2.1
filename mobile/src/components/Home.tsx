@@ -5,7 +5,6 @@ import { useAuth } from '../AuthContext';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { SettingsModal } from './SettingsModal';
 import { WelcomeModal } from './WelcomeModal';
-import { AddToHomeScreenModal } from './AddToHomeScreenModal';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SEO } from './SEO';
 
@@ -326,19 +325,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <WelcomeModal
         isOpen={isWelcomeOpen}
         onClose={() => setIsWelcomeOpen(false)}
-      />
-
-      <AddToHomeScreenModal
-        isOpen={pwa.isGuideOpen}
-        onClose={pwa.closeInstallGuide}
-        isInstalled={pwa.isInstalled}
-        isIos={pwa.isIos}
-        isSafari={pwa.isSafari}
-        isInstallable={pwa.isInstallable}
-        hasNativePrompt={pwa.hasNativePrompt}
-        isSupportedBrowser={pwa.isSupportedBrowser}
-        isOffline={pwa.isOffline}
-        onPromptInstall={pwa.promptInstall}
       />
     </div>
   );

@@ -7,32 +7,77 @@ export interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-export interface PwaState {
-  isInstallable: boolean;
-  hasNativePrompt: boolean;
-  isInstalled: boolean;
-  isStandalone: boolean;
-  isBrowserFullscreen: boolean;
-  isSupportedBrowser: boolean;
-  isIos: boolean;
-  isSafari: boolean;
-  isMobile: boolean;
-  isOffline: boolean;
-  isGuideOpen: boolean;
+declare global {
+  interface Window {
+    __PULSE_DEFERRED_PROMPT__?: BeforeInstallPromptEvent | null;
+    __PULSE_APP_INSTALLED__?: boolean;
+  }
 }
 
-let deferredPrompt: BeforeInstallPromptEvent | null = null;
+export interface PwaState {
+  // 1. Browser Fullscreen API
+  isBrowserFullscreen: boolean;
+
+  // 2. PWA Standalone Mode
+  isStandalone: boolean;
+
+  // 3. iOS Standalone Mode
+  isIosStandalone: boolean;
+
+  // 4. Android App Mode
+  isAndroidAppMode: boolean;
+
+  // 5. Installed Application
+  isInstalled: boolean;
+
+  // 6. Supported Install Prompt
+  hasNativePrompt: boolean;
+  isInstallPromptSupported: boolean;
+
+  // 7. Manual Install Mode
+  isManualInstallOnly: boolean;
+
+  // 8. Unsupported Browser
+  isUnsupportedBrowser: boolean;
+
+  // 9. Platform & Browser Classification
+  isIos: boolean;
+  isIpadOs: boolean;
+  isSafari: boolean;
+  isIosSafari: boolean;
+  isIosOtherBrowser: boolean;
+  isMobile: boolean;
+
+  // 10. Offline Availability
+  isOffline: boolean;
+
+  // 11. UI Modal State
+  isGuideOpen: boolean;
+
+  // Backward compatibility alias
+  isInstallable: boolean;
+}
+
 const subscribers = new Set<(state: PwaState) => void>();
 
-function detectIsStandalone(): boolean {
+export function detectIsStandalone(): boolean {
   if (typeof window === 'undefined') return false;
   const isStandaloneMedia = window.matchMedia('(display-mode: standalone)').matches;
-  const isIosStandalone = (window.navigator as any).standalone === true;
-  const isAndroidStandalone = typeof document !== 'undefined' && Boolean(document.referrer?.includes('android-app://'));
-  return isStandaloneMedia || isIosStandalone || isAndroidStandalone;
+  const isWindowControlsOverlay = window.matchMedia('(display-mode: window-controls-overlay)').matches;
+  return isStandaloneMedia || isWindowControlsOverlay;
 }
 
-function detectIsBrowserFullscreen(): boolean {
+export function detectIsIosStandalone(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (window.navigator as any).standalone === true;
+}
+
+export function detectIsAndroidAppMode(): boolean {
+  if (typeof document === 'undefined') return false;
+  return Boolean(document.referrer?.includes('android-app://'));
+}
+
+export function detectIsBrowserFullscreen(): boolean {
   if (typeof document === 'undefined') return false;
   const doc = document as any;
   return Boolean(
@@ -43,53 +88,115 @@ function detectIsBrowserFullscreen(): boolean {
   );
 }
 
-function detectDeviceAndBrowser(): {
+export function detectBrowserAndPlatform(): {
   isIos: boolean;
+  isIpadOs: boolean;
   isSafari: boolean;
+  isIosSafari: boolean;
+  isIosOtherBrowser: boolean;
   isMobile: boolean;
-  isSupportedBrowser: boolean;
+  isUnsupportedBrowser: boolean;
+  isManualInstallOnly: boolean;
+  isInstallPromptSupported: boolean;
 } {
   if (typeof window === 'undefined') {
-    return { isIos: false, isSafari: false, isMobile: false, isSupportedBrowser: true };
+    return {
+      isIos: false,
+      isIpadOs: false,
+      isSafari: false,
+      isIosSafari: false,
+      isIosOtherBrowser: false,
+      isMobile: false,
+      isUnsupportedBrowser: false,
+      isManualInstallOnly: false,
+      isInstallPromptSupported: false
+    };
   }
+
   const ua = window.navigator.userAgent || '';
+  const maxTouchPoints = window.navigator.maxTouchPoints || 0;
+
+  // iPadOS Safari in desktop mode presents Macintosh UA with multi-touch points
+  const isIpadOs = maxTouchPoints > 1 && /Macintosh/i.test(ua);
   const isIosDevice = /iPhone|iPad|iPod/i.test(ua);
-  const isTouchMac = (window.navigator.maxTouchPoints || 0) > 1 && /Macintosh/i.test(ua);
-  const isIos = isIosDevice || isTouchMac;
+  const isIos = isIosDevice || isIpadOs;
 
   const isInAppBrowser = /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|TikTok|MicroMessenger|musical_ly|WebView|wv/i.test(ua);
   const isWebKit = /WebKit/i.test(ua);
-  const isSafari = isIos && isWebKit && !/CriOS|FxiOS|OPiOS|EdgiOS|mercury|Chrome/i.test(ua) && !isInAppBrowser;
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || isTouchMac || window.matchMedia('(max-width: 1024px)').matches;
+  
+  // Third-party browsers on iOS (CriOS = Chrome, FxiOS = Firefox, EdgiOS = Edge, OPiOS = Opera)
+  const isIosOtherBrowser = isIos && !isInAppBrowser && /CriOS|FxiOS|OPiOS|EdgiOS|mercury|Chrome/i.test(ua);
+  
+  // Apple Safari on iOS / iPadOS
+  const isIosSafari = isIos && isWebKit && !isIosOtherBrowser && !isInAppBrowser;
+
+  // General Safari (macOS or iOS)
+  const isSafari = /Safari/i.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR/i.test(ua) && !isInAppBrowser;
+
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const isMobileViewport = typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches;
+  const isMobile = isMobileUA || isIpadOs || isMobileViewport;
+
+  // Platforms where programmatic beforeinstallprompt is supported (Chromium based: Chrome, Edge, Brave, Samsung Internet, Opera)
+  const isChromium = /Chrome|Chromium|Edg|OPR|SamsungBrowser/i.test(ua) && !isIos;
+  const isInstallPromptSupported = isChromium && !isInAppBrowser;
+
+  // iOS Safari supports manual Add to Home Screen via Share sheet
+  const isManualInstallOnly = isIosSafari;
+
+  // Unsupported browsers: in-app webviews, or non-Safari browsers on iOS (where Apple restricts Home Screen adding)
+  const isUnsupportedBrowser = isInAppBrowser || isIosOtherBrowser;
 
   return {
     isIos,
+    isIpadOs,
     isSafari,
+    isIosSafari,
+    isIosOtherBrowser,
     isMobile,
-    isSupportedBrowser: !isInAppBrowser
+    isUnsupportedBrowser,
+    isManualInstallOnly,
+    isInstallPromptSupported
   };
 }
 
-let currentState: PwaState = (() => {
-  const { isIos, isSafari, isMobile, isSupportedBrowser } = detectDeviceAndBrowser();
+function computeCurrentState(): PwaState {
+  const platform = detectBrowserAndPlatform();
   const isStandalone = detectIsStandalone();
+  const isIosStandalone = detectIsIosStandalone();
+  const isAndroidAppMode = detectIsAndroidAppMode();
   const isBrowserFullscreen = detectIsBrowserFullscreen();
   const isOffline = typeof navigator !== 'undefined' ? !navigator.onLine : false;
 
+  const hasDeferredPrompt = typeof window !== 'undefined' && Boolean(window.__PULSE_DEFERRED_PROMPT__);
+  const appInstalledFlag = typeof window !== 'undefined' && Boolean(window.__PULSE_APP_INSTALLED__);
+  const isInstalled = isStandalone || isIosStandalone || isAndroidAppMode || appInstalledFlag;
+
+  const isInstallable = hasDeferredPrompt || (!isInstalled && platform.isIosSafari);
+
   return {
-    isInstallable: false,
-    hasNativePrompt: false,
-    isInstalled: isStandalone,
-    isStandalone,
     isBrowserFullscreen,
-    isSupportedBrowser,
-    isIos,
-    isSafari,
-    isMobile,
+    isStandalone,
+    isIosStandalone,
+    isAndroidAppMode,
+    isInstalled,
+    hasNativePrompt: hasDeferredPrompt,
+    isInstallPromptSupported: platform.isInstallPromptSupported,
+    isManualInstallOnly: platform.isManualInstallOnly,
+    isUnsupportedBrowser: platform.isUnsupportedBrowser,
+    isIos: platform.isIos,
+    isIpadOs: platform.isIpadOs,
+    isSafari: platform.isSafari,
+    isIosSafari: platform.isIosSafari,
+    isIosOtherBrowser: platform.isIosOtherBrowser,
+    isMobile: platform.isMobile,
     isOffline,
-    isGuideOpen: false
+    isGuideOpen: false,
+    isInstallable
   };
-})();
+}
+
+let currentState: PwaState = computeCurrentState();
 
 function notify(): void {
   for (const subscriber of subscribers) {
@@ -120,10 +227,12 @@ export function closeInstallGuide(): void {
 }
 
 export async function promptInstall(): Promise<boolean> {
-  if (deferredPrompt) {
-    const promptEvent = deferredPrompt;
+  const promptEvent = typeof window !== 'undefined' ? window.__PULSE_DEFERRED_PROMPT__ : null;
+  if (promptEvent) {
     // Consume immediately to avoid duplicate invocation
-    deferredPrompt = null;
+    if (typeof window !== 'undefined') {
+      window.__PULSE_DEFERRED_PROMPT__ = null;
+    }
     currentState = {
       ...currentState,
       hasNativePrompt: false,
@@ -135,6 +244,9 @@ export async function promptInstall(): Promise<boolean> {
       await promptEvent.prompt();
       const choice = await promptEvent.userChoice;
       if (choice.outcome === 'accepted') {
+        if (typeof window !== 'undefined') {
+          window.__PULSE_APP_INSTALLED__ = true;
+        }
         currentState = {
           ...currentState,
           isInstalled: true,
@@ -159,7 +271,7 @@ export async function promptInstall(): Promise<boolean> {
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
-    deferredPrompt = e as BeforeInstallPromptEvent;
+    window.__PULSE_DEFERRED_PROMPT__ = e as BeforeInstallPromptEvent;
     currentState = {
       ...currentState,
       hasNativePrompt: true,
@@ -169,7 +281,8 @@ if (typeof window !== 'undefined') {
   });
 
   window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
+    window.__PULSE_DEFERRED_PROMPT__ = null;
+    window.__PULSE_APP_INSTALLED__ = true;
     currentState = {
       ...currentState,
       hasNativePrompt: false,
@@ -184,10 +297,12 @@ if (typeof window !== 'undefined') {
   const standaloneMedia = window.matchMedia('(display-mode: standalone)');
   const handleStandaloneChange = () => {
     const isStandalone = detectIsStandalone();
+    const isIosStandalone = detectIsIosStandalone();
     currentState = {
       ...currentState,
       isStandalone,
-      isInstalled: isStandalone || currentState.isInstalled
+      isIosStandalone,
+      isInstalled: isStandalone || isIosStandalone || currentState.isInstalled
     };
     notify();
   };

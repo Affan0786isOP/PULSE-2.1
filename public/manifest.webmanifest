@@ -1,7 +1,7 @@
 {
   "name": "PULSE Evaluator - Precision Reaction & Memory Benchmark",
   "short_name": "PULSE",
-  "description": "Precision User Latency & Stimulus Evaluator. Sub-millisecond visual reaction time, spatial directional discrimination, color recognition, and working memory tests.",
+  "description": "Precision User Latency & Stimulus Evaluator. Calibrated visual reaction time, spatial directional discrimination, color recognition, and working memory tests.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

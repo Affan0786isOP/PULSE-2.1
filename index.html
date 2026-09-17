@@ -28,43 +28,67 @@
         // Instant Mobile Device Auto-Redirection
         try {
           var search = window.location.search || '';
+          var params = new URLSearchParams(search);
           
-          var isForceMobile = search.indexOf('force_mobile=1') !== -1 || search.indexOf('mobile=1') !== -1;
-          // Allow explicit clear of force_desktop flag
-          if (isForceMobile) {
+          function isTruthy(val) {
+            if (!val) return false;
+            var v = String(val).toLowerCase().trim();
+            return v === '1' || v === 'true' || v === 'yes';
+          }
+
+          var hasMobileParam = isTruthy(params.get('force_mobile')) || isTruthy(params.get('mobile'));
+          var hasDesktopParam = isTruthy(params.get('force_desktop')) || isTruthy(params.get('desktop'));
+
+          // Symmetrical session/cookie parsing
+          var storedDesktop = false;
+          var storedMobile = false;
+          try {
+            storedDesktop = sessionStorage.getItem('pulse_force_desktop') === 'true';
+            storedMobile = sessionStorage.getItem('pulse_force_mobile') === 'true';
+          } catch(e) {}
+
+          var cookieStr = document.cookie || '';
+          var cookieDesktop = cookieStr.indexOf('pulse_force_desktop=true') !== -1 || cookieStr.indexOf('pulse_force_desktop=1') !== -1;
+          var cookieMobile = cookieStr.indexOf('pulse_force_mobile=true') !== -1 || cookieStr.indexOf('pulse_force_mobile=1') !== -1;
+
+          if (hasMobileParam) {
             try {
               sessionStorage.removeItem('pulse_force_desktop');
-              localStorage.removeItem('pulse_force_desktop');
+              sessionStorage.setItem('pulse_force_mobile', 'true');
               document.cookie = "pulse_force_desktop=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+              document.cookie = "pulse_force_mobile=true; path=/; max-age=86400; SameSite=Lax";
             } catch(e) {}
-          }
-
-          var isForceDesktop = !isForceMobile && (search.indexOf('force_desktop=1') !== -1 || 
-                               search.indexOf('desktop=1') !== -1 ||
-                               sessionStorage.getItem('pulse_force_desktop') === 'true');
-
-          if (!isForceMobile && (search.indexOf('force_desktop=1') !== -1 || search.indexOf('desktop=1') !== -1)) {
-            sessionStorage.setItem('pulse_force_desktop', 'true');
+            storedDesktop = false;
+            storedMobile = true;
+          } else if (hasDesktopParam) {
             try {
-              document.cookie = "pulse_force_desktop=true; path=/; max-age=86400";
+              sessionStorage.removeItem('pulse_force_mobile');
+              sessionStorage.setItem('pulse_force_desktop', 'true');
+              document.cookie = "pulse_force_mobile=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+              document.cookie = "pulse_force_desktop=true; path=/; max-age=86400; SameSite=Lax";
             } catch(e) {}
+            storedDesktop = true;
+            storedMobile = false;
           }
+
+          var isExplicitForceMobile = hasMobileParam || (!hasDesktopParam && (storedMobile || cookieMobile));
+          var isExplicitForceDesktop = !isExplicitForceMobile && (hasDesktopParam || storedDesktop || cookieDesktop);
 
           var pathname = window.location.pathname || '';
           var isAdmin = pathname.indexOf('/admin') === 0;
 
-          if (!isForceDesktop && !isAdmin && !pathname.startsWith('/mobile')) {
+          if (!isExplicitForceDesktop && !isAdmin && !pathname.startsWith('/mobile')) {
             var ua = navigator.userAgent || navigator.vendor || window.opera || '';
             var isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone|SamsungBrowser|MiuiBrowser|UCBrowser/i.test(ua);
-            var isTouchMac = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0)) && /Macintosh/i.test(ua);
-            
-            var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+            var maxTouch = (navigator.maxTouchPoints || 0);
+            var isTouchMac = maxTouch > 1 && /Macintosh/i.test(ua);
+            var hasTouch = ('ontouchstart' in window) || maxTouch > 0;
             var isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
             var screenW = window.screen ? Math.min(window.screen.width, window.screen.height) : 0;
             var innerW = window.innerWidth || 0;
             var isSmallScreen = (screenW > 0 && screenW <= 768) || (innerW > 0 && innerW <= 768);
 
-            if (isForceMobile || isMobileUA || isTouchMac || ((hasTouch || isCoarse) && isSmallScreen)) {
+            if (isExplicitForceMobile || isMobileUA || isTouchMac || ((hasTouch || isCoarse) && isSmallScreen)) {
               var cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
               var targetPath = (cleanPath === '/' ? '/mobile/' : ('/mobile' + cleanPath)) + search + (window.location.hash || '');
               window.location.replace(targetPath);

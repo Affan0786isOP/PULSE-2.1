@@ -18,8 +18,13 @@ export function useModalAccessibility({
 }: ModalAccessibilityOptions): { zIndex: number; isTopModal: boolean } {
   const generatedId = useId();
   const id = modalId || generatedId;
-  const [zIndex, setZIndex] = useState<number>(BASE_MODAL_Z_INDEX);
-  const [isTopModal, setIsTopModal] = useState<boolean>(false);
+  const [zIndex, setZIndex] = useState<number>(() => {
+    if (isOpen) {
+      return modalManager.getModalZIndex(id);
+    }
+    return BASE_MODAL_Z_INDEX;
+  });
+  const [isTopModal, setIsTopModal] = useState<boolean>(() => isOpen && modalManager.isTopModal(id));
 
   useEffect(() => {
     if (!isOpen) {

@@ -21,6 +21,12 @@ export function parseCookies(cookieHeader?: string): Record<string, string> {
   return cookies;
 }
 
+export function isTruthyRoutingFlag(val: string | null | undefined): boolean {
+  if (!val) return false;
+  const v = val.toLowerCase().trim();
+  return v === '1' || v === 'true' || v === 'yes';
+}
+
 export function detectIsMobileDevice(uaString?: string): boolean {
   if (typeof window === 'undefined' && !uaString) return false;
   const ua = uaString || (typeof navigator !== 'undefined' ? navigator.userAgent : '') || '';
@@ -29,9 +35,9 @@ export function detectIsMobileDevice(uaString?: string): boolean {
   if (isMobileUA) return true;
 
   if (typeof window !== 'undefined') {
-    const maxTouchPoints = navigator.maxTouchPoints || 0;
+    const maxTouchPoints = typeof navigator !== 'undefined' ? (navigator.maxTouchPoints || 0) : 0;
     const hasTouch = ('ontouchstart' in window) || maxTouchPoints > 0;
-    // iPadOS Safari in desktop mode
+    // iPadOS Safari in desktop mode: Macintosh UA with multi-touch points
     const isTouchMac = maxTouchPoints > 1 && /Macintosh/i.test(ua);
     if (isTouchMac) return true;
 
@@ -46,12 +52,12 @@ export function detectIsMobileDevice(uaString?: string): boolean {
   return false;
 }
 
-export function evaluateDeviceRouting(searchString?: string, cookieHeader?: string): DeviceRoutingDecision {
+export function evaluateDeviceRouting(searchString?: string, cookieHeader?: string, uaString?: string): DeviceRoutingDecision {
   const search = searchString ?? (typeof window !== 'undefined' ? window.location.search : '');
   const params = new URLSearchParams(search);
 
-  const hasForceMobileParam = params.get('force_mobile') === '1' || params.get('mobile') === '1';
-  const hasForceDesktopParam = params.get('force_desktop') === '1' || params.get('desktop') === '1';
+  const hasForceMobileParam = isTruthyRoutingFlag(params.get('force_mobile')) || isTruthyRoutingFlag(params.get('mobile'));
+  const hasForceDesktopParam = isTruthyRoutingFlag(params.get('force_desktop')) || isTruthyRoutingFlag(params.get('desktop'));
 
   let storedDesktop = false;
   let storedMobile = false;
@@ -79,7 +85,7 @@ export function evaluateDeviceRouting(searchString?: string, cookieHeader?: stri
   const isExplicitForceMobile = hasForceMobileParam || (!hasForceDesktopParam && (storedMobile || cookieMobile));
   const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || storedDesktop || cookieDesktop);
 
-  const isMobileDevice = detectIsMobileDevice();
+  const isMobileDevice = detectIsMobileDevice(uaString);
   const shouldUseMobile = isExplicitForceMobile ? true : isExplicitForceDesktop ? false : isMobileDevice;
 
   return {
@@ -103,7 +109,8 @@ export function cleanConsumedRoutingParams(): void {
       }
     }
     if (mutated) {
-      const newRelativePathQuery = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash;
+      const searchStr = url.searchParams.toString();
+      const newRelativePathQuery = url.pathname + (searchStr ? '?' + searchStr : '') + url.hash;
       window.history.replaceState(window.history.state, '', newRelativePathQuery);
     }
   } catch {}
@@ -126,5 +133,40 @@ export function syncDeviceRoutingStorage(decision: DeviceRoutingDecision, hasPar
     if (hasParams) {
       cleanConsumedRoutingParams();
     }
+  } catch {}
+}
+
+const LOOP_GUARD_KEY = 'pulse_redirect_loop_guard';
+
+export function checkAndSetRedirectLoopGuard(targetPath: string, maxAttempts = 2): boolean {
+  if (typeof sessionStorage === 'undefined') return false;
+  try {
+    const raw = sessionStorage.getItem(LOOP_GUARD_KEY);
+    const data: { path: string; count: number; timestamp: number } = raw
+      ? JSON.parse(raw)
+      : { path: '', count: 0, timestamp: 0 };
+    const now = Date.now();
+    // Reset guard if last redirect was > 10 seconds ago
+    if (now - data.timestamp > 10000 || data.path !== targetPath) {
+      sessionStorage.setItem(LOOP_GUARD_KEY, JSON.stringify({ path: targetPath, count: 1, timestamp: now }));
+      return false;
+    }
+    data.count += 1;
+    data.timestamp = now;
+    sessionStorage.setItem(LOOP_GUARD_KEY, JSON.stringify(data));
+    if (data.count > maxAttempts) {
+      console.warn(`[PULSE Router] Redirect loop detected for ${targetPath}. Halting automated redirection.`);
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export function clearRedirectLoopGuard(): void {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.removeItem(LOOP_GUARD_KEY);
   } catch {}
 }

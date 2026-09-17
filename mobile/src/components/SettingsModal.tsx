@@ -465,7 +465,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             )}
                           </div>
                           <div className="text-[10px] text-[var(--text-muted)]">
-                            {pwa.isInstalled ? 'Zero-latency home screen mode active' : 'Install for direct 1-tap mobile launch'}
+                            {pwa.isInstalled ? 'Standalone display mode active' : 'Add to home screen for fast launching'}
                           </div>
                         </div>
                       </div>
@@ -624,7 +624,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Refresh Rate</div>
                         <div className="text-base font-mono font-bold text-[var(--accent)] mt-0.5">{refreshInfo.hz} Hz</div>
                         <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">
-                          {refreshInfo.source === 'measured' ? 'Exact timing' : refreshInfo.source === 'estimated' ? 'Calculated' : 'Fallback baseline'}
+                          {refreshInfo.source === 'measured' ? 'Hardware calibrated' : refreshInfo.source === 'estimated' ? 'Calculated' : 'Fallback baseline'}
                         </div>
                       </div>
                       <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
@@ -745,7 +745,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         isInstalled={pwa.isInstalled}
         isIos={pwa.isIos}
         isSafari={pwa.isSafari}
+        isIosSafari={pwa.isIosSafari}
+        isIosOtherBrowser={pwa.isIosOtherBrowser}
         isInstallable={pwa.isInstallable}
+        hasNativePrompt={pwa.hasNativePrompt}
+        isInstallPromptSupported={pwa.isInstallPromptSupported}
+        isUnsupportedBrowser={pwa.isUnsupportedBrowser}
+        isOffline={pwa.isOffline}
         onPromptInstall={pwa.promptInstall}
       />
     </>

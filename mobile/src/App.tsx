@@ -20,7 +20,12 @@ import { ColorTest } from './components/ColorTest';
 import { NotFound } from './components/NotFound';
 
 
-import { evaluateDeviceRouting, syncDeviceRoutingStorage } from './lib/deviceRouting';
+import { 
+  evaluateDeviceRouting, 
+  syncDeviceRoutingStorage,
+  checkAndSetRedirectLoopGuard,
+  clearRedirectLoopGuard
+} from './lib/deviceRouting';
 
 // Code-split heavy routes & admin module
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
@@ -60,7 +65,12 @@ function App() {
         targetParams.delete('desktop');
         const targetSearch = targetParams.toString() ? `?${targetParams.toString()}` : '';
         const targetPath = (cleanPath === '' ? '/' : cleanPath) + targetSearch + (location.hash || window.location.hash || '');
-        window.location.replace(targetPath);
+        
+        if (!checkAndSetRedirectLoopGuard(targetPath)) {
+          window.location.replace(targetPath);
+        }
+      } else {
+        clearRedirectLoopGuard();
       }
     } catch (e) {}
   }, [location.pathname, location.search, location.hash]);
