@@ -37,8 +37,10 @@ export function Navbar({
       return;
     }
 
-    // Real back behavior: check if previous in-app history exists
-    if (typeof window !== 'undefined' && window.history.state && (window.history.state.idx > 0 || window.history.length > 1)) {
+    // Only traverse history when React Router has an earlier in-app entry.
+    // `history.length` also includes entries outside this application.
+    const historyState = typeof window !== 'undefined' ? window.history.state : null;
+    if (historyState && typeof historyState.idx === 'number' && historyState.idx > 0) {
       navigate(-1);
     } else {
       onNavigate('home');
@@ -62,90 +64,25 @@ export function Navbar({
       >
         <div className="flex items-center gap-2 min-w-0">
           {!isHome && (
-            <button 
-              type="button" 
-              onClick={handleBack}
-              aria-label="Go Back"
-              title="Go Back"
-              className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer"
-            >
+            <button type="button" onClick={handleBack} aria-label="Go Back" title="Go Back" className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer">
               <ArrowLeft size={16} />
             </button>
           )}
-          
-          <button 
-            type="button" 
-            onClick={() => onNavigate('home')}
-            aria-label="PULSE Home"
-            aria-current={isHome ? 'page' : undefined}
-            title="Go to Home"
-            className={`flex items-center cursor-pointer group p-0.5 shrink-0 rounded-md ${isHome ? 'ring-1 ring-[var(--accent)]/40' : ''}`}
-          >
+          <button type="button" onClick={() => onNavigate('home')} aria-label="PULSE Home" aria-current={isHome ? 'page' : undefined} title="Go to Home" className={`flex items-center cursor-pointer group p-0.5 shrink-0 rounded-md ${isHome ? 'ring-1 ring-[var(--accent)]/40' : ''}`}>
             <div className="w-7 h-7 rounded-md bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] transition-colors">
               <Activity size={15} className="stroke-[2.2]" />
             </div>
           </button>
-
-          {title && (
-            typeof title === 'string' ? (
-              <span 
-                className="font-heading font-bold text-sm text-[var(--text-primary)] tracking-normal truncate ml-1"
-                aria-current={!isHome ? 'page' : undefined}
-              >
-                {title}
-              </span>
-            ) : (
-              title
-            )
-          )}
+          {title && (typeof title === 'string' ? <span className="font-heading font-bold text-sm text-[var(--text-primary)] tracking-normal truncate ml-1" aria-current={!isHome ? 'page' : undefined}>{title}</span> : title)}
         </div>
-
         <div className="flex items-center gap-1.5 shrink-0">
           {rightContent}
-          <button 
-            type="button"
-            id="mobile-nav-info-btn"
-            onClick={() => {
-              triggerHaptic('tap');
-              setIsWelcomeOpen(true);
-            }}
-            aria-label="App Info"
-            title="Welcome & Info"
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer"
-          >
-            <Info size={15} />
-          </button>
-          <button 
-            type="button"
-            id="mobile-nav-settings-btn"
-            disabled={isAssessmentActive}
-            aria-disabled={isAssessmentActive}
-            title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings"}
-            onClick={() => {
-              if (!isAssessmentActive) {
-                triggerHaptic('tap');
-                setIsSettingsOpen(true);
-              }
-            }}
-            aria-label="Settings"
-            className={`w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 ${
-              isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
-            }`}
-          >
-            <Settings size={15} />
-          </button>
+          <button type="button" id="mobile-nav-info-btn" onClick={() => { triggerHaptic('tap'); setIsWelcomeOpen(true); }} aria-label="App Info" title="Welcome & Info" className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer"><Info size={15} /></button>
+          <button type="button" id="mobile-nav-settings-btn" disabled={isAssessmentActive} aria-disabled={isAssessmentActive} title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings"} onClick={() => { if (!isAssessmentActive) { triggerHaptic('tap'); setIsSettingsOpen(true); } }} aria-label="Settings" className={`w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 ${isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}><Settings size={15} /></button>
         </div>
       </nav>
-
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
-      />
-
-      <WelcomeModal
-        isOpen={isWelcomeOpen}
-        onClose={() => setIsWelcomeOpen(false)}
-      />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
     </>
   );
 }
