@@ -11,7 +11,7 @@ const HOME_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "PULSE — Precision User Latency & Stimulus Evaluator",
-  "url": "https://pulse-lab.in/",
+  "url": "https://pulse-lab.in",
   "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
 };
 
@@ -191,8 +191,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       {/* Minimal Footer */}
       <footer 
-        className="w-full border-t border-[var(--border-subtle)] py-4 px-4 sm:px-6 lg:px-10 text-center text-xs text-[var(--text-secondary)] font-mono z-10 flex flex-col sm:flex-row items-center justify-between gap-2"
-        style={{ paddingBottom: 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))' }}
+        className="w-full border-t border-[var(--border-subtle)] py-4 px-4 sm:px-6 lg:px-10 text-center text-xs text-[var(--text-secondary)] font-mono z-10 flex flex-col sm:flex-row items-center justify-between gap-2 transition-[padding] duration-200"
+        style={{ paddingBottom: authError ? 'max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))' : 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))' }}
       >
         <div className="flex items-center gap-2">
           <span>PULSE v{APP_VERSION}</span>

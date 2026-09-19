@@ -29,8 +29,18 @@ export function isTruthyRoutingFlag(val: string | null | undefined): boolean {
 
 export function detectIsMobileDevice(uaString?: string): boolean {
   if (typeof window === 'undefined' && !uaString) return false;
+
+  if (typeof window !== 'undefined') {
+    let inIframe = false;
+    try {
+      inIframe = window.self !== window.top;
+    } catch (e) {
+      inIframe = true;
+    }
+    if (inIframe) return false;
+  }
+
   const ua = uaString || (typeof navigator !== 'undefined' ? navigator.userAgent : '') || '';
-  
   const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone|SamsungBrowser|MiuiBrowser|UCBrowser/i.test(ua);
   if (isMobileUA) return true;
 
@@ -43,10 +53,10 @@ export function detectIsMobileDevice(uaString?: string): boolean {
 
     const screenW = window.screen ? Math.min(window.screen.width, window.screen.height) : 0;
     const innerW = window.innerWidth || 0;
-    const isSmallScreen = (screenW > 0 && screenW <= 768) || (innerW > 0 && innerW <= 768);
+    const isSmallPhysicalScreen = (screenW > 0 && screenW <= 768) || (innerW > 0 && innerW <= 768);
     const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 
-    if ((hasTouch || isCoarse) && isSmallScreen) return true;
+    if ((hasTouch || isCoarse) && isSmallPhysicalScreen) return true;
   }
 
   return false;
@@ -169,4 +179,58 @@ export function clearRedirectLoopGuard(): void {
   try {
     sessionStorage.removeItem(LOOP_GUARD_KEY);
   } catch {}
+}
+
+export function resolveDeviceRedirect(
+  pathname: string = '',
+  search: string = '',
+  hash: string = ''
+): { shouldRedirect: boolean; targetUrl?: string } {
+  if (typeof window === 'undefined') {
+    return { shouldRedirect: false };
+  }
+
+  let inIframe = false;
+  try {
+    inIframe = window.self !== window.top;
+  } catch (e) {
+    inIframe = true;
+  }
+
+  const isAdmin = pathname.indexOf('/admin') === 0;
+  if (isAdmin) {
+    return { shouldRedirect: false };
+  }
+
+  const decision = evaluateDeviceRouting(search);
+  const isMobilePath = pathname.startsWith('/mobile');
+
+  // Do not automatically redirect if inside an iframe without explicit force flags
+  if (inIframe && !decision.isExplicitForceMobile && !decision.isExplicitForceDesktop) {
+    return { shouldRedirect: false };
+  }
+
+  if (decision.shouldUseMobile && !isMobilePath) {
+    const targetPath = `/mobile${pathname === '/' ? '' : pathname}`;
+    if (checkAndSetRedirectLoopGuard(targetPath)) {
+      return { shouldRedirect: false };
+    }
+    return {
+      shouldRedirect: true,
+      targetUrl: `${targetPath}${search}${hash}`,
+    };
+  }
+
+  if (!decision.shouldUseMobile && isMobilePath && (decision.isExplicitForceDesktop || !decision.isMobileDevice)) {
+    const targetPath = pathname.replace(/^\/mobile\/?/, '/') || '/';
+    if (checkAndSetRedirectLoopGuard(targetPath)) {
+      return { shouldRedirect: false };
+    }
+    return {
+      shouldRedirect: true,
+      targetUrl: `${targetPath}${search}${hash}`,
+    };
+  }
+
+  return { shouldRedirect: false };
 }

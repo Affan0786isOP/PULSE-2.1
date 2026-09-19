@@ -10,8 +10,8 @@ import { Home } from './components/Home';
 import { 
   evaluateDeviceRouting, 
   syncDeviceRoutingStorage,
-  checkAndSetRedirectLoopGuard,
-  clearRedirectLoopGuard
+  clearRedirectLoopGuard,
+  resolveDeviceRedirect
 } from './lib/deviceRouting';
 
 function RedirectIndexHtml() {
@@ -49,28 +49,18 @@ function App() {
 
   React.useEffect(() => {
     try {
+      const pathname = location.pathname || window.location.pathname || '';
       const search = location.search || window.location.search || '';
+      const hash = location.hash || window.location.hash || '';
       const decision = evaluateDeviceRouting(search);
       const params = new URLSearchParams(search);
       const hasRoutingParam = params.has('force_mobile') || params.has('mobile') || params.has('force_desktop') || params.has('desktop');
 
       syncDeviceRoutingStorage(decision, hasRoutingParam);
 
-      // Symmetrical device routing: if explicit desktop or on desktop screen without mobile override, return to desktop
-      if (decision.isExplicitForceDesktop || (!decision.isExplicitForceMobile && !decision.isMobileDevice)) {
-        const pathname = location.pathname || window.location.pathname || '';
-        const cleanPath = pathname.replace(/^\/mobile\/?/, '/');
-        const targetParams = new URLSearchParams(search);
-        targetParams.delete('force_mobile');
-        targetParams.delete('mobile');
-        targetParams.delete('force_desktop');
-        targetParams.delete('desktop');
-        const targetSearch = targetParams.toString() ? `?${targetParams.toString()}` : '';
-        const targetPath = (cleanPath === '' ? '/' : cleanPath) + targetSearch + (location.hash || window.location.hash || '');
-        
-        if (!checkAndSetRedirectLoopGuard(targetPath)) {
-          window.location.replace(targetPath);
-        }
+      const redirect = resolveDeviceRedirect(pathname, search, hash);
+      if (redirect.shouldRedirect && redirect.targetUrl) {
+        window.location.replace(redirect.targetUrl);
       } else {
         clearRedirectLoopGuard();
       }

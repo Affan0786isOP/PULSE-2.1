@@ -93,28 +93,9 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const [fullscreenNotice, setFullscreenNotice] = useState<string | null>(null);
   const fullscreenNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Idle prefetching for modal chunks to guarantee instant opening on user tap
+  // Clean up timers on unmount
   useEffect(() => {
-    let idleId: number | null = null;
-    let timerId: ReturnType<typeof setTimeout> | null = null;
-
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      idleId = (window as any).requestIdleCallback(() => {
-        prefetchModals();
-      }, { timeout: 2500 });
-    } else {
-      timerId = setTimeout(() => {
-        prefetchModals();
-      }, 1200);
-    }
-
     return () => {
-      if (idleId !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
-        (window as any).cancelIdleCallback(idleId);
-      }
-      if (timerId !== null) {
-        clearTimeout(timerId);
-      }
       if (fullscreenNoticeTimerRef.current) {
         clearTimeout(fullscreenNoticeTimerRef.current);
       }
@@ -272,7 +253,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             </button>
           )}
 
-          {!pwa.isStandalone && (
+          {!pwa.isInstalled && !pwa.isStandalone && (
             <button type="button"
               id="mobile-fullscreen-btn"
               onClick={() => { triggerHaptic('tap'); handleToggleFullscreen(); }}
@@ -348,8 +329,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       {/* Main Content - Natural document scrolling without nested overflow locks */}
       <main 
-        className="w-full flex-1 flex flex-col items-center px-4 py-3 z-10 max-w-sm mx-auto gap-3.5"
-        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
+        className="w-full flex-1 flex flex-col items-center px-4 py-3 z-10 max-w-sm mx-auto gap-3.5 transition-[padding] duration-200"
+        style={{ paddingBottom: authError ? 'max(5rem, calc(env(safe-area-inset-bottom, 0px) + 5rem))' : 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
       >
         <motion.div 
           initial={{ opacity: 0, y: 8 }}
@@ -521,6 +502,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <AnimatePresence>
         {authError && (
           <motion.div 
+            role="status"
+            aria-live="polite"
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -532,7 +515,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <AlertCircle size={14} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />
               <div className="text-[10px] leading-tight">
                 <span className="font-semibold text-[var(--text-primary)]">Notice: </span>
-                <span>Cloud session tracking is unavailable. Assessments continue locally in offline mode.</span>
+                <span>{authError}</span>
               </div>
             </div>
             <button 

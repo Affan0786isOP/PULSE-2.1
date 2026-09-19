@@ -47,10 +47,16 @@ export function detectIsMobileDevice(uaString?: string): boolean {
   if (typeof window !== 'undefined') {
     const maxTouchPoints = typeof navigator !== 'undefined' ? (navigator.maxTouchPoints || 0) : 0;
     const hasTouch = ('ontouchstart' in window) || maxTouchPoints > 0;
-    const screenW = window.screen ? Math.min(window.screen.width, window.screen.height) : 0;
-    const isSmallPhysicalScreen = screenW > 0 && screenW <= 768;
+    // iPadOS Safari in desktop mode: Macintosh UA with multi-touch points
+    const isTouchMac = maxTouchPoints > 1 && /Macintosh/i.test(ua);
+    if (isTouchMac) return true;
 
-    if (hasTouch && isSmallPhysicalScreen) return true;
+    const screenW = window.screen ? Math.min(window.screen.width, window.screen.height) : 0;
+    const innerW = window.innerWidth || 0;
+    const isSmallPhysicalScreen = (screenW > 0 && screenW <= 768) || (innerW > 0 && innerW <= 768);
+    const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+
+    if ((hasTouch || isCoarse) && isSmallPhysicalScreen) return true;
   }
 
   return false;
@@ -184,6 +190,13 @@ export function resolveDeviceRedirect(
     return { shouldRedirect: false };
   }
 
+  let inIframe = false;
+  try {
+    inIframe = window.self !== window.top;
+  } catch (e) {
+    inIframe = true;
+  }
+
   const isAdmin = pathname.indexOf('/admin') === 0;
   if (isAdmin) {
     return { shouldRedirect: false };
@@ -191,6 +204,11 @@ export function resolveDeviceRedirect(
 
   const decision = evaluateDeviceRouting(search);
   const isMobilePath = pathname.startsWith('/mobile');
+
+  // Do not automatically redirect if inside an iframe without explicit force flags
+  if (inIframe && !decision.isExplicitForceMobile && !decision.isExplicitForceDesktop) {
+    return { shouldRedirect: false };
+  }
 
   if (decision.shouldUseMobile && !isMobilePath) {
     const targetPath = `/mobile${pathname === '/' ? '' : pathname}`;
@@ -203,8 +221,8 @@ export function resolveDeviceRedirect(
     };
   }
 
-  if (!decision.shouldUseMobile && isMobilePath && decision.isExplicitForceDesktop) {
-    const targetPath = pathname.replace(/^\/mobile/, '') || '/';
+  if (!decision.shouldUseMobile && isMobilePath && (decision.isExplicitForceDesktop || !decision.isMobileDevice)) {
+    const targetPath = pathname.replace(/^\/mobile\/?/, '/') || '/';
     if (checkAndSetRedirectLoopGuard(targetPath)) {
       return { shouldRedirect: false };
     }
