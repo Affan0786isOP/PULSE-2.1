@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Activity, Database, ArrowRight, Zap, Trophy, Settings, Info, Download, Maximize2, Minimize2, ShieldCheck, AlertCircle, RefreshCw, ListChecks, BarChart2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../AuthContext';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { SettingsModal } from './SettingsModal';
-import { WelcomeModal } from './WelcomeModal';
+import { WelcomeModal, isMobileWelcomeSeen } from './WelcomeModal';
+import { AddToHomeScreenModal } from './AddToHomeScreenModal';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SEO } from './SEO';
 
@@ -13,12 +14,51 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
+    if (typeof document === 'undefined') return false;
+    const doc = document as any;
+    return Boolean(
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement
+    );
+  });
+
+  // Respect saved welcome preference on initial visit
+  useEffect(() => {
+    if (!isMobileWelcomeSeen()) {
+      setIsWelcomeOpen(true);
+    }
+  }, []);
+
+  // Synchronize browser fullscreen changes without polling
+  useEffect(() => {
+    const updateFs = () => {
+      const doc = document as any;
+      setIsFullscreen(
+        Boolean(
+          doc.fullscreenElement ||
+          doc.webkitFullscreenElement ||
+          doc.mozFullScreenElement ||
+          doc.msFullscreenElement
+        )
+      );
+    };
+
+    document.addEventListener('fullscreenchange', updateFs);
+    document.addEventListener('webkitfullscreenchange', updateFs);
+    return () => {
+      document.removeEventListener('fullscreenchange', updateFs);
+      document.removeEventListener('webkitfullscreenchange', updateFs);
+    };
+  }, []);
 
   const handleToggleFullscreen = async () => {
     try {
       const doc = document as any;
       const docEl = document.documentElement as any;
-      if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+      if (!doc.fullscreenElement && !doc.webkitFullscreenElement && !doc.mozFullScreenElement && !doc.msFullscreenElement) {
         const requestFS =
           docEl.requestFullscreen ||
           docEl.webkitRequestFullscreen ||
@@ -33,6 +73,14 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           doc.msExitFullscreen;
         if (exitFS) await exitFS.call(doc);
       }
+      setIsFullscreen(
+        Boolean(
+          doc.fullscreenElement ||
+          doc.webkitFullscreenElement ||
+          doc.mozFullScreenElement ||
+          doc.msFullscreenElement
+        )
+      );
     } catch (err) {
       console.log('Fullscreen toggle not supported in this frame', err);
     }
@@ -74,8 +122,9 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 triggerHaptic('tap');
                 await pwa.promptInstall();
               }}
-              className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               title="Install App"
+              aria-label="Install App"
             >
               <Download size={12} />
               <span className="hidden min-[360px]:inline">Install</span>
@@ -86,11 +135,12 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             <button type="button"
               id="mobile-fullscreen-btn"
               onClick={() => { triggerHaptic('tap'); handleToggleFullscreen(); }}
-              className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer"
-              title={pwa.isBrowserFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
             >
-              {pwa.isBrowserFullscreen ? <Minimize2 size={12} className="text-[var(--accent)]" /> : <Maximize2 size={12} />}
-              <span className="hidden min-[360px]:inline">{pwa.isBrowserFullscreen ? "Exit" : "Fullscreen"}</span>
+              {isFullscreen ? <Minimize2 size={12} className="text-[var(--accent)]" /> : <Maximize2 size={12} />}
+              <span className="hidden min-[360px]:inline">{isFullscreen ? "Exit" : "Fullscreen"}</span>
             </button>
           )}
 
@@ -326,6 +376,22 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         isOpen={isWelcomeOpen}
         onClose={() => setIsWelcomeOpen(false)}
         onNavigate={onNavigate}
+      />
+
+      <AddToHomeScreenModal
+        isOpen={pwa.isGuideOpen && !isSettingsOpen}
+        onClose={pwa.closeInstallGuide}
+        isInstalled={pwa.isInstalled}
+        isIos={pwa.isIos}
+        isSafari={pwa.isSafari}
+        isIosSafari={pwa.isIosSafari}
+        isIosOtherBrowser={pwa.isIosOtherBrowser}
+        isInstallable={pwa.isInstallable}
+        hasNativePrompt={pwa.hasNativePrompt}
+        isInstallPromptSupported={pwa.isInstallPromptSupported}
+        isUnsupportedBrowser={pwa.isUnsupportedBrowser}
+        isOffline={pwa.isOffline}
+        onPromptInstall={pwa.promptInstall}
       />
     </div>
   );

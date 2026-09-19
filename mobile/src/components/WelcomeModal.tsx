@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Activity, X, ListChecks, Zap, BarChart2 } from 'lucide-react';
 import { triggerHaptic } from '../lib/settingsStore';
-import { acquireScrollLock } from '../lib/modalScrollLock';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 
 const WELCOME_STORAGE_KEY = 'pulse_mobile_welcome_seen';

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Activity, X, ListChecks, Zap, BarChart2 } from 'lucide-react';
-import { acquireScrollLock } from '../lib/modalScrollLock';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 
 const WELCOME_STORAGE_KEY = 'pulse_desktop_welcome_seen';
