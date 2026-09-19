@@ -325,6 +325,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <WelcomeModal
         isOpen={isWelcomeOpen}
         onClose={() => setIsWelcomeOpen(false)}
+        onNavigate={onNavigate}
       />
     </div>
   );

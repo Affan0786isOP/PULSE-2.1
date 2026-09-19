@@ -6,12 +6,14 @@ import { triggerHaptic } from '../lib/settingsStore';
 import { acquireScrollLock } from '../lib/modalScrollLock';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 
-const WELCOME_STORAGE_KEY = 'pulse_welcome_seen';
+const WELCOME_STORAGE_KEY = 'pulse_mobile_welcome_seen';
+const LEGACY_WELCOME_STORAGE_KEY = 'pulse_welcome_seen';
 
 export function isMobileWelcomeSeen(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    return localStorage.getItem(WELCOME_STORAGE_KEY) === 'true';
+    const val = localStorage.getItem(WELCOME_STORAGE_KEY) ?? localStorage.getItem(LEGACY_WELCOME_STORAGE_KEY);
+    return val === 'true';
   } catch {
     return false;
   }
@@ -22,8 +24,10 @@ export function setMobileWelcomeSeen(seen: boolean): void {
   try {
     if (seen) {
       localStorage.setItem(WELCOME_STORAGE_KEY, 'true');
+      localStorage.setItem(LEGACY_WELCOME_STORAGE_KEY, 'true');
     } else {
       localStorage.removeItem(WELCOME_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_WELCOME_STORAGE_KEY);
     }
   } catch {}
 }
@@ -37,7 +41,13 @@ export function setMobileWelcomeSeenInMemory(seen: boolean): void {
   setMobileWelcomeSeen(seen);
 }
 
-export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export interface MobileWelcomeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onNavigate?: (view: string) => void;
+}
+
+export function WelcomeModal({ isOpen, onClose, onNavigate }: MobileWelcomeModalProps) {
   const [dontShowAgain, setDontShowAgain] = useState<boolean>(isMobileWelcomeSeen);
   const [mounted, setMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -65,6 +75,15 @@ export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     triggerHaptic('tap');
     setMobileWelcomeSeen(dontShowAgain);
     onClose();
+  };
+
+  const handleStartAssessments = () => {
+    triggerHaptic('tap');
+    setMobileWelcomeSeen(dontShowAgain);
+    onClose();
+    if (onNavigate) {
+      onNavigate('assessments');
+    }
   };
 
   const handleDontShowAgain = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,10 +210,11 @@ export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             <div className="flex">
               <button 
                 type="button" 
-                onClick={handleClose}
+                id="mobile-welcome-start-assessments-btn"
+                onClick={handleStartAssessments}
                 className="w-full bg-[#00f0ff] hover:bg-[#33f3ff] active:scale-[0.99] border border-[#00f0ff] text-[#00161a] rounded-xl py-2.5 px-4 text-[13px] font-bold cursor-pointer transition-all shadow-md text-center"
               >
-                Got it, let's begin
+                Start assessments
               </button>
             </div>
           </motion.div>

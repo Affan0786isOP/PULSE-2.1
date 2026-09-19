@@ -14,47 +14,47 @@ const HOME_SCHEMA = {
   "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
 };
 
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.02,
+      delayChildren: 0
+    }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.35, ease: "easeOut" }
+  }
+};
+
+const cardsContainerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.02,
+      delayChildren: 0
+    }
+  }
+};
+
+const cardItemVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.32, ease: "easeOut" }
+  }
+};
+
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isReady, isConnecting, isAuthenticated, authError, retryAuth } = useAuth();
   const refreshInfo = useRefreshRate();
-
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.02,
-        delayChildren: 0
-      }
-    }
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.35, ease: "easeOut" }
-    }
-  };
-
-  const cardsContainerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.02,
-        delayChildren: 0
-      }
-    }
-  };
-
-  const cardItemVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.32, ease: "easeOut" }
-    }
-  };
 
   return (
     <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans selection:bg-cyan-500/30 overflow-x-hidden relative flex flex-col justify-between">
@@ -84,12 +84,39 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <span>Cognitive reaction &amp; memory assessments</span>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono">
-                <Monitor size={12} className="text-[var(--accent)]" />
-                <span>
-                  {refreshInfo.hz} Hz ({refreshInfo.source === 'measured' ? 'Measured' : refreshInfo.source === 'estimated' ? 'Estimated' : 'Fallback'})
-                </span>
-              </div>
+              {refreshInfo.status === 'detecting' ? (
+                <div 
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
+                  aria-label="Detecting display refresh rate"
+                >
+                  <Monitor size={12} className="text-[var(--accent)] animate-pulse" />
+                  <span>Detecting display…</span>
+                </div>
+              ) : refreshInfo.source === 'measured' ? (
+                <div 
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
+                  title="Hardware-calibrated display refresh rate with estimated midpoint approximation"
+                >
+                  <Monitor size={12} className="text-[var(--accent)]" />
+                  <span>{refreshInfo.hz} Hz · ~{refreshInfo.displayDelayOffsetMs} ms estimated display midpoint</span>
+                </div>
+              ) : refreshInfo.source === 'estimated' ? (
+                <div 
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
+                  title="Calculated display refresh rate with estimated midpoint approximation"
+                >
+                  <Monitor size={12} className="text-amber-400" />
+                  <span>~{refreshInfo.hz} Hz (Estimated) · ~{refreshInfo.displayDelayOffsetMs} ms estimated display midpoint</span>
+                </div>
+              ) : (
+                <div 
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
+                  title="Fallback display baseline assumption"
+                >
+                  <Monitor size={12} className="text-[var(--text-muted)]" />
+                  <span>60 Hz (Fallback default) · ~8.33 ms estimated display midpoint</span>
+                </div>
+              )}
             </motion.div>
 
             {authError && (

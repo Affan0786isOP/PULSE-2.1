@@ -89,12 +89,28 @@ export function AnimatedBackground() {
     };
 
     render();
-    window.addEventListener('resize', render, { passive: true });
-    window.addEventListener('orientationchange', render, { passive: true });
+
+    const handleResize = () => {
+      render();
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('orientationchange', handleResize, { passive: true });
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && canvas.parentElement) {
+      resizeObserver = new ResizeObserver(() => {
+        render();
+      });
+      resizeObserver.observe(canvas.parentElement);
+    }
 
     return () => {
-      window.removeEventListener('resize', render);
-      window.removeEventListener('orientationchange', render);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
     };
   }, [isReadingRoute, isReducedMotion]);
 

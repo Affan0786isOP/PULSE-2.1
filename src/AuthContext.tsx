@@ -22,6 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlightPromiseRef = useRef<Promise<void> | null>(null);
+  const authGenerationRef = useRef(0);
   const isMountedRef = useRef(true);
 
   const clearRetryTimer = () => {
@@ -34,10 +35,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const initializeAuth = useCallback((retryCount = 0, isManualRetry = false): Promise<void> => {
     clearRetryTimer();
 
-    // Prevent overlapping initialization attempts: reuse in-flight promise
-    if (inFlightPromiseRef.current) {
+    // Prevent overlapping initialization attempts: reuse in-flight promise unless explicit manual retry
+    if (inFlightPromiseRef.current && !isManualRetry) {
       return inFlightPromiseRef.current;
     }
+
+    const generation = ++authGenerationRef.current;
 
     if (isMountedRef.current) {
       setIsConnecting(true);
@@ -48,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!isConfigured || !auth) {
         const msg = "Firebase service is unavailable or unconfigured. Server connection required.";
         console.warn(msg);
-        if (isMountedRef.current) {
+        if (isMountedRef.current && authGenerationRef.current === generation) {
           setAuthError(msg);
           setIsAuthenticated(false);
           setUser(null);
@@ -60,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       try {
         await authInitPromise;
+        if (authGenerationRef.current !== generation) return;
 
         if (!auth.currentUser) {
           try {
@@ -69,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (errStr.includes('Database is closing') || errStr.includes('closing/hidden') || errStr.includes('internal-error')) {
               console.warn('[Firebase Auth] Database is closing/hidden during anonymous sign-in, retrying with in-memory persistence...');
               await setPersistence(auth, inMemoryPersistence).catch(() => {});
+              if (authGenerationRef.current !== generation) return;
               await signInAnonymously(auth);
             } else {
               throw signErr;
@@ -76,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        if (isMountedRef.current) {
+        if (isMountedRef.current && authGenerationRef.current === generation) {
           setUser(auth.currentUser);
           setIsAuthenticated(Boolean(auth.currentUser));
           setAuthError(null);
@@ -84,6 +89,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsReady(true);
         }
       } catch (err: any) {
+        if (authGenerationRef.current !== generation) return;
+
         const isNetworkErr = err?.code === 'auth/network-request-failed' || String(err?.message || '').includes('network-request-failed');
         const isDbClosing = String(err?.message || '').includes('Database is closing') || String(err?.message || '').includes('closing/hidden');
 
@@ -97,9 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.warn(`[Firebase Auth] ${isDbClosing ? 'Database closing/hidden' : 'Network request failed'}. Retrying in ${delay}ms (attempt ${retryCount + 1}/3)...`);
           clearRetryTimer();
           retryTimerRef.current = setTimeout(() => {
-            if (isMountedRef.current) {
+            if (isMountedRef.current && authGenerationRef.current === generation) {
               inFlightPromiseRef.current = null;
-              initializeAuth(retryCount + 1, isManualRetry);
+              initializeAuth(retryCount + 1, false);
             }
           }, delay);
           return;
@@ -107,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const msg = err?.message || "Firebase authentication initialization failed.";
         console.warn("Firebase auth initialization notice:", err);
-        if (isMountedRef.current) {
+        if (isMountedRef.current && authGenerationRef.current === generation) {
           setAuthError(msg);
           setIsAuthenticated(false);
           setUser(null);
@@ -115,7 +122,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsReady(true);
         }
       } finally {
-        inFlightPromiseRef.current = null;
+        if (inFlightPromiseRef.current === promise) {
+          inFlightPromiseRef.current = null;
+        }
       }
     })();
 

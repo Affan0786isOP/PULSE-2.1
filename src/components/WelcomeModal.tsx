@@ -5,12 +5,14 @@ import { Activity, X, ListChecks, Zap, BarChart2 } from 'lucide-react';
 import { acquireScrollLock } from '../lib/modalScrollLock';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 
-const WELCOME_STORAGE_KEY = 'pulse_welcome_seen';
+const WELCOME_STORAGE_KEY = 'pulse_desktop_welcome_seen';
+const LEGACY_WELCOME_STORAGE_KEY = 'pulse_welcome_seen';
 
 export function isWelcomeSeen(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    return localStorage.getItem(WELCOME_STORAGE_KEY) === 'true';
+    const val = localStorage.getItem(WELCOME_STORAGE_KEY) ?? localStorage.getItem(LEGACY_WELCOME_STORAGE_KEY);
+    return val === 'true';
   } catch {
     return false;
   }
@@ -21,8 +23,10 @@ export function setWelcomeSeen(seen: boolean): void {
   try {
     if (seen) {
       localStorage.setItem(WELCOME_STORAGE_KEY, 'true');
+      localStorage.setItem(LEGACY_WELCOME_STORAGE_KEY, 'true');
     } else {
       localStorage.removeItem(WELCOME_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_WELCOME_STORAGE_KEY);
     }
   } catch {}
 }
@@ -36,7 +40,13 @@ export function setWelcomeSeenInMemory(seen: boolean): void {
   setWelcomeSeen(seen);
 }
 
-export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export interface WelcomeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onNavigate?: (view: string) => void;
+}
+
+export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps) {
   const [dontShowAgain, setDontShowAgain] = useState<boolean>(isWelcomeSeen);
   const [mounted, setMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -63,6 +73,14 @@ export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
   const handleClose = () => {
     setWelcomeSeen(dontShowAgain);
     onClose();
+  };
+
+  const handleStartAssessments = () => {
+    setWelcomeSeen(dontShowAgain);
+    onClose();
+    if (onNavigate) {
+      onNavigate('assessments');
+    }
   };
 
   const handleDontShowAgain = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,10 +207,11 @@ export function WelcomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             <div className="flex">
               <button 
                 type="button" 
-                onClick={handleClose}
+                id="welcome-start-assessments-btn"
+                onClick={handleStartAssessments}
                 className="w-full bg-[#00f0ff] hover:bg-[#33f3ff] active:scale-95 border border-[#00f0ff] text-[#00161a] rounded-xl py-3 px-4 text-[13.5px] font-bold cursor-pointer transition-colors text-center"
               >
-                Got it, let's begin
+                Start assessments
               </button>
             </div>
           </motion.div>

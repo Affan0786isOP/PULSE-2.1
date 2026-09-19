@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { AuthProvider } from './AuthContext';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
@@ -25,6 +25,13 @@ import { NotFound } from './components/NotFound';
 
 
 import { resolveDeviceRedirect } from './lib/deviceRouting';
+
+function RedirectIndexHtml() {
+  const location = useLocation();
+  const search = location.search || '';
+  const hash = location.hash || '';
+  return <Navigate to={`/${search}${hash}`} replace />;
+}
 
 function RedirectToMobile() {
   const location = useLocation();
@@ -146,6 +153,7 @@ function App() {
                 <React.Suspense fallback={<RouteFallback />}>
                 <Routes location={location}>
                   <Route path="/" element={<Home onNavigate={handleNavigate} />} />
+                  <Route path="/index.html" element={<RedirectIndexHtml />} />
                   <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
                   <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />

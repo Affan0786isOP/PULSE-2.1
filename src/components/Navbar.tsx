@@ -264,6 +264,7 @@ export function Navbar({
       <WelcomeModal
         isOpen={isWelcomeOpen}
         onClose={() => setIsWelcomeOpen(false)}
+        onNavigate={onNavigate}
       />
     </nav>
   );

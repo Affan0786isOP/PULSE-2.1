@@ -13,6 +13,7 @@
     --surface-0: #0B0D10;
     --surface-1: #12161B;
     --surface-2: #181D23;
+    --surface-3: #222831;
 
     /* Semantic Borders */
     --border-subtle: #20262D;
@@ -72,7 +73,7 @@
     --chart-text: var(--text-secondary);
     --chart-tooltip-bg: var(--surface-1);
 
-    /* Safe Area Variables */
+    /* Safe Area Inset Variables for Native Mobile Edge-to-Edge */
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
     --sal: env(safe-area-inset-left, 0px);
@@ -84,6 +85,7 @@
     --surface-0: #F8FAFC;
     --surface-1: #FFFFFF;
     --surface-2: #F1F5F9;
+    --surface-3: #E2E8F0;
 
     /* Semantic Borders */
     --border-subtle: #E2E8F0;

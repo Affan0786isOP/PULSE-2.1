@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { AuthProvider } from './AuthContext';
 import { useSettings } from './lib/settingsStore';
@@ -26,6 +26,13 @@ import {
   checkAndSetRedirectLoopGuard,
   clearRedirectLoopGuard
 } from './lib/deviceRouting';
+
+function RedirectIndexHtml() {
+  const location = useLocation();
+  const search = location.search || '';
+  const hash = location.hash || '';
+  return <Navigate to={`/${search}${hash}`} replace />;
+}
 
 // Code-split heavy routes & admin module
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
@@ -141,6 +148,7 @@ function App() {
                 <React.Suspense fallback={<RouteFallback />}>
                 <Routes location={location}>
                   <Route path="/" element={<Home onNavigate={handleNavigate} />} />
+                  <Route path="/index.html" element={<RedirectIndexHtml />} />
                   <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
                   <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />

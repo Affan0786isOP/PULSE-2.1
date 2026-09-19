@@ -204,6 +204,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         'pulse_admin_audit_logs_evicted_count',
         'pulse_participant_id',
         'pulse_welcome_seen',
+        'pulse_desktop_welcome_seen',
+        'pulse_mobile_welcome_seen',
         'pulse_force_desktop',
         'pulse_force_mobile',
         'pulse_refresh_rate_cached',
@@ -622,16 +624,34 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                     <div className="grid grid-cols-2 gap-2 pt-0.5">
                       <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
-                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Refresh Rate</div>
-                        <div className="text-base font-mono font-bold text-[var(--accent)] mt-0.5">{refreshInfo.hz} Hz</div>
+                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Display Refresh Rate</div>
+                        <div className="text-base font-mono font-bold text-[var(--accent)] mt-0.5">
+                          {isRecalibrating || refreshInfo.status === 'detecting' ? (
+                            <span className="text-xs text-[var(--text-muted)] animate-pulse">Detecting…</span>
+                          ) : (
+                            `${refreshInfo.hz} Hz`
+                          )}
+                        </div>
                         <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">
-                          {refreshInfo.source === 'measured' ? 'Hardware calibrated' : refreshInfo.source === 'estimated' ? 'Calculated' : 'Fallback baseline'}
+                          {isRecalibrating || refreshInfo.status === 'detecting'
+                            ? 'Measuring frames…'
+                            : refreshInfo.source === 'measured'
+                            ? 'Hardware calibrated'
+                            : refreshInfo.source === 'estimated'
+                            ? 'Calculated rate'
+                            : 'Fallback default'}
                         </div>
                       </div>
                       <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
-                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Frame Offset</div>
-                        <div className="text-base font-mono font-bold text-emerald-400 mt-0.5">+{refreshInfo.displayDelayOffsetMs} ms</div>
-                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">Nominal midpoint</div>
+                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Display Midpoint</div>
+                        <div className="text-base font-mono font-bold text-emerald-400 mt-0.5">
+                          {isRecalibrating || refreshInfo.status === 'detecting' ? (
+                            <span className="text-xs text-[var(--text-muted)] animate-pulse">Computing…</span>
+                          ) : (
+                            `~${refreshInfo.displayDelayOffsetMs} ms`
+                          )}
+                        </div>
+                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">Theoretical midpoint</div>
                       </div>
                     </div>
 

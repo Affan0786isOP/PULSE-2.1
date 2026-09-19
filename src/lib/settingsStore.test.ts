@@ -247,3 +247,53 @@ describe('Modal Scroll Lock Reference Counting', () => {
     expect(mockBody.style.overflow).toBe('auto');
   });
 });
+
+describe('Welcome Modal Persistence and Targeted Storage', () => {
+  beforeEach(() => {
+    mockStorage.clear();
+  });
+
+  it('persists desktop welcome seen state across reloads', async () => {
+    const { isWelcomeSeen, setWelcomeSeen } = await import('../components/WelcomeModal');
+    expect(isWelcomeSeen()).toBe(false);
+    setWelcomeSeen(true);
+    expect(isWelcomeSeen()).toBe(true);
+    expect(mockStorage.getItem('pulse_desktop_welcome_seen')).toBe('true');
+
+    setWelcomeSeen(false);
+    expect(isWelcomeSeen()).toBe(false);
+  });
+
+  it('persists mobile welcome seen state across reloads', async () => {
+    const { isMobileWelcomeSeen, setMobileWelcomeSeen } = await import('../../mobile/src/components/WelcomeModal');
+    expect(isMobileWelcomeSeen()).toBe(false);
+    setMobileWelcomeSeen(true);
+    expect(isMobileWelcomeSeen()).toBe(true);
+    expect(mockStorage.getItem('pulse_mobile_welcome_seen')).toBe('true');
+
+    setMobileWelcomeSeen(false);
+    expect(isMobileWelcomeSeen()).toBe(false);
+  });
+
+  it('targeted cache clearing removes pulse keys while preserving unrelated keys', () => {
+    mockStorage.setItem('pulse_raw_trial_observations', '[]');
+    mockStorage.setItem('pulse_user_settings', '{}');
+    mockStorage.setItem('pulse_desktop_welcome_seen', 'true');
+    mockStorage.setItem('unrelated_user_data', 'keep_me');
+
+    const targetedKeys = [
+      'pulse_raw_trial_observations',
+      'pulse_user_settings',
+      'pulse_desktop_welcome_seen',
+      'pulse_mobile_welcome_seen'
+    ];
+
+    targetedKeys.forEach(k => mockStorage.removeItem(k));
+
+    expect(mockStorage.getItem('pulse_raw_trial_observations')).toBeNull();
+    expect(mockStorage.getItem('pulse_user_settings')).toBeNull();
+    expect(mockStorage.getItem('pulse_desktop_welcome_seen')).toBeNull();
+    expect(mockStorage.getItem('unrelated_user_data')).toBe('keep_me');
+  });
+});
+
