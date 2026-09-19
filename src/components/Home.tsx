@@ -110,7 +110,7 @@ export function Home() {
               <Link 
                 to={ROUTES.ASSESSMENTS}
                 id="start-lab-btn"
-                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold text-sm px-6 py-3.5 rounded-md inline-flex items-center justify-center gap-2.5 cursor-pointer max-w-full transition-[background-color,transform,box-shadow] duration-150 motion-reduce:transition-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold text-xs px-6 py-3.5 rounded-md inline-flex items-center justify-center gap-2.5 cursor-pointer max-w-full transition-[background-color,transform,box-shadow] duration-150 motion-reduce:transition-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
               >
                 <span>Start assessments</span>
                 <ArrowRight size={16} aria-hidden="true" />
@@ -134,7 +134,7 @@ export function Home() {
                         <Icon size={18} aria-hidden="true" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-sm text-[var(--text-primary)] leading-snug">
+                        <div className="font-semibold text-xs text-[var(--text-primary)] leading-snug">
                           {card.label}
                         </div>
                         <div className="text-xs text-[var(--text-secondary)] mt-0.5 leading-snug">

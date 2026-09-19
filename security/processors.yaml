@@ -1,0 +1,39 @@
+# PULSE Research Platform - Stage 0 Third-Party Processors
+# Inventory of data subprocessors, jurisdictions, purpose, and DPA status
+
+version: "1.0.0"
+last_audited: "2026-09-20"
+platform: "PULSE Cognitive Assessment System"
+
+processors:
+  - name: "Google Cloud Platform / Firebase"
+    purpose: "Database (Cloud Firestore), Anonymous Authentication (Firebase Auth), and Server Hosting (Cloud Run / App Engine)"
+    headquarters: "United States"
+    data_storage_location: "United States / EU (Configured via FIREBASE_PROJECT_ID)"
+    dpa_signed: true
+    dpa_reference: "Google Cloud Data Processing and Security Terms (Model Contractual Clauses included)"
+    data_sent:
+      - "Pseudonymous participant UIDs (generated randomly via signInAnonymously)"
+      - "Reaction time, accuracy, and trial millisecond telemetry"
+      - "Opt-in leaderboard display aliases"
+    security_page: "https://cloud.google.com/security"
+    certifications:
+      - "ISO/IEC 27001"
+      - "ISO/IEC 27017"
+      - "ISO/IEC 27018"
+      - "SOC 1 / SOC 2 / SOC 3"
+      - "HIPAA Compliant environment ready"
+
+  - name: "Vercel Inc."
+    purpose: "Edge deployment and web application hosting (when deployed via Vercel)"
+    headquarters: "United States"
+    data_storage_location: "Global Edge Network (US/EU)"
+    dpa_signed: true
+    dpa_reference: "Vercel Data Processing Addendum (Standard Contractual Clauses)"
+    data_sent:
+      - "Static web assets"
+      - "Proxied HTTPS request headers and anonymous session tokens"
+    security_page: "https://vercel.com/security"
+    certifications:
+      - "SOC 2 Type II"
+      - "ISO 27001"

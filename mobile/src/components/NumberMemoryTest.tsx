@@ -406,7 +406,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
     };
   }, [trialDataset, totalTimeMs]);
 
-  let apparatusClass = "relative w-full max-w-[600px] min-h-[480px] sm:min-h-[520px] py-8 mx-auto rounded-[32px] border flex flex-col items-center justify-between cursor-pointer transition-all duration-200 ease-out z-20 backdrop-blur-[10px]";
+  let apparatusClass = "relative w-full max-w-[600px] min-h-[480px] sm:min-h-[520px] py-8 mx-auto rounded-[32px] border flex flex-col items-center justify-between cursor-pointer transition-colors transition-transform transition-opacity duration-200 ease-out z-20 backdrop-blur-[10px]";
   let statusClass = "font-['Space_Grotesk'] text-[1.1rem] font-medium tracking-[1px] uppercase transition-colors duration-100 ease-out text-[var(--text-muted)]";
   
 
@@ -437,7 +437,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
     return (
       <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-[260px] sm:max-w-[280px] mx-auto mt-4 mb-4 z-10">
         {keys.map((key) => {
-          let btnClass = "h-12 sm:h-14 rounded-xl border border-white/10 font-['Space_Grotesk'] text-xl text-white flex items-center justify-center transition-all hover:bg-white/10 active:bg-white/20 active:scale-95 bg-white/5";
+          let btnClass = "h-12 sm:h-14 rounded-xl border border-white/10 font-['Space_Grotesk'] text-xl text-white flex items-center justify-center transition-colors transition-transform transition-opacity hover:bg-white/10 active:bg-white/20 active:scale-95 bg-white/5";
           
           if (key === 'enter') {
             btnClass += " bg-[var(--cyan-primary)]/20 border-[var(--cyan-primary)]/40 text-[var(--cyan-primary)] hover:bg-[var(--cyan-primary)]/30 active:bg-[var(--cyan-primary)]/40";

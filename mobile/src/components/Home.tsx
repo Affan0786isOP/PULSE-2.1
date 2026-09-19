@@ -238,7 +238,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shadow-xs transition-transform group-hover:scale-105">
               <Activity size={16} aria-hidden="true" className="stroke-[2.5]" />
             </div>
-            <span className="font-heading font-extrabold text-sm sm:text-base tracking-tight text-[var(--text-primary)] leading-none">
+            <span className="font-heading font-extrabold text-xs sm:text-base tracking-tight text-[var(--text-primary)] leading-none">
               PULSE
             </span>
           </button>
@@ -340,7 +340,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       {/* Main Content - Natural document scrolling without nested overflow locks */}
       <main 
-        className="w-full flex-1 flex flex-col items-center px-4 py-3 z-10 max-w-sm mx-auto gap-3.5 transition-[padding] duration-200"
+        className="w-full flex-auto flex flex-col items-center px-4 py-3 z-10 max-w-sm mx-auto gap-3.5 transition-[padding] duration-200"
         style={{ paddingBottom: displayedError ? 'max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))' : 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
       >
         <motion.div 
@@ -439,7 +439,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             }}
             className="w-full rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold py-3.5 px-4 flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] duration-150 motion-reduce:transition-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <span className="text-sm font-semibold">Start assessments</span>
+            <span className="text-xs font-semibold">Start assessments</span>
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
 

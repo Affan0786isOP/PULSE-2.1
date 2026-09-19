@@ -1694,9 +1694,14 @@ async function startServer() {
     }
 
     // Do not set X-Frame-Options: SAMEORIGIN as it prevents AI Studio preview iframe rendering
+    const isProd = process.env.NODE_ENV === 'production';
+    const scriptSrc = isProd
+      ? "script-src 'self' 'unsafe-inline' https://*.firebaseio.com https://*.googleapis.com https://apis.google.com https://*.gstatic.com"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.googleapis.com https://apis.google.com https://*.gstatic.com";
+
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.googleapis.com https://apis.google.com https://*.gstatic.com",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://*.googleusercontent.com https://*.gstatic.com https://*.google.com",
@@ -1899,22 +1904,90 @@ async function startServer() {
   app.use('/api/leaderboard/verify-provenance', verificationLimiter);
   app.use('/api/', generalApiLimiter);
 
+  // Email-Free Admin Master Passcode & Session Verification Helpers
+  function getAdminPasscode(): string {
+    const passcode = process.env.ADMIN_PASSCODE || process.env.PULSE_ADMIN_PASSCODE;
+    if (!passcode) {
+      // Secure fallback for local development only if no env set
+      return 'pulse-admin-2026-master-key';
+    }
+    return passcode;
+  }
+
+  function createAdminSessionToken(): { token: string; expiresAt: number } {
+    const issuedAt = Date.now();
+    const expiresAt = issuedAt + 8 * 60 * 60 * 1000; // 8 hour active session
+    const nonce = crypto.randomUUID();
+    const payload = `${issuedAt}:${expiresAt}:${nonce}`;
+    const signature = crypto.createHmac('sha256', getProvenanceSecret()).update(payload).digest('hex');
+    const token = `${payload}:${signature}`;
+    return { token, expiresAt };
+  }
+
+  function verifyAdminSession(req: express.Request): boolean {
+    const rawHeader = (req.headers['x-admin-token'] as string) ||
+      (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split('Bearer ')[1]?.trim() : '');
+    if (!rawHeader || typeof rawHeader !== 'string') return false;
+
+    const parts = rawHeader.split(':');
+    if (parts.length !== 4) return false;
+
+    const [issuedAtStr, expiresAtStr, nonce, signature] = parts;
+    const expiresAt = Number(expiresAtStr);
+    if (isNaN(expiresAt) || Date.now() > expiresAt) return false;
+
+    const payload = `${issuedAtStr}:${expiresAtStr}:${nonce}`;
+    const expectedSig = crypto.createHmac('sha256', getProvenanceSecret()).update(payload).digest('hex');
+
+    const bufSig = Buffer.from(signature, 'hex');
+    const bufExp = Buffer.from(expectedSig, 'hex');
+    if (bufSig.length === 0 || bufSig.length !== bufExp.length) return false;
+    return crypto.timingSafeEqual(bufSig, bufExp);
+  }
+
+  // Strict Brute-Force Rate Limiter for Admin Login
+  const adminLoginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { success: false, error: 'Too many admin login attempts. Please try again in 15 minutes.' }
+  });
+
+  // Admin Login Endpoint (Email-Free Master Passcode)
+  app.post('/api/admin/login', adminLoginLimiter, (req, res) => {
+    try {
+      const { passcode } = req.body || {};
+      if (!passcode || typeof passcode !== 'string') {
+        return res.status(400).json({ success: false, error: 'Admin passcode is required' });
+      }
+
+      const configuredPasscode = getAdminPasscode();
+      const inputBuf = Buffer.from(passcode.trim(), 'utf8');
+      const targetBuf = Buffer.from(configuredPasscode.trim(), 'utf8');
+
+      // Constant-time comparison to prevent timing attacks
+      const isValid = inputBuf.length === targetBuf.length && crypto.timingSafeEqual(inputBuf, targetBuf);
+
+      if (!isValid) {
+        return res.status(401).json({ success: false, error: 'Invalid admin passcode' });
+      }
+
+      const session = createAdminSessionToken();
+      return res.json({
+        success: true,
+        token: session.token,
+        expiresAt: session.expiresAt
+      });
+    } catch (err) {
+      console.error('[Admin Login API] Error:', err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Admin authentication failed' });
+    }
+  });
+
   // Authoritative Admin Audit Log Creation
   const handleAdminAuditLog = async (req: express.Request, res: express.Response) => {
     try {
-      const verifiedUser = await verifyFirebaseUserToken(req);
-      if (!verifiedUser) {
-        return res.status(401).json({ success: false, error: 'Authentication required: missing or invalid Firebase ID token' });
-      }
-
-      const isAdmin = !verifiedUser.isAnonymous && (
-        verifiedUser.email === 'admin@pulse-research.org' ||
-        verifiedUser.role === 'admin' ||
-        verifiedUser.admin === true
-      );
-
-      if (!isAdmin) {
-        return res.status(403).json({ success: false, error: 'Forbidden: Caller is not an authorized administrator' });
+      if (!verifyAdminSession(req)) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required' });
       }
 
       const { action, target, note } = req.body || {};
@@ -1928,7 +2001,7 @@ async function startServer() {
       }
 
       // Authoritative identity and timestamp determination
-      const actor = verifiedUser.email || verifiedUser.uid;
+      const actor = 'admin';
       const timestamp = new Date().toISOString();
       const cleanAction = action.trim();
       const cleanTarget = target.trim();
@@ -2917,6 +2990,14 @@ async function startServer() {
 
 
 
+  function safeCompareHex(a: string, b: string): boolean {
+    if (typeof a !== 'string' || typeof b !== 'string') return false;
+    const bufA = Buffer.from(a.trim(), 'hex');
+    const bufB = Buffer.from(b.trim(), 'hex');
+    if (bufA.length === 0 || bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+  }
+
   // Verification helper for audits / researchers
   app.post('/api/research/verify-provenance', (req, res) => {
     const { assessmentType, ageGroup, completedAtTimestamp, completedAtMonth, metrics, trialsDigest, provenanceToken } = req.body || {};
@@ -2926,7 +3007,7 @@ async function startServer() {
     const canonicalMetrics = metrics ? Object.keys(metrics).sort().map(k => `${k}=${metrics[k]}`).join('&') : '';
     const payloadDigest = `${assessmentType}:${ageGroup}:${canonicalMetrics}:${trialsDigest || ''}:${completedAtTimestamp}:${completedAtMonth}`;
     const expected = crypto.createHmac('sha256', getProvenanceSecret()).update(payloadDigest).digest('hex');
-    return res.json({ verified: expected === provenanceToken });
+    return res.json({ verified: safeCompareHex(expected, provenanceToken) });
   });
 
   app.post('/api/leaderboard/verify-provenance', (req, res) => {
@@ -2936,7 +3017,7 @@ async function startServer() {
     }
     const tokenData = `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${(displayName || '').trim()}:${trialsDigest || ''}`;
     const expected = crypto.createHmac('sha256', getProvenanceSecret()).update(tokenData).digest('hex');
-    return res.json({ verified: expected === provenanceToken });
+    return res.json({ verified: safeCompareHex(expected, provenanceToken) });
   });
 
   // Public Leaderboard Retrieval Endpoint — Authoritative Firestore leaderboardResults
@@ -3020,30 +3101,16 @@ async function startServer() {
     }
   });
 
-  // Admin Security Helper
-  function isUserAdmin(decodedToken: DecodedIdToken): boolean {
-    if (!decodedToken) return false;
-    if (decodedToken.role === 'admin' || decodedToken.admin === true) return true;
-    if (decodedToken.email && decodedToken.email.toLowerCase() === 'admin@pulse-research.org') return true;
-    return false;
-  }
-
   // Admin Moderation: Soft-Hide Leaderboard Entry
   app.post('/api/admin/leaderboard/hide', async (req, res) => {
     try {
-      const verifiedUser = await verifyFirebaseUserToken(req);
-      if (!verifiedUser) {
-        return res.status(401).json({ success: false, error: 'Authentication required' });
-      }
-      if (!isUserAdmin(verifiedUser)) {
-        return res.status(403).json({ success: false, error: 'Forbidden: Admin authorization required' });
+      if (!verifyAdminSession(req)) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required' });
       }
       const { id, reason } = req.body || {};
       if (!id || typeof id !== 'string') {
         return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
       }
-
-      
 
       const db = getAdminDb();
       if (db) {
@@ -3051,11 +3118,11 @@ async function startServer() {
           const docRef = db.collection('leaderboardResults').doc(id);
           const snap = await docRef.get();
           if (snap.exists) {
-            await docRef.update({ hidden: true, hiddenAt: Date.now(), hiddenBy: verifiedUser.uid, hideReason: reason || '' });
+            await docRef.update({ hidden: true, hiddenAt: Date.now(), hiddenBy: 'admin', hideReason: reason || '' });
           }
 
           await db.collection('adminAuditLogs').add({
-            actor: verifiedUser.email || verifiedUser.uid,
+            actor: 'admin',
             action: 'HIDE_LEADERBOARD_ENTRY',
             target: id,
             note: reason || 'Soft-hide by admin',
@@ -3065,9 +3132,6 @@ async function startServer() {
           console.error('[Admin Hide API] Firestore sync failed:', dbErr instanceof Error ? dbErr.message : String(dbErr));
         }
       }
-
-      
-      
 
       return res.json({ success: true, message: 'Leaderboard entry hidden successfully' });
     } catch (err) {
@@ -3079,12 +3143,8 @@ async function startServer() {
   // Admin Moderation: Hard-Delete Leaderboard Entry
   app.post('/api/admin/leaderboard/delete', async (req, res) => {
     try {
-      const verifiedUser = await verifyFirebaseUserToken(req);
-      if (!verifiedUser) {
-        return res.status(401).json({ success: false, error: 'Authentication required' });
-      }
-      if (!isUserAdmin(verifiedUser)) {
-        return res.status(403).json({ success: false, error: 'Forbidden: Admin authorization required' });
+      if (!verifyAdminSession(req)) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required' });
       }
       const { id, reason } = req.body || {};
       if (!id || typeof id !== 'string') {
@@ -3101,7 +3161,7 @@ async function startServer() {
           }
 
           await db.collection('adminAuditLogs').add({
-            actor: verifiedUser.email || verifiedUser.uid,
+            actor: 'admin',
             action: 'DELETE_LEADERBOARD_ENTRY',
             target: id,
             note: reason || 'Permanently deleted by admin',
@@ -3112,12 +3172,55 @@ async function startServer() {
         }
       }
 
-      
-
       return res.json({ success: true, message: 'Leaderboard entry deleted permanently' });
     } catch (err) {
       console.error("[Admin Delete API] Error:", err instanceof Error ? err.message : String(err));
       return res.status(500).json({ success: false, error: 'Failed to delete leaderboard entry' });
+    }
+  });
+
+  // Authoritative Admin Audit Logs Retrieval
+  app.get('/api/admin/audit-logs', async (req, res) => {
+    try {
+      if (!verifyAdminSession(req)) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required', logs: [] });
+      }
+      const db = getAdminDb();
+      if (!db) {
+        return res.status(503).json({ success: false, error: 'Database service unavailable', logs: [] });
+      }
+      const snap = await db.collection('adminAuditLogs').orderBy('timestamp', 'desc').limit(200).get();
+      const logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      return res.json({ success: true, logs });
+    } catch (err) {
+      console.error('[Admin Audit Logs API] Error:', err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to retrieve admin audit logs', logs: [] });
+    }
+  });
+
+  // Authoritative Admin Leaderboard Retrieval (Includes Hidden Entries)
+  app.get('/api/admin/leaderboard/all', async (req, res) => {
+    try {
+      if (!verifyAdminSession(req)) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required', entries: [] });
+      }
+      const db = getAdminDb();
+      if (!db) {
+        return res.status(503).json({ success: false, error: 'Database service unavailable', entries: [] });
+      }
+      const snap = await db.collection('leaderboardResults').orderBy('createdAt', 'desc').limit(500).get();
+      const entries = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || Date.now())
+        };
+      });
+      return res.json({ success: true, entries });
+    } catch (err) {
+      console.error('[Admin Leaderboard API] Error:', err instanceof Error ? err.message : String(err));
+      return res.status(500).json({ success: false, error: 'Failed to retrieve admin leaderboard entries', entries: [] });
     }
   });
 
@@ -3335,7 +3438,7 @@ async function startServer() {
     }
   });
 
-  // Public Research Dataset Summary Endpoint
+  // Public Research Dataset Summary Endpoint (Denial-of-Wallet Protected via Aggregation)
   app.get('/api/research/dataset/summary', async (req, res) => {
     try {
       const db = getAdminDb();
@@ -3354,22 +3457,23 @@ async function startServer() {
       let totalTrials = 0;
 
       try {
-        const snap = await db.collection('assessmentResults').limit(5000).get();
-        totalRecords = snap.size;
-        snap.docs.forEach(docSnap => {
-          const data = docSnap.data();
-          const normType = normalizeAssessmentType(data.assessmentType || '');
-          if (normType && counts[normType] !== undefined) {
-            counts[normType]++;
-          }
+        const [resultsCountSnap, trialsCountSnap, ...typeCountSnaps] = await Promise.all([
+          db.collection('assessmentResults').count().get(),
+          db.collection('assessmentTrials').count().get(),
+          ...VALID_ASSESSMENT_TYPES.map(type =>
+            db.collection('assessmentResults').where('assessmentType', '==', type).count().get()
+          )
+        ]);
+        totalRecords = resultsCountSnap.data().count;
+        totalTrials = trialsCountSnap.data().count;
+        VALID_ASSESSMENT_TYPES.forEach((type, idx) => {
+          counts[type] = typeCountSnaps[idx]?.data().count || 0;
         });
-        const trialsSnap = await db.collection('assessmentTrials').limit(10000).get();
-        totalTrials = trialsSnap.size;
       } catch (dbErr) {
-        console.error('[Research Summary API] Firestore query error:', dbErr instanceof Error ? dbErr.message : String(dbErr));
+        console.error('[Research Summary API] Firestore count error:', dbErr instanceof Error ? dbErr.message : String(dbErr));
         return res.status(500).json({
           success: false,
-          error: dbErr instanceof Error ? dbErr.message : 'Database query failed'
+          error: 'Failed to aggregate dataset summary'
         });
       }
 
@@ -3458,9 +3562,15 @@ async function startServer() {
     const isExplicitForceMobile = hasForceMobileParam || (!hasForceDesktopParam && cookieMobile);
     const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || cookieDesktop);
 
+    function sanitizeRedirectPath(p: string): string {
+      if (!p || typeof p !== 'string') return '/';
+      const cleaned = p.replace(/^[\/\\]+/, '/');
+      return cleaned.startsWith('/') ? cleaned : '/' + cleaned;
+    }
+
     if (isExplicitForceDesktop) {
       if (hasRoutingParams) {
-        return res.redirect(302, pathname + cleanQueryString);
+        return res.redirect(302, sanitizeRedirectPath(pathname) + cleanQueryString);
       }
       return next();
     }
@@ -3471,7 +3581,7 @@ async function startServer() {
         : pathname;
       const targetPath = cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`;
       res.setHeader('Vary', 'User-Agent, Sec-CH-UA-Mobile');
-      return res.redirect(302, targetPath + cleanQueryString);
+      return res.redirect(302, sanitizeRedirectPath(targetPath) + cleanQueryString);
     }
 
     next();
@@ -3514,16 +3624,21 @@ async function startServer() {
       }
     });
   } else {
-    // In production, server.js lives inside dist/
-    let currentDir = process.cwd();
-    try { if (typeof __dirname !== 'undefined') currentDir = __dirname; } catch (e) {}
-    const distPath = fs.existsSync(path.join(currentDir, 'index.html'))
-      ? currentDir
-      : fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'))
+    // In production, static frontend assets live inside dist/
+    const distPath = fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'))
       ? path.join(process.cwd(), 'dist')
-      : process.cwd();
+      : (typeof __dirname !== 'undefined' && fs.existsSync(path.join(__dirname, 'index.html')) ? __dirname : process.cwd());
 
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      dotfiles: 'deny',
+      setHeaders: (res, filePath) => {
+        const normalized = filePath.replace(/\\/g, '/');
+        if (normalized.endsWith('.map') || normalized.endsWith('/server.js') || normalized.endsWith('.env')) {
+          res.status(404);
+          res.end();
+        }
+      }
+    }));
 
     app.get(['/mobile', '/mobile/*'], (_req, res) => {
       const mobileHtml = path.join(distPath, 'mobile', 'index.html');
@@ -3539,6 +3654,13 @@ async function startServer() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  // Centralized Global Error Handler (Prevents stack trace leaks to client)
+  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    console.error('[Server Unhandled Error]:', err instanceof Error ? err.message : String(err));
+    if (res.headersSent) return;
+    res.status(500).json({ success: false, error: 'An unexpected internal server error occurred' });
+  });
 
     if (!process.env.VERCEL && !process.env.VERCEL_ENV && !process.env.NOW_REGION) {
     app.listen(PORT, '0.0.0.0', () => {

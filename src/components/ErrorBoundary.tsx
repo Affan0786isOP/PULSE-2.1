@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <h2 className="text-lg font-bold tracking-tight text-white mb-2">
               Application Notice
             </h2>
-            <p className="text-sm text-slate-400 mb-5 leading-relaxed">
+            <p className="text-xs text-slate-400 mb-5 leading-relaxed">
               PULSE encountered a rendering interruption. You can reload the application to restore evaluation.
             </p>
             {this.state.error?.message && (
@@ -50,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleReload}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 active:scale-95 active:bg-cyan-600 text-slate-950 font-semibold text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 active:scale-95 active:bg-cyan-600 text-slate-950 font-semibold text-xs transition-colors transition-transform transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 cursor-pointer"
             >
               <RotateCcw size={16} />
               Reload Application

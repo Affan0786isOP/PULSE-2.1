@@ -153,7 +153,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     role="tab"
                     aria-selected={isActive}
                     aria-label={`Select ${p.name}`}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium whitespace-nowrap transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium whitespace-nowrap transition-colors transition-transform cursor-pointer ${
                       isActive
                         ? 'bg-[var(--cyan-primary)] text-black font-bold shadow-sm'
                         : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-panel-hover)] border border-[var(--border-subtle)]'
@@ -183,7 +183,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 type="button"
                 onClick={() => setDatasetMode('data-explorer')}
                 aria-label="Open Data Explorer"
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-colors transition-transform cursor-pointer ${
                   datasetMode === 'data-explorer'
                     ? 'bg-[var(--cyan-primary)] text-black font-bold shadow-sm'
                     : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-panel-hover)] border border-[var(--border-subtle)]'

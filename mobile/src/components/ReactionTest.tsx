@@ -647,7 +647,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-lg font-bold text-[var(--text-main)]">Session Initialization Failed</h2>
+            <h2 className="text-xl font-bold text-[var(--text-main)]">Session Initialization Failed</h2>
             <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
             <button
               type="button"

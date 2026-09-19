@@ -40,7 +40,7 @@ const COLORS = [
   { name: 'BLUE', value: '#3b82f6' },
   { name: 'GREEN', value: '#10b981' },
   { name: 'YELLOW', value: '#eab308' },
-  { name: 'PURPLE', value: '#a855f7' }
+  { name: 'PURPLE', value: 'var(--cyan-primary)' }
 ];
 
 
@@ -791,7 +791,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 w-full mt-auto">
                   {shuffledOptions.map((c, i) => {
-                    let btnClass = "font-['Space_Grotesk'] font-bold text-xs md:text-sm tracking-widest uppercase py-4 px-2 rounded-lg cursor-pointer transition-all border text-black text-center select-none touch-manipulation ";
+                    let btnClass = "font-['Space_Grotesk'] font-bold text-xs md:text-sm tracking-widest uppercase py-4 px-2 rounded-lg cursor-pointer transition-colors transition-transform transition-opacity border text-black text-center select-none touch-manipulation ";
                     
                     if (engineState === 'FEEDBACK') {
                       const expected = currentInstruction === 'WORD' ? currentWord.name : currentColor.name;
@@ -932,7 +932,7 @@ return (
                   setShowGuide(false);
                   startCountdown();
                 }}
-                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[var(--cyan-primary)] hover:bg-[#00d0dd] text-black font-heading font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-sm active:scale-95 text-center"
+                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[var(--cyan-primary)] hover:bg-[#00d0dd] text-black font-heading font-bold text-xs uppercase tracking-wider transition-colors transition-transform transition-opacity cursor-pointer shadow-sm active:scale-95 text-center"
               >
                 Got It, Let's Play!
               </button>

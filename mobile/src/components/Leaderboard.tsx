@@ -100,7 +100,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             disabled={loading}
             aria-label="Refresh Leaderboard"
             title="Refresh Leaderboard"
-            className="p-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--cyan-primary)] hover:border-[var(--cyan-primary)] active:scale-95 transition-all cursor-pointer disabled:opacity-50 shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="p-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--cyan-primary)] hover:border-[var(--cyan-primary)] active:scale-95 transition-colors transition-transform transition-opacity cursor-pointer disabled:opacity-50 shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin text-[var(--cyan-primary)]' : ''} />
           </button>
@@ -123,7 +123,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             onClick={handlePrevProtocol}
             aria-label="Previous Protocol"
             title="Previous Protocol"
-            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-all cursor-pointer shrink-0"
+            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-colors transition-transform transition-opacity cursor-pointer shrink-0"
           >
             <ChevronLeft size={20} />
           </button>
@@ -156,7 +156,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                   title={p.name}
                   role="tab"
                   aria-selected={p.id === selectedProtocol}
-                  className={`h-2.5 rounded-full transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] ${
+                  className={`h-2.5 rounded-full transition-colors transition-transform transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] ${
                     p.id === selectedProtocol 
                       ? 'w-5 bg-[var(--cyan-primary)]' 
                       : 'w-2 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'
@@ -171,7 +171,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             onClick={handleNextProtocol}
             aria-label="Next Protocol"
             title="Next Protocol"
-            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-all cursor-pointer shrink-0"
+            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-colors transition-transform transition-opacity cursor-pointer shrink-0"
           >
             <ChevronRight size={20} />
           </button>
@@ -212,7 +212,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               <button
                 type="button"
                 onClick={() => onNavigate(currentProto.route)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--cyan-primary)] text-black font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer min-h-[40px]"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--cyan-primary)] text-black font-bold text-xs uppercase tracking-wider transition-colors transition-transform transition-opacity shadow-sm active:scale-95 cursor-pointer min-h-[40px]"
               >
                 <Play size={13} className="fill-black" />
                 <span>Take Test</span>

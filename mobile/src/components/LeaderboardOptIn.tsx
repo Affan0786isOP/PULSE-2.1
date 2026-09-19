@@ -123,7 +123,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
 
   if (optInState === 'IDLE') {
     return (
-      <div className="w-full bg-[var(--surface-2)]/60 border border-[var(--border-subtle)] p-2 rounded-lg flex items-center justify-between gap-2 text-left transition-all">
+      <div className="w-full bg-[var(--surface-2)]/60 border border-[var(--border-subtle)] p-2 rounded-lg flex items-center justify-between gap-2 text-left transition-colors transition-transform transition-opacity">
         <div className="flex flex-col min-w-0">
           <span className="font-mono font-semibold text-[10px] text-[var(--text-primary)] uppercase tracking-wide truncate">Research Leaderboard</span>
           <span className="text-[var(--text-muted)] text-[9px] font-mono truncate">Publish score to public leaderboard</span>
@@ -168,7 +168,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
           disabled={optInState === 'SUBMITTING'}
           autoComplete="off"
           spellCheck={false}
-          className="w-full min-h-[44px] h-11 bg-[var(--surface-1)] border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-lg px-3 text-[16px] sm:text-xs text-[var(--text-primary)] font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] transition-colors text-left"
+          className="w-full min-h-[44px] bg-[var(--surface-1)] border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-lg px-3 text-[16px] sm:text-xs text-[var(--text-primary)] font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] transition-colors text-left"
           autoFocus
         />
 

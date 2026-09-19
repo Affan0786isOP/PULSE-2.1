@@ -445,7 +445,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
     };
   }, [trialDataset, totalTimeMs]);
 
-  let apparatusClass = "relative w-full max-w-[600px] min-h-[460px] sm:min-h-[500px] py-8 mx-auto rounded-[32px] border flex flex-col items-center justify-between cursor-pointer transition-all duration-200 ease-out z-20 backdrop-blur-[10px]";
+  let apparatusClass = "relative w-full max-w-[600px] min-h-[460px] sm:min-h-[500px] py-8 mx-auto rounded-[32px] border flex flex-col items-center justify-between cursor-pointer transition-colors transition-transform transition-opacity duration-200 ease-out z-20 backdrop-blur-[10px]";
   let statusClass = "font-['Space_Grotesk'] text-[1.1rem] font-medium tracking-[1px] uppercase transition-colors duration-100 ease-out text-[var(--text-muted)]";
   
 
@@ -545,7 +545,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">Session Initialization Failed</h2>
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">Session Initialization Failed</h2>
             <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
             <button
               onClick={() => initSession(selectedAgeGroup)}

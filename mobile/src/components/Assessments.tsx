@@ -104,7 +104,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                     onNavigate(assessment.id);
                   }
                 }}
-                className={`p-4 border rounded-md flex flex-col transition-colors text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                className={`p-4 border rounded-md flex flex-col transition-colors transition-transform transition-opacity text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   assessment.status === 'AVAILABLE' 
                     ? 'bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)] cursor-pointer shadow-sm active:scale-[0.99]' 
                     : 'bg-[var(--surface-1)] border-[var(--border-subtle)] opacity-50 cursor-not-allowed'

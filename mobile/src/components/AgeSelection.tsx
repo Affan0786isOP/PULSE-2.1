@@ -121,7 +121,7 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
                 key={age}
                 id={`age-option-${age.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
                 onClick={() => handleSelect(age)}
-                className={`w-full min-h-[48px] text-left px-3 py-2 rounded-xl border text-xs font-mono transition-all duration-150 cursor-pointer flex items-center justify-between gap-3 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                className={`w-full min-h-[48px] text-left px-3 py-2 rounded-xl border text-xs font-mono transition-colors transition-transform transition-opacity duration-150 cursor-pointer flex items-center justify-between gap-3 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   isSelected 
                     ? 'bg-[var(--surface-2)] border-[var(--accent)] text-[var(--text-primary)] shadow-sm' 
                     : 'bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:border-[var(--border-default)] hover:text-[var(--text-primary)]'
@@ -165,7 +165,7 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
           id="continue-assessment-btn"
           onClick={handleContinue}
           disabled={!selectedAge}
-          className={`w-full min-h-[44px] h-11 px-4 rounded-xl font-mono font-bold text-xs tracking-wider uppercase inline-flex items-center justify-center gap-2 transition-all shrink-0 ${
+          className={`w-full min-h-[44px] h-11 px-4 rounded-xl font-mono font-bold text-xs tracking-wider uppercase inline-flex items-center justify-center gap-2 transition-colors transition-transform transition-opacity shrink-0 ${
             selectedAge 
               ? 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 cursor-pointer shadow-sm active:scale-[0.99]' 
               : 'bg-[var(--surface-2)] text-[var(--text-muted)] cursor-not-allowed opacity-50 border border-[var(--border-subtle)]'

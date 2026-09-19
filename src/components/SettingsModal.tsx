@@ -726,7 +726,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Display Refresh Rate</div>
                         <div className="text-base font-mono font-bold text-[var(--accent)] mt-0.5">
                           {isRecalibrating || refreshInfo.status === 'detecting' ? (
-                            <span className="text-xs text-[var(--text-muted)] animate-pulse">Detecting…</span>
+                            <span className="text-xs text-[var(--text-muted)] ">Detecting…</span>
                           ) : (
                             `${refreshInfo.hz} Hz`
                           )}
@@ -745,7 +745,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Display Midpoint</div>
                         <div className="text-base font-mono font-bold text-emerald-400 mt-0.5">
                           {isRecalibrating || refreshInfo.status === 'detecting' ? (
-                            <span className="text-xs text-[var(--text-muted)] animate-pulse">Computing…</span>
+                            <span className="text-xs text-[var(--text-muted)] ">Computing…</span>
                           ) : (
                             `~${refreshInfo.displayDelayOffsetMs} ms`
                           )}

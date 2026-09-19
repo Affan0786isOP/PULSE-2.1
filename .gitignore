@@ -7,3 +7,10 @@ coverage/
 .env*
 !.env.example
 brag-output*
+
+# Agent local history, terminal approvals & credentials
+.claude/settings.local.json
+.claude/settings.json
+*.local.json
+.mcp.json
+.cursor/

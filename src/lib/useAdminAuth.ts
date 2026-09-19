@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { auth } from './firebase';
-import { signOut } from 'firebase/auth';
+import { useState } from 'react';
 
 export function useAdminAuth() {
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     try {
-      return sessionStorage.getItem('pulse_admin_auth') === 'true';
+      const authFlag = sessionStorage.getItem('pulse_admin_auth') === 'true';
+      const token = sessionStorage.getItem('pulse_admin_token');
+      return authFlag && !!token;
     } catch {
       return false;
     }
@@ -15,32 +15,42 @@ export function useAdminAuth() {
   const [user, setUser] = useState<any>(null);
   const [email, setEmail] = useState<string | null>(() => {
     try {
-      return sessionStorage.getItem('pulse_admin_email') || 'admin@pulse-research.org';
+      return sessionStorage.getItem('pulse_admin_email') || 'admin';
     } catch {
-      return 'admin@pulse-research.org';
+      return 'admin';
     }
   });
 
-  const signIn = async (password: string): Promise<boolean> => {
+  const signIn = async (passcode: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
-      if (
-        password === 'admin123' ||
-        password === 'pulse2025' ||
-        password === 'pulse_admin' ||
-        password.length >= 6
-      ) {
+      if (!passcode || !passcode.trim()) {
+        setError('Please enter the admin master passcode');
+        return false;
+      }
+
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: passcode.trim() })
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.success && data.token) {
         setIsAdmin(true);
-        setEmail('admin@pulse-research.org');
+        setEmail('admin');
         sessionStorage.setItem('pulse_admin_auth', 'true');
-        sessionStorage.setItem('pulse_admin_email', 'admin@pulse-research.org');
+        sessionStorage.setItem('pulse_admin_token', data.token);
+        sessionStorage.setItem('pulse_admin_email', 'admin');
         return true;
       }
-      setError('Invalid admin credentials');
+
+      setError(data.error || 'Invalid admin master passcode');
       return false;
     } catch (e: any) {
-      setError(e.message || 'Login failed');
+      setError(e.message || 'Authentication request failed');
       return false;
     } finally {
       setLoading(false);
@@ -50,12 +60,10 @@ export function useAdminAuth() {
   const signOutAdmin = async () => {
     setIsAdmin(false);
     setEmail(null);
-    sessionStorage.removeItem('pulse_admin_auth');
-    sessionStorage.removeItem('pulse_admin_email');
     try {
-      if (auth) {
-        await signOut(auth);
-      }
+      sessionStorage.removeItem('pulse_admin_auth');
+      sessionStorage.removeItem('pulse_admin_token');
+      sessionStorage.removeItem('pulse_admin_email');
     } catch {}
   };
 

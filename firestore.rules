@@ -1,61 +1,56 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Collection: experimentSessions (Legacy: assessmentSessions)
+
+    // Default deny all documents and subcollections not explicitly permitted
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Collection: assessmentSessions (Legacy - closed)
     match /assessmentSessions/{docId} {
-      allow read: if false;
-      allow create, update, delete: if false;
+      allow read, write: if false;
     }
 
-    // Collection: assessmentTrials
+    // Collection: assessmentTrials (Granular trial records scoped strictly to participant)
     match /assessmentTrials/{docId} {
-      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin' || resource.data.participantId == request.auth.uid);
-      allow create, update, delete: if false;
+      allow read: if request.auth != null && resource.data.participantId == request.auth.uid;
+      allow write: if false; // Server authoritative
     }
 
-    // Collection: assessmentResults
+    // Collection: assessmentResults (Participant results scoped strictly to participant)
     match /assessmentResults/{docId} {
-      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin' || resource.data.participantId == request.auth.uid);
-      allow create, update, delete: if false;
+      allow read: if request.auth != null && resource.data.participantId == request.auth.uid;
+      allow write: if false; // Server authoritative
     }
 
-    // Collection: publicDataset (anonymized observations for research dataset)
+    // Collection: publicDataset (Anonymized observations for research dataset)
     match /publicDataset/{docId} {
       allow read: if request.auth != null;
-      allow create, update, delete: if false;
+      allow write: if false; // Server authoritative
     }
 
+    // Collection: trialObservations (Granular trial measurements scoped strictly to participant)
     match /trialObservations/{docId} {
-      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin' || resource.data.participantId == request.auth.uid);
-      allow create, update, delete: if false;
+      allow read: if request.auth != null && resource.data.participantId == request.auth.uid;
+      allow write: if false; // Server authoritative
     }
 
+    // Collection: experimentSessions (Session tokens scoped strictly to session owner)
     match /experimentSessions/{docId} {
-      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin' || resource.data.uid == request.auth.uid);
-      allow create, update, delete: if false;
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow write: if false; // Server authoritative
     }
 
+    // Collection: adminAuditLogs (Immutable ledger managed authoritatively by server)
     match /adminAuditLogs/{docId} {
-      allow read: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin');
-      // Immutable audit logs must be created authoritatively by the trusted server
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if false; // Server authoritative only via verified admin token
     }
 
+    // Collection: leaderboardResults (Public read for active non-hidden scores)
     match /leaderboardResults/{docId} {
-      // Public reads are strictly restricted to non-hidden entries.
-      // Hidden entries can ONLY be retrieved by authenticated administrators.
-      allow read: if resource.data.hidden == false || 
-                     (request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin'));
-      allow create: if false; // Server authoritative
-      // Only authenticated admins may update (for moderation status changes like hidden: true) or delete
-      allow update: if request.auth != null && 
-                       (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin') &&
-                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden']) &&
-                       request.resource.data.hidden is bool;
-      allow delete: if request.auth != null && (request.auth.token.email == 'admin@pulse-research.org' || request.auth.token.role == 'admin');
+      allow read: if resource.data.hidden == false;
+      allow write: if false; // Server authoritative only (creation, hide/unhide, deletion)
     }
   }
 }
-

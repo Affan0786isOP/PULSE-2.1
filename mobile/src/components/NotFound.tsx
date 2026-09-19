@@ -25,10 +25,10 @@ export function NotFound({ onNavigate }: { onNavigate: (view: string) => void })
 
         <button type="button" 
           onClick={() => onNavigate('home')}
-          className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--accent)] rounded-lg px-6 py-3 flex items-center gap-2.5 transition-all group active:scale-95 cursor-pointer text-xs font-semibold text-[var(--text-primary)]"
+          className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--accent)] rounded-lg px-6 py-3 flex items-center gap-2.5 transition-colors transition-transform transition-opacity group active:scale-95 cursor-pointer text-xs font-semibold text-[var(--text-primary)]"
         >
           <span>Return to Dashboard</span>
-          <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-all" />
+          <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-colors transition-transform transition-opacity" />
         </button>
       </main>
     </div>

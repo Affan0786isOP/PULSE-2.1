@@ -109,7 +109,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: MobileWelcomeModal
                   <Activity size={18} className="stroke-[2.5]" />
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <div className="font-bold text-sm tracking-wide text-[var(--text-primary)] leading-tight">PULSE</div>
+                  <div className="font-bold text-xs tracking-wide text-[var(--text-primary)] leading-tight">PULSE</div>
                   <div className="text-[10px] text-[var(--text-muted)] tracking-tight truncate font-mono">Mobile Benchmark Suite</div>
                 </div>
               </div>
