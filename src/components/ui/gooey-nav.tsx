@@ -22,10 +22,8 @@ export function GooeyNav({
   className = '',
 }: GooeyNavProps) {
   return (
-    <div 
-      role="group" 
-      aria-label="Main Navigation Items" 
-      className={`flex items-center gap-1 p-1 rounded-full bg-[var(--surface-1)] border border-[var(--border-subtle)] ${className}`}
+    <ul 
+      className={`flex items-center gap-1 p-1 rounded-full bg-[var(--surface-1)] border border-[var(--border-subtle)] list-none m-0 ${className}`}
     >
       {items.map((item, index) => {
         const label = typeof item === 'string' ? item : item.label;
@@ -39,35 +37,37 @@ export function GooeyNav({
 
         if (to) {
           return (
-            <Link
-              key={label}
-              to={to}
+            <li key={label} className="list-none m-0 p-0 flex items-center">
+              <Link
+                to={to}
+                aria-current={isActive ? 'page' : undefined}
+                style={{
+                  backgroundColor: isActive ? activeColor : 'transparent',
+                }}
+                className={itemClassName}
+              >
+                {label}
+              </Link>
+            </li>
+          );
+        }
+
+        return (
+          <li key={label} className="list-none m-0 p-0 flex items-center">
+            <button
+              type="button"
               aria-current={isActive ? 'page' : undefined}
+              onClick={() => onChange(index)}
               style={{
                 backgroundColor: isActive ? activeColor : 'transparent',
               }}
               className={itemClassName}
             >
               {label}
-            </Link>
-          );
-        }
-
-        return (
-          <button
-            key={label}
-            type="button"
-            aria-current={isActive ? 'page' : undefined}
-            onClick={() => onChange(index)}
-            style={{
-              backgroundColor: isActive ? activeColor : 'transparent',
-            }}
-            className={itemClassName}
-          >
-            {label}
-          </button>
+            </button>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }

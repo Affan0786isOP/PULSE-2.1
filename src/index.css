@@ -303,6 +303,31 @@
   animation: resultCardEnter 0.25s ease-out both;
 }
 
+@keyframes homeFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-home-fade {
+  animation: homeFadeIn 0.35s ease-out both;
+}
+
+.home-stagger-1 {
+  animation-delay: 0.02s;
+}
+
+.home-stagger-2 {
+  animation-delay: 0.04s;
+}
+
+.home-stagger-3 {
+  animation-delay: 0.06s;
+}
+
 /* Instant Reduced Motion & Animation Suppression (does not affect research timing) */
 @media (prefers-reduced-motion: reduce) {
   *,

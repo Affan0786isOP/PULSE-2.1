@@ -234,6 +234,25 @@ export function useSettings(): [UserSettings, (partial: Partial<UserSettings>) =
   return [settings, update];
 }
 
+export function useReducedMotionPreference(): boolean {
+  const [reducedMotion, setReducedMotion] = useState<boolean>(isReducedMotionActive);
+
+  useEffect(() => {
+    const handleSettingsChange = (e: Event) => {
+      const customEvent = e as CustomEvent<UserSettings>;
+      const nextVal = customEvent.detail ? customEvent.detail.reducedMotionEnabled : isReducedMotionActive();
+      setReducedMotion((prev) => (prev !== nextVal ? nextVal : prev));
+    };
+
+    window.addEventListener('pulse_settings_changed', handleSettingsChange);
+    return () => {
+      window.removeEventListener('pulse_settings_changed', handleSettingsChange);
+    };
+  }, []);
+
+  return reducedMotion;
+}
+
 // Single shared Web Audio tone synthesizer for audio cues
 
 let sharedAudioCtx: AudioContext | null = null;

@@ -1,11 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, Database, ArrowRight, Trophy, ShieldCheck } from 'lucide-react';
-import { motion, Variants } from 'motion/react';
 import { Navbar } from './Navbar';
 import { SEO } from './SEO';
 import { APP_VERSION } from '../lib/version';
-import { useSettings } from '../lib/settingsStore';
+import { useReducedMotionPreference } from '../lib/settingsStore';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -57,28 +56,8 @@ const HOME_NAV_CARDS: readonly HomeNavCard[] = [
   },
 ];
 
-const staggerContainerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.02,
-      delayChildren: 0
-    }
-  }
-};
-
-const fadeItemVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { duration: 0.35, ease: "easeOut" }
-  }
-};
-
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const [settings] = useSettings();
-  const shouldReduceMotion = settings.reducedMotionEnabled;
+  const shouldReduceMotion = useReducedMotionPreference();
 
   return (
     <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans selection:bg-cyan-500/30 overflow-x-hidden relative flex flex-col justify-between">
@@ -102,37 +81,32 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 flex-1 flex flex-col justify-center py-8 lg:py-16 outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-inset rounded-lg"
+        className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 flex-1 flex flex-col justify-center py-8 lg:py-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg"
       >
         
         <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] items-center gap-10 lg:gap-14 my-auto">
           
           {/* Left Column: Tag, Headline, Description, Button */}
-          <motion.div 
-            variants={shouldReduceMotion ? undefined : staggerContainerVariants}
-            initial={shouldReduceMotion ? false : "hidden"}
-            animate="visible"
-            className="w-full flex flex-col items-center lg:items-start text-center lg:text-left"
-          >
+          <div className="w-full flex flex-col items-center lg:items-start text-center lg:text-left">
             {/* Top Tag */}
-            <motion.div variants={fadeItemVariants} className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-5">
+            <div className={`flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-5 ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
               <div className="inline-flex items-center gap-2 px-3 h-7 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-medium">
                 <span>Cognitive reaction &amp; memory assessments</span>
               </div>
-            </motion.div>
+            </div>
 
             {/* Main Headline */}
-            <motion.h1 variants={fadeItemVariants} className="font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.03em] leading-[1.12] mb-5 text-[var(--text-primary)] break-words">
+            <h1 className={`font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.03em] leading-[1.12] mb-5 text-[var(--text-primary)] break-words ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
               Measure your reaction time and cognitive performance.
-            </motion.h1>
+            </h1>
 
             {/* Description Paragraph - Aligned with actual protocols */}
-            <motion.p variants={fadeItemVariants} className="text-[var(--text-secondary)] text-base sm:text-lg max-w-xl font-normal leading-relaxed text-center lg:text-left mb-8">
+            <p className={`text-[var(--text-secondary)] text-base sm:text-lg max-w-xl font-normal leading-relaxed text-center lg:text-left mb-8 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-2'}`}>
               PULSE evaluates visual reaction latency, directional choice speed, and working memory through research-informed assessment protocols.
-            </motion.p>
+            </p>
 
             {/* Primary Action Button - Standard robust link supporting modifier clicks */}
-            <motion.div variants={fadeItemVariants} className="flex items-center gap-3">
+            <div className={`flex items-center gap-3 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
               <Link 
                 to={ROUTES.ASSESSMENTS}
                 id="start-lab-btn"
@@ -141,20 +115,16 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <span>Start assessments</span>
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Right Column: Navigation Cards - Native accessible links */}
-          <motion.div 
-            variants={shouldReduceMotion ? undefined : staggerContainerVariants}
-            initial={shouldReduceMotion ? false : "hidden"}
-            animate="visible"
-            className="w-full max-w-[360px] flex flex-col gap-2.5 shrink-0 mx-auto lg:mx-0"
-          >
-            {HOME_NAV_CARDS.map((card) => {
+          <div className="w-full max-w-[360px] flex flex-col gap-2.5 shrink-0 mx-auto lg:mx-0">
+            {HOME_NAV_CARDS.map((card, idx) => {
               const Icon = card.icon;
+              const staggerClass = idx === 0 ? '' : `home-stagger-${idx}`;
               return (
-                <motion.div key={card.to} variants={fadeItemVariants}>
+                <div key={card.to} className={shouldReduceMotion ? '' : `animate-home-fade ${staggerClass}`}>
                   <Link
                     to={card.to}
                     className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg p-3.5 sm:p-4 flex items-center justify-between transition-[background-color,border-color] duration-150 motion-reduce:transition-none group"
@@ -174,10 +144,10 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                     </div>
                     <ArrowRight size={15} aria-hidden="true" className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-[color,transform] duration-150 motion-reduce:transition-none motion-reduce:transform-none shrink-0" />
                   </Link>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
 
         </div>
       </main>
