@@ -53,12 +53,29 @@ export function AddToHomeScreenModal({
 }: AddToHomeScreenModalProps) {
   const [mounted, setMounted] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
+  const copyFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setMounted(true);
+    return () => {
+      if (copyFeedbackTimerRef.current) {
+        clearTimeout(copyFeedbackTimerRef.current);
+      }
+    };
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      if (copyFeedbackTimerRef.current) {
+        clearTimeout(copyFeedbackTimerRef.current);
+      }
+      setCopiedLink(false);
+      setCopyError(null);
+    }
+  }, [isOpen]);
 
   const { zIndex } = useModalAccessibility({
     isOpen,
@@ -88,17 +105,74 @@ export function AddToHomeScreenModal({
     }
   };
 
+  const fallbackCopyText = (text: string): boolean => {
+    if (typeof document === 'undefined') return false;
+    let textArea: HTMLTextAreaElement | null = null;
+    try {
+      textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.setAttribute('readonly', '');
+      textArea.style.position = 'fixed';
+      textArea.style.top = '-9999px';
+      textArea.style.left = '-9999px';
+      textArea.style.opacity = '0';
+      textArea.style.pointerEvents = 'none';
+      document.body.appendChild(textArea);
+
+      textArea.focus();
+      textArea.select();
+      textArea.setSelectionRange(0, text.length);
+
+      return Boolean(document.execCommand && document.execCommand('copy'));
+    } catch {
+      return false;
+    } finally {
+      if (textArea && textArea.parentNode) {
+        textArea.parentNode.removeChild(textArea);
+      }
+    }
+  };
+
   const handleCopyLink = async () => {
     playAudioCue('click');
     triggerHaptic('tap');
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        await navigator.clipboard.writeText(window.location.href);
-        setCopiedLink(true);
-        setTimeout(() => setCopiedLink(false), 2500);
+
+    if (copyFeedbackTimerRef.current) {
+      clearTimeout(copyFeedbackTimerRef.current);
+    }
+    setCopyError(null);
+
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    let success = false;
+
+    // 1. Try modern Clipboard API first
+    if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      try {
+        await navigator.clipboard.writeText(url);
+        success = true;
+      } catch {
+        success = false;
       }
-    } catch (err) {
-      console.warn('Could not copy link to clipboard:', err);
+    }
+
+    // 2. Fallback to off-screen textarea with document.execCommand('copy')
+    if (!success) {
+      success = fallbackCopyText(url);
+    }
+
+    // 3. Reflect outcome
+    if (success) {
+      setCopiedLink(true);
+      setCopyError(null);
+      copyFeedbackTimerRef.current = setTimeout(() => {
+        setCopiedLink(false);
+      }, 2500);
+    } else {
+      setCopiedLink(false);
+      setCopyError("Copy unavailable — use your browser's Share/Menu option instead.");
+      copyFeedbackTimerRef.current = setTimeout(() => {
+        setCopyError(null);
+      }, 4000);
     }
   };
 
@@ -306,12 +380,24 @@ export function AddToHomeScreenModal({
                       </p>
                       <button
                         type="button"
+                        id="copy-page-url-btn"
                         onClick={handleCopyLink}
+                        aria-label={copiedLink ? 'Link Copied' : 'Copy Page URL'}
                         className="w-full py-2 px-3 rounded-lg bg-[var(--surface-3)] hover:bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
                       >
                         {copiedLink ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
                         <span>{copiedLink ? 'Link Copied' : 'Copy Page URL'}</span>
                       </button>
+                      {copyError && (
+                        <div
+                          role="status"
+                          aria-live="polite"
+                          className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-sans flex items-center gap-2 leading-tight"
+                        >
+                          <AlertTriangle size={13} className="shrink-0 text-amber-400" aria-hidden="true" />
+                          <span>{copyError}</span>
+                        </div>
+                      )}
                     </div>
                   ) : isIosSafari ? (
                     <div className="space-y-2.5">

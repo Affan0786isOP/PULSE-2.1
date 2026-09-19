@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Activity, Database, ArrowRight, Zap, Trophy, Settings, Info, Download, Maximize2, Minimize2, ShieldCheck, AlertCircle, RefreshCw, ListChecks, BarChart2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../AuthContext';
@@ -156,9 +156,13 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
     document.addEventListener('fullscreenchange', updateFs);
     document.addEventListener('webkitfullscreenchange', updateFs);
+    document.addEventListener('mozfullscreenchange', updateFs);
+    document.addEventListener('MSFullscreenChange', updateFs);
     return () => {
       document.removeEventListener('fullscreenchange', updateFs);
       document.removeEventListener('webkitfullscreenchange', updateFs);
+      document.removeEventListener('mozfullscreenchange', updateFs);
+      document.removeEventListener('MSFullscreenChange', updateFs);
     };
   }, []);
 
@@ -205,17 +209,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         if (exitFS) {
           await exitFS.call(doc);
         }
-      }
-
-      const nextFs = Boolean(
-        doc.fullscreenElement ||
-        doc.webkitFullscreenElement ||
-        doc.mozFullScreenElement ||
-        doc.msFullscreenElement
-      );
-      setIsFullscreen(nextFs);
-      if (!isCurrentlyFs && !nextFs) {
-        showFullscreenFeedback('Fullscreen mode unavailable in this view');
       }
     } catch (err) {
       showFullscreenFeedback('Fullscreen unavailable or restricted by browser');
@@ -356,7 +349,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="flex flex-col items-center text-center w-full pt-1"
         >
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-[10px] font-mono mb-1.5">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-[0.625rem] font-mono mb-1.5">
             <span>v2.1 · Cognitive Benchmark</span>
           </div>
           <h1 className="text-base font-bold tracking-tight text-[var(--text-primary)] leading-tight px-1">
@@ -377,10 +370,10 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         >
           <div className="border-b border-[var(--border-subtle)] pb-2.5">
             <h2 className="text-xs font-bold text-[var(--text-primary)]">Welcome to PULSE</h2>
-            <p className="text-[11px] text-[var(--text-secondary)] mt-1 leading-relaxed">
+            <p className="text-[0.6875rem] text-[var(--text-secondary)] mt-1 leading-relaxed">
               PULSE is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
             </p>
-            <div className="text-[10px] font-mono font-medium text-[var(--accent)] uppercase tracking-wider mt-2">How it works:</div>
+            <div className="text-[0.625rem] font-mono font-medium text-[var(--accent)] uppercase tracking-wider mt-2">How it works:</div>
           </div>
 
           <div className="flex gap-2.5 items-start">
@@ -391,7 +384,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <h3 className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">
                 Pick a test
               </h3>
-              <p className="text-[11px] text-[var(--text-secondary)] leading-snug">
+              <p className="text-[0.6875rem] text-[var(--text-secondary)] leading-snug">
                 Visual Reaction, Direction, Colour Recognition, Block Memory, or Number Memory.
               </p>
             </div>
@@ -405,7 +398,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <h3 className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">
                 Respond
               </h3>
-              <p className="text-[11px] text-[var(--text-secondary)] leading-snug">
+              <p className="text-[0.6875rem] text-[var(--text-secondary)] leading-snug">
                 Watch for the cue and answer as fast and accurately as you can.
               </p>
             </div>
@@ -419,13 +412,13 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <h3 className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">
                 Review
               </h3>
-              <p className="text-[11px] text-[var(--text-secondary)] leading-snug">
+              <p className="text-[0.6875rem] text-[var(--text-secondary)] leading-snug">
                 Get your score instantly, compare against verified cohort benchmarks, and track your personal bests.
               </p>
             </div>
           </div>
 
-          <div className="border-t border-[var(--border-subtle)] pt-2 text-[11px] text-[var(--text-secondary)] leading-relaxed">
+          <div className="border-t border-[var(--border-subtle)] pt-2 text-[0.6875rem] text-[var(--text-secondary)] leading-relaxed">
             You can also check the Leaderboard, explore the open research Dataset, and learn about evidence-based habits in the Improve guide.
           </div>
         </motion.div>
@@ -468,7 +461,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-[var(--text-primary)] font-semibold text-xs truncate">{card.label}</span>
-                    <span className="text-[var(--text-secondary)] text-[10.5px] truncate mt-0.5">{card.sublabel}</span>
+                    <span className="text-[var(--text-secondary)] text-[0.65625rem] truncate mt-0.5">{card.sublabel}</span>
                   </div>
                 </Link>
               );
@@ -532,7 +525,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           >
             <div className="flex items-center gap-2 min-w-0">
               <AlertCircle size={14} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />
-              <div className="text-[10px] leading-tight">
+              <div className="text-[0.625rem] leading-tight">
                 <span className="font-semibold text-[var(--text-primary)]">Notice: </span>
                 <span>{displayedError}</span>
               </div>
@@ -542,7 +535,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               onClick={() => { triggerHaptic('tap'); handleRetry(); }}
               disabled={isActionInProgress}
               aria-label="Retry connection"
-              className="px-2 py-1 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] text-[var(--text-primary)] text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="px-2 py-1 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] text-[var(--text-primary)] text-[0.625rem] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <RefreshCw size={10} aria-hidden="true" className={isActionInProgress ? "animate-spin motion-reduce:animate-none" : ""} />
               <span>{isActionInProgress ? "Retrying..." : "Retry"}</span>

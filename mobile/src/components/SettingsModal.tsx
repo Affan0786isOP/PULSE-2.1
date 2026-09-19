@@ -14,7 +14,8 @@ import {
   Trash2, 
   Check,
   Download,
-  Sliders
+  Sliders,
+  AlertCircle
 } from 'lucide-react';
 import { useRefreshRate } from '../lib/useRefreshRate';
 import { detectRefreshRate, resetRefreshRateCache, cancelRefreshRateDetection } from '../lib/refreshRateDetector';
@@ -50,7 +51,18 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     isRecalibratingRef.current = isRecalibrating;
   }, [isRecalibrating]);
   const [calibrationError, setCalibrationError] = useState<string | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(Boolean(typeof document !== 'undefined' && document.fullscreenElement));
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
+    if (typeof document === 'undefined') return false;
+    const doc = document as any;
+    return Boolean(
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement
+    );
+  });
+  const [fullscreenNotice, setFullscreenNotice] = useState<string | null>(null);
+  const fullscreenNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [clearedNotice, setClearedNotice] = useState(false);
   const [mounted, setMounted] = useState(false);
   const wasOpenRef = useRef(false);
@@ -68,6 +80,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       isMountedRef.current = false;
       if (recalibrateTimeoutRef.current) {
         clearTimeout(recalibrateTimeoutRef.current);
+      }
+      if (fullscreenNoticeTimerRef.current) {
+        clearTimeout(fullscreenNoticeTimerRef.current);
       }
       if (isRecalibratingRef.current) {
         cancelRefreshRateDetection();
@@ -110,13 +125,37 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+      const doc = document as any;
+      setIsFullscreen(
+        Boolean(
+          doc.fullscreenElement ||
+          doc.webkitFullscreenElement ||
+          doc.mozFullScreenElement ||
+          doc.msFullscreenElement
+        )
+      );
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
   }, []);
+
+  const showFullscreenFeedback = (msg: string) => {
+    if (fullscreenNoticeTimerRef.current) {
+      clearTimeout(fullscreenNoticeTimerRef.current);
+    }
+    setFullscreenNotice(msg);
+    fullscreenNoticeTimerRef.current = setTimeout(() => {
+      setFullscreenNotice(null);
+    }, 3200);
+  };
 
   const handleToggleSound = () => {
     const updated = updateSettingsState({ soundEnabled: !settings.soundEnabled });
@@ -184,13 +223,40 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const handleToggleFullscreen = async () => {
     playAudioCue('click');
     try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
+      const doc = document as any;
+      const docEl = document.documentElement as any;
+      const isCurrentlyFs = Boolean(
+        doc.fullscreenElement ||
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement
+      );
+
+      const requestFS =
+        docEl.requestFullscreen ||
+        docEl.webkitRequestFullscreen ||
+        docEl.mozRequestFullScreen ||
+        docEl.msRequestFullscreen;
+
+      const exitFS =
+        doc.exitFullscreen ||
+        doc.webkitExitFullscreen ||
+        doc.mozCancelFullScreen ||
+        doc.msExitFullscreen;
+
+      if (!isCurrentlyFs) {
+        if (!requestFS) {
+          showFullscreenFeedback('Fullscreen is not supported on this browser/device');
+          return;
+        }
+        await requestFS.call(docEl);
       } else {
-        await document.exitFullscreen();
+        if (exitFS) {
+          await exitFS.call(doc);
+        }
       }
     } catch {
-      // Fullscreen not permitted in some iframe environments
+      showFullscreenFeedback('Fullscreen unavailable or restricted by browser');
     }
   };
 
@@ -441,24 +507,47 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   {/* Clean Setting Rows container */}
                   <div className="rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)] overflow-hidden">
                     {/* Fullscreen Atmospheric Mode */}
-                    <div className="p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                          {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                    <div className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
+                            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                          </div>
+                          <div>
+                            <div className="text-xs font-semibold text-[var(--text-primary)]">Fullscreen Focus</div>
+                            <div className="text-[10px] text-[var(--text-muted)]">Distraction-free assessment atmosphere</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="text-xs font-semibold text-[var(--text-primary)]">Fullscreen Focus</div>
-                          <div className="text-[10px] text-[var(--text-muted)]">Distraction-free assessment atmosphere</div>
-                        </div>
+
+                        <button type="button"
+                          id="toggle-fullscreen-btn"
+                          onClick={handleToggleFullscreen}
+                          className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors"
+                        >
+                          {isFullscreen ? 'Exit' : 'Enter'}
+                        </button>
                       </div>
 
-                      <button type="button"
-                        id="toggle-fullscreen-btn"
-                        onClick={handleToggleFullscreen}
-                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors"
-                      >
-                        {isFullscreen ? 'Exit' : 'Enter'}
-                      </button>
+                      {fullscreenNotice && (
+                        <div 
+                          role="status"
+                          aria-live="polite"
+                          className="mt-2.5 p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-mono flex items-center justify-between gap-1.5"
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <AlertCircle size={12} className="shrink-0 text-rose-400" />
+                            <span className="truncate">{fullscreenNotice}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setFullscreenNotice(null)}
+                            className="text-rose-400 hover:text-rose-200 cursor-pointer p-0.5 shrink-0"
+                            aria-label="Dismiss message"
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* PWA / App Launcher */}
