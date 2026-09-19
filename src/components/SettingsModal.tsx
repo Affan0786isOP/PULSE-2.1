@@ -325,7 +325,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 id="close-settings-modal-btn"
                 onClick={onClose}
                 aria-label="Close Settings"
-                className="w-7 h-7 rounded-md flex items-center justify-center bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] active:scale-[0.96] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[background-color,color,border-color,transform] cursor-pointer"
+                className="w-7 h-7 rounded-md flex items-center justify-center bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] active:scale-[0.96] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[background-color,color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 <X size={15} />
               </button>
@@ -336,7 +336,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <div className="grid grid-cols-3 gap-1 p-1 bg-[var(--surface-2)] rounded-lg border border-[var(--border-subtle)] text-xs font-mono">
                 <button type="button"
                   onClick={() => { playAudioCue('click'); setActiveTab('general'); }}
-                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] ${
+                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                     activeTab === 'general'
                       ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'
@@ -348,7 +348,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                 <button type="button"
                   onClick={() => { playAudioCue('click'); setActiveTab('feedback'); }}
-                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] ${
+                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                     activeTab === 'feedback'
                       ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'
@@ -360,7 +360,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                 <button type="button"
                   onClick={() => { playAudioCue('click'); setActiveTab('calibration'); }}
-                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] ${
+                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                     activeTab === 'calibration'
                       ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'

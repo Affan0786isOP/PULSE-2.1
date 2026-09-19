@@ -1,5 +1,6 @@
 import React from 'react';
-import { Zap, Activity, Database, ArrowRight, Monitor, Trophy, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Zap, Database, ArrowRight, Monitor, Trophy, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion, Variants } from 'motion/react';
 import { Navbar } from './Navbar';
 import { useAuth } from '../AuthContext';
@@ -53,7 +54,7 @@ const cardItemVariants: Variants = {
 };
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const { isReady, isConnecting, isAuthenticated, authError, retryAuth } = useAuth();
+  const { isReady, isConnecting, authError, retryAuth } = useAuth();
   const refreshInfo = useRefreshRate();
 
   return (
@@ -86,35 +87,35 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
               {refreshInfo.status === 'detecting' ? (
                 <div 
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
                   aria-label="Detecting display refresh rate"
                 >
-                  <Monitor size={12} className="text-[var(--accent)] animate-pulse" />
-                  <span>Detecting display…</span>
+                  <Monitor size={11} className="text-[var(--accent)] animate-pulse" />
+                  <span>Detecting…</span>
                 </div>
               ) : refreshInfo.source === 'measured' ? (
                 <div 
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
-                  title="Hardware-calibrated display refresh rate with estimated midpoint approximation"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
+                  title={`${refreshInfo.hz} Hz calibrated display · ~${refreshInfo.displayDelayOffsetMs} ms estimated display midpoint`}
                 >
-                  <Monitor size={12} className="text-[var(--accent)]" />
-                  <span>{refreshInfo.hz} Hz · ~{refreshInfo.displayDelayOffsetMs} ms estimated display midpoint</span>
+                  <Monitor size={11} className="text-[var(--accent)]" />
+                  <span>{refreshInfo.hz} Hz · ~{refreshInfo.displayDelayOffsetMs} ms midpoint</span>
                 </div>
               ) : refreshInfo.source === 'estimated' ? (
                 <div 
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
-                  title="Calculated display refresh rate with estimated midpoint approximation"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
+                  title={`~${refreshInfo.hz} Hz calculated display · ~${refreshInfo.displayDelayOffsetMs} ms estimated display midpoint`}
                 >
-                  <Monitor size={12} className="text-amber-400" />
-                  <span>~{refreshInfo.hz} Hz (Estimated) · ~{refreshInfo.displayDelayOffsetMs} ms estimated display midpoint</span>
+                  <Monitor size={11} className="text-amber-400" />
+                  <span>~{refreshInfo.hz} Hz (Estimated)</span>
                 </div>
               ) : (
                 <div 
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
-                  title="Fallback display baseline assumption"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
+                  title="60 Hz default baseline assumption · ~8.33 ms estimated display midpoint"
                 >
-                  <Monitor size={12} className="text-[var(--text-muted)]" />
-                  <span>60 Hz (Fallback default) · ~8.33 ms estimated display midpoint</span>
+                  <Monitor size={11} className="text-[var(--text-muted)]" />
+                  <span>60 Hz (Standard)</span>
                 </div>
               )}
             </motion.div>
@@ -152,13 +153,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
             {/* Primary Action Button */}
             <motion.div variants={itemVariants} className="flex items-center gap-3">
-              <motion.button 
-                type="button" 
+              <Link 
+                to="/assessments"
                 id="start-lab-btn"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 onClick={() => onNavigate('assessments')}
-                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium text-sm px-6 py-3 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 font-medium text-sm px-6 py-3 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 <span>Start assessments</span>
                 {isConnecting && !isReady ? (
@@ -166,11 +165,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 ) : (
                   <ArrowRight size={16} />
                 )}
-              </motion.button>
+              </Link>
             </motion.div>
           </motion.div>
 
-          {/* Right Column: Navigation Cards - Native accessible buttons */}
+          {/* Right Column: Navigation Cards - Native accessible links */}
           <motion.div 
             variants={cardsContainerVariants}
             initial="hidden"
@@ -178,108 +177,104 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             className="w-full lg:w-2/5 max-w-[380px] flex flex-col gap-2.5 shrink-0"
           >
             {/* Card 0: LEADERBOARD */}
-            <motion.button 
-              type="button"
-              variants={cardItemVariants}
-              whileHover={{ x: 3, transition: { duration: 0.15 } }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onNavigate('leaderboard')}
-              aria-label="View Leaderboard - Verified cohort rankings"
-              className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
-                  <Trophy size={18} />
-                </div>
-                <div>
-                  <div className="font-medium text-sm text-[var(--text-primary)]">
-                    Leaderboard
+            <motion.div variants={cardItemVariants}>
+              <Link
+                to="/leaderboard"
+                onClick={() => onNavigate('leaderboard')}
+                aria-label="View Leaderboard — Verified cohort rankings"
+                className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between transition-colors group"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
+                    <Trophy size={18} />
                   </div>
-                  <div className="text-xs text-[var(--text-muted)]">
-                    Verified cohort rankings
+                  <div>
+                    <div className="font-medium text-sm text-[var(--text-primary)]">
+                      Leaderboard
+                    </div>
+                    <div className="text-xs text-[var(--text-muted)]">
+                      Verified cohort rankings
+                    </div>
                   </div>
                 </div>
-              </div>
-              <ArrowRight size={16} className="text-[var(--border-subtle)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
-            </motion.button>
+                <ArrowRight size={16} className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
+              </Link>
+            </motion.div>
 
-            {/* Card 0.5: DATASET */}
-            <motion.button 
-              type="button"
-              variants={cardItemVariants}
-              whileHover={{ x: 3, transition: { duration: 0.15 } }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onNavigate('dataset')}
-              aria-label="View Open Research Dataset - Population telemetry & observations"
-              className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
-                  <Database size={18} />
-                </div>
-                <div>
-                  <div className="font-medium text-sm text-[var(--text-primary)]">
-                    Research Dataset
+            {/* Card 1: DATASET */}
+            <motion.div variants={cardItemVariants}>
+              <Link
+                to="/dataset"
+                onClick={() => onNavigate('dataset')}
+                aria-label="View Open Research Dataset — Population telemetry and observations"
+                className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between transition-colors group"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
+                    <Database size={18} />
                   </div>
-                  <div className="text-xs text-[var(--text-muted)]">
-                    Population telemetry &amp; observations
+                  <div>
+                    <div className="font-medium text-sm text-[var(--text-primary)]">
+                      Research Dataset
+                    </div>
+                    <div className="text-xs text-[var(--text-muted)]">
+                      Population telemetry &amp; observations
+                    </div>
                   </div>
                 </div>
-              </div>
-              <ArrowRight size={16} className="text-[var(--border-subtle)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
-            </motion.button>
+                <ArrowRight size={16} className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
+              </Link>
+            </motion.div>
 
-            {/* Card 1: IMPROVE */}
-            <motion.button 
-              type="button"
-              variants={cardItemVariants}
-              whileHover={{ x: 3, transition: { duration: 0.15 } }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onNavigate('improve')}
-              aria-label="View Improve - Factors influencing neural latency"
-              className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
-                  <Zap size={18} />
-                </div>
-                <div>
-                  <div className="font-medium text-sm text-[var(--text-primary)]">
-                    Improve
+            {/* Card 2: IMPROVE */}
+            <motion.div variants={cardItemVariants}>
+              <Link
+                to="/improve"
+                onClick={() => onNavigate('improve')}
+                aria-label="View Improve — Factors influencing neural latency"
+                className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between transition-colors group"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
+                    <Zap size={18} />
                   </div>
-                  <div className="text-xs text-[var(--text-muted)]">
-                    Factors influencing neural latency
+                  <div>
+                    <div className="font-medium text-sm text-[var(--text-primary)]">
+                      Improve
+                    </div>
+                    <div className="text-xs text-[var(--text-muted)]">
+                      Factors influencing neural latency
+                    </div>
                   </div>
                 </div>
-              </div>
-              <ArrowRight size={16} className="text-[var(--border-subtle)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
-            </motion.button>
+                <ArrowRight size={16} className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
+              </Link>
+            </motion.div>
 
-            {/* Card 4: PRIVACY POLICY */}
-            <motion.button 
-              type="button"
-              variants={cardItemVariants}
-              whileHover={{ x: 3, transition: { duration: 0.15 } }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onNavigate('privacy')}
-              aria-label="View Privacy Policy - Research data ethics and anonymization"
-              className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
-                  <ShieldCheck size={18} />
-                </div>
-                <div>
-                  <div className="font-medium text-sm text-[var(--text-primary)]">
-                    Privacy Policy
+            {/* Card 3: PRIVACY POLICY */}
+            <motion.div variants={cardItemVariants}>
+              <Link
+                to="/privacy"
+                onClick={() => onNavigate('privacy')}
+                aria-label="View Privacy Policy — Research data ethics and anonymization"
+                className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between transition-colors group"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
+                    <ShieldCheck size={18} />
                   </div>
-                  <div className="text-xs text-[var(--text-muted)]">
-                    Research data ethics &amp; anonymization
+                  <div>
+                    <div className="font-medium text-sm text-[var(--text-primary)]">
+                      Privacy Policy
+                    </div>
+                    <div className="text-xs text-[var(--text-muted)]">
+                      Research data ethics &amp; anonymization
+                    </div>
                   </div>
                 </div>
-              </div>
-              <ArrowRight size={16} className="text-[var(--border-subtle)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
-            </motion.button>
+                <ArrowRight size={16} className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
+              </Link>
+            </motion.div>
           </motion.div>
 
         </div>
@@ -293,20 +288,20 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           <span>Open Cognitive Benchmark</span>
         </div>
         <div className="flex items-center gap-4">
-          <button 
-            type="button"
+          <Link 
+            to="/privacy"
             onClick={() => onNavigate('privacy')}
             className="hover:text-[var(--text-primary)] transition-colors cursor-pointer"
           >
             Privacy
-          </button>
-          <button 
-            type="button"
+          </Link>
+          <Link 
+            to="/dataset"
             onClick={() => onNavigate('dataset')}
             className="hover:text-[var(--text-primary)] transition-colors cursor-pointer"
           >
             Dataset
-          </button>
+          </Link>
         </div>
       </footer>
     </div>

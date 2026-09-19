@@ -120,18 +120,17 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="relative z-10 w-full max-w-[420px] bg-[#0b101b] border border-white/20 rounded-2xl p-5 sm:p-6 flex flex-col font-sans text-[#e8ecf3] my-auto outline-none"
-            style={{ backgroundColor: '#0b101b' }}
+            className="relative z-10 w-full max-w-[420px] bg-[var(--surface-1)] border border-[var(--border-default)] rounded-xl p-5 sm:p-6 shadow-2xl flex flex-col font-sans text-[var(--text-primary)] my-auto outline-none"
           >
             {/* Header */}
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-[#00f0ff]/10 border border-[#00f0ff]/40 flex items-center justify-center text-[#00f0ff] shrink-0">
-                  <Activity size={20} className="stroke-[2.2]" />
+            <div className="flex items-center justify-between gap-3 mb-3.5">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
+                  <Activity size={18} className="stroke-[2.5]" />
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <div className="font-bold text-[15px] tracking-wide text-white leading-tight">PULSE</div>
-                  <div className="text-[11px] text-[#8b9bb4] tracking-tight truncate">Precision User Latency &amp; Stimulus Evaluator</div>
+                  <div className="font-bold text-sm tracking-wide text-[var(--text-primary)] leading-tight">PULSE</div>
+                  <div className="text-[10px] text-[var(--text-muted)] tracking-tight truncate font-mono">Cognitive Benchmarking Suite</div>
                 </div>
               </div>
 
@@ -139,64 +138,66 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 ref={closeButtonRef}
                 type="button" 
                 onClick={handleClose}
-                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#8b9bb4] hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                className="w-7 h-7 rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center justify-center transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 aria-label="Close"
               >
-                <X size={16} />
+                <X size={15} />
               </button>
             </div>
 
-            <h2 id="welcome-modal-heading" className="text-xl font-bold text-white mb-1.5">Welcome to PULSE - Precision User Latency &amp; Stimulus Evaluator</h2>
-            <p className="text-[13.5px] text-[#93a4c1] leading-relaxed mb-3">
-              PULSE is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
+            <h2 id="welcome-modal-heading" className="text-base font-bold text-[var(--text-primary)] tracking-tight mb-1">
+              Welcome to PULSE
+            </h2>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">
+              Precision User Latency &amp; Stimulus Evaluator — an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
             </p>
 
             {/* How it works */}
-            <div className="text-[12px] font-bold text-[#00f0ff] uppercase tracking-wider mb-2">How it works:</div>
-            <div className="flex flex-col gap-3 mb-4 bg-white/[0.03] border border-white/10 rounded-xl p-3.5">
-              <div className="flex gap-3">
-                <div className="w-[28px] h-[28px] shrink-0 rounded-lg bg-[#00f0ff]/15 text-[#00f0ff] flex items-center justify-center mt-0.5">
-                  <ListChecks size={15} />
+            <div className="text-[10.5px] font-mono font-bold text-[var(--accent)] uppercase tracking-wider mb-2">How it works</div>
+            <div className="flex flex-col gap-2.5 mb-3.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg p-3">
+              <div className="flex gap-2.5 items-start">
+                <div className="w-6 h-6 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 mt-0.5">
+                  <ListChecks size={13} className="stroke-[2.2]" />
                 </div>
-                <div>
-                  <div className="text-[13px] font-semibold text-white mb-0.5">Pick a test</div>
-                  <div className="text-[12px] text-[#8b9bb4] leading-snug">Visual Reaction, Direction, Colour Recognition, Block Memory, or Number Memory.</div>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="w-[28px] h-[28px] shrink-0 rounded-lg bg-[#00f0ff]/15 text-[#00f0ff] flex items-center justify-center mt-0.5">
-                  <Zap size={15} />
-                </div>
-                <div>
-                  <div className="text-[13px] font-semibold text-white mb-0.5">Respond</div>
-                  <div className="text-[12px] text-[#8b9bb4] leading-snug">Watch for the cue and answer as fast and accurately as you can.</div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">Pick a test</div>
+                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Visual Reaction, Direction, Colour Recognition, Block Memory, or Number Memory.</div>
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <div className="w-[28px] h-[28px] shrink-0 rounded-lg bg-[#00f0ff]/15 text-[#00f0ff] flex items-center justify-center mt-0.5">
-                  <BarChart2 size={15} />
+              <div className="flex gap-2.5 items-start">
+                <div className="w-6 h-6 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 mt-0.5">
+                  <Zap size={13} className="stroke-[2.2]" />
                 </div>
-                <div>
-                  <div className="text-[13px] font-semibold text-white mb-0.5">Review</div>
-                  <div className="text-[12px] text-[#8b9bb4] leading-snug">Get your score instantly, evaluate your personal results, and compare against reference benchmarks.</div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">Respond</div>
+                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Watch for the cue and answer as fast and accurately as you can.</div>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <div className="w-6 h-6 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 mt-0.5">
+                  <BarChart2 size={13} className="stroke-[2.2]" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">Review</div>
+                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Get your score instantly, evaluate your personal results, and compare against reference benchmarks.</div>
                 </div>
               </div>
             </div>
 
-            <p className="text-[12px] text-[#8b9bb4] leading-relaxed mb-4">
+            <p className="text-[11px] text-[var(--text-muted)] leading-relaxed mb-3.5">
               You can also check the Leaderboard, explore the open research Dataset, and review evidence-based habit recommendations in the Improve guide.
             </p>
 
             {/* Footer Checkbox */}
-            <div className="pt-1 mb-4">
-              <label className="flex items-center gap-2.5 text-[13px] text-[#8b9bb4] cursor-pointer w-fit select-none hover:text-[#a5b4cb] transition-colors">
+            <div className="pt-0.5 mb-3.5">
+              <label className="flex items-center gap-2 text-xs text-[var(--text-secondary)] cursor-pointer w-fit select-none hover:text-[var(--text-primary)] transition-colors">
                 <input 
                   type="checkbox" 
                   checked={dontShowAgain}
                   onChange={handleDontShowAgain}
-                  className="w-4 h-4 rounded border-white/20 bg-black/40 text-[#00f0ff] focus:ring-0 focus:ring-offset-0 cursor-pointer" 
+                  className="w-3.5 h-3.5 rounded border-[var(--border-default)] bg-[var(--surface-1)] text-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] cursor-pointer" 
                 />
                 Don't show this again
               </label>
@@ -208,7 +209,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 type="button" 
                 id="welcome-start-assessments-btn"
                 onClick={handleStartAssessments}
-                className="w-full bg-[#00f0ff] hover:bg-[#33f3ff] active:scale-95 border border-[#00f0ff] text-[#00161a] rounded-xl py-3 px-4 text-[13.5px] font-bold cursor-pointer transition-colors text-center"
+                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 rounded-md py-2.5 px-4 text-xs font-semibold cursor-pointer transition-[background-color,transform] shadow-sm text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 Start assessments
               </button>

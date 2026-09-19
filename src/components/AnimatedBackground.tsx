@@ -30,6 +30,7 @@ export function AnimatedBackground() {
 
     const render = () => {
       if (!ctx || !canvas) return;
+      if (typeof document !== 'undefined' && document.hidden) return;
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = window.innerWidth;
@@ -84,24 +85,53 @@ export function AnimatedBackground() {
 
     render();
 
-    const handleResize = () => {
-      render();
+    let rafId: number | null = null;
+    const scheduleRender = () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        render();
+      });
     };
 
-    window.addEventListener('resize', handleResize, { passive: true });
-    window.addEventListener('orientationchange', handleResize, { passive: true });
+    window.addEventListener('resize', scheduleRender, { passive: true });
+    window.addEventListener('orientationchange', scheduleRender, { passive: true });
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && !document.hidden) {
+        scheduleRender();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Theme-safe: redraw when data-theme or class on <html> changes
+    let themeObserver: MutationObserver | null = null;
+    if (typeof MutationObserver !== 'undefined') {
+      themeObserver = new MutationObserver(() => {
+        scheduleRender();
+      });
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme', 'class']
+      });
+    }
 
     let resizeObserver: ResizeObserver | null = null;
     if (typeof ResizeObserver !== 'undefined' && canvas.parentElement) {
       resizeObserver = new ResizeObserver(() => {
-        render();
+        scheduleRender();
       });
       resizeObserver.observe(canvas.parentElement);
     }
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', scheduleRender);
+      window.removeEventListener('orientationchange', scheduleRender);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (themeObserver) {
+        themeObserver.disconnect();
+      }
       if (resizeObserver) {
         resizeObserver.disconnect();
       }

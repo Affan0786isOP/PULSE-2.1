@@ -94,15 +94,16 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       />
       {/* Top Header Minimal & Compact */}
       <header 
-        className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 z-20 shrink-0 border-b border-[var(--border-subtle)] bg-[var(--surface-0)]" 
+        className="w-full flex items-center justify-between px-2.5 sm:px-4 py-2 z-20 shrink-0 border-b border-[var(--border-subtle)] bg-[var(--surface-0)]" 
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0.75rem))' }}
       >
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           <button type="button"
             id="mobile-home-logo-btn"
             onClick={() => { triggerHaptic('tap'); onNavigate('home'); }}
-            className="flex items-center gap-2 cursor-pointer group shrink-0"
+            className="flex items-center gap-2 cursor-pointer group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md"
             title="PULSE Home"
+            aria-label="PULSE Home"
           >
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shadow-xs transition-transform group-hover:scale-105">
               <Activity size={16} className="stroke-[2.5]" />
@@ -150,7 +151,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               triggerHaptic('tap');
               setIsWelcomeOpen(true);
             }}
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             aria-label="App Info"
             title="Welcome & Info"
           >
@@ -163,7 +164,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               triggerHaptic('tap');
               setIsSettingsOpen(true);
             }}
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             aria-label="Settings"
             title="Settings"
           >
@@ -204,7 +205,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 type="button" 
                 onClick={() => { triggerHaptic('tap'); retryAuth(); }}
                 disabled={isConnecting}
-                className="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50"
+                aria-label="Retry Firebase connection"
+                className="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
               >
                 <RefreshCw size={10} className={isConnecting ? "animate-spin" : ""} />
                 <span>{isConnecting ? "Retrying..." : "Retry"}</span>
@@ -288,7 +290,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             id="mobile-start-session-btn"
             whileTap={{ scale: 0.97 }}
             onClick={() => { triggerHaptic('tap'); onNavigate('assessments'); }}
-            className="w-full rounded-md bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium py-3 px-4 flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
+            className="w-full rounded-md bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 font-medium py-3 px-4 flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <span className="text-sm font-semibold">Start assessments</span>
             {isConnecting && !isReady ? (
@@ -305,7 +307,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               id="mobile-nav-leaderboard"
               whileTap={{ scale: 0.96 }}
               onClick={() => { triggerHaptic('tap'); onNavigate('leaderboard'); }}
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+              aria-label="View Leaderboard — Top ranks"
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
                 <Trophy className="w-3.5 h-3.5" />
@@ -321,7 +324,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               id="mobile-nav-dataset"
               whileTap={{ scale: 0.96 }}
               onClick={() => { triggerHaptic('tap'); onNavigate('dataset'); }}
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+              aria-label="View Dataset — Telemetry"
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
                 <Database className="w-3.5 h-3.5" />
@@ -337,7 +341,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               id="mobile-nav-improve"
               whileTap={{ scale: 0.96 }}
               onClick={() => { triggerHaptic('tap'); onNavigate('improve'); }}
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+              aria-label="View Improve — Neural factors"
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
                 <Zap className="w-3.5 h-3.5" />
@@ -353,7 +358,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               id="mobile-nav-privacy"
               whileTap={{ scale: 0.96 }}
               onClick={() => { triggerHaptic('tap'); onNavigate('privacy'); }}
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer"
+              aria-label="View Privacy — Data ethics"
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
                 <ShieldCheck className="w-3.5 h-3.5" />
