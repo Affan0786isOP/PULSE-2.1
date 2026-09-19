@@ -15,7 +15,15 @@ export function parseCookies(cookieHeader?: string): Record<string, string> {
     if (idx > -1) {
       const key = pair.substring(0, idx).trim();
       const val = pair.substring(idx + 1).trim();
-      if (key) cookies[key] = decodeURIComponent(val);
+      if (key) {
+        let decodedVal = val;
+        try {
+          decodedVal = decodeURIComponent(val);
+        } catch {
+          decodedVal = val;
+        }
+        cookies[key] = decodedVal;
+      }
     }
   }
   return cookies;

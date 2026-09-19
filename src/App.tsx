@@ -26,8 +26,8 @@ function RedirectToMobile() {
     const redirect = resolveDeviceRedirect(pathname, search, hash);
     if (redirect.shouldRedirect && redirect.targetUrl) {
       window.location.replace(redirect.targetUrl);
-    } else if (pathname === '/mobile' || pathname === '/mobile/') {
-      // Ensure mobile entry point is loaded if not already
+    } else if (pathname === '/mobile') {
+      // Normalize /mobile to /mobile/
       window.location.replace(`/mobile/${search}${hash}`);
     }
   }, [location.pathname, location.search, location.hash]);
@@ -164,7 +164,7 @@ function App() {
 
   return (
     <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'user'}>
-      <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans overflow-x-hidden selection:bg-cyan-500/30">
+      <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans overflow-x-clip selection:bg-cyan-500/30">
         {/* Global Consistent Animated Canvas Background */}
         <AnimatedBackground />
         <DeferredAnalytics />

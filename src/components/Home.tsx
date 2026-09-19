@@ -60,7 +60,7 @@ export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
 
   return (
-    <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans selection:bg-cyan-500/30 overflow-x-hidden relative flex flex-col justify-between">
+    <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans selection:bg-cyan-500/30 overflow-x-clip relative flex flex-col justify-between">
       {/* Accessibility: Skip to main content link */}
       <a 
         href="#main-content" 

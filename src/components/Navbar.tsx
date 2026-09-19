@@ -43,6 +43,7 @@ export function Navbar({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const wasMobileMenuOpen = useRef(false);
@@ -53,10 +54,36 @@ export function Navbar({
   const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
   const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
 
-  // Manage focus for mobile navigation drawer: trap focus while open, restore focus to trigger on close
+  // Manage focus, scroll lock, and background inertness for mobile navigation drawer
   useEffect(() => {
     if (isMobileMenuOpen) {
       wasMobileMenuOpen.current = true;
+
+      // 1. Lock background scroll while mobile drawer is open
+      const previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
+      // 2. Make application content outside the drawer inert while open
+      const elementsToRestore: Array<{ el: HTMLElement; hadInert: boolean }> = [];
+      let current: HTMLElement | null = navRef.current;
+      while (current && current !== document.body) {
+        const parent = current.parentElement;
+        if (parent) {
+          for (let i = 0; i < parent.children.length; i++) {
+            const child = parent.children[i];
+            if (child !== current && child instanceof HTMLElement && !child.contains(navRef.current)) {
+              const hadInert = child.hasAttribute('inert') || (child as HTMLElement & { inert?: boolean }).inert === true;
+              elementsToRestore.push({ el: child, hadInert });
+              if ('inert' in child) {
+                (child as HTMLElement & { inert: boolean }).inert = true;
+              }
+              child.setAttribute('inert', '');
+            }
+          }
+        }
+        current = parent;
+      }
+
       // Focus the active nav element (or first interactive element) inside the drawer
       const timer = setTimeout(() => {
         if (!drawerRef.current) return;
@@ -111,6 +138,19 @@ export function Navbar({
       return () => {
         clearTimeout(timer);
         window.removeEventListener('keydown', handleKeyDown);
+
+        // Restore body overflow
+        document.body.style.overflow = previousOverflow;
+
+        // Restore inert state
+        for (const item of elementsToRestore) {
+          if (!item.hadInert) {
+            if ('inert' in item.el) {
+              (item.el as HTMLElement & { inert: boolean }).inert = false;
+            }
+            item.el.removeAttribute('inert');
+          }
+        }
       };
     } else if (wasMobileMenuOpen.current) {
       wasMobileMenuOpen.current = false;
@@ -147,6 +187,7 @@ export function Navbar({
 
   return (
     <nav 
+      ref={navRef}
       aria-label="Global Navigation"
       className="min-h-[3.75rem] border-b border-[var(--border-subtle)] bg-[var(--surface-0)] sticky top-0 z-50 flex items-center justify-between px-4 sm:px-8 md:px-12 w-full shrink-0 transition-colors duration-200"
       style={{ 
