@@ -210,7 +210,6 @@ export function Navbar({
         <Link 
           to="/"
           aria-label="PULSE Home"
-          aria-current={isHome ? 'page' : undefined}
           className="flex items-center gap-2.5 group cursor-pointer active:scale-[0.98] transition-transform rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
           <div className="w-7 h-7 rounded-md bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] transition-colors">

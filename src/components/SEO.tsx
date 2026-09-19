@@ -32,6 +32,26 @@ export function getCanonicalPath(pathname: string): string {
   }
 }
 
+export function isProductionHost(): boolean {
+  if (typeof window === 'undefined') return true;
+  const hostname = window.location.hostname;
+  return hostname === 'pulse-lab.in' || hostname === 'www.pulse-lab.in';
+}
+
+export function isStagingOrTestHost(): boolean {
+  if (typeof window === 'undefined') return false;
+  const hostname = window.location.hostname;
+  return (
+    hostname === 'test.pulse-lab.in' ||
+    hostname.includes('staging') ||
+    hostname.includes('test.') ||
+    hostname.includes('ais-dev') ||
+    hostname.includes('run.app') ||
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1'
+  );
+}
+
 interface SEOProps {
   title: string;
   description: string;
@@ -53,11 +73,22 @@ export function SEO({
 }: SEOProps) {
   const location = useLocation();
 
+  const isProd = isProductionHost();
+  const isStaging = isStagingOrTestHost();
+
   // Determine standard canonical URL if not explicitly provided
-  const siteUrl = 'https://pulse-lab.in';
+  // Production canonical is strictly https://pulse-lab.in
+  // Staging/test deployment uses its own origin and must not advertise itself as the production canonical
+  const siteUrl = isProd
+    ? 'https://pulse-lab.in'
+    : (typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pulse-lab.in');
+
   const canonicalPath = getCanonicalPath(location.pathname);
   const defaultCanonical = `${siteUrl}${canonicalPath === '/' ? '' : canonicalPath}`;
   const finalCanonical = canonicalUrl || defaultCanonical;
+
+  // Staging/test deployments force noindex, nofollow
+  const effectiveNoindex = isStaging || noindex;
 
   // Memoize serialized schema string to avoid unnecessary effect triggers when schema object is recreated on render
   const serializedSchema = useMemo(() => {
@@ -97,7 +128,7 @@ export function SEO({
     updateLinkTag('canonical', finalCanonical);
 
     // 4. Update Robots Tag
-    updateMetaTag('name', 'robots', noindex ? 'noindex, nofollow' : 'index, follow');
+    updateMetaTag('name', 'robots', effectiveNoindex ? 'noindex, nofollow' : 'index, follow');
 
     // 5. Open Graph Meta Tags
     updateMetaTag('property', 'og:title', title, 'property');
@@ -139,7 +170,7 @@ export function SEO({
         script.remove();
       }
     };
-  }, [title, description, finalCanonical, noindex, ogType, ogImage, serializedSchema]);
+  }, [title, description, finalCanonical, effectiveNoindex, ogType, ogImage, serializedSchema]);
 
   return null;
 }

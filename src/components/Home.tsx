@@ -33,7 +33,7 @@ const HOME_NAV_CARDS: readonly HomeNavCard[] = [
   {
     to: ROUTES.LEADERBOARD,
     label: 'Leaderboard',
-    description: 'Verified cohort rankings',
+    description: 'Public cohort rankings',
     icon: Trophy,
   },
   {

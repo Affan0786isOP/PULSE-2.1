@@ -99,6 +99,18 @@
             inIframe = true;
           }
 
+          var routingKeys = ['force_mobile', 'mobile', 'force_desktop', 'desktop'];
+          var hasRoutingKeys = false;
+          for (var r = 0; r < routingKeys.length; r++) {
+            if (params.has(routingKeys[r])) {
+              params.delete(routingKeys[r]);
+              hasRoutingKeys = true;
+            }
+          }
+          var cleanSearchStr = params.toString();
+          var cleanQuery = cleanSearchStr ? ('?' + cleanSearchStr) : '';
+          var hash = window.location.hash || '';
+
           if (!inIframe && !isExplicitForceDesktop && !isAdmin && !pathname.startsWith('/mobile')) {
             var ua = navigator.userAgent || navigator.vendor || window.opera || '';
             var isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone|SamsungBrowser|MiuiBrowser|UCBrowser/i.test(ua);
@@ -112,7 +124,7 @@
 
             if (isExplicitForceMobile || isMobileDevice) {
               var cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
-              var targetPath = (cleanPath === '/' ? '/mobile/' : ('/mobile' + cleanPath)) + search + (window.location.hash || '');
+              var targetPath = (cleanPath === '/' ? '/mobile/' : ('/mobile' + cleanPath)) + cleanQuery + hash;
               
               var loopGuardRaw = null;
               try {
@@ -143,6 +155,11 @@
                 return;
               }
             }
+          }
+
+          if (hasRoutingKeys && window.history && window.history.replaceState) {
+            var currentPath = (pathname === '' || pathname === '/index.html') ? '/' : pathname;
+            window.history.replaceState(window.history.state, '', currentPath + cleanQuery + hash);
           }
         } catch(e) {}
 

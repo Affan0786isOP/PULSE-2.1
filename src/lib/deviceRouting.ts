@@ -113,21 +113,35 @@ export function evaluateDeviceRouting(searchString?: string, cookieHeader?: stri
   };
 }
 
+export const ROUTING_PARAMS = ['force_mobile', 'mobile', 'force_desktop', 'desktop'] as const;
+
+export function stripRoutingParams(search: string): { cleanSearch: string; hasRoutingParams: boolean } {
+  if (!search) return { cleanSearch: '', hasRoutingParams: false };
+  const rawSearch = search.startsWith('?') ? search.slice(1) : search;
+  if (!rawSearch) return { cleanSearch: '', hasRoutingParams: false };
+
+  const params = new URLSearchParams(rawSearch);
+  let hasRoutingParams = false;
+  for (const key of ROUTING_PARAMS) {
+    if (params.has(key)) {
+      params.delete(key);
+      hasRoutingParams = true;
+    }
+  }
+  const resultStr = params.toString();
+  return {
+    cleanSearch: resultStr ? `?${resultStr}` : '',
+    hasRoutingParams
+  };
+}
+
 export function cleanConsumedRoutingParams(): void {
   if (typeof window === 'undefined') return;
   try {
     const url = new URL(window.location.href);
-    let mutated = false;
-    const routingKeys = ['force_mobile', 'mobile', 'force_desktop', 'desktop'];
-    for (const key of routingKeys) {
-      if (url.searchParams.has(key)) {
-        url.searchParams.delete(key);
-        mutated = true;
-      }
-    }
-    if (mutated) {
-      const searchStr = url.searchParams.toString();
-      const newRelativePathQuery = url.pathname + (searchStr ? '?' + searchStr : '') + url.hash;
+    const { cleanSearch, hasRoutingParams } = stripRoutingParams(url.search);
+    if (hasRoutingParams) {
+      const newRelativePathQuery = url.pathname + cleanSearch + url.hash;
       window.history.replaceState(window.history.state, '', newRelativePathQuery);
     }
   } catch {}
@@ -217,27 +231,37 @@ export function resolveDeviceRedirect(
     return { shouldRedirect: false };
   }
 
+  const { cleanSearch, hasRoutingParams } = stripRoutingParams(search);
+
   if (decision.shouldUseMobile && !isMobilePath) {
     const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
     const targetPath = cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`;
-    if (checkAndSetRedirectLoopGuard(targetPath)) {
+    const targetUrl = `${targetPath}${cleanSearch}${hash}`;
+    if (checkAndSetRedirectLoopGuard(targetUrl)) {
       return { shouldRedirect: false };
     }
+    syncDeviceRoutingStorage(decision, hasRoutingParams);
     return {
       shouldRedirect: true,
-      targetUrl: `${targetPath}${search}${hash}`,
+      targetUrl,
     };
   }
 
   if (!decision.shouldUseMobile && isMobilePath && (decision.isExplicitForceDesktop || !decision.isMobileDevice)) {
     const targetPath = pathname.replace(/^\/mobile\/?/, '/') || '/';
-    if (checkAndSetRedirectLoopGuard(targetPath)) {
+    const targetUrl = `${targetPath}${cleanSearch}${hash}`;
+    if (checkAndSetRedirectLoopGuard(targetUrl)) {
       return { shouldRedirect: false };
     }
+    syncDeviceRoutingStorage(decision, hasRoutingParams);
     return {
       shouldRedirect: true,
-      targetUrl: `${targetPath}${search}${hash}`,
+      targetUrl,
     };
+  }
+
+  if (hasRoutingParams) {
+    syncDeviceRoutingStorage(decision, true);
   }
 
   return { shouldRedirect: false };

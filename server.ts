@@ -3385,15 +3385,45 @@ async function startServer() {
     }
   });
 
+  // Environment-aware indexing & Robots handler for staging/test environments
+  app.use((req, res, next) => {
+    const host = (req.headers.host || '').toLowerCase();
+    const isStaging = host.includes('test.pulse-lab.in') || 
+                      host.includes('staging') || 
+                      host.includes('test.') || 
+                      host.includes('ais-dev') || 
+                      host.includes('run.app');
+
+    if (isStaging) {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      if (req.path === '/robots.txt') {
+        res.setHeader('Content-Type', 'text/plain');
+        return res.send('User-agent: *\nDisallow: /\n');
+      }
+    }
+
+    next();
+  });
+
   // Mobile Auto-Redirection Middleware
   app.use((req, res, next) => {
     const url = req.url || '';
     const pathname = req.path || '';
 
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const cleanParams = new URLSearchParams(queryParams);
+    let hasRoutingParams = false;
+    ['force_mobile', 'mobile', 'force_desktop', 'desktop'].forEach(k => {
+      if (cleanParams.has(k)) {
+        cleanParams.delete(k);
+        hasRoutingParams = true;
+      }
+    });
+    const cleanQueryString = cleanParams.toString() ? '?' + cleanParams.toString() : '';
+
     // Direct /mobile without trailing slash to /mobile/
     if (pathname === '/mobile') {
-      const queryString = url.includes('?') ? '?' + url.split('?')[1] : '';
-      return res.redirect(301, `/mobile/${queryString}`);
+      return res.redirect(301, `/mobile/${cleanQueryString}`);
     }
 
     // Ignore API, mobile assets, or static asset requests
@@ -3406,7 +3436,6 @@ async function startServer() {
       return next();
     }
 
-    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
     const hasForceMobileParam = isTruthyRoutingFlag(queryParams.get('force_mobile')) || isTruthyRoutingFlag(queryParams.get('mobile'));
     const hasForceDesktopParam = isTruthyRoutingFlag(queryParams.get('force_desktop')) || isTruthyRoutingFlag(queryParams.get('desktop'));
 
@@ -3430,6 +3459,9 @@ async function startServer() {
     const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || cookieDesktop);
 
     if (isExplicitForceDesktop) {
+      if (hasRoutingParams) {
+        return res.redirect(302, pathname + cleanQueryString);
+      }
       return next();
     }
 
@@ -3438,9 +3470,8 @@ async function startServer() {
         ? '/' 
         : pathname;
       const targetPath = cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`;
-      const queryString = url.includes('?') ? '?' + url.split('?')[1] : '';
       res.setHeader('Vary', 'User-Agent, Sec-CH-UA-Mobile');
-      return res.redirect(302, targetPath + queryString);
+      return res.redirect(302, targetPath + cleanQueryString);
     }
 
     next();
