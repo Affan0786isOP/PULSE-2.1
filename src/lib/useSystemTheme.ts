@@ -12,7 +12,7 @@ export function applyAppTheme(_mode?: ThemeMode): 'dark' {
 
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.setAttribute('content', '#030508');
+    meta.setAttribute('content', '#0B0D10');
   }
 
   return activeTheme;

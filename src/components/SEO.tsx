@@ -48,7 +48,7 @@ export function SEO({
   canonicalUrl,
   noindex = false,
   ogType = 'website',
-  ogImage = 'https://pulse-lab.in/logo.png',
+  ogImage = 'https://pulse-lab.in/og-image.png',
   schema
 }: SEOProps) {
   const location = useLocation();
@@ -106,6 +106,9 @@ export function SEO({
     updateMetaTag('property', 'og:type', ogType, 'property');
     updateMetaTag('property', 'og:site_name', 'PULSE', 'property');
     updateMetaTag('property', 'og:image', ogImage, 'property');
+    updateMetaTag('property', 'og:image:width', '1200', 'property');
+    updateMetaTag('property', 'og:image:height', '630', 'property');
+    updateMetaTag('property', 'og:image:type', 'image/png', 'property');
 
     // 6. Twitter Meta Tags
     updateMetaTag('name', 'twitter:card', 'summary_large_image');

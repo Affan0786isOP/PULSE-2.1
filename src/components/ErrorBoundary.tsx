@@ -31,7 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#030508] text-[#e2e8f0] flex flex-col items-center justify-center p-6 font-sans select-none">
+        <div className="min-h-screen bg-[#0B0D10] text-[#e2e8f0] flex flex-col items-center justify-center p-6 font-sans select-none">
           <div className="w-full max-w-md bg-[#0b101b] border border-[#1e293b] rounded-xl p-6 shadow-2xl text-center flex flex-col items-center">
             <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-4">
               <AlertCircle size={24} />
@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
               PULSE encountered a rendering interruption. You can reload the application to restore evaluation.
             </p>
             {this.state.error?.message && (
-              <div className="w-full bg-[#030508] border border-[#1e293b] rounded p-3 mb-5 text-left text-xs font-mono text-red-300 overflow-x-auto max-h-28">
+              <div className="w-full bg-[#0B0D10] border border-[#1e293b] rounded p-3 mb-5 text-left text-xs font-mono text-red-300 overflow-x-auto max-h-28">
                 {this.state.error.message}
               </div>
             )}

@@ -45,11 +45,6 @@ export function GooeyNav({
               key={label}
               to={to}
               aria-current={isActive ? 'page' : undefined}
-              onClick={(e) => {
-                if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
-                  onChange(index);
-                }
-              }}
               style={{
                 backgroundColor: isActive ? activeColor : 'transparent',
               }}
