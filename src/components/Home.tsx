@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Zap, Database, ArrowRight, Monitor, Trophy, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion, Variants } from 'motion/react';
 import { Navbar } from './Navbar';
@@ -56,7 +56,12 @@ const cardItemVariants: Variants = {
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isConnecting, authError, retryAuth } = useAuth();
   const refreshInfo = useRefreshRate();
+  const location = useLocation();
   const [isNavigating, setIsNavigating] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsNavigating(false);
+  }, [location.pathname]);
 
   React.useEffect(() => {
     if (authError) {

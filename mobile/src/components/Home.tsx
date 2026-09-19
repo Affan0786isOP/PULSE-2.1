@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Activity, Database, ArrowRight, Zap, Trophy, Settings, Info, Download, Maximize2, Minimize2, ShieldCheck, AlertCircle, RefreshCw, ListChecks, BarChart2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../AuthContext';
@@ -13,9 +13,14 @@ import { SEO } from './SEO';
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isConnecting, authError, retryAuth } = useAuth();
   const pwa = usePwaInstall();
+  const location = useLocation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [location.pathname]);
 
   const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
   const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
