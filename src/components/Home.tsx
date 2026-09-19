@@ -83,12 +83,29 @@ const fadeItemVariants: Variants = {
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isConnecting, authError, retryAuth } = useAuth();
+  const [displayedError, setDisplayedError] = React.useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = React.useState(false);
 
   React.useEffect(() => {
     if (authError) {
+      setDisplayedError(authError);
+      setIsRetrying(false);
       console.warn('[PULSE Auth Notice]:', authError);
+    } else if (!isConnecting && !isRetrying) {
+      setDisplayedError(null);
     }
-  }, [authError]);
+  }, [authError, isConnecting, isRetrying]);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      await retryAuth();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
+  const isActionInProgress = isRetrying || isConnecting;
 
   return (
     <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans selection:bg-cyan-500/30 overflow-x-hidden relative flex flex-col justify-between">
@@ -192,7 +209,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       {/* Minimal Footer */}
       <footer 
         className="w-full border-t border-[var(--border-subtle)] py-4 px-4 sm:px-6 lg:px-10 text-center text-xs text-[var(--text-secondary)] font-mono z-10 flex flex-col sm:flex-row items-center justify-between gap-2 transition-[padding] duration-200"
-        style={{ paddingBottom: authError ? 'max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))' : 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))' }}
+        style={{ paddingBottom: displayedError ? 'max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))' : 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))' }}
       >
         <div className="flex items-center gap-2">
           <span>PULSE v{APP_VERSION}</span>
@@ -217,7 +234,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       {/* Non-intrusive Offline Notice: Accurately informs about local offline capability without alarmism */}
       <AnimatePresence>
-        {authError && (
+        {displayedError && (
           <motion.div 
             role="status"
             aria-live="polite"
@@ -232,18 +249,18 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <AlertCircle size={15} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />
               <div className="text-xs">
                 <span className="font-semibold text-[var(--text-primary)]">Notice: </span>
-                <span>{authError}</span>
+                <span>{displayedError}</span>
               </div>
             </div>
             <button 
               type="button" 
-              onClick={() => retryAuth()}
-              disabled={isConnecting}
+              onClick={handleRetry}
+              disabled={isActionInProgress}
               aria-label="Retry connection"
               className="px-2.5 py-1 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] text-[var(--text-primary)] text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
-              <RefreshCw size={11} aria-hidden="true" className={isConnecting ? "animate-spin motion-reduce:animate-none" : ""} />
-              <span>{isConnecting ? "Retrying..." : "Retry"}</span>
+              <RefreshCw size={11} aria-hidden="true" className={isActionInProgress ? "animate-spin motion-reduce:animate-none" : ""} />
+              <span>{isActionInProgress ? "Retrying..." : "Retry"}</span>
             </button>
           </motion.div>
         )}

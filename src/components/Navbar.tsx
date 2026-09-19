@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { Activity, Menu, X, ArrowLeft, Settings, Info } from 'lucide-react';
+import { Activity, Menu, X, ArrowLeft, Settings, Info, RefreshCw } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { GooeyNav } from './ui/gooey-nav';
@@ -10,6 +10,19 @@ export { resolveActiveNavId };
 // Defer modal loading until user interaction
 const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
+
+// Non-blocking, minimal fallback when modal code chunks are loading
+const ModalLoadingFallback = () => (
+  <div 
+    aria-hidden="true"
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs transition-opacity"
+  >
+    <div className="p-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] shadow-xl flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono">
+      <RefreshCw size={14} className="animate-spin text-[var(--accent)]" />
+      <span>Loading...</span>
+    </div>
+  </div>
+);
 
 export function Navbar({ 
   onNavigate, 
@@ -239,13 +252,15 @@ export function Navbar({
             {/* Backdrop click dismiss seamlessly covering behind safe-area */}
             <div 
               className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden"
+              aria-hidden="true"
               onClick={() => setIsMobileMenuOpen(false)}
             />
             <motion.div 
               ref={drawerRef}
               id="navbar-mobile-drawer"
-              role="region"
-              aria-label="Mobile Navigation Menu"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation Menu"
               initial={{ opacity: 0, y: -6, scaleY: 0.96 }}
               animate={{ opacity: 1, y: 0, scaleY: 1 }}
               exit={{ opacity: 0, y: -6, scaleY: 0.96 }}
@@ -311,7 +326,7 @@ export function Navbar({
 
       {/* Global System Settings Modal (Loaded on demand) */}
       {isSettingsOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<ModalLoadingFallback />}>
           <SettingsModal 
             isOpen={isSettingsOpen} 
             onClose={handleCloseSettings} 
@@ -321,7 +336,7 @@ export function Navbar({
 
       {/* Welcome Modal (Loaded on demand) */}
       {isWelcomeOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<ModalLoadingFallback />}>
           <WelcomeModal
             isOpen={isWelcomeOpen}
             onClose={handleCloseWelcome}

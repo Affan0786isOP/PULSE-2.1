@@ -295,6 +295,13 @@ export async function promptInstall(): Promise<boolean> {
       return false;
     } catch (err) {
       console.error('Error invoking native install prompt:', err);
+      currentState = {
+        ...currentState,
+        hasNativePrompt: false,
+        isInstallable: true,
+        isGuideOpen: true
+      };
+      notify();
       return false;
     }
   }

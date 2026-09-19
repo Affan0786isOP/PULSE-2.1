@@ -86,6 +86,8 @@ const MOBILE_NAV_CARDS: readonly MobileNavCard[] = [
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isConnecting, authError, retryAuth } = useAuth();
+  const [displayedError, setDisplayedError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   // Initialize synchronously from storage to prevent jarring post-mount pop-in
@@ -107,9 +109,24 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
   useEffect(() => {
     if (authError) {
+      setDisplayedError(authError);
+      setIsRetrying(false);
       console.warn('[PULSE Mobile Auth Notice]:', authError);
+    } else if (!isConnecting && !isRetrying) {
+      setDisplayedError(null);
     }
-  }, [authError]);
+  }, [authError, isConnecting, isRetrying]);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      await retryAuth();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
+  const isActionInProgress = isRetrying || isConnecting;
 
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
     if (typeof document === 'undefined') return false;
@@ -500,7 +517,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       {/* Floating Mobile Auth Notice: Non-disruptive, layout-stable connection notice with safe-area bottom offset */}
       <AnimatePresence>
-        {authError && (
+        {displayedError && (
           <motion.div 
             role="status"
             aria-live="polite"
@@ -515,18 +532,18 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <AlertCircle size={14} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />
               <div className="text-[10px] leading-tight">
                 <span className="font-semibold text-[var(--text-primary)]">Notice: </span>
-                <span>{authError}</span>
+                <span>{displayedError}</span>
               </div>
             </div>
             <button 
               type="button" 
-              onClick={() => { triggerHaptic('tap'); retryAuth(); }}
-              disabled={isConnecting}
+              onClick={() => { triggerHaptic('tap'); handleRetry(); }}
+              disabled={isActionInProgress}
               aria-label="Retry connection"
               className="px-2 py-1 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] text-[var(--text-primary)] text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
-              <RefreshCw size={10} aria-hidden="true" className={isConnecting ? "animate-spin motion-reduce:animate-none" : ""} />
-              <span>{isConnecting ? "Retrying..." : "Retry"}</span>
+              <RefreshCw size={10} aria-hidden="true" className={isActionInProgress ? "animate-spin motion-reduce:animate-none" : ""} />
+              <span>{isActionInProgress ? "Retrying..." : "Retry"}</span>
             </button>
           </motion.div>
         )}
