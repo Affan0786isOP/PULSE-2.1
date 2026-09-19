@@ -1,5 +1,5 @@
 /**
- * Shared Modal Manager
+ * Shared Modal Manager (Mobile Shell)
  * 
  * Provides centralized management for:
  * 1. Safe nested modal stacking with dynamic z-index layering (base 9000 + depth * 100).

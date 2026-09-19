@@ -1687,8 +1687,7 @@ async function startServer() {
       res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     }
 
-    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-    
+    // Do not set X-Frame-Options: SAMEORIGIN as it prevents AI Studio preview iframe rendering
     const csp = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.googleapis.com https://apis.google.com https://*.gstatic.com",
@@ -1697,7 +1696,7 @@ async function startServer() {
       "img-src 'self' data: blob: https://*.googleusercontent.com https://*.gstatic.com https://*.google.com",
       "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.run.app",
       "worker-src 'self' blob:",
-      "frame-ancestors 'self' https://*.google.com https://*.googleusercontent.com https://*.run.app https://ai.studio"
+      "frame-ancestors 'self' https://*.google.com https://*.googleusercontent.com https://*.run.app https://ai.studio https://*.ai.studio https://aistudio.google.com"
     ].join('; ');
     
     res.setHeader('Content-Security-Policy', csp);
@@ -3441,20 +3440,37 @@ async function startServer() {
     const { createServer: createViteServer } = await import('vi' + 'te');
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    
-    // Custom SPA fallback for /mobile routes before Vite's default SPA fallback catches it
-    app.use((req, res, next) => {
-      if (req.method === 'GET' && req.headers.accept?.includes('text/html')) {
-        if (req.path.startsWith('/mobile')) {
-          req.url = '/mobile/index.html';
-        }
-      }
-      next();
+      appType: 'custom',
     });
 
     app.use(vite.middlewares);
+
+    app.use('*', async (req, res, next) => {
+      if (req.method !== 'GET') {
+        return next();
+      }
+      if (req.originalUrl.startsWith('/api')) {
+        return next();
+      }
+      try {
+        const url = req.originalUrl || req.url;
+        let templatePath = path.resolve(process.cwd(), 'index.html');
+        if (req.path.startsWith('/mobile')) {
+          const mobilePath = path.resolve(process.cwd(), 'mobile', 'index.html');
+          if (fs.existsSync(mobilePath)) {
+            templatePath = mobilePath;
+          }
+        }
+        let template = fs.readFileSync(templatePath, 'utf-8');
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+      } catch (e) {
+        if (vite && typeof vite.ssrFixStacktrace === 'function') {
+          vite.ssrFixStacktrace(e as Error);
+        }
+        next(e);
+      }
+    });
   } else {
     // In production, server.js lives inside dist/
     let currentDir = process.cwd();

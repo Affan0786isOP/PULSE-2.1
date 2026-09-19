@@ -287,7 +287,6 @@ export const submitAssessmentResult = async (payload: BasePayload): Promise<{
     const activeSessionId = payload.sessionId || payload.idempotencyKey;
     const activeIdempotencyKey = payload.idempotencyKey ? `${payload.idempotencyKey}-submit` : safeRandomUUID();
     const trials = payload.trials || getInMemorySessionTrials(activeSessionId || '');
-    const isMobileClient = typeof navigator !== 'undefined' && /Mobi|Android|iPhone/i.test(navigator.userAgent);
     const res = await fetchWithAuth('/api/research/submit', {
       method: 'POST',
       headers: {
@@ -296,7 +295,7 @@ export const submitAssessmentResult = async (payload: BasePayload): Promise<{
       body: JSON.stringify({
         assessmentType: payload.assessmentType,
         ageGroup: payload.ageGroup,
-        deviceCategory: isMobileClient ? 'mobile' : 'desktop',
+        deviceCategory: 'mobile',
         trials,
         sessionId: activeSessionId,
         idempotencyKey: activeIdempotencyKey
@@ -429,7 +428,7 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
     if (res.ok) {
       const payload = await res.json();
       if (payload.success && Array.isArray(payload.entries)) {
-        if (payload.entries.length > 0) apiSucceeded = true;
+        apiSucceeded = true;
         payload.entries.forEach((e: any) => {
           const name = String(e?.displayName || '').trim();
           if (e && e.id && !entriesMap.has(e.id) && isOptedInLeaderboardUser(name)) {
@@ -546,44 +545,6 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
               });
             } catch (fallbackErr: any) {
               lastError = fallbackErr instanceof Error ? fallbackErr : new Error(String(fallbackErr));
-              // Tertiary fallback: simple equality query without orderBy (in-memory sorting prevents composite index failure)
-              try {
-                const simpleQ = query(
-                  colRef,
-                  where('assessmentType', '==', alias),
-                  limit(100)
-                );
-                const snapshot = await getDocsFromServer(simpleQ);
-                querySuccessCount++;
-
-                snapshot.docs.forEach(docSnap => {
-                  const data = docSnap.data();
-                  if (!data || data.hidden === true) return;
-
-                  const score = Number(data.scoreMetric);
-                  if (isNaN(score) || score <= 0) return;
-
-                  const displayName = String(data.displayName || '').trim();
-                  if (!isOptedInLeaderboardUser(displayName)) return;
-
-                  const rawType = String(data.assessmentType || canonicalType);
-                  const normalizedType = normalizeAssessmentType(rawType);
-
-                  if (!entriesMap.has(docSnap.id)) {
-                    entriesMap.set(docSnap.id, {
-                      id: docSnap.id,
-                      displayName,
-                      assessmentType: normalizedType,
-                      scoreMetric: score,
-                      ageGroup: String(data.ageGroup || ''),
-                      createdAt: data.createdAt,
-                      source: 'cloud'
-                    });
-                  }
-                });
-              } catch (simpleErr: any) {
-                lastError = simpleErr instanceof Error ? simpleErr : new Error(String(simpleErr));
-              }
             }
           }
         }

@@ -15,12 +15,11 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
-      ],
-      "@bklitui/ui/charts": [
-        "./src/components/charts/index.ts"
+        "src/*",
+        "./*"
       ]
     },
     "allowImportingTsExtensions": true,

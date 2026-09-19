@@ -6,19 +6,6 @@ import { useSettings } from './lib/settingsStore';
 import { useSystemTheme } from './lib/useSystemTheme';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { Home } from './components/Home';
-import { Assessments } from './components/Assessments';
-
-
-
-import { Leaderboard } from './components/Leaderboard';
-import { ReactionTest } from './components/ReactionTest';
-import { DirectionTest } from './components/DirectionTest';
-import { BlockMemoryTest } from './components/BlockMemoryTest';
-import { NumberMemoryTest } from './components/NumberMemoryTest';
-import { ColorTest } from './components/ColorTest';
-
-import { NotFound } from './components/NotFound';
-
 
 import { 
   evaluateDeviceRouting, 
@@ -34,7 +21,15 @@ function RedirectIndexHtml() {
   return <Navigate to={`/${search}${hash}`} replace />;
 }
 
-// Code-split heavy routes & admin module
+// Code-split heavy routes for fast Home startup
+const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
+const Leaderboard = React.lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
+const ReactionTest = React.lazy(() => import('./components/ReactionTest').then(m => ({ default: m.ReactionTest })));
+const DirectionTest = React.lazy(() => import('./components/DirectionTest').then(m => ({ default: m.DirectionTest })));
+const BlockMemoryTest = React.lazy(() => import('./components/BlockMemoryTest').then(m => ({ default: m.BlockMemoryTest })));
+const NumberMemoryTest = React.lazy(() => import('./components/NumberMemoryTest').then(m => ({ default: m.NumberMemoryTest })));
+const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({ default: m.ColorTest })));
+const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
 const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));

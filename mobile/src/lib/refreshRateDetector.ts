@@ -308,12 +308,12 @@ export function getCachedRefreshRate(): RefreshRateInfo {
   );
 }
 
-// Invalidate calibration if display characteristics materially change
+// Invalidate calibration if display characteristics materially change without a valid cache
 if (typeof window !== 'undefined') {
   const handleDisplayChange = () => {
-    if (cachedInfo && cachedInfo.status === 'ready') {
-      // Recompute refresh rate for new display
-      detectRefreshRate(true).catch(() => {});
+    // Do not repeatedly run calibration when a valid cached result already exists
+    if (!cachedInfo || cachedInfo.status !== 'ready' || cachedInfo.source === 'fallback') {
+      detectRefreshRate(false).catch(() => {});
     }
   };
 

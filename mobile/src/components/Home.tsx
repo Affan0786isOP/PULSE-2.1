@@ -1,14 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Activity, Database, ArrowRight, Zap, Trophy, Settings, Info, Download, Maximize2, Minimize2, ShieldCheck, AlertCircle, RefreshCw, ListChecks, BarChart2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../AuthContext';
 import { usePwaInstall } from '../lib/usePwaInstall';
-import { SettingsModal } from './SettingsModal';
-import { WelcomeModal, isMobileWelcomeSeen } from './WelcomeModal';
-import { AddToHomeScreenModal } from './AddToHomeScreenModal';
+import { isMobileWelcomeSeen } from '../lib/welcomeStore';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SEO } from './SEO';
+
+// Lazy load modals to eliminate Home startup costs
+const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
+const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
+const AddToHomeScreenModal = React.lazy(() => import('./AddToHomeScreenModal').then(m => ({ default: m.AddToHomeScreenModal })));
+
+const ROUTES = {
+  LEADERBOARD: '/leaderboard',
+  DATASET: '/dataset',
+  IMPROVE: '/improve',
+  PRIVACY: '/privacy',
+} as const;
+
+interface MobileNavCard {
+  id: string;
+  to: string;
+  label: string;
+  sublabel: string;
+  ariaLabel: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const MOBILE_NAV_CARDS: readonly MobileNavCard[] = [
+  {
+    id: 'mobile-nav-leaderboard',
+    to: ROUTES.LEADERBOARD,
+    label: 'Leaderboard',
+    sublabel: 'Top ranks',
+    ariaLabel: 'View Leaderboard — Top ranks',
+    icon: Trophy,
+  },
+  {
+    id: 'mobile-nav-dataset',
+    to: ROUTES.DATASET,
+    label: 'Dataset',
+    sublabel: 'Telemetry',
+    ariaLabel: 'View Dataset — Telemetry',
+    icon: Database,
+  },
+  {
+    id: 'mobile-nav-improve',
+    to: ROUTES.IMPROVE,
+    label: 'Improve',
+    sublabel: 'Performance factors',
+    ariaLabel: 'View Improve — Factors that can affect reaction performance',
+    icon: Zap,
+  },
+  {
+    id: 'mobile-nav-privacy',
+    to: ROUTES.PRIVACY,
+    label: 'Privacy',
+    sublabel: 'Data ethics',
+    ariaLabel: 'View Privacy — Data ethics',
+    icon: ShieldCheck,
+  },
+];
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isConnecting, authError, retryAuth } = useAuth();
@@ -208,28 +262,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           <p className="text-[var(--text-muted)] text-[11px] font-normal px-2 leading-tight mt-0.5">
             Research-informed sensory reaction and working memory evaluator
           </p>
-
-          {authError && (
-            <div className="w-full mt-2 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center justify-between gap-2 text-left">
-              <div className="flex items-center gap-2">
-                <AlertCircle size={14} className="shrink-0 text-rose-400" />
-                <div className="text-[10px] leading-tight">
-                  <span className="font-semibold text-rose-200">Notice: </span>
-                  <span>Session tracking is temporarily offline. Assessments continue locally.</span>
-                </div>
-              </div>
-              <button 
-                type="button" 
-                onClick={() => { triggerHaptic('tap'); retryAuth(); }}
-                disabled={isConnecting}
-                aria-label="Retry connection"
-                className="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
-              >
-                <RefreshCw size={10} className={isConnecting ? "animate-spin" : ""} />
-                <span>{isConnecting ? "Retrying..." : "Retry"}</span>
-              </button>
-            </div>
-          )}
         </motion.div>
 
         {/* How it Works - Middle Guide Card */}
@@ -323,99 +355,102 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
           {/* Menu Grid - 2x2 with clear touch targets */}
           <div className="grid grid-cols-2 gap-2 w-full">
-            <Link 
-              to="/leaderboard"
-              id="mobile-nav-leaderboard"
-              onClick={() => triggerHaptic('tap')}
-              aria-label="View Leaderboard — Top ranks"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            >
-              <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
-                <Trophy className="w-3.5 h-3.5" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[var(--text-primary)] font-medium text-xs truncate">Leaderboard</span>
-                <span className="text-[var(--text-muted)] text-[10px] truncate">Top ranks</span>
-              </div>
-            </Link>
-
-            <Link 
-              to="/dataset"
-              id="mobile-nav-dataset"
-              onClick={() => triggerHaptic('tap')}
-              aria-label="View Dataset — Telemetry"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            >
-              <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
-                <Database className="w-3.5 h-3.5" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[var(--text-primary)] font-medium text-xs truncate">Dataset</span>
-                <span className="text-[var(--text-muted)] text-[10px] truncate">Telemetry</span>
-              </div>
-            </Link>
-
-            <Link 
-              to="/improve"
-              id="mobile-nav-improve"
-              onClick={() => triggerHaptic('tap')}
-              aria-label="View Improve — Factors that can affect reaction performance"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            >
-              <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
-                <Zap className="w-3.5 h-3.5" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[var(--text-primary)] font-medium text-xs truncate">Improve</span>
-                <span className="text-[var(--text-muted)] text-[10px] truncate">Performance factors</span>
-              </div>
-            </Link>
-
-            <Link 
-              to="/privacy"
-              id="mobile-nav-privacy"
-              onClick={() => triggerHaptic('tap')}
-              aria-label="View Privacy — Data ethics"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            >
-              <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
-                <ShieldCheck className="w-3.5 h-3.5" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[var(--text-primary)] font-medium text-xs truncate">Privacy</span>
-                <span className="text-[var(--text-muted)] text-[10px] truncate">Data ethics</span>
-              </div>
-            </Link>
+            {MOBILE_NAV_CARDS.map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link 
+                  key={card.to}
+                  to={card.to}
+                  id={card.id}
+                  onClick={() => triggerHaptic('tap')}
+                  aria-label={card.ariaLabel}
+                  className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                >
+                  <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[var(--text-primary)] font-medium text-xs truncate">{card.label}</span>
+                    <span className="text-[var(--text-muted)] text-[10px] truncate">{card.sublabel}</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </motion.div>
       </main>
 
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={handleCloseSettings} 
-      />
+      {isSettingsOpen && (
+        <Suspense fallback={null}>
+          <SettingsModal 
+            isOpen={isSettingsOpen} 
+            onClose={handleCloseSettings} 
+          />
+        </Suspense>
+      )}
 
-      <WelcomeModal
-        isOpen={isWelcomeOpen}
-        onClose={handleCloseWelcome}
-        onNavigate={onNavigate}
-      />
+      {isWelcomeOpen && (
+        <Suspense fallback={null}>
+          <WelcomeModal
+            isOpen={isWelcomeOpen}
+            onClose={handleCloseWelcome}
+            onNavigate={onNavigate}
+          />
+        </Suspense>
+      )}
 
-      <AddToHomeScreenModal
-        isOpen={pwa.isGuideOpen && !isSettingsOpen}
-        onClose={pwa.closeInstallGuide}
-        isInstalled={pwa.isInstalled}
-        isIos={pwa.isIos}
-        isSafari={pwa.isSafari}
-        isIosSafari={pwa.isIosSafari}
-        isIosOtherBrowser={pwa.isIosOtherBrowser}
-        isInstallable={pwa.isInstallable}
-        hasNativePrompt={pwa.hasNativePrompt}
-        isInstallPromptSupported={pwa.isInstallPromptSupported}
-        isUnsupportedBrowser={pwa.isUnsupportedBrowser}
-        isOffline={pwa.isOffline}
-        onPromptInstall={pwa.promptInstall}
-      />
+      {pwa.isGuideOpen && !isSettingsOpen && (
+        <Suspense fallback={null}>
+          <AddToHomeScreenModal
+            isOpen={pwa.isGuideOpen && !isSettingsOpen}
+            onClose={pwa.closeInstallGuide}
+            isInstalled={pwa.isInstalled}
+            isIos={pwa.isIos}
+            isSafari={pwa.isSafari}
+            isIosSafari={pwa.isIosSafari}
+            isIosOtherBrowser={pwa.isIosOtherBrowser}
+            isInstallable={pwa.isInstallable}
+            hasNativePrompt={pwa.hasNativePrompt}
+            isInstallPromptSupported={pwa.isInstallPromptSupported}
+            isUnsupportedBrowser={pwa.isUnsupportedBrowser}
+            isOffline={pwa.isOffline}
+            onPromptInstall={pwa.promptInstall}
+          />
+        </Suspense>
+      )}
+
+      {/* Floating Mobile Auth Notice: Non-disruptive, layout-stable connection notice */}
+      <AnimatePresence>
+        {authError && (
+          <motion.div 
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            role="alert"
+            aria-live="polite"
+            className="fixed bottom-5 left-4 right-4 z-40 max-w-sm mx-auto p-2.5 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-rose-500/30 shadow-2xl text-rose-300 flex items-center justify-between gap-2 text-left"
+          >
+            <div className="flex items-center gap-2">
+              <AlertCircle size={14} className="shrink-0 text-rose-400" />
+              <div className="text-[10px] leading-tight">
+                <span className="font-semibold text-rose-200">Notice: </span>
+                <span>Session tracking is temporarily offline. Assessments continue locally.</span>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              onClick={() => { triggerHaptic('tap'); retryAuth(); }}
+              disabled={isConnecting}
+              aria-label="Retry connection"
+              className="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+            >
+              <RefreshCw size={10} className={isConnecting ? "animate-spin" : ""} />
+              <span>{isConnecting ? "Retrying..." : "Retry"}</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

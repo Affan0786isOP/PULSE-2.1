@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, Suspense } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Activity, ArrowLeft, Settings, Info } from 'lucide-react';
 import { triggerHaptic } from '../lib/settingsStore';
-import { SettingsModal } from './SettingsModal';
-import { WelcomeModal } from './WelcomeModal';
 
 import { resolveActiveNavId } from '../lib/navigation';
 export { resolveActiveNavId };
+
+// Defer heavy modals until user interaction
+const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
+const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
 
 export function Navbar({
   onNavigate,
@@ -73,9 +75,13 @@ export function Navbar({
             </button>
           )}
           
-          <button 
-            type="button" 
-            onClick={() => onNavigate('home')}
+          <Link 
+            to="/mobile/"
+            onClick={(e) => {
+              if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                onNavigate('home');
+              }
+            }}
             aria-label="PULSE Home"
             aria-current={isHome ? 'page' : undefined}
             title="Go to Home"
@@ -84,7 +90,7 @@ export function Navbar({
             <div className="w-7 h-7 rounded-md bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] transition-colors">
               <Activity size={15} className="stroke-[2.2]" />
             </div>
-          </button>
+          </Link>
 
           {title && (
             typeof title === 'string' ? (
@@ -137,15 +143,23 @@ export function Navbar({
         </div>
       </nav>
 
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
-      />
+      {isSettingsOpen && (
+        <Suspense fallback={null}>
+          <SettingsModal 
+            isOpen={isSettingsOpen} 
+            onClose={() => setIsSettingsOpen(false)} 
+          />
+        </Suspense>
+      )}
 
-      <WelcomeModal
-        isOpen={isWelcomeOpen}
-        onClose={() => setIsWelcomeOpen(false)}
-      />
+      {isWelcomeOpen && (
+        <Suspense fallback={null}>
+          <WelcomeModal
+            isOpen={isWelcomeOpen}
+            onClose={() => setIsWelcomeOpen(false)}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

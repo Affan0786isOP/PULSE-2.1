@@ -7,22 +7,6 @@ import { useSettings } from './lib/settingsStore';
 import { useSystemTheme } from './lib/useSystemTheme';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { Home } from './components/Home';
-import { Assessments } from './components/Assessments';
-
-
-
-import { Leaderboard } from './components/Leaderboard';
-import { Dataset } from './components/Dataset';
-import { ReactionTest } from './components/ReactionTest';
-import { DirectionTest } from './components/DirectionTest';
-import { BlockMemoryTest } from './components/BlockMemoryTest';
-import { NumberMemoryTest } from './components/NumberMemoryTest';
-import { ColorTest } from './components/ColorTest';
-
-import { NotFound } from './components/NotFound';
-
-
-
 
 import { resolveDeviceRedirect } from './lib/deviceRouting';
 
@@ -43,13 +27,30 @@ function RedirectToMobile() {
     const redirect = resolveDeviceRedirect(pathname, search, hash);
     if (redirect.shouldRedirect && redirect.targetUrl) {
       window.location.replace(redirect.targetUrl);
+    } else if (pathname === '/mobile' || pathname === '/mobile/') {
+      // Ensure mobile entry point is loaded if not already
+      window.location.replace(`/mobile/${search}${hash}`);
     }
   }, [location.pathname, location.search, location.hash]);
-  return null;
+
+  return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center font-sans">
+      <div className="w-8 h-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin mb-3" />
+      <div className="text-xs text-[var(--text-muted)] font-mono uppercase tracking-widest">Loading Mobile Experience...</div>
+    </div>
+  );
 }
 
-
-// Code-split heavy routes & admin module
+// Code-split routes for optimal Home startup performance
+const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
+const Leaderboard = React.lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
+const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
+const ReactionTest = React.lazy(() => import('./components/ReactionTest').then(m => ({ default: m.ReactionTest })));
+const DirectionTest = React.lazy(() => import('./components/DirectionTest').then(m => ({ default: m.DirectionTest })));
+const BlockMemoryTest = React.lazy(() => import('./components/BlockMemoryTest').then(m => ({ default: m.BlockMemoryTest })));
+const NumberMemoryTest = React.lazy(() => import('./components/NumberMemoryTest').then(m => ({ default: m.NumberMemoryTest })));
+const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({ default: m.ColorTest })));
+const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
 const AdminLogin = React.lazy(() => import('./components/admin/AdminLogin').then(m => ({ default: m.AdminLogin })));

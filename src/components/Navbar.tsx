@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Activity, Menu, X, ArrowLeft, Settings, Info } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { SettingsModal } from './SettingsModal';
-import { WelcomeModal, isWelcomeSeenInMemory } from './WelcomeModal';
 import { GooeyNav } from './ui/gooey-nav';
 
 import { resolveActiveNavId } from '../lib/navigation';
 export { resolveActiveNavId };
+
+// Defer modal loading until user interaction
+const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
+const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
 
 export function Navbar({ 
   onNavigate, 
@@ -27,6 +29,9 @@ export function Navbar({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const wasMobileMenuOpen = useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
@@ -34,26 +39,69 @@ export function Navbar({
   const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
   const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
 
+  // Manage focus for mobile navigation drawer: trap focus while open, restore focus to trigger on close
   useEffect(() => {
-    const isPhone = typeof window !== 'undefined' && (
-      window.innerWidth <= 768 ||
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent || '')
-    );
-    if (!isPhone && !isWelcomeSeenInMemory()) {
-      setIsWelcomeOpen(true);
-    }
-  }, []);
+    if (isMobileMenuOpen) {
+      wasMobileMenuOpen.current = true;
+      // Focus the active nav element (or first interactive element) inside the drawer
+      const timer = setTimeout(() => {
+        if (!drawerRef.current) return;
+        const focusables = Array.from(
+          drawerRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        );
+        if (focusables.length > 0) {
+          const activeBtn = focusables.find(el => el.getAttribute('aria-current') === 'page');
+          (activeBtn || focusables[0]).focus();
+        }
+      }, 30);
 
-  // Close mobile drawer on Escape key
-  useEffect(() => {
-    if (!isMobileMenuOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setIsMobileMenuOpen(false);
+          return;
+        }
+
+        if (e.key === 'Tab') {
+          if (!drawerRef.current) return;
+          const focusables = Array.from(
+            drawerRef.current.querySelectorAll<HTMLElement>(
+              'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )
+          );
+          if (focusables.length === 0) {
+            e.preventDefault();
+            return;
+          }
+
+          const firstElement = focusables[0];
+          const lastElement = focusables[focusables.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement || !drawerRef.current.contains(document.activeElement)) {
+              e.preventDefault();
+              lastElement.focus();
+            }
+          } else {
+            if (document.activeElement === lastElement || !drawerRef.current.contains(document.activeElement)) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else if (wasMobileMenuOpen.current) {
+      wasMobileMenuOpen.current = false;
+      mobileMenuTriggerRef.current?.focus();
+    }
   }, [isMobileMenuOpen]);
 
   const navItems = [
@@ -102,8 +150,13 @@ export function Navbar({
           </button>
         )}
         
-        <button type="button" 
-          onClick={() => onNavigate('home')}
+        <Link 
+          to="/"
+          onClick={(e) => {
+            if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
+              onNavigate('home');
+            }
+          }}
           aria-label="PULSE Home"
           aria-current={isHome ? 'page' : undefined}
           className="flex items-center gap-2.5 group cursor-pointer active:scale-[0.98] transition-transform"
@@ -116,7 +169,7 @@ export function Navbar({
               PULSE
             </span>
           </div>
-        </button>
+        </Link>
 
         {title && (
           <>
@@ -177,7 +230,8 @@ export function Navbar({
 
         {/* Hamburger Menu Toggle for screens < lg (tablets & phones) */}
         <button type="button" 
-          aria-label="Toggle Menu"
+          ref={mobileMenuTriggerRef}
+          aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={isMobileMenuOpen}
           aria-controls="navbar-mobile-drawer"
           className="w-9 h-9 lg:hidden flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] text-[var(--text-secondary)] transition-[color,background-color,border-color,transform] cursor-pointer"
@@ -196,6 +250,7 @@ export function Navbar({
               onClick={() => setIsMobileMenuOpen(false)}
             />
             <motion.div 
+              ref={drawerRef}
               id="navbar-mobile-drawer"
               role="region"
               aria-label="Mobile Navigation Menu"
@@ -257,18 +312,26 @@ export function Navbar({
         )}
       </AnimatePresence>
 
-      {/* Global System Settings Modal */}
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={handleCloseSettings} 
-      />
+      {/* Global System Settings Modal (Loaded on demand) */}
+      {isSettingsOpen && (
+        <Suspense fallback={null}>
+          <SettingsModal 
+            isOpen={isSettingsOpen} 
+            onClose={handleCloseSettings} 
+          />
+        </Suspense>
+      )}
 
-      {/* Welcome Modal */}
-      <WelcomeModal
-        isOpen={isWelcomeOpen}
-        onClose={handleCloseWelcome}
-        onNavigate={onNavigate}
-      />
+      {/* Welcome Modal (Loaded on demand) */}
+      {isWelcomeOpen && (
+        <Suspense fallback={null}>
+          <WelcomeModal
+            isOpen={isWelcomeOpen}
+            onClose={handleCloseWelcome}
+            onNavigate={onNavigate}
+          />
+        </Suspense>
+      )}
     </nav>
   );
 }
