@@ -105,11 +105,10 @@
             var maxTouch = (navigator.maxTouchPoints || 0);
             var hasTouch = ('ontouchstart' in window) || maxTouch > 0;
             var isTouchMac = maxTouch > 1 && /Macintosh/i.test(ua);
-            var screenW = window.screen ? Math.min(window.screen.width, window.screen.height) : 0;
-            var innerW = window.innerWidth || 0;
-            var isSmallPhysicalScreen = (screenW > 0 && screenW <= 768) || (innerW > 0 && innerW <= 768);
+            var viewportW = window.innerWidth || (document.documentElement ? document.documentElement.clientWidth : 0);
+            var isSmallViewport = viewportW > 0 && viewportW <= 768;
             var isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-            var isMobileDevice = isMobileUA || isTouchMac || ((hasTouch || isCoarse) && isSmallPhysicalScreen);
+            var isMobileDevice = isMobileUA || isTouchMac || ((hasTouch || isCoarse) && isSmallViewport);
 
             if (isExplicitForceMobile || isMobileDevice) {
               var cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;

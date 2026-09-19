@@ -182,7 +182,7 @@ function App() {
             >
               <React.Suspense fallback={<RouteFallback />}>
               <Routes location={location}>
-                <Route path="/" element={<Home onNavigate={handleNavigate} />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/index.html" element={<RedirectIndexHtml />} />
                 <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                 <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />

@@ -328,6 +328,10 @@
   animation-delay: 0.06s;
 }
 
+.home-stagger-4 {
+  animation-delay: 0.08s;
+}
+
 /* Instant Reduced Motion & Animation Suppression (does not affect research timing) */
 @media (prefers-reduced-motion: reduce) {
   *,

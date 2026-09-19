@@ -33,7 +33,7 @@ export function Navbar({
   rightContent,
   isAssessmentActive = false
 }: { 
-  onNavigate: (view: string) => void;
+  onNavigate?: (view: string) => void;
   currentView: string;
   onBack?: () => void;
   title?: string;
@@ -48,7 +48,7 @@ export function Navbar({
   const wasMobileMenuOpen = useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const isHome = location.pathname === '/';
+  const isHome = currentView === 'home' || location.pathname === '/' || location.pathname === '/index.html';
 
   const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
   const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
@@ -135,10 +135,13 @@ export function Navbar({
       onBack();
       return;
     }
-    if (typeof window !== 'undefined' && window.history.state && (window.history.state.idx > 0 || window.history.length > 1)) {
+    const historyIdx = typeof window !== 'undefined' ? (window.history.state as { idx?: number } | null)?.idx : undefined;
+    if (typeof historyIdx === 'number' && historyIdx > 0) {
       navigate(-1);
-    } else {
+    } else if (onNavigate) {
       onNavigate('home');
+    } else {
+      navigate('/', { replace: true });
     }
   };
 
@@ -194,7 +197,14 @@ export function Navbar({
         <GooeyNav
           items={navItems.map(item => ({ label: item.label, to: item.to }))}
           value={activeIndex >= 0 ? activeIndex : -1}
-          onChange={(index) => onNavigate(navItems[index].id)}
+          onChange={(index) => {
+            const item = navItems[index];
+            if (onNavigate) {
+              onNavigate(item.id);
+            } else {
+              navigate(item.to);
+            }
+          }}
           activeColor="var(--accent)"
         />
       </div>

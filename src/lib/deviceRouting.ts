@@ -51,12 +51,11 @@ export function detectIsMobileDevice(uaString?: string): boolean {
     const isTouchMac = maxTouchPoints > 1 && /Macintosh/i.test(ua);
     if (isTouchMac) return true;
 
-    const screenW = window.screen ? Math.min(window.screen.width, window.screen.height) : 0;
-    const innerW = window.innerWidth || 0;
-    const isSmallPhysicalScreen = (screenW > 0 && screenW <= 768) || (innerW > 0 && innerW <= 768);
+    const viewportW = window.innerWidth || (typeof document !== 'undefined' && document.documentElement ? document.documentElement.clientWidth : 0);
+    const isSmallViewport = viewportW > 0 && viewportW <= 768;
     const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 
-    if ((hasTouch || isCoarse) && isSmallPhysicalScreen) return true;
+    if ((hasTouch || isCoarse) && isSmallViewport) return true;
   }
 
   return false;
@@ -211,7 +210,8 @@ export function resolveDeviceRedirect(
   }
 
   if (decision.shouldUseMobile && !isMobilePath) {
-    const targetPath = `/mobile${pathname === '/' ? '' : pathname}`;
+    const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
+    const targetPath = cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`;
     if (checkAndSetRedirectLoopGuard(targetPath)) {
       return { shouldRedirect: false };
     }

@@ -56,7 +56,7 @@ const HOME_NAV_CARDS: readonly HomeNavCard[] = [
   },
 ];
 
-export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
+export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
 
   return (
@@ -75,7 +75,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         schema={HOME_SCHEMA}
       />
       {/* Top Navbar Header */}
-      <Navbar currentView="home" onNavigate={onNavigate} />
+      <Navbar currentView="home" />
 
       {/* Main Hero Section */}
       <main 
@@ -90,7 +90,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           <div className="w-full flex flex-col items-center lg:items-start text-center lg:text-left">
             {/* Top Tag */}
             <div className={`flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-5 ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
-              <div className="inline-flex items-center gap-2 px-3 h-7 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-medium">
+              <div className="inline-flex items-center gap-2 px-3 min-h-[1.75rem] py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-medium">
                 <span>Cognitive reaction &amp; memory assessments</span>
               </div>
             </div>
@@ -110,7 +110,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <Link 
                 to={ROUTES.ASSESSMENTS}
                 id="start-lab-btn"
-                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold text-sm px-6 py-3.5 rounded-md inline-flex items-center justify-center gap-2.5 cursor-pointer transition-[background-color,transform,box-shadow] duration-150 motion-reduce:transition-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold text-sm px-6 py-3.5 rounded-md inline-flex items-center justify-center gap-2.5 cursor-pointer max-w-full transition-[background-color,transform,box-shadow] duration-150 motion-reduce:transition-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
               >
                 <span>Start assessments</span>
                 <ArrowRight size={16} aria-hidden="true" />
@@ -122,7 +122,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           <div className="w-full max-w-[360px] flex flex-col gap-2.5 shrink-0 mx-auto lg:mx-0">
             {HOME_NAV_CARDS.map((card, idx) => {
               const Icon = card.icon;
-              const staggerClass = idx === 0 ? '' : `home-stagger-${idx}`;
+              const staggerClass = `home-stagger-${idx + 1}`;
               return (
                 <div key={card.to} className={shouldReduceMotion ? '' : `animate-home-fade ${staggerClass}`}>
                   <Link
@@ -142,7 +142,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                         </div>
                       </div>
                     </div>
-                    <ArrowRight size={15} aria-hidden="true" className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-[color,transform] duration-150 motion-reduce:transition-none motion-reduce:transform-none shrink-0" />
+                    <ArrowRight size={15} aria-hidden="true" className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-[color,transform] duration-150 motion-reduce:transition-none motion-reduce:transform-none shrink-0 ml-2" />
                   </Link>
                 </div>
               );
