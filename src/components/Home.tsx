@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Zap, Database, ArrowRight, Monitor, Trophy, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'motion/react';
 import { Navbar } from './Navbar';
@@ -84,27 +84,6 @@ const fadeItemVariants: Variants = {
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isConnecting, authError, retryAuth } = useAuth();
   const refreshInfo = useRefreshRate();
-  const location = useLocation();
-  const [isNavigating, setIsNavigating] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsNavigating(false);
-  }, [location.pathname]);
-
-  React.useEffect(() => {
-    if (!isNavigating) return;
-    const timer = setTimeout(() => {
-      setIsNavigating(false);
-    }, 2500);
-    const handleFocus = () => {
-      setIsNavigating(false);
-    };
-    window.addEventListener('focus', handleFocus);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [isNavigating]);
 
   React.useEffect(() => {
     if (authError) {
@@ -123,7 +102,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <Navbar currentView="home" onNavigate={onNavigate} />
 
       {/* Main Hero Section */}
-      <main className="w-full max-w-[1140px] mx-auto px-6 sm:px-10 z-10 flex-1 flex flex-col justify-center py-8 lg:py-16">
+      <main className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 z-10 flex-1 flex flex-col justify-center py-8 lg:py-16">
         
         <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] items-center gap-10 lg:gap-14 my-auto">
           
@@ -142,30 +121,24 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
               {/* Technical Telemetry Badge: Live cadence readout with stable footprint */}
               <div 
-                role="status"
-                aria-live="polite"
-                className="inline-flex items-center gap-2 px-3 h-7 min-w-[220px] max-w-full rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-mono shrink-0 select-none overflow-hidden"
+                className="inline-flex items-center gap-2 px-3 h-7 max-w-full rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-mono shrink-0 select-none overflow-hidden"
                 aria-label={
                   refreshInfo.status === 'detecting'
-                    ? "Detecting display refresh rate"
+                    ? "Estimating display frame cadence"
                     : refreshInfo.status === 'error'
-                    ? "Display refresh rate error, using 60 Hz fallback"
+                    ? "Frame cadence estimation error, using 60 Hz baseline model"
                     : refreshInfo.source === 'measured'
-                    ? `${refreshInfo.hz} Hz measured display refresh rate`
+                    ? `${refreshInfo.hz} Hz browser frame cadence estimate with ${refreshInfo.displayDelayOffsetMs} ms theoretical model offset`
                     : refreshInfo.source === 'estimated'
-                    ? `${refreshInfo.hz} Hz estimated display refresh rate`
-                    : '60 Hz fallback display refresh rate'
+                    ? `Approximately ${refreshInfo.hz} Hz calculated cadence with ${refreshInfo.displayDelayOffsetMs} ms theoretical model offset`
+                    : '60 Hz baseline assumption with 8.33 ms theoretical model offset'
                 }
                 title={
                   refreshInfo.status === 'detecting'
-                    ? 'Estimating display frame cadence and midpoint model…'
+                    ? 'Estimating browser frame cadence and midpoint model offset…'
                     : refreshInfo.status === 'error'
-                    ? 'Detection error — using 60 Hz baseline'
-                    : refreshInfo.source === 'measured'
-                    ? `${refreshInfo.hz} Hz measured frame cadence · ~${refreshInfo.displayDelayOffsetMs} ms estimated midpoint model`
-                    : refreshInfo.source === 'estimated'
-                    ? `~${refreshInfo.hz} Hz calculated cadence · ~${refreshInfo.displayDelayOffsetMs} ms estimated midpoint model`
-                    : '60 Hz default baseline assumption · ~8.33 ms estimated midpoint model'
+                    ? 'Cadence detection error — using 60 Hz baseline model (~8.33 ms offset)'
+                    : `Browser frame cadence estimate (~${refreshInfo.hz} Hz, model offset: ~${refreshInfo.displayDelayOffsetMs} ms). Theoretical rasterization midpoint estimate, not a hardware sensor or photodiode measurement.`
                 }
               >
                 <span className="flex items-center gap-1.5 shrink-0">
@@ -174,7 +147,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                     aria-hidden="true"
                     className={
                       refreshInfo.status === 'detecting' 
-                        ? "text-[var(--accent)] animate-pulse" 
+                        ? "text-[var(--accent)] animate-pulse motion-reduce:animate-none" 
                         : refreshInfo.status === 'error'
                         ? "text-rose-400"
                         : refreshInfo.source === 'measured' 
@@ -188,7 +161,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                     aria-hidden="true"
                     className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                       refreshInfo.status === 'detecting'
-                        ? 'bg-[var(--accent)] animate-ping'
+                        ? 'bg-[var(--accent)] animate-ping motion-reduce:animate-none'
                         : refreshInfo.status === 'error'
                         ? 'bg-rose-400'
                         : refreshInfo.source === 'measured'
@@ -201,14 +174,14 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 </span>
                 <span className="truncate">
                   {refreshInfo.status === 'detecting'
-                    ? 'Detecting display cadence…'
+                    ? 'Estimating frame cadence…'
                     : refreshInfo.status === 'error'
-                    ? '60 Hz · fallback (error)'
+                    ? '60 Hz · fallback model'
                     : refreshInfo.source === 'measured'
-                    ? `${refreshInfo.hz} Hz · ~${refreshInfo.displayDelayOffsetMs} ms est. midpoint`
+                    ? `${refreshInfo.hz} Hz · ~${refreshInfo.displayDelayOffsetMs} ms model offset`
                     : refreshInfo.source === 'estimated'
-                    ? `~${refreshInfo.hz} Hz · ~${refreshInfo.displayDelayOffsetMs} ms est. midpoint`
-                    : '60 Hz · ~8.33 ms est. midpoint (def)'
+                    ? `~${refreshInfo.hz} Hz · ~${refreshInfo.displayDelayOffsetMs} ms model offset`
+                    : '60 Hz · ~8.33 ms model offset'
                   }
                 </span>
               </div>
@@ -224,25 +197,15 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               PULSE evaluates visual reaction latency, directional choice speed, and working memory through research-informed assessment protocols.
             </motion.p>
 
-            {/* Primary Action Button */}
+            {/* Primary Action Button - Standard robust link supporting modifier clicks */}
             <motion.div variants={fadeItemVariants} className="flex items-center gap-3">
               <Link 
                 to={ROUTES.ASSESSMENTS}
                 id="start-lab-btn"
-                onClick={(e) => {
-                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
-                    return;
-                  }
-                  setIsNavigating(true);
-                }}
-                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold text-sm px-6 py-3.5 rounded-md inline-flex items-center justify-center gap-2.5 cursor-pointer transition-[background-color,transform,box-shadow] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold text-sm px-6 py-3.5 rounded-md inline-flex items-center justify-center gap-2.5 cursor-pointer transition-[background-color,transform,box-shadow] duration-150 motion-reduce:transition-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
               >
                 <span>Start assessments</span>
-                {isNavigating ? (
-                  <RefreshCw size={14} aria-hidden="true" className="animate-spin text-white dark:text-slate-950" />
-                ) : (
-                  <ArrowRight size={16} aria-hidden="true" />
-                )}
+                <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </motion.div>
           </motion.div>
@@ -261,10 +224,10 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                   <Link
                     to={card.to}
                     aria-label={card.ariaLabel}
-                    className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg p-3.5 sm:p-4 flex items-center justify-between transition-all duration-150 group"
+                    className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg p-3.5 sm:p-4 flex items-center justify-between transition-[background-color,border-color] duration-150 motion-reduce:transition-none group"
                   >
                     <div className="flex items-center gap-3.5">
-                      <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/30 flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent)] shrink-0 transition-colors">
+                      <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/30 flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent)] shrink-0 transition-colors duration-150 motion-reduce:transition-none">
                         <Icon size={18} aria-hidden="true" />
                       </div>
                       <div>
@@ -276,7 +239,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                         </div>
                       </div>
                     </div>
-                    <ArrowRight size={15} aria-hidden="true" className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
+                    <ArrowRight size={15} aria-hidden="true" className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-[color,transform] duration-150 motion-reduce:transition-none motion-reduce:transform-none shrink-0" />
                   </Link>
                 </motion.div>
               );
@@ -288,7 +251,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       {/* Minimal Footer */}
       <footer 
-        className="w-full border-t border-[var(--border-subtle)] py-4 px-6 sm:px-10 text-center text-xs text-[var(--text-secondary)] font-mono z-10 flex flex-col sm:flex-row items-center justify-between gap-2"
+        className="w-full border-t border-[var(--border-subtle)] py-4 px-4 sm:px-6 lg:px-10 text-center text-xs text-[var(--text-secondary)] font-mono z-10 flex flex-col sm:flex-row items-center justify-between gap-2"
         style={{ paddingBottom: 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))' }}
       >
         <div className="flex items-center gap-2">
@@ -312,24 +275,22 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         </div>
       </footer>
 
-      {/* Floating Auth Notice: Presents connectivity status without causing hero layout shift or content reflow */}
+      {/* Non-intrusive Offline Notice: Accurately informs about local offline capability without alarmism */}
       <AnimatePresence>
         {authError && (
           <motion.div 
-            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            role="alert"
-            aria-live="polite"
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             style={{ bottom: 'max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 1.5rem))' }}
-            className="fixed left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xl p-3.5 rounded-lg bg-rose-50 dark:bg-[var(--surface-1)]/95 backdrop-blur-md border border-rose-300 dark:border-rose-500/40 shadow-2xl text-rose-900 dark:text-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left"
+            className="fixed left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xl p-3 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-default)] shadow-xl text-[var(--text-secondary)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left"
           >
             <div className="flex items-center gap-2.5">
-              <AlertCircle size={16} aria-hidden="true" className="shrink-0 text-rose-600 dark:text-rose-400" />
+              <AlertCircle size={15} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />
               <div className="text-xs">
-                <span className="font-semibold text-rose-950 dark:text-rose-100">Notice: </span>
-                <span>Session tracking is temporarily offline. Assessments continue locally and will sync automatically.</span>
+                <span className="font-semibold text-[var(--text-primary)]">Notice: </span>
+                <span>Cloud session tracking is unavailable. Assessments continue locally in offline mode.</span>
               </div>
             </div>
             <button 
@@ -337,9 +298,9 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               onClick={() => retryAuth()}
               disabled={isConnecting}
               aria-label="Retry connection"
-              className="px-2.5 py-1 rounded bg-rose-200 hover:bg-rose-300 active:bg-rose-400 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:active:bg-rose-500/40 text-rose-950 dark:text-rose-200 text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 dark:focus-visible:ring-rose-400"
+              className="px-2.5 py-1 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] text-[var(--text-primary)] text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
-              <RefreshCw size={12} aria-hidden="true" className={isConnecting ? "animate-spin" : ""} />
+              <RefreshCw size={11} aria-hidden="true" className={isConnecting ? "animate-spin motion-reduce:animate-none" : ""} />
               <span>{isConnecting ? "Retrying..." : "Retry"}</span>
             </button>
           </motion.div>

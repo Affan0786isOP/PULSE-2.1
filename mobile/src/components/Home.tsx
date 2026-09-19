@@ -87,11 +87,9 @@ const MOBILE_NAV_CARDS: readonly MobileNavCard[] = [
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isConnecting, authError, retryAuth } = useAuth();
   const pwa = usePwaInstall();
-  const location = useLocation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   // Initialize synchronously from storage to prevent jarring post-mount pop-in
   const [isWelcomeOpen, setIsWelcomeOpen] = useState<boolean>(() => !isMobileWelcomeSeen());
-  const [isNavigating, setIsNavigating] = useState(false);
   const [fullscreenNotice, setFullscreenNotice] = useState<string | null>(null);
   const fullscreenNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -122,25 +120,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       }
     };
   }, []);
-
-  useEffect(() => {
-    setIsNavigating(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    if (!isNavigating) return;
-    const timer = setTimeout(() => {
-      setIsNavigating(false);
-    }, 2500);
-    const handleFocus = () => {
-      setIsNavigating(false);
-    };
-    window.addEventListener('focus', handleFocus);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [isNavigating]);
 
   const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
   const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
@@ -460,24 +439,17 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           className="w-full flex flex-col gap-2.5 shrink-0 mb-2 sm:mb-3"
         >
           {/* Primary Action: START ASSESSMENT */}
-          <motion.button 
-            type="button" 
+          <Link
+            to="/assessments"
             id="mobile-start-session-btn"
-            whileTap={{ scale: 0.98 }}
             onClick={() => {
               triggerHaptic('tap');
-              setIsNavigating(true);
-              onNavigate('assessments');
             }}
-            className="w-full rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white dark:text-slate-950 font-semibold py-3.5 px-4 flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            className="w-full rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold py-3.5 px-4 flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] duration-150 motion-reduce:transition-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <span className="text-sm font-semibold">Start assessments</span>
-            {isNavigating ? (
-              <RefreshCw className="w-4 h-4 animate-spin text-white dark:text-slate-950" aria-hidden="true" />
-            ) : (
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            )}
-          </motion.button>
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
 
           {/* Menu Grid - 2x2 with clear touch targets */}
           <div className="grid grid-cols-2 gap-2 w-full">
@@ -490,7 +462,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                   id={card.id}
                   onClick={() => triggerHaptic('tap')}
                   aria-label={card.ariaLabel}
-                  className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.98] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-lg p-2.5 sm:p-3 flex items-center gap-2.5 text-left transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.98] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-lg p-2.5 sm:p-3 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] duration-150 motion-reduce:transition-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
                   <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
                     <Icon className="w-3.5 h-3.5" aria-hidden="true" />
@@ -549,20 +521,18 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <AnimatePresence>
         {authError && (
           <motion.div 
-            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.98 }}
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            role="alert"
-            aria-live="polite"
             style={{ bottom: 'max(1.25rem, calc(env(safe-area-inset-bottom, 0px) + 1.25rem))' }}
-            className="fixed left-4 right-4 z-40 max-w-sm mx-auto p-2.5 rounded-lg bg-rose-50 dark:bg-[var(--surface-1)]/95 backdrop-blur-md border border-rose-300 dark:border-rose-500/40 shadow-2xl text-rose-900 dark:text-rose-200 flex items-center justify-between gap-2 text-left"
+            className="fixed left-4 right-4 z-40 max-w-sm mx-auto p-2.5 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-default)] shadow-xl text-[var(--text-secondary)] flex items-center justify-between gap-2 text-left"
           >
-            <div className="flex items-center gap-2">
-              <AlertCircle size={14} aria-hidden="true" className="shrink-0 text-rose-600 dark:text-rose-400" />
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertCircle size={14} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />
               <div className="text-[10px] leading-tight">
-                <span className="font-semibold text-rose-950 dark:text-rose-100">Notice: </span>
-                <span>{authError}</span>
+                <span className="font-semibold text-[var(--text-primary)]">Notice: </span>
+                <span>Cloud session tracking is unavailable. Assessments continue locally in offline mode.</span>
               </div>
             </div>
             <button 
@@ -570,9 +540,9 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               onClick={() => { triggerHaptic('tap'); retryAuth(); }}
               disabled={isConnecting}
               aria-label="Retry connection"
-              className="px-2 py-1 rounded bg-rose-200 hover:bg-rose-300 active:bg-rose-400 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 text-rose-950 dark:text-rose-200 text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 dark:focus-visible:ring-rose-400"
+              className="px-2 py-1 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] text-[var(--text-primary)] text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
-              <RefreshCw size={10} aria-hidden="true" className={isConnecting ? "animate-spin" : ""} />
+              <RefreshCw size={10} aria-hidden="true" className={isConnecting ? "animate-spin motion-reduce:animate-none" : ""} />
               <span>{isConnecting ? "Retrying..." : "Retry"}</span>
             </button>
           </motion.div>
