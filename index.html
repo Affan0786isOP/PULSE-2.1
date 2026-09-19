@@ -115,14 +115,31 @@
               var cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
               var targetPath = (cleanPath === '/' ? '/mobile/' : ('/mobile' + cleanPath)) + search + (window.location.hash || '');
               
-              var loopGuardRaw = sessionStorage.getItem('pulse_redirect_loop_guard');
-              var loopData = loopGuardRaw ? JSON.parse(loopGuardRaw) : null;
+              var loopGuardRaw = null;
+              try {
+                loopGuardRaw = sessionStorage.getItem('pulse_redirect_loop_guard');
+              } catch(e) {}
+
+              var loopData = null;
+              if (loopGuardRaw) {
+                try {
+                  var parsed = JSON.parse(loopGuardRaw);
+                  if (parsed && typeof parsed === 'object' && typeof parsed.path === 'string' && typeof parsed.timestamp === 'number' && typeof parsed.count === 'number') {
+                    loopData = parsed;
+                  }
+                } catch(e) {
+                  loopData = null;
+                }
+              }
+
               var now = Date.now();
               if (loopData && loopData.path === targetPath && (now - loopData.timestamp) < 10000 && loopData.count > 2) {
                 // Redirect loop protection
               } else {
                 var count = (loopData && loopData.path === targetPath && (now - loopData.timestamp) < 10000) ? (loopData.count + 1) : 1;
-                sessionStorage.setItem('pulse_redirect_loop_guard', JSON.stringify({ path: targetPath, count: count, timestamp: now }));
+                try {
+                  sessionStorage.setItem('pulse_redirect_loop_guard', JSON.stringify({ path: targetPath, count: count, timestamp: now }));
+                } catch(e) {}
                 window.location.replace(targetPath);
                 return;
               }

@@ -1,8 +1,9 @@
-const CACHE_NAME = 'pulse-pwa-v2';
+const CACHE_NAME = 'pulse-pwa-v3';
 
 // Essential core application shell required for offline presentation
 const CORE_SHELL_ASSETS = [
   '/',
+  '/mobile/',
   '/manifest.webmanifest',
   '/favicon.svg'
 ];
