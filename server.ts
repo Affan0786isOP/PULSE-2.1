@@ -375,6 +375,12 @@ function parseCookies(cookieHeader: string | undefined): Record<string, string> 
   return cookies;
 }
 
+function isTruthyRoutingFlag(val: unknown): boolean {
+  if (!val) return false;
+  const v = String(val).toLowerCase().trim();
+  return v === '1' || v === 'true' || v === 'yes';
+}
+
 // Constants & Limits
 const MAX_TRIALS_PER_SESSION = 100;
 const MAX_IDEMPOTENCY_KEY_LENGTH = 128;
@@ -3400,29 +3406,34 @@ async function startServer() {
       return next();
     }
 
-    const isForceMobile = url.includes('force_mobile=1') || url.includes('mobile=1');
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const hasForceMobileParam = isTruthyRoutingFlag(queryParams.get('force_mobile')) || isTruthyRoutingFlag(queryParams.get('mobile'));
+    const hasForceDesktopParam = isTruthyRoutingFlag(queryParams.get('force_desktop')) || isTruthyRoutingFlag(queryParams.get('desktop'));
 
-    if (isForceMobile) {
-      res.setHeader('Set-Cookie', 'pulse_force_desktop=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
+    const cookies = parseCookies(req.headers.cookie);
+    const cookieDesktop = isTruthyRoutingFlag(cookies['pulse_force_desktop']);
+    const cookieMobile = isTruthyRoutingFlag(cookies['pulse_force_mobile']);
+
+    if (hasForceMobileParam) {
+      res.setHeader('Set-Cookie', [
+        'pulse_force_desktop=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+        'pulse_force_mobile=true; Path=/; Max-Age=86400; SameSite=Lax'
+      ]);
+    } else if (hasForceDesktopParam) {
+      res.setHeader('Set-Cookie', [
+        'pulse_force_mobile=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+        'pulse_force_desktop=true; Path=/; Max-Age=86400; SameSite=Lax'
+      ]);
     }
 
-    // Check for explicit override to view desktop version
-    const cookies = parseCookies(req.headers.cookie);
-    const hasForceDesktop =
-      !isForceMobile &&
-      (url.includes('force_desktop=1') ||
-       url.includes('desktop=1') ||
-       cookies['pulse_force_desktop'] === 'true' ||
-       cookies['pulse_force_desktop'] === '1');
+    const isExplicitForceMobile = hasForceMobileParam || (!hasForceDesktopParam && cookieMobile);
+    const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || cookieDesktop);
 
-    if (hasForceDesktop) {
-      if (url.includes('force_desktop=1') || url.includes('desktop=1')) {
-        res.setHeader('Set-Cookie', 'pulse_force_desktop=true; Path=/; Max-Age=86400');
-      }
+    if (isExplicitForceDesktop) {
       return next();
     }
 
-    if (isForceMobile || isMobileUserAgent(req)) {
+    if (isExplicitForceMobile || isMobileUserAgent(req)) {
       const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') 
         ? '/' 
         : pathname;

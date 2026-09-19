@@ -55,10 +55,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const promise = (async () => {
       if (!isConfigured || !auth) {
         if (isMountedRef.current && authGenerationRef.current === generation) {
-          if (isManualRetry) {
-            setAuthError("Cloud session tracking is unavailable. Assessments continue locally.");
-            setAuthErrorCategory('configuration');
-          }
+          setAuthError("Cloud session service is currently unavailable. Assessments continue locally.");
+          setAuthErrorCategory('configuration');
           setIsAuthenticated(false);
           setUser(null);
           setIsConnecting(false);
@@ -165,7 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     isMountedRef.current = true;
     if (!auth) {
-      setIsReady(true);
+      initializeAuth();
       return () => {
         isMountedRef.current = false;
         clearRetryTimer();
@@ -184,10 +182,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    setIsReady(true);
+    // Initiate non-blocking auth bootstrap
+    initializeAuth(0, false);
 
     const handleOnline = () => {
-      if (!auth?.currentUser && isMountedRef.current && isConnecting) {
+      if (auth && !auth.currentUser && isMountedRef.current) {
         initializeAuth(0, false);
       }
     };
@@ -199,7 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsubscribe();
       window.removeEventListener('online', handleOnline);
     };
-  }, [initializeAuth, isConnecting]);
+  }, [initializeAuth]);
 
   return (
     <AuthContext.Provider value={{ 

@@ -109,7 +109,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <Navbar currentView="home" onNavigate={onNavigate} />
 
       {/* Main Hero Section */}
-      <main id="main-content" tabIndex={-1} className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 z-10 flex-1 flex flex-col justify-center py-8 lg:py-16 focus:outline-none">
+      <main id="main-content" tabIndex={-1} className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 z-10 flex-1 flex flex-col justify-center py-8 lg:py-16 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--surface-0)] rounded-lg">
         
         <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] items-center gap-10 lg:gap-14 my-auto">
           
@@ -232,7 +232,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <AlertCircle size={15} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />
               <div className="text-xs">
                 <span className="font-semibold text-[var(--text-primary)]">Notice: </span>
-                <span>Cloud session tracking is unavailable. Assessments continue locally in offline mode.</span>
+                <span>{authError}</span>
               </div>
             </div>
             <button 

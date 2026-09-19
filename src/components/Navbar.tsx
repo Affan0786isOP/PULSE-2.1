@@ -181,7 +181,6 @@ export function Navbar({
           items={navItems.map(item => ({ label: item.label, to: item.to }))}
           value={activeIndex >= 0 ? activeIndex : -1}
           onChange={(index) => onNavigate(navItems[index].id)}
-          size="sm"
           activeColor="var(--accent)"
         />
       </div>
@@ -279,6 +278,7 @@ export function Navbar({
                   title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings"}
                   onClick={() => { 
                     if (!isAssessmentActive) {
+                      mobileMenuTriggerRef.current?.focus();
                       setIsMobileMenuOpen(false); 
                       setIsSettingsOpen(true); 
                     }
@@ -293,7 +293,11 @@ export function Navbar({
                 <button type="button"
                   id="mobile-menu-info-btn"
                   aria-label="Info"
-                  onClick={() => { setIsMobileMenuOpen(false); setIsWelcomeOpen(true); }}
+                  onClick={() => {
+                    mobileMenuTriggerRef.current?.focus();
+                    setIsMobileMenuOpen(false); 
+                    setIsWelcomeOpen(true); 
+                  }}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
                   <Info size={14} aria-hidden="true" />

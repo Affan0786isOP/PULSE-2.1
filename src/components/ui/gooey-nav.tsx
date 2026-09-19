@@ -10,9 +10,7 @@ interface GooeyNavProps {
   items: (string | GooeyNavItem)[];
   value: number;
   onChange: (index: number) => void;
-  size?: 'sm' | 'md' | 'lg';
   activeColor?: string;
-  activeLabelColor?: string;
   className?: string;
 }
 
