@@ -29,10 +29,6 @@ export function isTruthyRoutingFlag(val: string | null | undefined): boolean {
 
 export function detectIsMobileDevice(uaString?: string): boolean {
   if (typeof window === 'undefined' && !uaString) return false;
-  const ua = uaString || (typeof navigator !== 'undefined' ? navigator.userAgent : '') || '';
-  
-  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone|SamsungBrowser|MiuiBrowser|UCBrowser/i.test(ua);
-  if (isMobileUA) return true;
 
   if (typeof window !== 'undefined') {
     let inIframe = false;
@@ -42,7 +38,13 @@ export function detectIsMobileDevice(uaString?: string): boolean {
       inIframe = true;
     }
     if (inIframe) return false;
+  }
 
+  const ua = uaString || (typeof navigator !== 'undefined' ? navigator.userAgent : '') || '';
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone|SamsungBrowser|MiuiBrowser|UCBrowser/i.test(ua);
+  if (isMobileUA) return true;
+
+  if (typeof window !== 'undefined') {
     const maxTouchPoints = typeof navigator !== 'undefined' ? (navigator.maxTouchPoints || 0) : 0;
     const hasTouch = ('ontouchstart' in window) || maxTouchPoints > 0;
     const screenW = window.screen ? Math.min(window.screen.width, window.screen.height) : 0;
@@ -179,6 +181,11 @@ export function resolveDeviceRedirect(
   hash: string = ''
 ): { shouldRedirect: boolean; targetUrl?: string } {
   if (typeof window === 'undefined') {
+    return { shouldRedirect: false };
+  }
+
+  const isAdmin = pathname.indexOf('/admin') === 0;
+  if (isAdmin) {
     return { shouldRedirect: false };
   }
 

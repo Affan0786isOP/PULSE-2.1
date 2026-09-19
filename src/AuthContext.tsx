@@ -54,11 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const promise = (async () => {
       if (!isConfigured || !auth) {
-        const msg = "Cloud session tracking is unavailable. Assessments continue locally.";
-        console.warn(msg);
         if (isMountedRef.current && authGenerationRef.current === generation) {
-          setAuthError(msg);
-          setAuthErrorCategory('configuration');
+          if (isManualRetry) {
+            setAuthError("Cloud session tracking is unavailable. Assessments continue locally.");
+            setAuthErrorCategory('configuration');
+          }
           setIsAuthenticated(false);
           setUser(null);
           setIsConnecting(false);
@@ -165,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     isMountedRef.current = true;
     if (!auth) {
-      initializeAuth();
+      setIsReady(true);
       return () => {
         isMountedRef.current = false;
         clearRetryTimer();
@@ -176,52 +176,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!isMountedRef.current) return;
       setUser(currentUser);
       setIsAuthenticated(Boolean(currentUser));
+      setIsReady(true);
       if (currentUser) {
         setAuthError(null);
         setAuthErrorCategory(null);
         setIsConnecting(false);
-        setIsReady(true);
       }
     });
 
-    // Schedule non-blocking auth initialization during idle time on startup
-    let idleId: number | null = null;
-    let timerId: ReturnType<typeof setTimeout> | null = null;
-
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      idleId = (window as any).requestIdleCallback(() => {
-        if (isMountedRef.current) {
-          initializeAuth();
-        }
-      }, { timeout: 1500 });
-    } else {
-      timerId = setTimeout(() => {
-        if (isMountedRef.current) {
-          initializeAuth();
-        }
-      }, 150);
-    }
+    setIsReady(true);
 
     const handleOnline = () => {
-      if (!auth?.currentUser && isMountedRef.current) {
-        initializeAuth();
+      if (!auth?.currentUser && isMountedRef.current && isConnecting) {
+        initializeAuth(0, false);
       }
     };
     window.addEventListener('online', handleOnline);
 
     return () => {
       isMountedRef.current = false;
-      if (idleId !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
-        (window as any).cancelIdleCallback(idleId);
-      }
-      if (timerId !== null) {
-        clearTimeout(timerId);
-      }
       clearRetryTimer();
       unsubscribe();
       window.removeEventListener('online', handleOnline);
     };
-  }, [initializeAuth]);
+  }, [initializeAuth, isConnecting]);
 
   return (
     <AuthContext.Provider value={{ 

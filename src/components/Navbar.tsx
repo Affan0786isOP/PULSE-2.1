@@ -105,12 +105,12 @@ export function Navbar({
   }, [isMobileMenuOpen]);
 
   const navItems = [
-    { id: 'home', label: 'Home' },
-    { id: 'assessments', label: 'Assessments' },
-    { id: 'leaderboard', label: 'Leaderboard' },
-    { id: 'dataset', label: 'Dataset' },
-    { id: 'improve', label: 'Improve' },
-    { id: 'privacy', label: 'Privacy' }
+    { id: 'home', label: 'Home', to: '/' },
+    { id: 'assessments', label: 'Assessments', to: '/assessments' },
+    { id: 'leaderboard', label: 'Leaderboard', to: '/leaderboard' },
+    { id: 'dataset', label: 'Dataset', to: '/dataset' },
+    { id: 'improve', label: 'Improve', to: '/improve' },
+    { id: 'privacy', label: 'Privacy', to: '/privacy' }
   ];
 
   const activeId = resolveActiveNavId(currentView, location.pathname);
@@ -151,11 +151,6 @@ export function Navbar({
         
         <Link 
           to="/"
-          onClick={(e) => {
-            if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
-              onNavigate('home');
-            }
-          }}
           aria-label="PULSE Home"
           aria-current={isHome ? 'page' : undefined}
           className="flex items-center gap-2.5 group cursor-pointer active:scale-[0.98] transition-transform rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
@@ -183,7 +178,7 @@ export function Navbar({
       {/* Central Desktop Navigation - lg:flex avoids collisions on tablet/small-desktop viewports */}
       <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center h-full">
         <GooeyNav
-          items={navItems.map(item => item.label)}
+          items={navItems.map(item => ({ label: item.label, to: item.to }))}
           value={activeIndex >= 0 ? activeIndex : -1}
           onChange={(index) => onNavigate(navItems[index].id)}
           size="sm"
@@ -242,9 +237,9 @@ export function Navbar({
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            {/* Backdrop click dismiss */}
+            {/* Backdrop click dismiss seamlessly covering behind safe-area */}
             <div 
-              className="fixed inset-0 top-[3.75rem] bg-black/50 backdrop-blur-xs z-40 lg:hidden"
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
             <motion.div 
@@ -259,11 +254,11 @@ export function Navbar({
               className="absolute top-full left-0 w-full bg-[var(--surface-1)] border-b border-[var(--border-subtle)] flex flex-col p-4 gap-1 lg:hidden z-50 origin-top shadow-xl"
             >
               {navItems.map(item => (
-                <button type="button"
+                <Link
                   key={`mobile-nav-${item.id}`}
+                  to={item.to}
                   aria-current={activeId === item.id ? 'page' : undefined}
                   onClick={() => {
-                    onNavigate(item.id);
                     setIsMobileMenuOpen(false);
                   }}
                   className={`p-2.5 rounded-md flex items-center text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
@@ -273,7 +268,7 @@ export function Navbar({
                   }`}
                 >
                   {item.label}
-                </button>
+                </Link>
               ))}
               <div className="pt-3 border-t border-[var(--border-subtle)] mt-2 flex items-center justify-between gap-2">
                 <button type="button"

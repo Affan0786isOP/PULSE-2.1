@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Zap, Database, ArrowRight, Monitor, Trophy, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { Zap, Database, ArrowRight, Trophy, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'motion/react';
 import { Navbar } from './Navbar';
 import { useAuth } from '../AuthContext';
-import { useRefreshRate } from '../lib/useRefreshRate';
 import { SEO } from './SEO';
+import { APP_VERSION } from '../lib/version';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -83,7 +83,6 @@ const fadeItemVariants: Variants = {
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isConnecting, authError, retryAuth } = useAuth();
-  const refreshInfo = useRefreshRate();
 
   React.useEffect(() => {
     if (authError) {
@@ -93,6 +92,14 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
   return (
     <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans selection:bg-cyan-500/30 overflow-x-hidden relative flex flex-col justify-between">
+      {/* Accessibility: Skip to main content link */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--accent)] focus:text-white dark:focus:text-slate-950 focus:font-semibold focus:text-xs focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+      >
+        Skip to main content
+      </a>
+
       <SEO 
         title="PULSE — Precision User Latency & Stimulus Evaluator"
         description="An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
@@ -102,7 +109,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <Navbar currentView="home" onNavigate={onNavigate} />
 
       {/* Main Hero Section */}
-      <main className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 z-10 flex-1 flex flex-col justify-center py-8 lg:py-16">
+      <main id="main-content" tabIndex={-1} className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 z-10 flex-1 flex flex-col justify-center py-8 lg:py-16 focus:outline-none">
         
         <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] items-center gap-10 lg:gap-14 my-auto">
           
@@ -113,77 +120,10 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             animate="visible"
             className="w-full flex flex-col items-center lg:items-start text-center lg:text-left"
           >
-            {/* Top Tag & Scientific Telemetry Badge */}
+            {/* Top Tag */}
             <motion.div variants={fadeItemVariants} className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-5">
               <div className="inline-flex items-center gap-2 px-3 h-7 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-medium">
                 <span>Cognitive reaction &amp; memory assessments</span>
-              </div>
-
-              {/* Technical Telemetry Badge: Live cadence readout with stable footprint */}
-              <div 
-                className="inline-flex items-center gap-2 px-3 h-7 max-w-full rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-mono shrink-0 select-none overflow-hidden"
-                aria-label={
-                  refreshInfo.status === 'detecting'
-                    ? "Estimating display frame cadence"
-                    : refreshInfo.status === 'error'
-                    ? "Frame cadence estimation error, using 60 Hz baseline model"
-                    : refreshInfo.source === 'measured'
-                    ? `${refreshInfo.hz} Hz browser frame cadence estimate with ${refreshInfo.displayDelayOffsetMs} ms theoretical model offset`
-                    : refreshInfo.source === 'estimated'
-                    ? `Approximately ${refreshInfo.hz} Hz calculated cadence with ${refreshInfo.displayDelayOffsetMs} ms theoretical model offset`
-                    : '60 Hz baseline assumption with 8.33 ms theoretical model offset'
-                }
-                title={
-                  refreshInfo.status === 'detecting'
-                    ? 'Estimating browser frame cadence and midpoint model offset…'
-                    : refreshInfo.status === 'error'
-                    ? 'Cadence detection error — using 60 Hz baseline model (~8.33 ms offset)'
-                    : `Browser frame cadence estimate (~${refreshInfo.hz} Hz, model offset: ~${refreshInfo.displayDelayOffsetMs} ms). Theoretical rasterization midpoint estimate, not a hardware sensor or photodiode measurement.`
-                }
-              >
-                <span className="flex items-center gap-1.5 shrink-0">
-                  <Monitor 
-                    size={12} 
-                    aria-hidden="true"
-                    className={
-                      refreshInfo.status === 'detecting' 
-                        ? "text-[var(--accent)] animate-pulse motion-reduce:animate-none" 
-                        : refreshInfo.status === 'error'
-                        ? "text-rose-400"
-                        : refreshInfo.source === 'measured' 
-                        ? "text-[var(--accent)]" 
-                        : refreshInfo.source === 'estimated' 
-                        ? "text-amber-400" 
-                        : "text-[var(--text-secondary)]"
-                    } 
-                  />
-                  <span 
-                    aria-hidden="true"
-                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                      refreshInfo.status === 'detecting'
-                        ? 'bg-[var(--accent)] animate-ping motion-reduce:animate-none'
-                        : refreshInfo.status === 'error'
-                        ? 'bg-rose-400'
-                        : refreshInfo.source === 'measured'
-                        ? 'bg-[var(--accent)]'
-                        : refreshInfo.source === 'estimated'
-                        ? 'bg-amber-400'
-                        : 'bg-[var(--text-muted)]'
-                    }`} 
-                  />
-                </span>
-                <span className="truncate">
-                  {refreshInfo.status === 'detecting'
-                    ? 'Estimating frame cadence…'
-                    : refreshInfo.status === 'error'
-                    ? '60 Hz · fallback model'
-                    : refreshInfo.source === 'measured'
-                    ? `${refreshInfo.hz} Hz · ~${refreshInfo.displayDelayOffsetMs} ms model offset`
-                    : refreshInfo.source === 'estimated'
-                    ? `~${refreshInfo.hz} Hz · ~${refreshInfo.displayDelayOffsetMs} ms model offset`
-                    : '60 Hz · ~8.33 ms model offset'
-                  }
-                </span>
               </div>
             </motion.div>
 
@@ -255,7 +195,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         style={{ paddingBottom: 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))' }}
       >
         <div className="flex items-center gap-2">
-          <span>PULSE v2.1</span>
+          <span>PULSE v{APP_VERSION}</span>
           <span aria-hidden="true">•</span>
           <span>Open Cognitive Benchmark</span>
         </div>
@@ -279,6 +219,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <AnimatePresence>
         {authError && (
           <motion.div 
+            role="status"
+            aria-live="polite"
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}

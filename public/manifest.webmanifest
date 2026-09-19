@@ -7,8 +7,8 @@
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "any",
-  "background_color": "#030508",
-  "theme_color": "#030508",
+  "background_color": "#0B0D10",
+  "theme_color": "#0B0D10",
   "categories": ["utilities", "health", "games", "productivity"],
   "icons": [
     {
