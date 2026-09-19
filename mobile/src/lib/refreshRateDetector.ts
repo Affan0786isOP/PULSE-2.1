@@ -1,12 +1,12 @@
 /**
  * Refresh Rate and Display Frame Timing Estimator
  *
- * NOTE ON MEASUREMENT METHODOLOGY:
- * - Browser frame timing via requestAnimationFrame provides high-resolution monotonic timestamps.
+ * NOTE ON ESTIMATION METHODOLOGY:
+ * - Browser frame cadence via requestAnimationFrame provides high-resolution monotonic timestamps.
  * - displayDelayOffsetMs is a theoretical frame-interval midpoint approximation (frameTimeMs / 2)
- *   derived from the detected display refresh rate. It represents expected average rasterization
- *   lag from frame dispatch to mid-scanout.
- * - It is a calibrated model approximation, not a direct photodiode hardware sensor measurement.
+ *   derived from the detected display frame cadence. It represents expected average rasterization
+ *   latency from frame dispatch to mid-scanout.
+ * - It is a model-derived estimate, not a direct photodiode hardware sensor measurement.
  */
 
 export interface RefreshRateInfo {
@@ -21,21 +21,69 @@ export interface RefreshRateInfo {
 
 const CACHE_KEY = 'pulse_refresh_rate_cached';
 const REFRESH_EVENT = 'pulse_refresh_rate_changed';
+export const MAX_REFRESH_RATE_CACHE_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours
 
-let cachedInfo: RefreshRateInfo | null = (() => {
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem(CACHE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed.hz === 'number' && parsed.status === 'ready') {
-          return parsed as RefreshRateInfo;
-        }
-      }
-    } catch {}
+export function getDisplaySignature(): string {
+  if (typeof window === 'undefined' || !window.screen) return '';
+  const s = window.screen;
+  const dpr = window.devicePixelRatio || 1;
+  return `${s.width}x${s.height}@${dpr}:${s.availWidth}x${s.availHeight}`;
+}
+
+interface StoredRefreshData {
+  info: RefreshRateInfo;
+  timestamp: number;
+  displaySignature: string;
+}
+
+function readValidCachedInfo(): RefreshRateInfo | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredRefreshData> & Partial<RefreshRateInfo>;
+
+    let info: RefreshRateInfo | null = null;
+    let timestamp = 0;
+    let displaySignature = '';
+
+    if (parsed && 'info' in parsed && parsed.info && typeof parsed.info.hz === 'number') {
+      info = parsed.info;
+      timestamp = typeof parsed.timestamp === 'number' ? parsed.timestamp : 0;
+      displaySignature = typeof parsed.displaySignature === 'string' ? parsed.displaySignature : '';
+    } else if (parsed && typeof parsed.hz === 'number' && parsed.status === 'ready') {
+      info = parsed as RefreshRateInfo;
+      timestamp = 0;
+      displaySignature = '';
+    }
+
+    if (!info || info.status !== 'ready' || typeof info.hz !== 'number' || info.source === 'fallback') {
+      return null;
+    }
+
+    // Validate age
+    const now = Date.now();
+    if (timestamp > 0 && (now - timestamp > MAX_REFRESH_RATE_CACHE_AGE_MS || timestamp > now)) {
+      return null;
+    }
+
+    // Validate display signature to catch multi-monitor and display resolution changes
+    const currentSig = getDisplaySignature();
+    if (displaySignature && currentSig && displaySignature !== currentSig) {
+      return null;
+    }
+
+    return info;
+  } catch {
+    return null;
   }
-  return null;
-})();
+}
+
+export function isRefreshRateCacheValid(): boolean {
+  return readValidCachedInfo() !== null;
+}
+
+let cachedInfo: RefreshRateInfo | null = readValidCachedInfo();
 
 interface ActiveDetectionOperation {
   generation: number;
@@ -54,7 +102,12 @@ function broadcastRefreshRate(info: RefreshRateInfo): void {
   if (typeof window !== 'undefined') {
     if (info.status === 'ready' && info.source !== 'fallback') {
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(info));
+        const payload: StoredRefreshData = {
+          info,
+          timestamp: Date.now(),
+          displaySignature: getDisplaySignature()
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
       } catch {}
     } else if (info.source === 'fallback' || info.status !== 'ready') {
       try {
@@ -109,7 +162,7 @@ export function cancelRefreshRateDetection(): void {
       isEstimated: true,
       source: 'fallback' as const,
       status: 'error' as const,
-      error: 'Calibration cancelled'
+      error: 'Frame estimation cancelled'
     };
     settleActiveOperation(genToCancel, fallback);
   } else {
@@ -199,10 +252,15 @@ export function snapToRefreshRate(
 export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
   if (force) {
     cancelRefreshRateDetection();
-  } else if (cachedInfo && cachedInfo.status === 'ready' && cachedInfo.source !== 'fallback') {
-    return Promise.resolve(cachedInfo);
-  } else if (detectionPromise) {
-    return detectionPromise;
+  } else {
+    const valid = readValidCachedInfo();
+    if (valid) {
+      cachedInfo = valid;
+      return Promise.resolve(valid);
+    }
+    if (detectionPromise) {
+      return detectionPromise;
+    }
   }
 
   const generation = ++currentGeneration;
@@ -237,7 +295,7 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
         isEstimated: true,
         source: 'fallback',
         status: 'error',
-        error: 'Calibration timed out'
+        error: 'Frame detection timed out'
       };
       broadcastRefreshRate(fallbackInfo);
       settleActiveOperation(generation, fallbackInfo);
@@ -296,6 +354,11 @@ export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
 }
 
 export function getCachedRefreshRate(): RefreshRateInfo {
+  const valid = readValidCachedInfo();
+  if (valid) {
+    cachedInfo = valid;
+    return valid;
+  }
   return (
     cachedInfo || {
       hz: 60,
@@ -308,12 +371,12 @@ export function getCachedRefreshRate(): RefreshRateInfo {
   );
 }
 
-// Invalidate calibration if display characteristics materially change without a valid cache
+// Invalidate and re-estimate if display characteristics materially change
 if (typeof window !== 'undefined') {
   const handleDisplayChange = () => {
-    // Do not repeatedly run calibration when a valid cached result already exists
-    if (!cachedInfo || cachedInfo.status !== 'ready' || cachedInfo.source === 'fallback') {
-      detectRefreshRate(false).catch(() => {});
+    const valid = readValidCachedInfo();
+    if (!valid) {
+      detectRefreshRate(true).catch(() => {});
     }
   };
 

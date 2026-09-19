@@ -322,7 +322,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     System Configuration
                   </h2>
                   <p className="text-[10px] text-[var(--text-muted)] font-mono">
-                    Preferences &amp; Timing Hardware
+                    Preferences &amp; Display Timing
                   </p>
                 </div>
               </div>
@@ -645,9 +645,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           {isRecalibrating || refreshInfo.status === 'detecting'
                             ? 'Measuring frames…'
                             : refreshInfo.source === 'measured'
-                            ? 'Hardware calibrated'
+                            ? 'Measured cadence'
                             : refreshInfo.source === 'estimated'
-                            ? 'Calculated rate'
+                            ? 'Calculated cadence'
                             : 'Fallback default'}
                         </div>
                       </div>

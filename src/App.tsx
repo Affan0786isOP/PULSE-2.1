@@ -43,6 +43,37 @@ function RedirectToMobile() {
 
 // Code-split routes for optimal Home startup performance
 const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
+
+const DeferredAnalytics = React.memo(function DeferredAnalytics() {
+  const [shouldLoad, setShouldLoad] = React.useState(false);
+
+  React.useEffect(() => {
+    let idleId: number | null = null;
+    let timerId: ReturnType<typeof setTimeout> | null = null;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = (window as any).requestIdleCallback(() => {
+        setShouldLoad(true);
+      }, { timeout: 2000 });
+    } else {
+      timerId = setTimeout(() => {
+        setShouldLoad(true);
+      }, 500);
+    }
+
+    return () => {
+      if (idleId !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (timerId !== null) {
+        clearTimeout(timerId);
+      }
+    };
+  }, []);
+
+  if (!shouldLoad) return null;
+  return <VercelAnalytics />;
+});
 const Leaderboard = React.lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
 const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
 const ReactionTest = React.lazy(() => import('./components/ReactionTest').then(m => ({ default: m.ReactionTest })));
@@ -133,12 +164,12 @@ function App() {
   };
 
   return (
-    <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'never'}>
+    <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'user'}>
       <AuthProvider>
         <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans overflow-x-hidden selection:bg-cyan-500/30">
           {/* Global Consistent Animated Canvas Background */}
           <AnimatedBackground />
-          <VercelAnalytics />
+          <DeferredAnalytics />
 
           {/* App Content */}
           <div className="relative z-10 min-h-[100dvh] flex flex-col">

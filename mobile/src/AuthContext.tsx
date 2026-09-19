@@ -2,11 +2,14 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { signInAnonymously, onAuthStateChanged, User, setPersistence, inMemoryPersistence } from 'firebase/auth';
 import { auth, isConfigured, authInitPromise } from './lib/firebase';
 
+export type AuthErrorCategory = 'network' | 'configuration' | 'unknown';
+
 export type AuthContextType = {
   isReady: boolean;
   isConnecting: boolean;
   isAuthenticated: boolean;
   authError: string | null;
+  authErrorCategory?: AuthErrorCategory | null;
   user: User | null;
   retryAuth: () => Promise<void>;
 };
@@ -18,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authErrorCategory, setAuthErrorCategory] = useState<AuthErrorCategory | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,14 +49,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isMountedRef.current) {
       setIsConnecting(true);
       setAuthError(null);
+      setAuthErrorCategory(null);
     }
 
     const promise = (async () => {
       if (!isConfigured || !auth) {
-        const msg = "Firebase service is unavailable or unconfigured. Server connection required.";
+        const msg = "Cloud session tracking is unavailable. Assessments continue locally.";
         console.warn(msg);
         if (isMountedRef.current && authGenerationRef.current === generation) {
           setAuthError(msg);
+          setAuthErrorCategory('configuration');
           setIsAuthenticated(false);
           setUser(null);
           setIsConnecting(false);
@@ -85,14 +91,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(auth.currentUser);
           setIsAuthenticated(Boolean(auth.currentUser));
           setAuthError(null);
+          setAuthErrorCategory(null);
           setIsConnecting(false);
           setIsReady(true);
         }
       } catch (err: any) {
         if (authGenerationRef.current !== generation) return;
 
-        const isNetworkErr = err?.code === 'auth/network-request-failed' || String(err?.message || '').includes('network-request-failed');
-        const isDbClosing = String(err?.message || '').includes('Database is closing') || String(err?.message || '').includes('closing/hidden');
+        const isNetworkErr =
+          err?.code === 'auth/network-request-failed' ||
+          err?.code === 'auth/timeout' ||
+          String(err?.message || '').includes('network-request-failed') ||
+          String(err?.message || '').includes('Failed to fetch') ||
+          (typeof navigator !== 'undefined' && !navigator.onLine);
+
+        const isDbClosing =
+          String(err?.message || '').includes('Database is closing') ||
+          String(err?.message || '').includes('closing/hidden');
 
         if ((isNetworkErr || isDbClosing) && retryCount < 3 && isMountedRef.current) {
           if (isDbClosing && auth) {
@@ -112,10 +127,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const msg = err?.message || "Firebase authentication initialization failed.";
-        console.warn("Firebase auth initialization notice:", err);
+        let userFacingMsg = "Session tracking is temporarily offline. Assessments continue locally.";
+        let category: AuthErrorCategory = 'unknown';
+
+        if (isNetworkErr || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+          userFacingMsg = "Network connection is temporarily offline. Assessments continue locally.";
+          category = 'network';
+        } else if (
+          err?.code === 'auth/operation-not-allowed' ||
+          err?.code === 'auth/invalid-api-key' ||
+          err?.code === 'auth/project-not-found'
+        ) {
+          userFacingMsg = "Cloud session service is currently unavailable. Assessments continue locally.";
+          category = 'configuration';
+        }
+
+        console.warn("Firebase auth initialization notice:", err?.message || err);
         if (isMountedRef.current && authGenerationRef.current === generation) {
-          setAuthError(msg);
+          setAuthError(userFacingMsg);
+          setAuthErrorCategory(category);
           setIsAuthenticated(false);
           setUser(null);
           setIsConnecting(false);
@@ -148,12 +178,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAuthenticated(Boolean(currentUser));
       if (currentUser) {
         setAuthError(null);
+        setAuthErrorCategory(null);
         setIsConnecting(false);
         setIsReady(true);
       }
     });
 
-    initializeAuth();
+    // Schedule non-blocking auth initialization during idle time on startup
+    let idleId: number | null = null;
+    let timerId: ReturnType<typeof setTimeout> | null = null;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = (window as any).requestIdleCallback(() => {
+        if (isMountedRef.current) {
+          initializeAuth();
+        }
+      }, { timeout: 1500 });
+    } else {
+      timerId = setTimeout(() => {
+        if (isMountedRef.current) {
+          initializeAuth();
+        }
+      }, 150);
+    }
 
     const handleOnline = () => {
       if (!auth?.currentUser && isMountedRef.current) {
@@ -164,6 +211,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       isMountedRef.current = false;
+      if (idleId !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (timerId !== null) {
+        clearTimeout(timerId);
+      }
       clearRetryTimer();
       unsubscribe();
       window.removeEventListener('online', handleOnline);
@@ -176,6 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isConnecting, 
       isAuthenticated, 
       authError, 
+      authErrorCategory,
       user, 
       retryAuth: () => initializeAuth(0, true) 
     }}>

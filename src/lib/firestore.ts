@@ -44,6 +44,13 @@ export const ensureAuthenticatedUser = async (): Promise<boolean> => {
     await authInitPromise;
     if (auth.currentUser) return true;
 
+    try {
+      await signInAnonymously(auth);
+      if (auth.currentUser) return true;
+    } catch (_) {
+      // Listener below will catch state transition if in-flight
+    }
+
     return await new Promise<boolean>((resolve) => {
       let resolved = false;
       const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -57,7 +64,7 @@ export const ensureAuthenticatedUser = async (): Promise<boolean> => {
         if (!resolved) {
           resolved = true;
           unsubscribe();
-          resolve(Boolean(auth.currentUser));
+          resolve(Boolean(auth?.currentUser));
         }
       }, 5000);
     });

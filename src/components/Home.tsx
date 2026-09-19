@@ -92,6 +92,21 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   }, [location.pathname]);
 
   React.useEffect(() => {
+    if (!isNavigating) return;
+    const timer = setTimeout(() => {
+      setIsNavigating(false);
+    }, 2500);
+    const handleFocus = () => {
+      setIsNavigating(false);
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isNavigating]);
+
+  React.useEffect(() => {
     if (authError) {
       console.warn('[PULSE Auth Notice]:', authError);
     }
@@ -119,47 +134,76 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             animate="visible"
             className="w-full flex flex-col items-center lg:items-start text-center lg:text-left"
           >
-            {/* Top Tag Badge */}
+            {/* Top Tag & Scientific Telemetry Badge */}
             <motion.div variants={fadeItemVariants} className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-5">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-medium">
+              <div className="inline-flex items-center gap-2 px-3 h-7 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-medium">
                 <span>Cognitive reaction &amp; memory assessments</span>
               </div>
 
-              {/* Dimension-reserved refresh rate badge: prevents layout shift and maintains phone-friendly compact footprint */}
+              {/* Technical Telemetry Badge: Live cadence readout with stable footprint */}
               <div 
                 role="status"
                 aria-live="polite"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 h-[26px] w-[256px] max-w-full rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono shrink-0 select-none overflow-hidden"
+                className="inline-flex items-center gap-2 px-3 h-7 min-w-[220px] max-w-full rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-mono shrink-0 select-none overflow-hidden"
                 aria-label={
                   refreshInfo.status === 'detecting'
                     ? "Detecting display refresh rate"
-                    : `${refreshInfo.hz} Hz display refresh rate, ~${refreshInfo.displayDelayOffsetMs} ms estimated midpoint model`
+                    : refreshInfo.status === 'error'
+                    ? "Display refresh rate error, using 60 Hz fallback"
+                    : refreshInfo.source === 'measured'
+                    ? `${refreshInfo.hz} Hz measured display refresh rate`
+                    : refreshInfo.source === 'estimated'
+                    ? `${refreshInfo.hz} Hz estimated display refresh rate`
+                    : '60 Hz fallback display refresh rate'
                 }
                 title={
                   refreshInfo.status === 'detecting'
-                    ? 'Estimating display refresh rate and frame midpoint model…'
+                    ? 'Estimating display frame cadence and midpoint model…'
+                    : refreshInfo.status === 'error'
+                    ? 'Detection error — using 60 Hz baseline'
                     : refreshInfo.source === 'measured'
-                    ? `${refreshInfo.hz} Hz calibrated display · ~${refreshInfo.displayDelayOffsetMs} ms estimated midpoint model (derived from refresh interval; not a direct hardware measurement)`
+                    ? `${refreshInfo.hz} Hz measured frame cadence · ~${refreshInfo.displayDelayOffsetMs} ms estimated midpoint model`
                     : refreshInfo.source === 'estimated'
-                    ? `~${refreshInfo.hz} Hz calculated cadence · ~${refreshInfo.displayDelayOffsetMs} ms estimated midpoint model (derived from refresh interval)`
+                    ? `~${refreshInfo.hz} Hz calculated cadence · ~${refreshInfo.displayDelayOffsetMs} ms estimated midpoint model`
                     : '60 Hz default baseline assumption · ~8.33 ms estimated midpoint model'
                 }
               >
-                <Monitor 
-                  size={11} 
-                  className={
-                    refreshInfo.status === 'detecting' 
-                      ? "text-[var(--accent)] animate-pulse shrink-0" 
-                      : refreshInfo.source === 'measured' 
-                      ? "text-[var(--accent)] shrink-0" 
-                      : refreshInfo.source === 'estimated' 
-                      ? "text-amber-400 shrink-0" 
-                      : "text-[var(--text-muted)] shrink-0"
-                  } 
-                />
+                <span className="flex items-center gap-1.5 shrink-0">
+                  <Monitor 
+                    size={12} 
+                    aria-hidden="true"
+                    className={
+                      refreshInfo.status === 'detecting' 
+                        ? "text-[var(--accent)] animate-pulse" 
+                        : refreshInfo.status === 'error'
+                        ? "text-rose-400"
+                        : refreshInfo.source === 'measured' 
+                        ? "text-[var(--accent)]" 
+                        : refreshInfo.source === 'estimated' 
+                        ? "text-amber-400" 
+                        : "text-[var(--text-secondary)]"
+                    } 
+                  />
+                  <span 
+                    aria-hidden="true"
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      refreshInfo.status === 'detecting'
+                        ? 'bg-[var(--accent)] animate-ping'
+                        : refreshInfo.status === 'error'
+                        ? 'bg-rose-400'
+                        : refreshInfo.source === 'measured'
+                        ? 'bg-[var(--accent)]'
+                        : refreshInfo.source === 'estimated'
+                        ? 'bg-amber-400'
+                        : 'bg-[var(--text-muted)]'
+                    }`} 
+                  />
+                </span>
                 <span className="truncate">
                   {refreshInfo.status === 'detecting'
                     ? 'Detecting display cadence…'
+                    : refreshInfo.status === 'error'
+                    ? '60 Hz · fallback (error)'
                     : refreshInfo.source === 'measured'
                     ? `${refreshInfo.hz} Hz · ~${refreshInfo.displayDelayOffsetMs} ms est. midpoint`
                     : refreshInfo.source === 'estimated'
@@ -171,7 +215,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             </motion.div>
 
             {/* Main Headline */}
-            <motion.h1 variants={fadeItemVariants} className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.15] mb-5 text-[var(--text-primary)]">
+            <motion.h1 variants={fadeItemVariants} className="font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.03em] leading-[1.12] mb-5 text-[var(--text-primary)]">
               Measure your reaction time and cognitive performance.
             </motion.h1>
 
@@ -185,14 +229,19 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <Link 
                 to={ROUTES.ASSESSMENTS}
                 id="start-lab-btn"
-                onClick={() => setIsNavigating(true)}
-                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 font-medium text-sm px-6 py-3 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+                    return;
+                  }
+                  setIsNavigating(true);
+                }}
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold text-sm px-6 py-3.5 rounded-md inline-flex items-center justify-center gap-2.5 cursor-pointer transition-[background-color,transform,box-shadow] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
               >
                 <span>Start assessments</span>
                 {isNavigating ? (
-                  <RefreshCw size={14} className="animate-spin text-slate-950" />
+                  <RefreshCw size={14} aria-hidden="true" className="animate-spin text-white dark:text-slate-950" />
                 ) : (
-                  <ArrowRight size={16} />
+                  <ArrowRight size={16} aria-hidden="true" />
                 )}
               </Link>
             </motion.div>
@@ -212,22 +261,22 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                   <Link
                     to={card.to}
                     aria-label={card.ariaLabel}
-                    className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between transition-colors group"
+                    className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg p-3.5 sm:p-4 flex items-center justify-between transition-all duration-150 group"
                   >
                     <div className="flex items-center gap-3.5">
-                      <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shrink-0 transition-colors">
-                        <Icon size={18} />
+                      <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/30 flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent)] shrink-0 transition-colors">
+                        <Icon size={18} aria-hidden="true" />
                       </div>
                       <div>
-                        <div className="font-medium text-sm text-[var(--text-primary)]">
+                        <div className="font-semibold text-sm text-[var(--text-primary)] leading-snug">
                           {card.label}
                         </div>
-                        <div className="text-xs text-[var(--text-muted)]">
+                        <div className="text-xs text-[var(--text-secondary)] mt-0.5 leading-snug">
                           {card.description}
                         </div>
                       </div>
                     </div>
-                    <ArrowRight size={16} className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:translate-x-1 transition-[color,transform] shrink-0" />
+                    <ArrowRight size={15} aria-hidden="true" className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
                   </Link>
                 </motion.div>
               );
@@ -238,22 +287,25 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       </main>
 
       {/* Minimal Footer */}
-      <footer className="w-full border-t border-[var(--border-subtle)] py-4 px-6 sm:px-10 text-center text-xs text-[var(--text-muted)] font-mono z-10 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer 
+        className="w-full border-t border-[var(--border-subtle)] py-4 px-6 sm:px-10 text-center text-xs text-[var(--text-secondary)] font-mono z-10 flex flex-col sm:flex-row items-center justify-between gap-2"
+        style={{ paddingBottom: 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))' }}
+      >
         <div className="flex items-center gap-2">
           <span>PULSE v2.1</span>
-          <span>•</span>
+          <span aria-hidden="true">•</span>
           <span>Open Cognitive Benchmark</span>
         </div>
         <div className="flex items-center gap-4">
           <Link 
             to={ROUTES.PRIVACY}
-            className="hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="hover:text-[var(--text-primary)] transition-colors cursor-pointer rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             Privacy
           </Link>
           <Link 
             to={ROUTES.DATASET}
-            className="hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="hover:text-[var(--text-primary)] transition-colors cursor-pointer rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             Dataset
           </Link>
@@ -270,12 +322,13 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             transition={{ duration: 0.25, ease: "easeOut" }}
             role="alert"
             aria-live="polite"
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xl p-3.5 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-rose-500/30 shadow-2xl text-rose-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left"
+            style={{ bottom: 'max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 1.5rem))' }}
+            className="fixed left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xl p-3.5 rounded-lg bg-rose-50 dark:bg-[var(--surface-1)]/95 backdrop-blur-md border border-rose-300 dark:border-rose-500/40 shadow-2xl text-rose-900 dark:text-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left"
           >
             <div className="flex items-center gap-2.5">
-              <AlertCircle size={16} className="shrink-0 text-rose-400" />
+              <AlertCircle size={16} aria-hidden="true" className="shrink-0 text-rose-600 dark:text-rose-400" />
               <div className="text-xs">
-                <span className="font-semibold text-rose-200">Notice: </span>
+                <span className="font-semibold text-rose-950 dark:text-rose-100">Notice: </span>
                 <span>Session tracking is temporarily offline. Assessments continue locally and will sync automatically.</span>
               </div>
             </div>
@@ -284,9 +337,9 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               onClick={() => retryAuth()}
               disabled={isConnecting}
               aria-label="Retry connection"
-              className="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 active:bg-rose-500/40 active:scale-[0.97] text-rose-200 text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+              className="px-2.5 py-1 rounded bg-rose-200 hover:bg-rose-300 active:bg-rose-400 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:active:bg-rose-500/40 text-rose-950 dark:text-rose-200 text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 dark:focus-visible:ring-rose-400"
             >
-              <RefreshCw size={12} className={isConnecting ? "animate-spin" : ""} />
+              <RefreshCw size={12} aria-hidden="true" className={isConnecting ? "animate-spin" : ""} />
               <span>{isConnecting ? "Retrying..." : "Retry"}</span>
             </button>
           </motion.div>

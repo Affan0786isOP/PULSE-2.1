@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { detectRefreshRate, getCachedRefreshRate, RefreshRateInfo } from './refreshRateDetector';
+import {
+  detectRefreshRate,
+  getCachedRefreshRate,
+  isRefreshRateCacheValid,
+  getDisplaySignature,
+  RefreshRateInfo
+} from './refreshRateDetector';
 
 export function useRefreshRate(): RefreshRateInfo {
   const [info, setInfo] = useState<RefreshRateInfo>(getCachedRefreshRate);
@@ -16,17 +22,13 @@ export function useRefreshRate(): RefreshRateInfo {
 
     window.addEventListener('pulse_refresh_rate_changed', handleRefreshRateChange);
 
-    // Check if a valid cached calibration already exists
-    const currentCached = getCachedRefreshRate();
-    const hasValidCache = currentCached && currentCached.status === 'ready' && currentCached.source !== 'fallback';
+    // Initial check: if cache is invalid or stale, schedule background detection
+    const isCacheValid = isRefreshRateCacheValid();
 
     let idleHandle: number | null = null;
     let timerHandle: ReturnType<typeof setTimeout> | null = null;
 
-    // Do not repeatedly run calibration when a valid cached result already exists.
-    // When detection is needed, defer it to browser idle time so it does not compete
-    // with initial Home page mounting, animations, or block page content.
-    if (!hasValidCache) {
+    if (!isCacheValid) {
       const startBackgroundDetection = () => {
         if (!isMounted) return;
         detectRefreshRate()
@@ -45,7 +47,41 @@ export function useRefreshRate(): RefreshRateInfo {
       }
     }
 
-    // Invalidation only when window moves between drastically different displays and no valid cache exists
+    // Monitor changes / revalidation on visibility or focus restoration
+    let lastCheckedSignature = getDisplaySignature();
+    let lastRevalidationTime = Date.now();
+    const MIN_REVALIDATION_INTERVAL_MS = 30_000; // Throttle to at most once per 30s unless signature changed
+
+    const checkAndRevalidate = (forceCheck = false) => {
+      if (!isMounted || typeof window === 'undefined') return;
+      const currentSig = getDisplaySignature();
+      const sigChanged = Boolean(currentSig && currentSig !== lastCheckedSignature);
+      const cacheStillValid = isRefreshRateCacheValid();
+      const now = Date.now();
+      const timeElapsed = now - lastRevalidationTime;
+
+      if (sigChanged || !cacheStillValid || (forceCheck && timeElapsed > MIN_REVALIDATION_INTERVAL_MS)) {
+        lastCheckedSignature = currentSig;
+        lastRevalidationTime = now;
+        detectRefreshRate(true)
+          .then((detected) => {
+            if (isMounted) setInfo(detected);
+          })
+          .catch(() => {});
+      }
+    };
+
+    const handleVisibilityOrFocus = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return;
+      }
+      checkAndRevalidate(false);
+    };
+
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    // Invalidation on display resize or orientation changes
     let resizeTimer: ReturnType<typeof setTimeout> | null = null;
     let lastWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
     let lastHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
@@ -57,25 +93,17 @@ export function useRefreshRate(): RefreshRateInfo {
       const diffX = Math.abs(currentWidth - lastWidth);
       const diffY = Math.abs(currentHeight - lastHeight);
 
-      // Only evaluate on major dimension change (e.g. multi-monitor switch)
-      if (diffX > 250 || diffY > 250) {
+      // Evaluate on major dimension change
+      if (diffX > 200 || diffY > 200) {
         lastWidth = currentWidth;
         lastHeight = currentHeight;
 
-        // Do not repeatedly run calibration when a valid cached result already exists
-        const latest = getCachedRefreshRate();
-        if (!latest || latest.status !== 'ready' || latest.source === 'fallback') {
-          if (resizeTimer) clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            if (isMounted) {
-              detectRefreshRate(false)
-                .then((detected) => {
-                  if (isMounted) setInfo(detected);
-                })
-                .catch(() => {});
-            }
-          }, 800);
-        }
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (isMounted) {
+            checkAndRevalidate(false);
+          }
+        }, 800);
       }
     };
 
@@ -91,6 +119,8 @@ export function useRefreshRate(): RefreshRateInfo {
       }
       if (resizeTimer) clearTimeout(resizeTimer);
       window.removeEventListener('pulse_refresh_rate_changed', handleRefreshRateChange);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
       window.removeEventListener('resize', handleDisplayChange);
     };
   }, []);

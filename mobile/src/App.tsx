@@ -123,7 +123,7 @@ function App() {
   };
 
   return (
-    <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'never'}>
+    <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'user'}>
       <AuthProvider>
         <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans flex flex-col selection:bg-cyan-500/30">
           {/* Global Consistent Animated Canvas Background */}
