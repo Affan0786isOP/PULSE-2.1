@@ -24,29 +24,20 @@ import { NotFound } from './components/NotFound';
 
 
 
-import { 
-  evaluateDeviceRouting, 
-  syncDeviceRoutingStorage,
-  checkAndSetRedirectLoopGuard,
-  clearRedirectLoopGuard 
-} from './lib/deviceRouting';
+import { resolveDeviceRedirect } from './lib/deviceRouting';
 
 function RedirectToMobile() {
   const location = useLocation();
   React.useEffect(() => {
-    const currentPath = window.location.pathname;
-    const rawPath = location.pathname.startsWith('/mobile') ? location.pathname : `/mobile${location.pathname}`;
-    const target = rawPath === '/mobile' ? '/mobile/' : rawPath;
-    const targetUrl = `${target}${location.search}${location.hash}`;
+    const pathname = location.pathname || window.location.pathname || '';
+    const search = location.search || window.location.search || '';
+    const hash = location.hash || window.location.hash || '';
 
-    // Loop breaker for fallback environments where desktop index.html was served for /mobile/*
-    if (currentPath.startsWith('/mobile') && checkAndSetRedirectLoopGuard(targetUrl)) {
-      console.warn('[PULSE] Desktop shell served at /mobile/*; halting redirect to prevent infinite loop.');
-      return;
+    const redirect = resolveDeviceRedirect(pathname, search, hash);
+    if (redirect.shouldRedirect && redirect.targetUrl) {
+      window.location.replace(redirect.targetUrl);
     }
-
-    window.location.replace(targetUrl);
-  }, [location]);
+  }, [location.pathname, location.search, location.hash]);
   return null;
 }
 
@@ -74,30 +65,15 @@ function App() {
   React.useEffect(() => {
     try {
       const pathname = location.pathname || window.location.pathname || '';
-      if (pathname.startsWith('/admin') || pathname.startsWith('/mobile')) return;
+      // When on /mobile/*, the dedicated RedirectToMobile route component handles fallback redirection
+      if (pathname.startsWith('/mobile')) return;
 
       const search = location.search || window.location.search || '';
-      const decision = evaluateDeviceRouting(search);
-      const params = new URLSearchParams(search);
-      const hasRoutingParam = params.has('force_mobile') || params.has('mobile') || params.has('force_desktop') || params.has('desktop');
-      
-      syncDeviceRoutingStorage(decision, hasRoutingParam);
+      const hash = location.hash || window.location.hash || '';
 
-      if (decision.shouldUseMobile) {
-        const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
-        const targetParams = new URLSearchParams(search);
-        targetParams.delete('force_mobile');
-        targetParams.delete('mobile');
-        targetParams.delete('force_desktop');
-        targetParams.delete('desktop');
-        const targetSearch = targetParams.toString() ? `?${targetParams.toString()}` : '';
-        const targetPath = (cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`) + targetSearch + (location.hash || window.location.hash || '');
-        
-        if (!checkAndSetRedirectLoopGuard(targetPath)) {
-          window.location.replace(targetPath);
-        }
-      } else {
-        clearRedirectLoopGuard();
+      const redirect = resolveDeviceRedirect(pathname, search, hash);
+      if (redirect.shouldRedirect && redirect.targetUrl) {
+        window.location.replace(redirect.targetUrl);
       }
     } catch (e) {}
   }, [location.pathname, location.search, location.hash]);

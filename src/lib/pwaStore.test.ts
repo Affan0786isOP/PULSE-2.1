@@ -4,6 +4,7 @@ import {
   detectIsStandalone,
   detectIsIosStandalone,
   detectIsBrowserFullscreen,
+  computeIsInstallActionable,
   getPwaState,
   subscribePwaState,
   promptInstall
@@ -13,6 +14,77 @@ describe('pwaStore Concept Separation', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
+
+  describe('computeIsInstallActionable', () => {
+    it('returns false when app is already installed or in standalone mode', () => {
+      expect(computeIsInstallActionable({
+        isInstalled: true,
+        isStandalone: false,
+        isIosStandalone: false,
+        isAndroidAppMode: false,
+        hasNativePrompt: true,
+        isManualInstallOnly: false,
+        isUnsupportedBrowser: false
+      })).toBe(false);
+
+      expect(computeIsInstallActionable({
+        isInstalled: false,
+        isStandalone: true,
+        isIosStandalone: false,
+        isAndroidAppMode: false,
+        hasNativePrompt: true,
+        isManualInstallOnly: false,
+        isUnsupportedBrowser: false
+      })).toBe(false);
+
+      expect(computeIsInstallActionable({
+        isInstalled: false,
+        isStandalone: false,
+        isIosStandalone: true,
+        isAndroidAppMode: false,
+        hasNativePrompt: false,
+        isManualInstallOnly: true,
+        isUnsupportedBrowser: false
+      })).toBe(false);
+    });
+
+    it('returns false in unsupported or in-app webview browsers', () => {
+      expect(computeIsInstallActionable({
+        isInstalled: false,
+        isStandalone: false,
+        isIosStandalone: false,
+        isAndroidAppMode: false,
+        hasNativePrompt: false,
+        isManualInstallOnly: false,
+        isUnsupportedBrowser: true
+      })).toBe(false);
+    });
+
+    it('returns true when native install prompt is deferred and available', () => {
+      expect(computeIsInstallActionable({
+        isInstalled: false,
+        isStandalone: false,
+        isIosStandalone: false,
+        isAndroidAppMode: false,
+        hasNativePrompt: true,
+        isManualInstallOnly: false,
+        isUnsupportedBrowser: false
+      })).toBe(true);
+    });
+
+    it('returns true for iOS Safari manual install flow', () => {
+      expect(computeIsInstallActionable({
+        isInstalled: false,
+        isStandalone: false,
+        isIosStandalone: false,
+        isAndroidAppMode: false,
+        hasNativePrompt: false,
+        isManualInstallOnly: true,
+        isUnsupportedBrowser: false
+      })).toBe(true);
+    });
+  });
+
 
   describe('Browser & Platform Categorization', () => {
     it('detects iOS Safari specifically', () => {

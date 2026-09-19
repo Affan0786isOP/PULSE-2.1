@@ -170,3 +170,62 @@ export function clearRedirectLoopGuard(): void {
     sessionStorage.removeItem(LOOP_GUARD_KEY);
   } catch {}
 }
+
+export interface DeviceRedirectResult {
+  shouldRedirect: boolean;
+  targetUrl: string | null;
+  reason: 'device_is_mobile' | 'desktop_shell_served_for_mobile' | 'none';
+  loopHalted?: boolean;
+}
+
+export function resolveDeviceRedirect(
+  pathname: string,
+  search: string = '',
+  hash: string = '',
+  cookieHeader?: string,
+  uaString?: string
+): DeviceRedirectResult {
+  const currentPath = pathname || '/';
+
+  // 1. Never redirect admin routes
+  if (currentPath.startsWith('/admin')) {
+    return { shouldRedirect: false, targetUrl: null, reason: 'none' };
+  }
+
+  // 2. Case: Desktop shell was incorrectly served for /mobile/* (e.g. fallback hosting environment)
+  if (currentPath.startsWith('/mobile')) {
+    const rawPath = currentPath === '/mobile' ? '/mobile/' : currentPath;
+    const targetUrl = `${rawPath}${search}${hash}`;
+    if (checkAndSetRedirectLoopGuard(targetUrl)) {
+      console.warn(`[PULSE Router] Desktop shell served at ${currentPath}; halting redirect loop.`);
+      return { shouldRedirect: false, targetUrl: null, reason: 'desktop_shell_served_for_mobile', loopHalted: true };
+    }
+    return { shouldRedirect: true, targetUrl, reason: 'desktop_shell_served_for_mobile' };
+  }
+
+  // 3. Case: Standard desktop route evaluating whether the device should use mobile
+  const decision = evaluateDeviceRouting(search, cookieHeader, uaString);
+  const params = new URLSearchParams(search);
+  const hasRoutingParam = params.has('force_mobile') || params.has('mobile') || params.has('force_desktop') || params.has('desktop');
+
+  syncDeviceRoutingStorage(decision, hasRoutingParam);
+
+  if (decision.shouldUseMobile) {
+    const cleanPath = (currentPath === '/' || currentPath === '' || currentPath === '/index.html') ? '/' : currentPath;
+    const targetParams = new URLSearchParams(search);
+    targetParams.delete('force_mobile');
+    targetParams.delete('mobile');
+    targetParams.delete('force_desktop');
+    targetParams.delete('desktop');
+    const targetSearch = targetParams.toString() ? `?${targetParams.toString()}` : '';
+    const targetPath = (cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`) + targetSearch + hash;
+
+    if (checkAndSetRedirectLoopGuard(targetPath)) {
+      return { shouldRedirect: false, targetUrl: null, reason: 'device_is_mobile', loopHalted: true };
+    }
+    return { shouldRedirect: true, targetUrl: targetPath, reason: 'device_is_mobile' };
+  }
+
+  clearRedirectLoopGuard();
+  return { shouldRedirect: false, targetUrl: null, reason: 'none' };
+}

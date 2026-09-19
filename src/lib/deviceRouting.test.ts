@@ -7,7 +7,8 @@ import {
   syncDeviceRoutingStorage,
   cleanConsumedRoutingParams,
   checkAndSetRedirectLoopGuard,
-  clearRedirectLoopGuard
+  clearRedirectLoopGuard,
+  resolveDeviceRedirect
 } from './deviceRouting';
 
 class MockStorage {
@@ -172,4 +173,55 @@ describe('deviceRouting', () => {
       expect(checkAndSetRedirectLoopGuard('/desktop', 2)).toBe(false);
     });
   });
+
+  describe('resolveDeviceRedirect', () => {
+    beforeEach(() => {
+      clearRedirectLoopGuard();
+    });
+
+    it('never redirects admin routes', () => {
+      const res = resolveDeviceRedirect('/admin/dashboard', '?force_mobile=1', '#top');
+      expect(res.shouldRedirect).toBe(false);
+      expect(res.targetUrl).toBe(null);
+      expect(res.reason).toBe('none');
+    });
+
+    it('handles desktop shell mistakenly served for /mobile/* with loop breaker', () => {
+      const res1 = resolveDeviceRedirect('/mobile/assessment', '?id=vrt', '#run');
+      expect(res1.shouldRedirect).toBe(true);
+      expect(res1.targetUrl).toBe('/mobile/assessment?id=vrt#run');
+      expect(res1.reason).toBe('desktop_shell_served_for_mobile');
+
+      // Subsequent loop triggering
+      resolveDeviceRedirect('/mobile/assessment', '?id=vrt', '#run');
+      const resLoop = resolveDeviceRedirect('/mobile/assessment', '?id=vrt', '#run');
+      expect(resLoop.shouldRedirect).toBe(false);
+      expect(resLoop.loopHalted).toBe(true);
+    });
+
+    it('redirects mobile device to /mobile/ preserving query and hash while removing force params', () => {
+      const mobileUa = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15';
+      const res = resolveDeviceRedirect('/', '?utm_source=twitter&force_mobile=1', '#intro', undefined, mobileUa);
+      expect(res.shouldRedirect).toBe(true);
+      expect(res.targetUrl).toBe('/mobile/?utm_source=twitter#intro');
+      expect(res.reason).toBe('device_is_mobile');
+    });
+
+    it('redirects nested desktop route to /mobile/<route>', () => {
+      const mobileUa = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15';
+      const res = resolveDeviceRedirect('/assessment', '?test=vrt', '', undefined, mobileUa);
+      expect(res.shouldRedirect).toBe(true);
+      expect(res.targetUrl).toBe('/mobile/assessment?test=vrt');
+      expect(res.reason).toBe('device_is_mobile');
+    });
+
+    it('does not redirect desktop devices on desktop routes', () => {
+      const desktopUa = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+      const res = resolveDeviceRedirect('/assessment', '', '', undefined, desktopUa);
+      expect(res.shouldRedirect).toBe(false);
+      expect(res.targetUrl).toBe(null);
+      expect(res.reason).toBe('none');
+    });
+  });
 });
+

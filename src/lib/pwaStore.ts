@@ -160,6 +160,34 @@ export function detectBrowserAndPlatform(): {
   };
 }
 
+/**
+ * Authoritative helper for determining whether an install CTA is actionable for the user.
+ *
+ * Rules:
+ * - If already installed or running in standalone mode (standard standalone, iOS standalone, or Android app mode) -> false (no CTA).
+ * - If running in an unsupported or in-app webview (FB/IG/TikTok webview, non-Safari iOS browser) -> false (no misleading CTA).
+ * - If native `beforeinstallprompt` is deferred and ready -> true (native install prompt actionable).
+ * - If running in iOS Safari (where `beforeinstallprompt` does not exist) -> true (manual Add to Home Screen guide actionable).
+ * - Note: Offline availability alone does not qualify as installed or installable.
+ */
+export function computeIsInstallActionable(params: {
+  isInstalled: boolean;
+  isStandalone: boolean;
+  isIosStandalone: boolean;
+  isAndroidAppMode: boolean;
+  hasNativePrompt: boolean;
+  isManualInstallOnly: boolean;
+  isUnsupportedBrowser: boolean;
+}): boolean {
+  if (params.isInstalled || params.isStandalone || params.isIosStandalone || params.isAndroidAppMode) {
+    return false;
+  }
+  if (params.isUnsupportedBrowser) {
+    return false;
+  }
+  return params.hasNativePrompt || params.isManualInstallOnly;
+}
+
 function computeCurrentState(): PwaState {
   const platform = detectBrowserAndPlatform();
   const isStandalone = detectIsStandalone();
@@ -172,7 +200,16 @@ function computeCurrentState(): PwaState {
   const appInstalledFlag = typeof window !== 'undefined' && Boolean(window.__PULSE_APP_INSTALLED__);
   const isInstalled = isStandalone || isIosStandalone || isAndroidAppMode || appInstalledFlag;
 
-  const isInstallable = hasDeferredPrompt || (!isInstalled && platform.isIosSafari);
+  // Authoritative computation of installability CTA state
+  const isInstallable = computeIsInstallActionable({
+    isInstalled,
+    isStandalone,
+    isIosStandalone,
+    isAndroidAppMode,
+    hasNativePrompt: hasDeferredPrompt,
+    isManualInstallOnly: platform.isManualInstallOnly,
+    isUnsupportedBrowser: platform.isUnsupportedBrowser
+  });
 
   return {
     isBrowserFullscreen,
