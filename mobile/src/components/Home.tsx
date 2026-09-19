@@ -11,10 +11,11 @@ import { triggerHaptic } from '../lib/settingsStore';
 import { SEO } from './SEO';
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const { isReady, isConnecting, authError, retryAuth } = useAuth();
+  const { isConnecting, authError, retryAuth } = useAuth();
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
   const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
@@ -208,15 +209,15 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <div className="flex items-center gap-2">
                 <AlertCircle size={14} className="shrink-0 text-rose-400" />
                 <div className="text-[10px] leading-tight">
-                  <span className="font-semibold text-rose-200">Cloud Notice: </span>
-                  <span>Cloud session tracking is temporarily unavailable. Retrying automatically.</span>
+                  <span className="font-semibold text-rose-200">Notice: </span>
+                  <span>Session tracking is temporarily offline. Assessments continue locally.</span>
                 </div>
               </div>
               <button 
                 type="button" 
                 onClick={() => { triggerHaptic('tap'); retryAuth(); }}
                 disabled={isConnecting}
-                aria-label="Retry Firebase connection"
+                aria-label="Retry connection"
                 className="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-[10px] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
               >
                 <RefreshCw size={10} className={isConnecting ? "animate-spin" : ""} />
@@ -300,11 +301,15 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             type="button" 
             id="mobile-start-session-btn"
             whileTap={{ scale: 0.97 }}
-            onClick={() => { triggerHaptic('tap'); onNavigate('assessments'); }}
+            onClick={() => {
+              triggerHaptic('tap');
+              setIsNavigating(true);
+              onNavigate('assessments');
+            }}
             className="w-full rounded-md bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium py-3 px-4 flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <span className="text-sm font-semibold">Start assessments</span>
-            {isConnecting ? (
+            {isNavigating ? (
               <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
             ) : (
               <ArrowRight className="w-4 h-4" />

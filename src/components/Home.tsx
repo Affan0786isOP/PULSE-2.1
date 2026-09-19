@@ -54,8 +54,9 @@ const cardItemVariants: Variants = {
 };
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const { isReady, isConnecting, authError, retryAuth } = useAuth();
+  const { isConnecting, authError, retryAuth } = useAuth();
   const refreshInfo = useRefreshRate();
+  const [isNavigating, setIsNavigating] = React.useState(false);
 
   React.useEffect(() => {
     if (authError) {
@@ -139,18 +140,19 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <div className="flex items-center gap-2.5">
                   <AlertCircle size={16} className="shrink-0 text-rose-400" />
                   <div className="text-xs">
-                    <span className="font-semibold text-rose-200">Cloud Notice: </span>
-                    <span>Cloud session tracking is temporarily unavailable. Assessment session tracking will retry automatically.</span>
+                    <span className="font-semibold text-rose-200">Notice: </span>
+                    <span>Session tracking is temporarily offline. Assessments continue locally and will sync automatically.</span>
                   </div>
                 </div>
                 <button 
                   type="button" 
                   onClick={() => retryAuth()}
                   disabled={isConnecting}
+                  aria-label="Retry connection"
                   className="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 active:bg-rose-500/40 active:scale-[0.97] text-rose-200 text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 disabled:opacity-50"
                 >
                   <RefreshCw size={12} className={isConnecting ? "animate-spin" : ""} />
-                  <span>{isConnecting ? "Retrying..." : "Retry Connection"}</span>
+                  <span>{isConnecting ? "Retrying..." : "Retry"}</span>
                 </button>
               </motion.div>
             )}
@@ -170,10 +172,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <Link 
                 to="/assessments"
                 id="start-lab-btn"
+                onClick={() => setIsNavigating(true)}
                 className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 font-medium text-sm px-6 py-3 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 <span>Start assessments</span>
-                {isConnecting ? (
+                {isNavigating ? (
                   <RefreshCw size={14} className="animate-spin text-slate-950" />
                 ) : (
                   <ArrowRight size={16} />
