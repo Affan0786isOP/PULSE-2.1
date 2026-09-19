@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Zap, Database, ArrowRight, Trophy, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
-import { motion, AnimatePresence, Variants } from 'motion/react';
+import { Zap, Database, ArrowRight, Trophy, ShieldCheck } from 'lucide-react';
+import { motion, Variants } from 'motion/react';
 import { Navbar } from './Navbar';
-import { useAuth } from '../AuthContext';
 import { SEO } from './SEO';
 import { APP_VERSION } from '../lib/version';
+import { useSettings } from '../lib/settingsStore';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -27,7 +27,6 @@ interface HomeNavCard {
   to: string;
   label: string;
   description: string;
-  ariaLabel: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }
 
@@ -36,28 +35,24 @@ const HOME_NAV_CARDS: readonly HomeNavCard[] = [
     to: ROUTES.LEADERBOARD,
     label: 'Leaderboard',
     description: 'Verified cohort rankings',
-    ariaLabel: 'View Leaderboard — Verified cohort rankings',
     icon: Trophy,
   },
   {
     to: ROUTES.DATASET,
     label: 'Research Dataset',
     description: 'Population telemetry & observations',
-    ariaLabel: 'View Open Research Dataset — Population telemetry and observations',
     icon: Database,
   },
   {
     to: ROUTES.IMPROVE,
     label: 'Improve',
     description: 'Factors that can affect reaction performance',
-    ariaLabel: 'View Improve — Factors that can affect reaction performance',
     icon: Zap,
   },
   {
     to: ROUTES.PRIVACY,
     label: 'Privacy Policy',
     description: 'Research data ethics & anonymization',
-    ariaLabel: 'View Privacy Policy — Research data ethics and anonymization',
     icon: ShieldCheck,
   },
 ];
@@ -82,37 +77,15 @@ const fadeItemVariants: Variants = {
 };
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const { isConnecting, authError, retryAuth } = useAuth();
-  const [displayedError, setDisplayedError] = React.useState<string | null>(null);
-  const [isRetrying, setIsRetrying] = React.useState(false);
-
-  React.useEffect(() => {
-    if (authError) {
-      setDisplayedError(authError);
-      setIsRetrying(false);
-      console.warn('[PULSE Auth Notice]:', authError);
-    } else if (!isConnecting && !isRetrying) {
-      setDisplayedError(null);
-    }
-  }, [authError, isConnecting, isRetrying]);
-
-  const handleRetry = async () => {
-    setIsRetrying(true);
-    try {
-      await retryAuth();
-    } finally {
-      setIsRetrying(false);
-    }
-  };
-
-  const isActionInProgress = isRetrying || isConnecting;
+  const [settings] = useSettings();
+  const shouldReduceMotion = settings.reducedMotionEnabled;
 
   return (
     <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans selection:bg-cyan-500/30 overflow-x-hidden relative flex flex-col justify-between">
       {/* Accessibility: Skip to main content link */}
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--accent)] focus:text-white dark:focus:text-slate-950 focus:font-semibold focus:text-xs focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:bg-[var(--accent)] focus:text-white dark:focus:text-slate-950 focus:font-semibold focus:text-xs focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
       >
         Skip to main content
       </a>
@@ -126,14 +99,18 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       <Navbar currentView="home" onNavigate={onNavigate} />
 
       {/* Main Hero Section */}
-      <main id="main-content" tabIndex={-1} className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 z-10 flex-1 flex flex-col justify-center py-8 lg:py-16 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--surface-0)] rounded-lg">
+      <main 
+        id="main-content" 
+        tabIndex={-1} 
+        className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 flex-1 flex flex-col justify-center py-8 lg:py-16 outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-inset rounded-lg"
+      >
         
         <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] items-center gap-10 lg:gap-14 my-auto">
           
           {/* Left Column: Tag, Headline, Description, Button */}
           <motion.div 
-            variants={staggerContainerVariants}
-            initial="hidden"
+            variants={shouldReduceMotion ? undefined : staggerContainerVariants}
+            initial={shouldReduceMotion ? false : "hidden"}
             animate="visible"
             className="w-full flex flex-col items-center lg:items-start text-center lg:text-left"
           >
@@ -145,7 +122,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             </motion.div>
 
             {/* Main Headline */}
-            <motion.h1 variants={fadeItemVariants} className="font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.03em] leading-[1.12] mb-5 text-[var(--text-primary)]">
+            <motion.h1 variants={fadeItemVariants} className="font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.03em] leading-[1.12] mb-5 text-[var(--text-primary)] break-words">
               Measure your reaction time and cognitive performance.
             </motion.h1>
 
@@ -169,8 +146,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
           {/* Right Column: Navigation Cards - Native accessible links */}
           <motion.div 
-            variants={staggerContainerVariants}
-            initial="hidden"
+            variants={shouldReduceMotion ? undefined : staggerContainerVariants}
+            initial={shouldReduceMotion ? false : "hidden"}
             animate="visible"
             className="w-full max-w-[360px] flex flex-col gap-2.5 shrink-0 mx-auto lg:mx-0"
           >
@@ -180,14 +157,13 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <motion.div key={card.to} variants={fadeItemVariants}>
                   <Link
                     to={card.to}
-                    aria-label={card.ariaLabel}
                     className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg p-3.5 sm:p-4 flex items-center justify-between transition-[background-color,border-color] duration-150 motion-reduce:transition-none group"
                   >
-                    <div className="flex items-center gap-3.5">
+                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/30 flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent)] shrink-0 transition-colors duration-150 motion-reduce:transition-none">
                         <Icon size={18} aria-hidden="true" />
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="font-semibold text-sm text-[var(--text-primary)] leading-snug">
                           {card.label}
                         </div>
@@ -208,8 +184,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       {/* Minimal Footer */}
       <footer 
-        className="w-full border-t border-[var(--border-subtle)] py-4 px-4 sm:px-6 lg:px-10 text-center text-xs text-[var(--text-secondary)] font-mono z-10 flex flex-col sm:flex-row items-center justify-between gap-2 transition-[padding] duration-200"
-        style={{ paddingBottom: displayedError ? 'max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))' : 'max(1rem, calc(env(safe-area-inset-bottom, 0px) + 1rem))' }}
+        className="w-full border-t border-[var(--border-subtle)] py-4 px-4 sm:px-6 lg:px-10 text-center text-xs text-[var(--text-secondary)] font-mono flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0"
+        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
       >
         <div className="flex items-center gap-2">
           <span>PULSE v{APP_VERSION}</span>
@@ -219,52 +195,19 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         <div className="flex items-center gap-4">
           <Link 
             to={ROUTES.PRIVACY}
-            className="hover:text-[var(--text-primary)] transition-colors cursor-pointer rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            className="hover:text-[var(--text-primary)] active:text-[var(--accent)] active:opacity-80 transition-colors cursor-pointer rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             Privacy
           </Link>
           <Link 
             to={ROUTES.DATASET}
-            className="hover:text-[var(--text-primary)] transition-colors cursor-pointer rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            className="hover:text-[var(--text-primary)] active:text-[var(--accent)] active:opacity-80 transition-colors cursor-pointer rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             Dataset
           </Link>
         </div>
       </footer>
-
-      {/* Non-intrusive Offline Notice: Accurately informs about local offline capability without alarmism */}
-      <AnimatePresence>
-        {displayedError && (
-          <motion.div 
-            role="status"
-            aria-live="polite"
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            style={{ bottom: 'max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 1.5rem))' }}
-            className="fixed left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xl p-3 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-default)] shadow-xl text-[var(--text-secondary)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left"
-          >
-            <div className="flex items-center gap-2.5">
-              <AlertCircle size={15} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />
-              <div className="text-xs">
-                <span className="font-semibold text-[var(--text-primary)]">Notice: </span>
-                <span>{displayedError}</span>
-              </div>
-            </div>
-            <button 
-              type="button" 
-              onClick={handleRetry}
-              disabled={isActionInProgress}
-              aria-label="Retry connection"
-              className="px-2.5 py-1 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] text-[var(--text-primary)] text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            >
-              <RefreshCw size={11} aria-hidden="true" className={isActionInProgress ? "animate-spin motion-reduce:animate-none" : ""} />
-              <span>{isActionInProgress ? "Retrying..." : "Retry"}</span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
+
