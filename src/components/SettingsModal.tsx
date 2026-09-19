@@ -45,6 +45,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [settings, updateSettingsState] = useSettings();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [isRecalibrating, setIsRecalibrating] = useState(false);
+  const isRecalibratingRef = useRef(false);
+  useEffect(() => {
+    isRecalibratingRef.current = isRecalibrating;
+  }, [isRecalibrating]);
   const [calibrationError, setCalibrationError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(Boolean(typeof document !== 'undefined' && document.fullscreenElement));
   const [clearedNotice, setClearedNotice] = useState(false);
@@ -65,7 +69,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       if (recalibrateTimeoutRef.current) {
         clearTimeout(recalibrateTimeoutRef.current);
       }
-      cancelRefreshRateDetection();
+      if (isRecalibratingRef.current) {
+        cancelRefreshRateDetection();
+      }
     };
   }, []);
 
@@ -84,7 +90,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       if (recalibrateTimeoutRef.current) {
         clearTimeout(recalibrateTimeoutRef.current);
       }
-      cancelRefreshRateDetection();
+      if (isRecalibratingRef.current) {
+        cancelRefreshRateDetection();
+        setIsRecalibrating(false);
+      }
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('pulse_settings_close'));
       }

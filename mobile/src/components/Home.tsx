@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Activity, Database, ArrowRight, Zap, Trophy, Settings, Info, Download, Maximize2, Minimize2, ShieldCheck, AlertCircle, RefreshCw, ListChecks, BarChart2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../AuthContext';
@@ -14,6 +15,16 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+
+  const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
+  const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
+
+  useEffect(() => {
+    if (authError) {
+      console.warn('[PULSE Mobile Auth Notice]:', authError);
+    }
+  }, [authError]);
+
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
     if (typeof document === 'undefined') return false;
     const doc = document as any;
@@ -123,11 +134,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 triggerHaptic('tap');
                 await pwa.promptInstall();
               }}
-              className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="flex items-center gap-1 px-2.5 py-1.5 min-h-[36px] sm:min-h-[40px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               title="Install App"
               aria-label="Install App"
             >
-              <Download size={12} />
+              <Download size={14} />
               <span className="hidden min-[360px]:inline">Install</span>
             </button>
           )}
@@ -136,11 +147,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             <button type="button"
               id="mobile-fullscreen-btn"
               onClick={() => { triggerHaptic('tap'); handleToggleFullscreen(); }}
-              className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="flex items-center gap-1 px-2.5 py-1.5 min-h-[36px] sm:min-h-[40px] rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
               aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
             >
-              {isFullscreen ? <Minimize2 size={12} className="text-[var(--accent)]" /> : <Maximize2 size={12} />}
+              {isFullscreen ? <Minimize2 size={14} className="text-[var(--accent)]" /> : <Maximize2 size={14} />}
               <span className="hidden min-[360px]:inline">{isFullscreen ? "Exit" : "Fullscreen"}</span>
             </button>
           )}
@@ -151,11 +162,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               triggerHaptic('tap');
               setIsWelcomeOpen(true);
             }}
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            className="w-9 h-9 sm:w-10 sm:h-10 min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             aria-label="App Info"
             title="Welcome & Info"
           >
-            <Info size={14} />
+            <Info size={15} />
           </button>
 
           <button type="button"
@@ -164,11 +175,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               triggerHaptic('tap');
               setIsSettingsOpen(true);
             }}
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            className="w-9 h-9 sm:w-10 sm:h-10 min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             aria-label="Settings"
             title="Settings"
           >
-            <Settings size={14} />
+            <Settings size={15} />
           </button>
         </div>
       </header>
@@ -189,7 +200,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           </h1>
 
           <p className="text-[var(--text-muted)] text-[11px] font-normal px-2 leading-tight mt-0.5">
-            Research-grade sensory reaction and working memory evaluator
+            Research-informed sensory reaction and working memory evaluator
           </p>
 
           {authError && (
@@ -197,8 +208,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <div className="flex items-center gap-2">
                 <AlertCircle size={14} className="shrink-0 text-rose-400" />
                 <div className="text-[10px] leading-tight">
-                  <span className="font-semibold text-rose-200">Notice: </span>
-                  <span>Session tracking will retry automatically.</span>
+                  <span className="font-semibold text-rose-200">Cloud Notice: </span>
+                  <span>Cloud session tracking is temporarily unavailable. Retrying automatically.</span>
                 </div>
               </div>
               <button 
@@ -290,10 +301,10 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             id="mobile-start-session-btn"
             whileTap={{ scale: 0.97 }}
             onClick={() => { triggerHaptic('tap'); onNavigate('assessments'); }}
-            className="w-full rounded-md bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 font-medium py-3 px-4 flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            className="w-full rounded-md bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium py-3 px-4 flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <span className="text-sm font-semibold">Start assessments</span>
-            {isConnecting && !isReady ? (
+            {isConnecting ? (
               <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
             ) : (
               <ArrowRight className="w-4 h-4" />
@@ -302,13 +313,12 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
           {/* Menu Grid - 2x2 with clear touch targets */}
           <div className="grid grid-cols-2 gap-2 w-full">
-            <motion.button 
-              type="button" 
+            <Link 
+              to="/leaderboard"
               id="mobile-nav-leaderboard"
-              whileTap={{ scale: 0.96 }}
-              onClick={() => { triggerHaptic('tap'); onNavigate('leaderboard'); }}
+              onClick={() => triggerHaptic('tap')}
               aria-label="View Leaderboard — Top ranks"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
                 <Trophy className="w-3.5 h-3.5" />
@@ -317,15 +327,14 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <span className="text-[var(--text-primary)] font-medium text-xs truncate">Leaderboard</span>
                 <span className="text-[var(--text-muted)] text-[10px] truncate">Top ranks</span>
               </div>
-            </motion.button>
+            </Link>
 
-            <motion.button 
-              type="button" 
+            <Link 
+              to="/dataset"
               id="mobile-nav-dataset"
-              whileTap={{ scale: 0.96 }}
-              onClick={() => { triggerHaptic('tap'); onNavigate('dataset'); }}
+              onClick={() => triggerHaptic('tap')}
               aria-label="View Dataset — Telemetry"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
                 <Database className="w-3.5 h-3.5" />
@@ -334,32 +343,30 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <span className="text-[var(--text-primary)] font-medium text-xs truncate">Dataset</span>
                 <span className="text-[var(--text-muted)] text-[10px] truncate">Telemetry</span>
               </div>
-            </motion.button>
+            </Link>
 
-            <motion.button 
-              type="button" 
+            <Link 
+              to="/improve"
               id="mobile-nav-improve"
-              whileTap={{ scale: 0.96 }}
-              onClick={() => { triggerHaptic('tap'); onNavigate('improve'); }}
-              aria-label="View Improve — Neural factors"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              onClick={() => triggerHaptic('tap')}
+              aria-label="View Improve — Factors that can affect reaction performance"
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
                 <Zap className="w-3.5 h-3.5" />
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-[var(--text-primary)] font-medium text-xs truncate">Improve</span>
-                <span className="text-[var(--text-muted)] text-[10px] truncate">Neural factors</span>
+                <span className="text-[var(--text-muted)] text-[10px] truncate">Performance factors</span>
               </div>
-            </motion.button>
+            </Link>
 
-            <motion.button 
-              type="button" 
+            <Link 
+              to="/privacy"
               id="mobile-nav-privacy"
-              whileTap={{ scale: 0.96 }}
-              onClick={() => { triggerHaptic('tap'); onNavigate('privacy'); }}
+              onClick={() => triggerHaptic('tap')}
               aria-label="View Privacy — Data ethics"
-              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-md p-2.5 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
                 <ShieldCheck className="w-3.5 h-3.5" />
@@ -368,19 +375,19 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <span className="text-[var(--text-primary)] font-medium text-xs truncate">Privacy</span>
                 <span className="text-[var(--text-muted)] text-[10px] truncate">Data ethics</span>
               </div>
-            </motion.button>
+            </Link>
           </div>
         </motion.div>
       </main>
 
       <SettingsModal 
         isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
+        onClose={handleCloseSettings} 
       />
 
       <WelcomeModal
         isOpen={isWelcomeOpen}
-        onClose={() => setIsWelcomeOpen(false)}
+        onClose={handleCloseWelcome}
         onNavigate={onNavigate}
       />
 

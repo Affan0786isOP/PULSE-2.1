@@ -104,15 +104,19 @@ class ModalManager {
     // Auto focus initial element or first focusable
     if (typeof window !== 'undefined') {
       setTimeout(() => {
-        if (instance.initialFocusRef?.current) {
+        if (instance.initialFocusRef?.current && typeof instance.initialFocusRef.current.focus === 'function') {
           instance.initialFocusRef.current.focus();
-        } else if (instance.dialogRef.current) {
-          const focusable = instance.dialogRef.current.querySelector<HTMLElement>(
-            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-          );
-          if (focusable) {
-            focusable.focus();
-          } else {
+        } else if (instance.dialogRef?.current) {
+          if (typeof instance.dialogRef.current.querySelector === 'function') {
+            const focusable = instance.dialogRef.current.querySelector<HTMLElement>(
+              'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            );
+            if (focusable && typeof focusable.focus === 'function') {
+              focusable.focus();
+            } else if (typeof instance.dialogRef.current.focus === 'function') {
+              instance.dialogRef.current.focus();
+            }
+          } else if (typeof instance.dialogRef.current.focus === 'function') {
             instance.dialogRef.current.focus();
           }
         }

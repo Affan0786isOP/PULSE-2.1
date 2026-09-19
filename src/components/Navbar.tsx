@@ -31,6 +31,9 @@ export function Navbar({
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
 
+  const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
+  const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
+
   useEffect(() => {
     const isPhone = typeof window !== 'undefined' && (
       window.innerWidth <= 768 ||
@@ -257,13 +260,13 @@ export function Navbar({
       {/* Global System Settings Modal */}
       <SettingsModal 
         isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
+        onClose={handleCloseSettings} 
       />
 
       {/* Welcome Modal */}
       <WelcomeModal
         isOpen={isWelcomeOpen}
-        onClose={() => setIsWelcomeOpen(false)}
+        onClose={handleCloseWelcome}
         onNavigate={onNavigate}
       />
     </nav>

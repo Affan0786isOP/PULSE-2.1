@@ -38,12 +38,15 @@ export function AnimatedBackground() {
       if (!ctx || !canvas) return;
       if (typeof document !== 'undefined' && document.hidden) return;
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = window.innerWidth;
       height = window.innerHeight;
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const maxDim = 2560;
+      const naturalDpr = Math.min(window.devicePixelRatio || 1, 2);
+      const scale = Math.min(1, maxDim / Math.max(width * naturalDpr, height * naturalDpr, 1));
+      const effectiveDpr = naturalDpr * scale;
+      canvas.width = Math.round(width * effectiveDpr);
+      canvas.height = Math.round(height * effectiveDpr);
+      ctx.setTransform(effectiveDpr, 0, 0, effectiveDpr, 0, 0);
 
       ctx.clearRect(0, 0, width, height);
 

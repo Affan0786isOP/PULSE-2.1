@@ -57,6 +57,12 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const { isReady, isConnecting, authError, retryAuth } = useAuth();
   const refreshInfo = useRefreshRate();
 
+  React.useEffect(() => {
+    if (authError) {
+      console.warn('[PULSE Auth Notice]:', authError);
+    }
+  }, [authError]);
+
   return (
     <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans selection:bg-cyan-500/30 overflow-x-hidden relative flex flex-col justify-between">
       <SEO 
@@ -70,14 +76,14 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       {/* Main Hero Section */}
       <main className="w-full max-w-[1140px] mx-auto px-6 sm:px-10 z-10 flex-1 flex flex-col justify-center py-8 lg:py-16">
         
-        <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 my-auto">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] items-center gap-10 lg:gap-14 my-auto">
           
           {/* Left Column: Tag, Headline, Description, Button */}
           <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="w-full lg:w-3/5 flex flex-col items-center lg:items-start text-center lg:text-left shrink-0"
+            className="w-full flex flex-col items-center lg:items-start text-center lg:text-left"
           >
             {/* Top Tag Badge */}
             <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-5">
@@ -87,6 +93,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
               {refreshInfo.status === 'detecting' ? (
                 <div 
+                  role="status"
+                  aria-live="polite"
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
                   aria-label="Detecting display refresh rate"
                 >
@@ -95,27 +103,33 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 </div>
               ) : refreshInfo.source === 'measured' ? (
                 <div 
+                  role="status"
+                  aria-live="polite"
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
-                  title={`${refreshInfo.hz} Hz calibrated display · ~${refreshInfo.displayDelayOffsetMs} ms estimated display midpoint`}
+                  title={`${refreshInfo.hz} Hz calibrated display · ~${refreshInfo.displayDelayOffsetMs} ms approximate midpoint model`}
                 >
                   <Monitor size={11} className="text-[var(--accent)]" />
                   <span>{refreshInfo.hz} Hz · ~{refreshInfo.displayDelayOffsetMs} ms midpoint</span>
                 </div>
               ) : refreshInfo.source === 'estimated' ? (
                 <div 
+                  role="status"
+                  aria-live="polite"
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
-                  title={`~${refreshInfo.hz} Hz calculated display · ~${refreshInfo.displayDelayOffsetMs} ms estimated display midpoint`}
+                  title={`~${refreshInfo.hz} Hz calculated cadence · ~${refreshInfo.displayDelayOffsetMs} ms approximate midpoint model`}
                 >
                   <Monitor size={11} className="text-amber-400" />
                   <span>~{refreshInfo.hz} Hz (Estimated)</span>
                 </div>
               ) : (
                 <div 
+                  role="status"
+                  aria-live="polite"
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-mono"
-                  title="60 Hz default baseline assumption · ~8.33 ms estimated display midpoint"
+                  title="60 Hz default baseline assumption · ~8.33 ms approximate midpoint model"
                 >
                   <Monitor size={11} className="text-[var(--text-muted)]" />
-                  <span>60 Hz (Standard)</span>
+                  <span>60 Hz · fallback</span>
                 </div>
               )}
             </motion.div>
@@ -125,8 +139,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                 <div className="flex items-center gap-2.5">
                   <AlertCircle size={16} className="shrink-0 text-rose-400" />
                   <div className="text-xs">
-                    <span className="font-semibold text-rose-200">Firebase Connection Notice: </span>
-                    <span>{authError} Assessment session tracking will retry automatically.</span>
+                    <span className="font-semibold text-rose-200">Cloud Notice: </span>
+                    <span>Cloud session tracking is temporarily unavailable. Assessment session tracking will retry automatically.</span>
                   </div>
                 </div>
                 <button 
@@ -148,7 +162,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
             {/* Description Paragraph - Aligned with actual protocols */}
             <motion.p variants={itemVariants} className="text-[var(--text-secondary)] text-base sm:text-lg max-w-xl font-normal leading-relaxed text-center lg:text-left mb-8">
-              PULSE evaluates visual reaction latency, directional choice speed, and working memory through research-calibrated assessment protocols.
+              PULSE evaluates visual reaction latency, directional choice speed, and working memory through research-informed assessment protocols.
             </motion.p>
 
             {/* Primary Action Button */}
@@ -156,11 +170,10 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
               <Link 
                 to="/assessments"
                 id="start-lab-btn"
-                onClick={() => onNavigate('assessments')}
                 className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 font-medium text-sm px-6 py-3 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 <span>Start assessments</span>
-                {isConnecting && !isReady ? (
+                {isConnecting ? (
                   <RefreshCw size={14} className="animate-spin text-slate-950" />
                 ) : (
                   <ArrowRight size={16} />
@@ -174,13 +187,12 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             variants={cardsContainerVariants}
             initial="hidden"
             animate="visible"
-            className="w-full lg:w-2/5 max-w-[380px] flex flex-col gap-2.5 shrink-0"
+            className="w-full max-w-[360px] flex flex-col gap-2.5 shrink-0 mx-auto lg:mx-0"
           >
             {/* Card 0: LEADERBOARD */}
             <motion.div variants={cardItemVariants}>
               <Link
                 to="/leaderboard"
-                onClick={() => onNavigate('leaderboard')}
                 aria-label="View Leaderboard — Verified cohort rankings"
                 className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between transition-colors group"
               >
@@ -205,7 +217,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             <motion.div variants={cardItemVariants}>
               <Link
                 to="/dataset"
-                onClick={() => onNavigate('dataset')}
                 aria-label="View Open Research Dataset — Population telemetry and observations"
                 className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between transition-colors group"
               >
@@ -230,8 +241,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             <motion.div variants={cardItemVariants}>
               <Link
                 to="/improve"
-                onClick={() => onNavigate('improve')}
-                aria-label="View Improve — Factors influencing neural latency"
+                aria-label="View Improve — Factors that can affect reaction performance"
                 className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between transition-colors group"
               >
                 <div className="flex items-center gap-3.5">
@@ -243,7 +253,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                       Improve
                     </div>
                     <div className="text-xs text-[var(--text-muted)]">
-                      Factors influencing neural latency
+                      Factors that can affect reaction performance
                     </div>
                   </div>
                 </div>
@@ -255,7 +265,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             <motion.div variants={cardItemVariants}>
               <Link
                 to="/privacy"
-                onClick={() => onNavigate('privacy')}
                 aria-label="View Privacy Policy — Research data ethics and anonymization"
                 className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md p-3.5 flex items-center justify-between transition-colors group"
               >
@@ -290,14 +299,12 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         <div className="flex items-center gap-4">
           <Link 
             to="/privacy"
-            onClick={() => onNavigate('privacy')}
             className="hover:text-[var(--text-primary)] transition-colors cursor-pointer"
           >
             Privacy
           </Link>
           <Link 
             to="/dataset"
-            onClick={() => onNavigate('dataset')}
             className="hover:text-[var(--text-primary)] transition-colors cursor-pointer"
           >
             Dataset

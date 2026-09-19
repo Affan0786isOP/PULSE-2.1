@@ -80,16 +80,16 @@ export function AddToHomeScreenModal({
   };
 
   const handleCopyLink = async () => {
+    playAudioCue('click');
+    triggerHaptic('tap');
     try {
-      playAudioCue('click');
-      triggerHaptic('tap');
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         await navigator.clipboard.writeText(window.location.href);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2500);
       }
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2500);
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.warn('Could not copy link to clipboard:', err);
     }
   };
 
