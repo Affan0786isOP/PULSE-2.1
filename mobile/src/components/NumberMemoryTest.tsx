@@ -407,7 +407,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
   }, [trialDataset, totalTimeMs]);
 
   let apparatusClass = "relative w-full max-w-[600px] min-h-[480px] sm:min-h-[520px] py-8 mx-auto rounded-[32px] border flex flex-col items-center justify-between cursor-pointer transition-all duration-200 ease-out z-20 backdrop-blur-[10px]";
-  let statusClass = "font-['Space_Grotesk'] text-[1.1rem] font-medium tracking-[1px] uppercase transition-colors duration-100 ease-in text-[var(--text-muted)]";
+  let statusClass = "font-['Space_Grotesk'] text-[1.1rem] font-medium tracking-[1px] uppercase transition-colors duration-100 ease-out text-[var(--text-muted)]";
   
 
   if (engineState === 'READY') {

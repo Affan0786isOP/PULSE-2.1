@@ -178,7 +178,7 @@ export function Improve({
           <section className="flex flex-col gap-2.5">
             <div>
               <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
-                VARIABLE MATRIX
+                Biological &amp; environmental factors
               </span>
               <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
                 What Affects Performance?
@@ -229,7 +229,7 @@ export function Improve({
             <div className="flex items-center justify-between">
               <div>
                 <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
-                  DAILY HABITS
+                  Daily habits
                 </span>
                 <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
                   Daily Habit Preparation
@@ -239,7 +239,7 @@ export function Improve({
                 <button
                   type="button"
                   onClick={handleResetChecklist}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[transform,background-color,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] cursor-pointer"
                 >
                   <RotateCcw size={10} />
                   <span>Reset</span>
@@ -257,8 +257,8 @@ export function Improve({
 
               <div className="w-full h-1.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[var(--accent)] transition-all duration-300 ease-out rounded-full"
-                  style={{ width: `${habitCompletionPercentage}%` }}
+                  className="w-full h-full bg-[var(--accent)] origin-left transition-transform duration-300 ease-out rounded-full"
+                  style={{ transform: `scaleX(${habitCompletionPercentage / 100})` }}
                 />
               </div>
 
@@ -315,7 +315,7 @@ export function Improve({
           <section className="flex flex-col gap-2.5">
             <div>
               <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
-                NEUROSCIENCE FINDING
+                Scientific literature
               </span>
               <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
                 Synaptic Insights &amp; Findings
@@ -331,7 +331,7 @@ export function Improve({
                   setIsLedgerPaused(false);
                 }
               }}
-              className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 flex flex-col gap-2.5 relative shadow-sm"
+              className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 flex flex-col gap-2.5 relative"
             >
               <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-1.5">
@@ -375,7 +375,7 @@ export function Improve({
                 <button
                   type="button"
                   onClick={handlePrevSlide}
-                  className="flex items-center gap-1 text-[11px] font-mono font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer active:scale-95"
+                  className="flex items-center gap-1 text-[11px] font-mono font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
                   <ChevronLeft size={14} />
                   <span>PREV</span>
@@ -383,7 +383,7 @@ export function Improve({
                 <button
                   type="button"
                   onClick={handleNextSlide}
-                  className="flex items-center gap-1 text-[11px] font-mono font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors cursor-pointer active:scale-95"
+                  className="flex items-center gap-1 text-[11px] font-mono font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
                   <span>NEXT OBSERVATION</span>
                   <ChevronRight size={14} />
@@ -396,13 +396,13 @@ export function Improve({
           <section className="flex flex-col gap-2.5">
             <div>
               <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
-                EXPECTATION MANAGEMENT
+                Expectation management
               </span>
               <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
                 Can Everyone Improve?
               </h2>
             </div>
-            <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed shadow-sm">
+            <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed">
               <p>
                 Day-to-day reaction latency varies based on sleep debt, mental fatigue, and input device responsiveness.
               </p>
@@ -421,7 +421,7 @@ export function Improve({
           <section className="flex flex-col gap-2.5">
             <div>
               <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
-                PRINCIPLES
+                Key principles
               </span>
               <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
                 System Recommendations

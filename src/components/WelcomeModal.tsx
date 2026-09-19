@@ -120,7 +120,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="relative z-10 w-full max-w-[420px] bg-[var(--surface-1)] border border-[var(--border-default)] rounded-xl p-5 sm:p-6 shadow-2xl flex flex-col font-sans text-[var(--text-primary)] my-auto outline-none"
+            className="relative z-10 w-full max-w-[420px] bg-[var(--surface-1)] border border-[var(--border-default)] rounded-xl p-5 sm:p-6 flex flex-col font-sans text-[var(--text-primary)] my-auto focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] outline-none"
           >
             {/* Header */}
             <div className="flex items-center justify-between gap-3 mb-3.5">

@@ -130,7 +130,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
         </div>
         <button type="button"
           onClick={() => setOptInState('OPTING_IN')}
-          className="h-8 px-2.5 bg-[var(--surface-2)] hover:bg-[var(--border-subtle)] border border-[var(--border-subtle)] rounded-md text-[var(--text-primary)] font-mono text-[10px] uppercase tracking-wider transition-colors cursor-pointer shrink-0"
+          className="min-h-[44px] px-3.5 bg-[var(--surface-2)] hover:bg-[var(--border-subtle)] active:bg-[var(--surface-3)] active:scale-95 border border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] font-mono text-xs uppercase tracking-wider transition-[background-color,transform] cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
         >
           Publish
         </button>
@@ -140,16 +140,16 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
 
   return (
     <div
-      className={`w-full bg-[var(--surface-2)]/60 border border-[var(--border-subtle)] p-2 rounded-lg flex flex-col items-center text-center transition-all ${
+      className={`w-full bg-[var(--surface-2)]/60 border border-[var(--border-subtle)] p-2.5 rounded-lg flex flex-col items-center text-center ${
         isKeyboardOpen ? 'py-1 my-0.5' : ''
       }`}
     >
-      <span className="font-mono font-bold text-[10px] text-[var(--text-primary)] uppercase tracking-wide mb-0.5">Enter Callsign</span>
-      <p className="text-[var(--text-muted)] text-[9px] font-mono mb-1.5 max-w-xs">
+      <span className="font-mono font-bold text-xs text-[var(--text-primary)] uppercase tracking-wide mb-0.5">Enter Callsign</span>
+      <p className="text-[var(--text-muted)] text-[10px] font-mono mb-2 max-w-xs">
         Your callsign will appear publicly on the global leaderboard.
       </p>
       
-      <div className="w-full flex items-center justify-center gap-1.5 max-w-xs">
+      <div className="w-full flex items-center justify-center gap-2 max-w-xs">
         <input
           ref={inputRef}
           type="text"
@@ -166,22 +166,24 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
           onBlur={handleBlur}
           placeholder="Callsign (e.g. Node-01)"
           disabled={optInState === 'SUBMITTING'}
-          className="w-full h-8 bg-[var(--surface-1)] border border-[var(--border-subtle)] focus:border-[var(--border-strong)] rounded-md px-2 text-[var(--text-primary)] font-mono text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-colors text-left"
+          autoComplete="off"
+          spellCheck={false}
+          className="w-full min-h-[44px] h-11 bg-[var(--surface-1)] border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-lg px-3 text-[16px] sm:text-xs text-[var(--text-primary)] font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] transition-colors text-left"
           autoFocus
         />
 
-        <div className="flex gap-1 shrink-0">
+        <div className="flex gap-1.5 shrink-0">
           <button type="button"
             onClick={() => { setOptInState('IDLE'); setErrorMsg(''); setDisplayName(''); }}
             disabled={optInState === 'SUBMITTING'}
-            className="h-8 px-2 bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] font-mono text-[10px] transition-colors cursor-pointer"
+            className="min-h-[44px] px-2.5 bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] active:scale-95 font-mono text-xs transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button type="button"
             onClick={handleSubmit}
             disabled={optInState === 'SUBMITTING'}
-            className="h-8 px-2.5 bg-[var(--accent)] hover:opacity-90 text-slate-950 rounded-md font-mono text-[10px] uppercase tracking-wider transition-colors font-bold cursor-pointer disabled:opacity-50"
+            className="min-h-[44px] px-3.5 bg-[var(--accent)] hover:opacity-90 active:scale-95 text-slate-950 rounded-lg font-mono text-xs uppercase tracking-wider transition-[opacity,transform] font-bold cursor-pointer disabled:opacity-50"
           >
             {optInState === 'SUBMITTING' ? '...' : (optInState === 'ERROR' ? 'Retry' : 'Submit')}
           </button>
@@ -189,7 +191,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
       </div>
 
       {errorMsg && (
-        <div className="text-rose-400 text-[9px] font-mono mt-1">
+        <div className="text-[var(--danger)] text-xs font-mono mt-1.5">
           {errorMsg}
         </div>
       )}

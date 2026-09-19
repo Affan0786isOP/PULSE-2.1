@@ -46,7 +46,7 @@ export function DatasetHeader({
           onClick={onRefresh}
           disabled={loading}
           aria-label="Refresh dataset"
-          className="p-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-50"
+          className="p-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 active:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[transform,background-color,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>

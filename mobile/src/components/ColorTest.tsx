@@ -499,8 +499,8 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     }
   }, [selectedAgeGroup, sessionId, showGuide]);
 
-  let apparatusClass = "w-[90%] max-w-[800px] min-h-[450px] bg-[var(--bg-surface)] border border-[var(--glass-border)] rounded-[24px] flex flex-col relative backdrop-blur-[20px] transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-[0_30px_60px_rgba(0,0,0,0.4)] p-6 md:p-10 touch-manipulation select-none";
-  let timerClass = "font-mono font-bold tracking-[-1px] leading-none mb-[15px] transition-colors duration-100 ease-in text-3xl md:text-5xl text-[var(--text-muted)]";
+  let apparatusClass = "w-[90%] max-w-[800px] min-h-[450px] bg-[var(--bg-surface)] border border-[var(--glass-border)] rounded-[24px] flex flex-col relative backdrop-blur-[20px] transition-colors duration-200 ease-out p-6 md:p-10 touch-manipulation select-none";
+  let timerClass = "font-mono font-bold tracking-[-1px] leading-none mb-[15px] transition-colors duration-100 ease-out text-3xl md:text-5xl text-[var(--text-muted)]";
   
   if (engineState === 'STARTING') {
     apparatusClass += " !border-white/10 !bg-black/50 justify-center items-center cursor-pointer";
@@ -841,7 +841,7 @@ return (
           aria-labelledby="guide-title"
         >
           <div 
-            className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl w-full max-w-lg p-4 sm:p-5 shadow-2xl relative text-left flex flex-col justify-between"
+            className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl w-full max-w-lg p-4 sm:p-5 relative text-left flex flex-col justify-between"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

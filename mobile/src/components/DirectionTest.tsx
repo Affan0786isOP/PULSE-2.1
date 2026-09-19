@@ -532,8 +532,8 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   }, [selectedAgeGroup, sessionId]);
 
   let apparatusClass = "relative w-full max-w-[600px] h-[300px] sm:h-[400px] mx-auto rounded-[32px] border flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ease-out z-20 backdrop-blur-[10px] touch-none select-none";
-  let timerClass = "font-mono text-5xl sm:text-7xl font-light tracking-tighter transition-colors duration-100 ease-in mb-2 text-[var(--text-muted)]";
-  let statusClass = "font-['Space_Grotesk'] text-[1.1rem] font-medium tracking-[1px] uppercase transition-colors duration-100 ease-in text-[var(--text-muted)]";
+  let timerClass = "font-mono text-5xl sm:text-7xl font-light tracking-tighter transition-colors duration-100 ease-out mb-2 text-[var(--text-muted)]";
+  let statusClass = "font-['Space_Grotesk'] text-[1.1rem] font-medium tracking-[1px] uppercase transition-colors duration-100 ease-out text-[var(--text-muted)]";
   
 
   if (engineState === 'AWAITING_STIMULUS' || engineState === 'STARTING') {
@@ -738,10 +738,10 @@ return (
           }
         `}</style>
         
-        <div className="absolute top-0 left-0 w-full h-[2px] bg-[var(--border-subtle)]">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-[var(--border-subtle)] overflow-hidden">
           <div 
-            className="h-full bg-[var(--accent)] transition-all duration-300 ease-out"
-            style={{ width: `${(currentTrial / TOTAL_TRIALS) * 100}%` }}
+            className="h-full w-full bg-[var(--accent)] origin-left transition-transform duration-300 ease-out"
+            style={{ transform: `scaleX(${Math.min(1, currentTrial / TOTAL_TRIALS)})` }}
           ></div>
         </div>
 

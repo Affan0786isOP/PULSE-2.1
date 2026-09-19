@@ -212,7 +212,7 @@ export function Improve({
 
         <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 xl:gap-16">
           <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-8 self-start z-10 px-4 sm:px-6 lg:px-0 order-1 lg:order-1 flex justify-center lg:justify-start">
-            <div className="w-full max-w-full sm:max-w-sm lg:max-w-none bg-[var(--surface-1)]/60 backdrop-blur-sm lg:bg-transparent p-3 sm:p-4 lg:p-0 rounded-xl border border-[var(--border-subtle)] lg:border-none shadow-sm lg:shadow-none mb-4 lg:mb-0">
+            <div className="w-full max-w-full sm:max-w-sm lg:max-w-none bg-[var(--surface-1)]/60 backdrop-blur-sm lg:bg-transparent p-3 sm:p-4 lg:p-0 rounded-xl border border-[var(--border-subtle)] lg:border-none mb-4 lg:mb-0">
               <HookSidebar
                 items={improveSections}
                 value={activeIndex}
@@ -234,7 +234,7 @@ export function Improve({
             <div className="text-center md:text-left border-b border-[var(--border-subtle)] pb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-xs font-mono mb-3">
                 <Sparkles size={13} />
-                <span>SCIENTIFIC PROTOCOL</span>
+                <span>Scientific protocol</span>
               </div>
               <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)] mb-3">
                 Evidence-Based Performance &amp; Consistency
@@ -248,7 +248,7 @@ export function Improve({
             <section id="factors" className="scroll-mt-8">
               <div className="mb-6 text-center md:text-left">
                 <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                  VARIABLE MATRIX
+                  Biological &amp; environmental factors
                 </span>
                 <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
                   What Affects Measured Reaction Time?
@@ -266,7 +266,7 @@ export function Improve({
                   return (
                     <div
                       key={`factor-${factor.id}`}
-                      className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-4.5 flex flex-col justify-between shadow-sm transition-colors hover:border-[var(--border-default)]"
+                      className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-4.5 flex flex-col justify-between transition-colors hover:border-[var(--border-default)]"
                     >
                       <div>
                         <div className="flex items-center justify-between mb-3">
@@ -307,7 +307,7 @@ export function Improve({
               <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="text-center sm:text-left">
                   <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                    HABIT PREPARATION
+                    Habit preparation
                   </span>
                   <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-1">
                     Daily Habit Preparation Checklist
@@ -320,7 +320,7 @@ export function Improve({
                   <button
                     type="button"
                     onClick={handleResetChecklist}
-                    className="self-center sm:self-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-mono transition-colors cursor-pointer"
+                    className="self-center sm:self-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-mono transition-[transform,background-color,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] cursor-pointer"
                   >
                     <RotateCcw size={12} />
                     <span>Reset Checklist</span>
@@ -328,7 +328,7 @@ export function Improve({
                 )}
               </div>
 
-              <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 shadow-sm">
+              <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8">
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-medium text-xs sm:text-sm text-[var(--text-primary)]">
@@ -419,7 +419,7 @@ export function Improve({
                     setIsLedgerPaused(false);
                   }
                 }}
-                className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm"
+                className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 relative overflow-hidden"
               >
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[var(--border-subtle)]">
                   <div className="flex items-center gap-2.5">
@@ -474,7 +474,7 @@ export function Improve({
                     <button
                       type="button"
                       onClick={handlePrevSlide}
-                      className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 text-[var(--text-primary)] transition-all cursor-pointer flex items-center justify-center"
+                      className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 text-[var(--text-primary)] transition-[transform,background-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] cursor-pointer flex items-center justify-center"
                       aria-label="Previous observation"
                     >
                       <ChevronLeft size={16} />
@@ -482,7 +482,7 @@ export function Improve({
                     <button
                       type="button"
                       onClick={handleNextSlide}
-                      className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 text-[var(--text-primary)] transition-all cursor-pointer flex items-center justify-center"
+                      className="w-8 h-8 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 text-[var(--text-primary)] transition-[transform,background-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] cursor-pointer flex items-center justify-center"
                       aria-label="Next observation"
                     >
                       <ChevronRight size={16} />
@@ -496,13 +496,13 @@ export function Improve({
             <section id="expectations" className="scroll-mt-8">
               <div className="mb-4 text-center md:text-left">
                 <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                  EXPECTATION MANAGEMENT
+                  Expectation management
                 </span>
                 <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
                   Can Everyone Improve Their Results?
                 </h2>
               </div>
-              <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 space-y-3.5 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed shadow-sm">
+              <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 space-y-3.5 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
                 <p>
                   While absolute physiological limits set a floor on neural transmission speed, day-to-day variance is heavily driven by focus drift, sleep debt, and environmental distractions.
                 </p>
@@ -524,7 +524,7 @@ export function Improve({
             <section id="recommendations" className="scroll-mt-8">
               <div className="mb-6 text-center md:text-left">
                 <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                  PULSE PROTOCOL
+                  Protocol recommendations
                 </span>
                 <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
                   System Recommendations
@@ -560,10 +560,10 @@ export function Improve({
                 ].map((tip) => (
                   <div
                     key={`tip-${tip.num}-${tip.title}`}
-                    className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-sm flex flex-col justify-between hover:border-[var(--border-default)] transition-colors"
+                    className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 flex flex-col justify-between hover:border-[var(--border-default)] transition-colors"
                   >
                     <div className="font-mono text-xs font-semibold text-[var(--accent)] mb-2">
-                      RECOMMENDATION {tip.num}
+                      Recommendation {tip.num}
                     </div>
                     <h3 className="font-heading font-semibold text-sm text-[var(--text-primary)] mb-1">
                       {tip.title}
@@ -582,7 +582,7 @@ export function Improve({
                 <button
                   type="button"
                   onClick={() => onNavigate("assessments")}
-                  className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium text-xs tracking-wider uppercase px-6 py-3 rounded-md transition-colors font-bold cursor-pointer inline-flex items-center justify-center gap-2 shadow-sm active:scale-98"
+                  className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-medium text-xs tracking-wider uppercase px-6 py-3 rounded-md transition-[transform,background-color] font-bold cursor-pointer inline-flex items-center justify-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
                   <span>Take assessments</span>
                   <ArrowRight size={15} />
@@ -590,7 +590,7 @@ export function Improve({
                 <button
                   type="button"
                   onClick={() => onNavigate("home")}
-                  className="border border-[var(--border-default)] hover:border-[var(--border-strong)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-primary)] font-medium text-xs tracking-wider uppercase px-6 py-3 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center gap-2 active:scale-98"
+                  className="border border-[var(--border-default)] hover:border-[var(--border-strong)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-primary)] font-medium text-xs tracking-wider uppercase px-6 py-3 rounded-md transition-[transform,background-color,border-color] cursor-pointer inline-flex items-center justify-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
                   <span>Return home</span>
                 </button>

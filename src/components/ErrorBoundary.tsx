@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-[#0B0D10] text-[#e2e8f0] flex flex-col items-center justify-center p-6 font-sans select-none">
-          <div className="w-full max-w-md bg-[#0b101b] border border-[#1e293b] rounded-xl p-6 shadow-2xl text-center flex flex-col items-center">
+          <div className="w-full max-w-md bg-[#0b101b] border border-[#1e293b] rounded-xl p-6 text-center flex flex-col items-center">
             <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-4">
               <AlertCircle size={24} />
             </div>
@@ -50,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleReload}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-sm transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 active:scale-95 active:bg-cyan-600 text-slate-950 font-semibold text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 cursor-pointer"
             >
               <RotateCcw size={16} />
               Reload Application

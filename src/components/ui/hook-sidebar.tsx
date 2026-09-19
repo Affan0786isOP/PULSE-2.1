@@ -42,7 +42,7 @@ export function HookSidebar({
                   borderLeftColor: isActive ? color : 'transparent',
                   color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                 }}
-                className={`w-full text-left px-3 py-1.5 rounded-r-md text-xs font-mono transition-all duration-150 border-l-2 cursor-pointer ${
+                className={`w-full text-left px-3 py-1.5 rounded-r-md text-xs font-mono transition-colors duration-150 border-l-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] active:bg-[var(--surface-2)] ${
                   isActive
                     ? 'bg-[var(--surface-2)]/70 font-semibold'
                     : 'hover:bg-[var(--surface-1)] hover:text-[var(--text-primary)]'

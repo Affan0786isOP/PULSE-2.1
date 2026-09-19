@@ -145,7 +145,7 @@ export function AddToHomeScreenModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.96 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-t-2xl sm:rounded-xl overflow-hidden text-left max-h-[90vh] flex flex-col my-auto outline-none shadow-2xl"
+            className="relative z-10 w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-default)] rounded-t-2xl sm:rounded-xl overflow-hidden text-left max-h-[90vh] flex flex-col my-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             style={{
               paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px))'
             }}
@@ -153,7 +153,7 @@ export function AddToHomeScreenModal({
             {/* Header Banner */}
             <div className="relative px-5 pt-5 pb-4 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0 overflow-hidden">
+                <div className="w-10 h-10 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0 overflow-hidden">
                   <img 
                     src="/icon-192.png" 
                     alt="PULSE Icon" 

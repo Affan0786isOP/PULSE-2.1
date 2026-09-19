@@ -31,7 +31,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
             <h1 className="font-heading font-black text-3xl md:text-4xl text-[var(--text-main)] tracking-wide uppercase">
               Research Privacy Policy
             </h1>
-            <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed">
+            <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed max-w-[65ch]">
               At PULSE (Precision User Latency &amp; Stimulus Evaluator), privacy and open scientific transparency are core to our mission. This policy details our data governance practices, telemetry architecture, multi-tiered data boundaries, and local storage controls.
             </p>
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-[var(--text-muted)] pt-1">
@@ -41,7 +41,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
                 href="https://github.com/Affan0786isOP/PULSE-2.1" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-[var(--cyan-primary)] hover:underline inline-flex items-center gap-1"
+                className="text-[var(--cyan-primary)] hover:underline active:opacity-70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] rounded-xs inline-flex items-center gap-1"
               >
                 <Globe size={12} />
                 <span>Open-Source Repository</span>
@@ -51,7 +51,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
                 href="https://github.com/Affan0786isOP/PULSE-2.1/issues" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-[var(--cyan-primary)] hover:underline inline-flex items-center gap-1"
+                className="text-[var(--cyan-primary)] hover:underline active:opacity-70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] rounded-xs inline-flex items-center gap-1"
               >
                 <HelpCircle size={12} />
                 <span>Data Inquiries &amp; Requests</span>
@@ -65,7 +65,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
               <Layers size={20} className="text-[var(--cyan-primary)]" />
               <h2 className="font-heading font-bold text-xl text-[var(--text-main)] tracking-wide">Data Architecture &amp; Classification</h2>
             </div>
-            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-sm space-y-4">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                 PULSE operates on a strict multi-tier data model designed to isolate ephemeral client state, public research observations, competitive rankings, and operational infrastructure logs:
               </p>
@@ -117,7 +117,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
               <Database size={20} className="text-[var(--cyan-primary)]" />
               <h2 className="font-heading font-bold text-xl text-[var(--text-main)] tracking-wide">Telemetry &amp; Calibration Parameters</h2>
             </div>
-            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-sm space-y-4">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                 To guarantee empirical precision across diverse consumer hardware, PULSE records performance metrics alongside experimental and display calibration metadata:
               </p>
@@ -144,7 +144,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
               <Lock size={20} className="text-[var(--cyan-primary)]" />
               <h2 className="font-heading font-bold text-xl text-[var(--text-main)] tracking-wide">Anonymization &amp; Authentication Boundary</h2>
             </div>
-            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-sm space-y-4">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                 PULSE separates operational authentication tokens from published research observations to ensure complete participant anonymity:
               </p>
@@ -171,7 +171,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
               <Users size={20} className="text-[var(--cyan-primary)]" />
               <h2 className="font-heading font-bold text-xl text-[var(--text-main)] tracking-wide">Age Cohorts &amp; Minor Safeguards</h2>
             </div>
-            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-sm space-y-4">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                 Age context is collected solely in broad demographic brackets (e.g., "18–25", "26–35") rather than specific dates of birth, preventing precise age identification.
               </p>
@@ -190,7 +190,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
               <RefreshCw size={20} className="text-[var(--cyan-primary)]" />
               <h2 className="font-heading font-bold text-xl text-[var(--text-main)] tracking-wide">Data Persistence &amp; Local Storage Controls</h2>
             </div>
-            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-sm space-y-4">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                 Validated assessment submissions and aggregate leaderboard entries are persisted in our managed cloud database (Firestore). Because research submissions are completely anonymous and stripped of identifying tokens, individual historical research entries cannot be retroactively linked or isolated for an individual participant.
               </p>
@@ -209,8 +209,8 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
               <HelpCircle size={20} className="text-[var(--cyan-primary)]" />
               <h2 className="font-heading font-bold text-xl text-[var(--text-main)] tracking-wide">Contact &amp; Data Inquiries</h2>
             </div>
-            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-sm space-y-3">
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-3">
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-[65ch]">
                 If you have questions regarding data handling, methodology transparency, or privacy practices within the PULSE project, please contact our maintainers or file an issue through our public tracker:
               </p>
               <div className="pt-1">
@@ -218,7 +218,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
                   href="https://github.com/Affan0786isOP/PULSE-2.1/issues" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--cyan-badge-bg)] hover:bg-[var(--cyan-badge-border)] text-[var(--cyan-primary)] border border-[var(--cyan-badge-border)] rounded-lg text-sm font-medium transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--cyan-badge-bg)] hover:bg-[var(--cyan-badge-border)] active:scale-95 active:opacity-90 text-[var(--cyan-primary)] border border-[var(--cyan-badge-border)] rounded-lg text-sm font-medium transition-[transform,background-color,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
                   <span>Submit an Inquiry on GitHub Issues</span>
                   <ExternalLink size={14} />

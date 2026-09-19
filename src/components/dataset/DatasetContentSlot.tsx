@@ -95,7 +95,7 @@ export function DatasetContentSlot({
             </thead>
             <tbody className="divide-y divide-[var(--border-subtle)] text-[var(--text-secondary)]">
               {sectionObservations.slice(0, 50).map((obs, i) => (
-                <tr key={obs.id || i} className="hover:bg-[var(--surface-2)]/40 transition-colors">
+                <tr key={obs.id || i} className="hover:bg-[var(--surface-2)]/40 active:bg-[var(--surface-2)]/60 transition-colors">
                   <td className="py-2.5 px-4 text-[var(--text-primary)] font-medium">
                     {obs.id.slice(0, 10)}...
                   </td>

@@ -20,7 +20,7 @@ const ModalLoadingFallback = () => (
     aria-live="polite"
     className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
   >
-    <div className="p-3 rounded-xl bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-subtle)] shadow-xl flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono pointer-events-auto">
+    <div className="p-3 rounded-xl bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-subtle)] flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono pointer-events-auto">
       <RefreshCw size={14} className="animate-spin text-[var(--accent)]" aria-hidden="true" />
       <span>Loading dialog...</span>
     </div>
@@ -320,7 +320,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             role="status"
             aria-live="polite"
             style={{ top: 'max(3.5rem, calc(env(safe-area-inset-top, 0px) + 3.5rem))' }}
-            className="fixed left-4 right-4 z-40 max-w-sm mx-auto p-2.5 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-default)] shadow-xl text-[var(--text-primary)] flex items-center justify-between gap-2 text-xs"
+            className="fixed left-4 right-4 z-40 max-w-sm mx-auto p-2.5 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-default)] text-[var(--text-primary)] flex items-center justify-between gap-2 text-xs"
           >
             <div className="flex items-center gap-2 min-w-0">
               <AlertCircle size={14} aria-hidden="true" className="shrink-0 text-[var(--accent)]" />
@@ -521,7 +521,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             style={{ bottom: 'max(1.25rem, calc(env(safe-area-inset-bottom, 0px) + 1.25rem))' }}
-            className="fixed left-4 right-4 z-40 max-w-sm mx-auto p-2.5 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-default)] shadow-xl text-[var(--text-secondary)] flex items-center justify-between gap-2 text-left"
+            className="fixed left-4 right-4 z-40 max-w-sm mx-auto p-2.5 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-default)] text-[var(--text-secondary)] flex items-center justify-between gap-2 text-left"
           >
             <div className="flex items-center gap-2 min-w-0">
               <AlertCircle size={14} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />

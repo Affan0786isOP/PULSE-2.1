@@ -178,7 +178,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         </div>
 
         {/* Leaderboard Entries List — Clean, Decluttered & 100% Mobile Fitting */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3 sm:p-4 backdrop-blur-xl shadow-lg flex-1 min-w-0">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3 sm:p-4 backdrop-blur-xl flex-1 min-w-0">
           {loading ? (
             <div className="py-2">
               <SkeletonTable rows={6} cols={3} />

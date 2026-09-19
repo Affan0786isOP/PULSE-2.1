@@ -332,23 +332,23 @@
   animation-delay: 0.08s;
 }
 
-/* Instant Reduced Motion & Animation Suppression (does not affect research timing) */
+/* Gentle, Non-Vestibular Reduced Motion Equivalents (Preserves feedback receipts without vestibular triggers) */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001ms !important;
+    animation-duration: 0.1s !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+    transition-duration: 0.1s !important;
     scroll-behavior: auto !important;
   }
 }
 
 [data-reduced-motion="true"] *,
 .reduced-motion * {
-  animation-duration: 0.001ms !important;
+  animation-duration: 0.1s !important;
   animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
+  transition-duration: 0.1s !important;
   scroll-behavior: auto !important;
 }
 

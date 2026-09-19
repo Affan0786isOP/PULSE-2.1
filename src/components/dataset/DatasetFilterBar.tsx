@@ -31,7 +31,7 @@ export function DatasetFilterBar({
         <select
           value={filters.assessmentType || 'all'}
           onChange={(e) => setFilters((prev) => ({ ...prev, assessmentType: e.target.value }))}
-          className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-xs font-mono text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+          className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1 text-xs font-mono text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface-1)] cursor-pointer"
         >
           <option value="all">All Protocols</option>
           <option value="visual-reaction">Visual Reaction</option>
@@ -45,7 +45,7 @@ export function DatasetFilterBar({
           <button
             type="button"
             onClick={resetFilters}
-            className="flex items-center gap-1 text-xs font-mono text-rose-400 hover:text-rose-300 ml-1 cursor-pointer"
+            className="flex items-center gap-1 text-xs font-mono text-[var(--danger)] hover:opacity-90 active:scale-95 active:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)] rounded-xs ml-1 cursor-pointer transition-[opacity,transform]"
           >
             <X size={12} />
             <span>Reset ({activeFilterCount})</span>

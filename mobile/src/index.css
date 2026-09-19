@@ -9,12 +9,14 @@
 
   html, body {
     scroll-behavior: smooth;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--bg-base);
     color: var(--text-main);
   }
   
   :root, :root[data-theme="dark"] {
+    color-scheme: dark;
+    caret-color: var(--accent);
     --font-size: 100%;
     --font-scale: 1;
     /* Semantic Surfaces */
@@ -94,6 +96,8 @@
   }
 
   :root[data-theme="light"] {
+    color-scheme: light;
+    caret-color: var(--accent);
     /* Semantic Surfaces */
     --surface-0: #F8FAFC;
     --surface-1: #FFFFFF;
@@ -204,7 +208,7 @@
 }
 
 .font-sans {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .font-mono {
@@ -249,12 +253,23 @@
   scrollbar-width: none !important;
 }
 
-/* Instant Reduced Motion & Animation Suppression */
+/* Gentle, Non-Vestibular Reduced Motion Equivalents */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.1s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.1s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 [data-reduced-motion="true"] *,
 .reduced-motion * {
-  animation-duration: 0.001ms !important;
+  animation-duration: 0.1s !important;
   animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
+  transition-duration: 0.1s !important;
   scroll-behavior: auto !important;
 }
 
@@ -279,6 +294,22 @@ textarea:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--focus-ring) !important;
   outline-offset: 2px !important;
+}
+
+/* Themed Micro-Surfaces */
+::selection {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.tabular,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 

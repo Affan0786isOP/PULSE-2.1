@@ -29,10 +29,10 @@ export function ScrollProgress({
             key={section.id}
             type="button"
             onClick={() => onSelectSection?.(section, idx)}
-            className={`px-3 py-1 rounded-full text-xs font-mono whitespace-nowrap transition-colors border cursor-pointer ${
+            className={`px-3 py-1 rounded-full text-xs font-mono whitespace-nowrap transition-[transform,background-color,border-color,color] border cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] active:scale-95 ${
               isActive
-                ? 'bg-[var(--accent)] text-white border-[var(--accent)] font-semibold shadow-sm'
-                : 'bg-[var(--surface-1)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]'
+                ? 'bg-[var(--accent)] text-white border-[var(--accent)] font-semibold'
+                : 'bg-[var(--surface-1)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] active:bg-[var(--surface-2)]'
             }`}
           >
             {section.label}

@@ -18,7 +18,7 @@ const ModalLoadingFallback = () => (
     aria-live="polite"
     className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
   >
-    <div className="p-3 rounded-xl bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-subtle)] shadow-xl flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono pointer-events-auto">
+    <div className="p-3 rounded-xl bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-subtle)] flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono pointer-events-auto">
       <RefreshCw size={14} className="animate-spin text-[var(--accent)]" aria-hidden="true" />
       <span>Loading dialog...</span>
     </div>
@@ -316,7 +316,7 @@ export function Navbar({
               animate={{ opacity: 1, y: 0, scaleY: 1 }}
               exit={{ opacity: 0, y: -6, scaleY: 0.96 }}
               transition={{ duration: 0.16, ease: "easeOut" }}
-              className="absolute top-full left-0 w-full bg-[var(--surface-1)] border-b border-[var(--border-subtle)] flex flex-col p-4 gap-1 lg:hidden z-50 origin-top shadow-xl"
+              className="absolute top-full left-0 w-full bg-[var(--surface-1)] border-b border-[var(--border-subtle)] flex flex-col p-4 gap-1 lg:hidden z-50 origin-top"
             >
               {navItems.map(item => (
                 <Link

@@ -3,7 +3,6 @@ import { Navbar } from './Navbar';
 import { AgeSelection } from './AgeSelection';
 import { Activity, RefreshCw } from 'lucide-react';
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
@@ -259,7 +258,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     }
 
     setEngineState('AWAITING_STIMULUS'); engineStateRef.current = 'AWAITING_STIMULUS';
-    setStatusMessage('Wait for screen to turn white...');
+    setStatusMessage('Wait for screen flash...');
     if (timerRef.current) timerRef.current.textContent = "000.0";
     setInputPrompt("HOLD POSITION... DO NOT TRIGGER");
 
@@ -526,19 +525,19 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   }, [selectedAgeGroup, sessionId]);
 
   let apparatusClass = "w-[90%] max-w-[800px] h-[450px] bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl flex flex-col items-center justify-center relative cursor-pointer transition-colors duration-150 touch-none select-none";
-  let timerClass = "font-mono font-bold tracking-tight leading-none mb-3 transition-colors duration-100 ease-in text-[clamp(3.5rem,8vw,5.5rem)] text-[var(--text-muted)]";
-  let statusClass = "text-base font-medium tracking-normal transition-colors duration-100 ease-in text-[var(--text-muted)] whitespace-pre-line";
+  let timerClass = "font-mono font-bold tracking-tight leading-none mb-3 transition-colors duration-100 ease-out text-[clamp(3.5rem,8vw,5.5rem)] text-[var(--text-muted)]";
+  let statusClass = "text-base font-medium tracking-normal transition-colors duration-100 ease-out text-[var(--text-muted)] whitespace-pre-line";
 
   if (engineState === 'STARTING') {
     apparatusClass += " !border-[var(--border-default)]";
     statusClass += " !text-[var(--text-primary)]";
   } else if (engineState === 'AWAITING_STIMULUS') {
-    apparatusClass += " !border-amber-500/40";
-    statusClass += " !text-amber-400";
+    apparatusClass += " !border-[var(--warning)]/40";
+    statusClass += " !text-[var(--warning)]";
   } else if (engineState === 'STIMULUS_ACTIVE') {
-    apparatusClass += " !bg-[#ffffff] !border-[#ffffff]";
-    timerClass += " !text-[#000000]";
-    statusClass += " !text-[#000000] !font-bold";
+    apparatusClass += " !bg-[var(--text-primary)] !border-[var(--text-primary)]";
+    timerClass += " !text-[var(--surface-0)]";
+    statusClass += " !text-[var(--surface-0)] !font-bold";
   } else if (engineState === 'TRIAL_COMPLETE') {
     const isError = statusMessage === 'False Start' || statusMessage === 'Too Slow';
     if (isError) {
@@ -651,8 +650,9 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
             <h2 className="text-lg font-bold text-[var(--text-main)]">Session Initialization Failed</h2>
             <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
             <button
+              type="button"
               onClick={() => initSession(selectedAgeGroup)}
-              className="px-6 py-2.5 rounded-xl bg-[var(--cyan-primary)] text-black font-semibold hover:opacity-90 transition flex items-center gap-2"
+              className="min-h-[44px] px-6 py-2.5 rounded-xl bg-[var(--cyan-primary)] text-black font-semibold hover:opacity-90 active:scale-95 active:opacity-80 transition-[transform,opacity] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] flex items-center gap-2 cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" /> Retry Connection
             </button>
@@ -696,10 +696,10 @@ return (
           transition={{ duration: 0.5 }}
           className="w-full h-full flex flex-col items-center justify-center relative flex-1"
         >
-          <div className="absolute top-0 left-0 w-full h-[4px] bg-white/5">
+          <div className="absolute top-0 left-0 w-full h-[4px] bg-white/5 overflow-hidden">
           <div 
-            className="h-full bg-[var(--cyan-primary)] transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]" 
-            style={{ width: `${(currentTrial / TOTAL_TRIALS) * 100}%` }}
+            className="w-full h-full bg-[var(--cyan-primary)] origin-left transition-transform duration-250 ease-out" 
+            style={{ transform: `scaleX(${Math.min(1, currentTrial / TOTAL_TRIALS)})` }}
           ></div>
         </div>
 

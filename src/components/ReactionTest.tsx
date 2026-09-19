@@ -3,7 +3,6 @@ import { Navbar } from './Navbar';
 import { AgeSelection } from './AgeSelection';
 import { Activity, RefreshCw } from 'lucide-react';
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { submitAssessmentResult, startExperimentSession, AgeGroup, VrtTrialObservation } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
@@ -264,7 +263,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     stimulusPresentedAtRef.current = 0;
 
     setEngineState('AWAITING_STIMULUS'); engineStateRef.current = 'AWAITING_STIMULUS';
-    setStatusMessage('Wait for screen to turn white...');
+    setStatusMessage('Wait for screen flash...');
     if (timerRef.current) timerRef.current.textContent = "000.0";
     setInputPrompt("HOLD POSITION... DO NOT TRIGGER");
 
@@ -631,12 +630,12 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     apparatusClass += " !border-[var(--border-default)]";
     statusClass += " !text-[var(--text-primary)]";
   } else if (engineState === 'AWAITING_STIMULUS') {
-    apparatusClass += " !border-amber-500/40";
-    statusClass += " !text-amber-400";
+    apparatusClass += " !border-[var(--warning)]/40";
+    statusClass += " !text-[var(--warning)]";
   } else if (engineState === 'STIMULUS_ACTIVE') {
-    apparatusClass += " !bg-[#ffffff] !border-[#ffffff]";
-    timerClass += " !text-[#000000]";
-    statusClass += " !text-[#000000] !font-bold";
+    apparatusClass += " !bg-[var(--text-primary)] !border-[var(--text-primary)]";
+    timerClass += " !text-[var(--surface-0)]";
+    statusClass += " !text-[var(--surface-0)] !font-bold";
   } else if (engineState === 'TRIAL_COMPLETE') {
     const isError = statusMessage === 'False Start' || statusMessage === 'Too Slow';
     if (isError) {
