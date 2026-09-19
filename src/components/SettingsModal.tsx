@@ -777,6 +777,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         isIos={pwa.isIos}
         isSafari={pwa.isSafari}
         isIosSafari={pwa.isIosSafari}
+        isIosChrome={pwa.isIosChrome}
         isIosOtherBrowser={pwa.isIosOtherBrowser}
         isInstallable={pwa.isInstallable}
         hasNativePrompt={pwa.hasNativePrompt}

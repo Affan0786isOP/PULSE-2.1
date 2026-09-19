@@ -25,6 +25,7 @@ export interface AddToHomeScreenModalProps {
   isIos: boolean;
   isSafari?: boolean;
   isIosSafari?: boolean;
+  isIosChrome?: boolean;
   isIosOtherBrowser?: boolean;
   isInstallable?: boolean;
   hasNativePrompt?: boolean;
@@ -41,6 +42,7 @@ export function AddToHomeScreenModal({
   isIos,
   isSafari,
   isIosSafari: propIsIosSafari,
+  isIosChrome: propIsIosChrome,
   isIosOtherBrowser: propIsIosOtherBrowser,
   isInstallable,
   hasNativePrompt = false,
@@ -66,8 +68,15 @@ export function AddToHomeScreenModal({
     modalId: 'mobile-pwa-install-modal'
   });
 
-  const isIosSafari = typeof propIsIosSafari === 'boolean' ? propIsIosSafari : (isIos && (isSafari ?? true));
-  const isIosOtherBrowser = typeof propIsIosOtherBrowser === 'boolean' ? propIsIosOtherBrowser : (isIos && !isIosSafari);
+  const isIosChrome = typeof propIsIosChrome === 'boolean'
+    ? propIsIosChrome
+    : (isIos && typeof window !== 'undefined' && /CriOS/i.test(window.navigator.userAgent));
+  const isIosSafari = typeof propIsIosSafari === 'boolean' 
+    ? propIsIosSafari 
+    : (isIos && (isSafari ?? true) && !isIosChrome);
+  const isIosOtherBrowser = typeof propIsIosOtherBrowser === 'boolean' 
+    ? propIsIosOtherBrowser 
+    : (isIos && !isIosSafari && !isIosChrome && !isUnsupportedBrowser);
 
   const handleInstallClick = async () => {
     playAudioCue('click');
@@ -220,25 +229,7 @@ export function AddToHomeScreenModal({
                   </div>
 
                   {/* Device & Browser Specific Instructions */}
-                  {isIosOtherBrowser ? (
-                    <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2.5">
-                      <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
-                        <AlertTriangle size={15} />
-                        <span>Apple Safari Required on iOS</span>
-                      </div>
-                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                        iOS only permits adding web applications to your Home Screen from <strong className="text-[var(--text-primary)]">Apple Safari</strong>. Third-party browsers (Chrome, Firefox, Edge) cannot trigger Home Screen installation on iOS.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={handleCopyLink}
-                        className="w-full py-2 px-3 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                      >
-                        {copiedLink ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-                        <span>{copiedLink ? 'Link Copied — Paste into Safari' : 'Copy URL for Safari'}</span>
-                      </button>
-                    </div>
-                  ) : isUnsupportedBrowser ? (
+                  {isUnsupportedBrowser ? (
                     <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2">
                       <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
                         <ExternalLink size={15} />
@@ -247,6 +238,80 @@ export function AddToHomeScreenModal({
                       <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                         In-app browsers (social media and messaging webviews) do not support home screen installation. Open this page directly in <strong className="text-[var(--text-primary)]">Chrome</strong> or <strong className="text-[var(--text-primary)]">Safari</strong> to install.
                       </p>
+                    </div>
+                  ) : isIosChrome ? (
+                    <div className="space-y-2.5">
+                      <div className="text-xs font-mono font-bold text-[var(--accent)] uppercase tracking-wider flex items-center gap-1.5">
+                        <Smartphone size={13} />
+                        <span>iOS Chrome Quick Steps</span>
+                      </div>
+
+                      <div className="space-y-2 text-xs font-mono">
+                        {/* Step 1 */}
+                        <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center gap-2.5">
+                          <div className="w-5 h-5 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] font-bold text-[11px] flex items-center justify-center shrink-0">
+                            1
+                          </div>
+                          <div className="flex-1 flex items-center justify-between gap-2">
+                            <span className="text-[var(--text-secondary)] font-sans">
+                              Tap the <strong className="text-[var(--text-primary)] font-semibold">Share</strong> or <strong className="text-[var(--text-primary)] font-semibold">Menu (⋯)</strong> icon in Chrome
+                            </span>
+                            <div className="px-2 py-0.5 rounded bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] shrink-0 flex items-center gap-1">
+                              <Share size={11} />
+                              <span className="text-[10px]">Share</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Step 2 */}
+                        <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center gap-2.5">
+                          <div className="w-5 h-5 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] font-bold text-[11px] flex items-center justify-center shrink-0">
+                            2
+                          </div>
+                          <div className="flex-1 flex items-center justify-between gap-2">
+                            <span className="text-[var(--text-secondary)] font-sans">
+                              Scroll down and tap <strong className="text-[var(--text-primary)] font-semibold">Add to Home Screen</strong>
+                            </span>
+                            <div className="px-2 py-0.5 rounded bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] shrink-0 flex items-center gap-1">
+                              <SquarePlus size={11} />
+                              <span className="text-[10px]">Add</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Step 3 */}
+                        <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center gap-2.5">
+                          <div className="w-5 h-5 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] font-bold text-[11px] flex items-center justify-center shrink-0">
+                            3
+                          </div>
+                          <div className="flex-1 flex items-center justify-between gap-2">
+                            <span className="text-[var(--text-secondary)] font-sans">
+                              Tap <strong className="text-[var(--text-primary)] font-semibold">Add</strong> in the top right corner
+                            </span>
+                            <div className="px-2 py-0.5 rounded bg-[var(--accent)] text-slate-950 font-bold text-[10px] shrink-0">
+                              Add
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isIosOtherBrowser ? (
+                    <div className="p-3.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] space-y-2.5">
+                      <div className="flex items-center gap-2 text-[var(--accent)] font-bold text-xs">
+                        <Smartphone size={15} />
+                        <span>Add to Home Screen on iOS</span>
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                        Tap your browser's <strong className="text-[var(--text-primary)]">Share</strong> or <strong className="text-[var(--text-primary)]">Menu</strong> button and select <strong className="text-[var(--text-primary)]">Add to Home Screen</strong>, or copy the URL to open in Safari / Chrome.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleCopyLink}
+                        className="w-full py-2 px-3 rounded-lg bg-[var(--surface-3)] hover:bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                      >
+                        {copiedLink ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                        <span>{copiedLink ? 'Link Copied' : 'Copy Page URL'}</span>
+                      </button>
                     </div>
                   ) : isIosSafari ? (
                     <div className="space-y-2.5">

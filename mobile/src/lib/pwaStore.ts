@@ -45,6 +45,7 @@ export interface PwaState {
   isIpadOs: boolean;
   isSafari: boolean;
   isIosSafari: boolean;
+  isIosChrome: boolean;
   isIosOtherBrowser: boolean;
   isMobile: boolean;
 
@@ -93,6 +94,7 @@ export function detectBrowserAndPlatform(): {
   isIpadOs: boolean;
   isSafari: boolean;
   isIosSafari: boolean;
+  isIosChrome: boolean;
   isIosOtherBrowser: boolean;
   isMobile: boolean;
   isUnsupportedBrowser: boolean;
@@ -105,6 +107,7 @@ export function detectBrowserAndPlatform(): {
       isIpadOs: false,
       isSafari: false,
       isIosSafari: false,
+      isIosChrome: false,
       isIosOtherBrowser: false,
       isMobile: false,
       isUnsupportedBrowser: false,
@@ -124,11 +127,14 @@ export function detectBrowserAndPlatform(): {
   const isInAppBrowser = /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|TikTok|MicroMessenger|musical_ly|WebView|wv/i.test(ua);
   const isWebKit = /WebKit/i.test(ua);
   
-  // Third-party browsers on iOS (CriOS = Chrome, FxiOS = Firefox, EdgiOS = Edge, OPiOS = Opera)
-  const isIosOtherBrowser = isIos && !isInAppBrowser && /CriOS|FxiOS|OPiOS|EdgiOS|mercury|Chrome/i.test(ua);
+  // iOS Chrome (CriOS)
+  const isIosChrome = isIos && !isInAppBrowser && /CriOS/i.test(ua);
   
   // Apple Safari on iOS / iPadOS
-  const isIosSafari = isIos && isWebKit && !isIosOtherBrowser && !isInAppBrowser;
+  const isIosSafari = isIos && isWebKit && !isIosChrome && !isInAppBrowser && !/FxiOS|OPiOS|EdgiOS|mercury|Chrome/i.test(ua);
+
+  // Other third-party browsers on iOS
+  const isIosOtherBrowser = isIos && !isInAppBrowser && !isIosSafari && !isIosChrome;
 
   // General Safari (macOS or iOS)
   const isSafari = /Safari/i.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR/i.test(ua) && !isInAppBrowser;
@@ -141,17 +147,18 @@ export function detectBrowserAndPlatform(): {
   const isChromium = /Chrome|Chromium|Edg|OPR|SamsungBrowser/i.test(ua) && !isIos;
   const isInstallPromptSupported = isChromium && !isInAppBrowser;
 
-  // iOS Safari supports manual Add to Home Screen via Share sheet
-  const isManualInstallOnly = isIosSafari;
+  // iOS browsers (Safari, Chrome, etc.) support manual Add to Home Screen via Share sheet / menu
+  const isManualInstallOnly = isIos && !isInAppBrowser;
 
-  // Unsupported browsers: in-app webviews, or non-Safari browsers on iOS (where Apple restricts Home Screen adding)
-  const isUnsupportedBrowser = isInAppBrowser || isIosOtherBrowser;
+  // Unsupported browsers: in-app / social webviews where Add to Home Screen is genuinely blocked
+  const isUnsupportedBrowser = isInAppBrowser;
 
   return {
     isIos,
     isIpadOs,
     isSafari,
     isIosSafari,
+    isIosChrome,
     isIosOtherBrowser,
     isMobile,
     isUnsupportedBrowser,
@@ -225,6 +232,7 @@ function computeCurrentState(): PwaState {
     isIpadOs: platform.isIpadOs,
     isSafari: platform.isSafari,
     isIosSafari: platform.isIosSafari,
+    isIosChrome: platform.isIosChrome,
     isIosOtherBrowser: platform.isIosOtherBrowser,
     isMobile: platform.isMobile,
     isOffline,
@@ -292,6 +300,14 @@ export async function promptInstall(): Promise<boolean> {
         notify();
         return true;
       }
+      // User dismissed native prompt: restore actionable manual/fallback install state
+      currentState = {
+        ...currentState,
+        hasNativePrompt: false,
+        isInstallable: true,
+        isGuideOpen: false
+      };
+      notify();
       return false;
     } catch (err) {
       console.error('Error invoking native install prompt:', err);

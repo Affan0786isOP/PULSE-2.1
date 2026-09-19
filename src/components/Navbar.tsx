@@ -11,15 +11,16 @@ export { resolveActiveNavId };
 const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
 
-// Non-blocking, minimal fallback when modal code chunks are loading
+// Non-blocking, accessible fallback when modal code chunks are loading
 const ModalLoadingFallback = () => (
   <div 
-    aria-hidden="true"
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs transition-opacity"
+    role="status"
+    aria-live="polite"
+    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
   >
-    <div className="p-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] shadow-xl flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono">
-      <RefreshCw size={14} className="animate-spin text-[var(--accent)]" />
-      <span>Loading...</span>
+    <div className="p-3 rounded-xl bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-subtle)] shadow-xl flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono pointer-events-auto">
+      <RefreshCw size={14} className="animate-spin text-[var(--accent)]" aria-hidden="true" />
+      <span>Loading dialog...</span>
     </div>
   </div>
 );

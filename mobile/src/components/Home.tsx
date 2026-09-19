@@ -13,15 +13,16 @@ const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ de
 const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
 const AddToHomeScreenModal = React.lazy(() => import('./AddToHomeScreenModal').then(m => ({ default: m.AddToHomeScreenModal })));
 
-// Non-blocking, minimal fallback when modal code chunks are loading
+// Non-blocking, accessible fallback when modal code chunks are loading
 const ModalLoadingFallback = () => (
   <div 
-    aria-hidden="true"
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs transition-opacity"
+    role="status"
+    aria-live="polite"
+    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
   >
-    <div className="p-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] shadow-xl flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono">
-      <RefreshCw size={14} className="animate-spin text-[var(--accent)]" />
-      <span>Loading...</span>
+    <div className="p-3 rounded-xl bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-subtle)] shadow-xl flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono pointer-events-auto">
+      <RefreshCw size={14} className="animate-spin text-[var(--accent)]" aria-hidden="true" />
+      <span>Loading dialog...</span>
     </div>
   </div>
 );
@@ -347,7 +348,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       {/* Main Content - Natural document scrolling without nested overflow locks */}
       <main 
         className="w-full flex-1 flex flex-col items-center px-4 py-3 z-10 max-w-sm mx-auto gap-3.5 transition-[padding] duration-200"
-        style={{ paddingBottom: authError ? 'max(5rem, calc(env(safe-area-inset-bottom, 0px) + 5rem))' : 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
+        style={{ paddingBottom: displayedError ? 'max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))' : 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
       >
         <motion.div 
           initial={{ opacity: 0, y: 8 }}
@@ -504,6 +505,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             isIos={pwa.isIos}
             isSafari={pwa.isSafari}
             isIosSafari={pwa.isIosSafari}
+            isIosChrome={pwa.isIosChrome}
             isIosOtherBrowser={pwa.isIosOtherBrowser}
             isInstallable={pwa.isInstallable}
             hasNativePrompt={pwa.hasNativePrompt}
