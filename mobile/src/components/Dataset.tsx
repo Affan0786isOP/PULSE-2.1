@@ -122,10 +122,10 @@ export function Dataset({ onNavigate }: DatasetProps) {
               <button
                 type="button"
                 onClick={() => setDatasetMode('assessment')}
-                className={`flex-1 py-1.5 px-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer text-center ${
+                className={`flex-1 py-1.5 px-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors active:scale-95 cursor-pointer text-center ${
                   datasetMode === 'assessment'
                     ? 'bg-[var(--accent)] text-slate-950 shadow-xs'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:text-[var(--text-primary)]'
                 }`}
               >
                 Protocols
@@ -133,10 +133,10 @@ export function Dataset({ onNavigate }: DatasetProps) {
               <button
                 type="button"
                 onClick={() => setDatasetMode('data-explorer')}
-                className={`flex-1 py-1.5 px-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-1.5 px-2 rounded text-xs font-semibold uppercase tracking-wider transition-colors active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 ${
                   datasetMode === 'data-explorer'
                     ? 'bg-[var(--accent)] text-slate-950 shadow-xs'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:text-[var(--text-primary)]'
                 }`}
               >
                 <Database size={13} />
@@ -151,7 +151,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 type="button"
                 onClick={handlePrevProtocol}
                 aria-label="Previous protocol"
-                className="w-7 h-7 flex items-center justify-center rounded bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer shrink-0"
+                className="w-7 h-7 flex items-center justify-center rounded bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-90 active:bg-[var(--surface-3)] cursor-pointer shrink-0"
               >
                 <ChevronLeft size={14} />
               </button>
@@ -170,10 +170,10 @@ export function Dataset({ onNavigate }: DatasetProps) {
                           setFilters(prev => ({ ...prev, assessmentType: 'all' }));
                         }
                       }}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold font-mono tracking-tight flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold font-mono tracking-tight flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer active:scale-95 ${
                         isSelected
                           ? 'bg-[var(--accent-subtle)] border border-[var(--border-default)] text-[var(--accent)]'
-                          : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                          : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-primary)] active:text-[var(--text-primary)]'
                       }`}
                     >
                       <Icon size={12} />
@@ -187,7 +187,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 type="button"
                 onClick={handleNextProtocol}
                 aria-label="Next protocol"
-                className="w-7 h-7 flex items-center justify-center rounded bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer shrink-0"
+                className="w-7 h-7 flex items-center justify-center rounded bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-90 active:bg-[var(--surface-3)] cursor-pointer shrink-0"
               >
                 <ChevronRight size={14} />
               </button>
@@ -204,7 +204,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
             <button
               type="button"
               onClick={refresh}
-              className="px-2 py-1 bg-red-500/20 hover:bg-red-500/30 rounded text-red-200 font-mono text-[11px] flex items-center gap-1 cursor-pointer shrink-0"
+              className="px-2 py-1 bg-red-500/20 hover:bg-red-500/30 active:scale-95 rounded text-red-200 font-mono text-[11px] flex items-center gap-1 cursor-pointer shrink-0"
             >
               <RefreshCw size={11} />
               <span>Retry</span>
@@ -223,7 +223,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="mt-2 px-3 py-1 bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--accent)] border border-[var(--border-subtle)] rounded text-xs font-mono cursor-pointer"
+                className="mt-2 px-3 py-1 bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 text-[var(--accent)] border border-[var(--border-subtle)] rounded text-xs font-mono cursor-pointer"
               >
                 Clear All Filters
               </button>

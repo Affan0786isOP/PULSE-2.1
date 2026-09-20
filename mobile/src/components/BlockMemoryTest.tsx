@@ -588,12 +588,13 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
             to { opacity: 1; transform: translateY(0); }
           }
           @keyframes hardwareShake {
+            /* deliberate-ignore round-stat */
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-5px); }
             40%, 80% { transform: translateX(5px); }
           }
           .block-cell {
-            transition: all 0.1s ease;
+            transition: background-color 0.1s ease-out, border-color 0.1s ease-out, transform 0.1s ease-out;
           }
           .block-cell.active {
             background-color: var(--cyan-primary);

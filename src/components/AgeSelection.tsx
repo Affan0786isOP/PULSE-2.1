@@ -59,7 +59,7 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
           <div className="w-10 h-10 mx-auto rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] mb-2.5">
             <User size={18} />
           </div>
-          <h2 className="font-heading text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)] mb-1">
+          <h2 className="font-heading text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-1">
             Select Your Age Cohort
           </h2>
           <p className="text-xs text-[var(--text-secondary)] max-w-sm mx-auto leading-relaxed">

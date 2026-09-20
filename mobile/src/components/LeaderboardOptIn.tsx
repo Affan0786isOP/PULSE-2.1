@@ -168,7 +168,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
           disabled={optInState === 'SUBMITTING'}
           autoComplete="off"
           spellCheck={false}
-          className="w-full min-h-[44px] bg-[var(--surface-1)] border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-lg px-3 text-[16px] sm:text-xs text-[var(--text-primary)] font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] transition-colors text-left"
+          className="w-full min-h-[44px] bg-[var(--surface-1)] border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-lg px-3 text-[16px] sm:text-xs text-[var(--text-primary)] text-left font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] transition-colors"
           autoFocus
         />
 

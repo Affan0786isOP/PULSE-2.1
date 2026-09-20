@@ -235,7 +235,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             title="PULSE Home"
             aria-label="PULSE Home"
           >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shadow-xs transition-transform group-hover:scale-105">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shadow-xs transition-transform group-active:scale-95">
               <Activity size={16} aria-hidden="true" className="stroke-[2.5]" />
             </div>
             <span className="font-heading font-extrabold text-xs sm:text-base tracking-tight text-[var(--text-primary)] leading-none">
@@ -340,7 +340,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       {/* Main Content - Natural document scrolling without nested overflow locks */}
       <main 
-        className="w-full flex-auto flex flex-col items-center px-4 py-3 z-10 max-w-sm mx-auto gap-3.5 transition-[padding] duration-200"
+        className="w-full flex-auto flex flex-col items-center px-4 py-3 z-10 max-w-sm mx-auto gap-3.5"
         style={{ paddingBottom: displayedError ? 'max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))' : 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
       >
         <motion.div 

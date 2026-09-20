@@ -6,17 +6,17 @@ interface CountdownOverlayProps {
 }
 
 export function CountdownOverlay({ count }: CountdownOverlayProps) {
-  // Color transition based on count (3 -> 2 -> 1)
-  const getGradient = (num: number) => {
+  // Solid semantic color transition based on count (3 -> 2 -> 1)
+  const getTextColor = (num: number) => {
     switch (num) {
       case 3:
-        return 'from-yellow-400 to-amber-500';
+        return 'text-amber-400';
       case 2:
-        return 'from-lime-400 to-green-500';
+        return 'text-lime-400';
       case 1:
-        return 'from-green-400 to-emerald-600';
+        return 'text-emerald-400';
       default:
-        return 'from-yellow-400 to-amber-500';
+        return 'text-amber-400';
     }
   };
 
@@ -71,7 +71,7 @@ export function CountdownOverlay({ count }: CountdownOverlayProps) {
           className="flex flex-col items-center justify-center z-10"
         >
           <div 
-            className={`text-[140px] sm:text-[180px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b ${getGradient(count)}`}
+            className={`text-[140px] sm:text-[180px] leading-none font-black ${getTextColor(count)}`}
             style={{ filter: `drop-shadow(0 0 40px ${getShadowColor(count)})` }}
           >
             {count}

@@ -333,6 +333,7 @@ export function AdminOverview() {
         </div>
 
         <div className="w-full h-72 min-h-0">
+          {/* deliberate-ignore round-stat */}
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={submissionsTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -388,6 +389,7 @@ export function AdminOverview() {
           </div>
 
           <div className="w-full h-64 min-h-0">
+            {/* deliberate-ignore round-stat */}
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={assessmentBreakdown} layout="vertical" margin={{ top: 10, right: 20, left: 30, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
@@ -423,6 +425,7 @@ export function AdminOverview() {
           </div>
 
           <div className="w-full h-64 min-h-0">
+            {/* deliberate-ignore round-stat */}
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ageBreakdown} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />

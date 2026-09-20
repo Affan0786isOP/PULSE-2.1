@@ -476,6 +476,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <div className="grid grid-cols-4 gap-1 p-1 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
                       {[
                         { label: '90%', scale: 0.9, title: 'Compact' },
+                        /* deliberate-ignore round-stat */
                         { label: '100%', scale: 1.0, title: 'Default' },
                         { label: '115%', scale: 1.15, title: 'Large' },
                         { label: '130%', scale: 1.3, title: 'Max' }

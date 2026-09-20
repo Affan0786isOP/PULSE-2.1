@@ -101,7 +101,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                 whileHover={assessment.status === 'AVAILABLE' ? { y: -3, transition: { duration: 0.15 } } : undefined}
                 whileTap={assessment.status === 'AVAILABLE' ? { scale: 0.98 } : undefined}
                 onClick={() => assessment.status === 'AVAILABLE' && onNavigate(assessment.id)}
-                className={`relative p-5 border rounded-md flex flex-col h-56 transition-colors transition-transform transition-opacity transition-transform transition-opacity text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                className={`relative p-5 border rounded-md flex flex-col text-left h-56 w-full transition-colors transition-transform transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   assessment.status === 'AVAILABLE' 
                     ? 'bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.99] border-[var(--border-subtle)] hover:border-[var(--border-default)] cursor-pointer group shadow-sm' 
                     : 'bg-[var(--surface-1)] border-[var(--border-subtle)] opacity-40 cursor-not-allowed'
