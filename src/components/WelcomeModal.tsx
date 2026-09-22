@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Activity, X, ListChecks, Zap, BarChart2 } from 'lucide-react';
+import { PulseLogo } from './brand';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 
 const WELCOME_STORAGE_KEY = 'pulse_desktop_welcome_seen';
@@ -126,7 +127,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
             <div className="flex items-center justify-between gap-3 mb-3.5">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
-                  <Activity size={18} className="stroke-[2.5]" />
+                  <PulseLogo variant="mark" size={18} color="var(--accent)" />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="font-bold text-xs tracking-wide text-[var(--text-primary)] leading-tight">PULSE</div>

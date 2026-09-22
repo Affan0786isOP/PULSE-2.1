@@ -1,0 +1,54 @@
+/* PULSE — Identity System Tokens & CSS Properties */
+:root {
+  /* Surfaces & Grounds */
+  --pulse-obsidian: #08080A;
+  --pulse-graphite: #12171F;
+  --pulse-surface-elevated: #1A212B;
+  
+  /* Borders */
+  --pulse-border-hairline: rgba(255, 255, 255, 0.08);
+  --pulse-border-subtle: #1F2732;
+  --pulse-border-active: #2A3442;
+
+  /* Telemetry Signals */
+  --pulse-cyan: #00F0FF;
+  --pulse-cyan-subtle: rgba(0, 240, 255, 0.12);
+  --pulse-provenance-green: #10B981;
+  --pulse-provenance-green-subtle: rgba(16, 185, 129, 0.15);
+  --pulse-standby-amber: #F59E0B;
+  --pulse-fault-red: #EF4444;
+
+  /* Typography & Text */
+  --pulse-titanium: #F8FAFC;
+  --pulse-slate-muted: #7E808C;
+  --pulse-slate-disabled: #4B5563;
+
+  /* Font Families */
+  --pulse-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --pulse-font-display: 'Space Grotesk', -apple-system, sans-serif;
+  --pulse-font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Monaco, Consolas, monospace;
+}
+
+/* Tabular Numerics for Latency Measurements */
+.pulse-tabular {
+  font-family: var(--pulse-font-mono);
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Card Surface with 1px Hairline */
+.pulse-card {
+  background-color: var(--pulse-graphite);
+  border: 1px solid var(--pulse-border-hairline);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Telemetry Coordinate Grid Overlay */
+.pulse-grid-overlay {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}

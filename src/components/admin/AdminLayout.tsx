@@ -20,6 +20,7 @@ import {
 import { AdminOverview } from './AdminOverview';
 import { LeaderboardModeration } from './LeaderboardModeration';
 import { ExportAuditLog } from './ExportAuditLog';
+import { PulseLogo } from '../brand';
 
 export type AdminTab = 'overview' | 'moderation' | 'export-audit';
 
@@ -118,7 +119,7 @@ export function AdminLayout({ initialTab = 'overview', onNavigateApp }: AdminLay
           <div className="flex items-center justify-between pb-5 border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-sm">
-                <Activity size={20} />
+                <PulseLogo variant="mark" size={20} color="#00F0FF" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">

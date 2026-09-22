@@ -1,5 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <rect width="256" height="256" rx="60" fill="#03060c" />
-  <rect width="256" height="256" rx="60" fill="transparent" stroke="#00f0ff" stroke-width="16" stroke-opacity="0.3" />
-  <path d="M220 128 H175 L150 200 L105 56 L80 128 H36" fill="none" stroke="#00f0ff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Obsidian Base Squircle -->
+  <rect width="64" height="64" rx="14" fill="#08080A" />
+  <rect width="64" height="64" rx="14" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+  
+  <!-- PULSE P-Symbol Centered at 32x32 -->
+  <g transform="translate(7, 7) scale(0.5)" fill="#00F0FF">
+    <!-- S1: Upper Loop -->
+    <path d="M 12 8 L 61 8 C 75.9 8 88 20.1 88 35 C 88 49.9 75.9 62 61 62 L 46 62 L 46 45 L 61 45 C 66.5 45 71 40.5 71 35 C 71 29.5 66.5 25 61 25 L 12 25 Z" />
+    <!-- S2: Lower Slanted Stem -->
+    <path d="M 12 55 L 36 38 L 36 75 L 12 92 Z" />
+  </g>
 </svg>

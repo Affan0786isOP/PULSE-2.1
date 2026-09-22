@@ -1,6 +1,7 @@
 import React, { useState, Suspense } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Activity, ArrowLeft, Settings, Info } from 'lucide-react';
+import { PulseLogo } from './brand';
 import { triggerHaptic } from '../lib/settingsStore';
 
 import { resolveActiveNavId } from '../lib/navigation';
@@ -88,7 +89,7 @@ export function Navbar({
             className={`flex items-center cursor-pointer group p-0.5 shrink-0 rounded-md ${isHome ? 'ring-1 ring-[var(--accent)]/40' : ''}`}
           >
             <div className="w-7 h-7 rounded-md bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] transition-colors">
-              <Activity size={15} className="stroke-[2.2]" />
+              <PulseLogo variant="mark" size={16} color="var(--accent)" />
             </div>
           </Link>
 

@@ -1,0 +1,143 @@
+/* ==========================================================================
+   PULSE — Surgical Aesthetic Upgrade Layer (pulse-aesthetic.css)
+   Reuses existing brand tokens from src/brand/tokens.css and provides
+   restrained semantic aliases and precision interaction states.
+   Completely optional for zero-risk rollback.
+   ========================================================================== */
+
+@import "../brand/tokens.css";
+
+:root, :root[data-theme="dark"] {
+  /* Bridge semantic variables to locked brand identity tokens */
+  --surface-0: var(--pulse-obsidian);
+  --surface-1: var(--pulse-graphite);
+  --surface-2: var(--pulse-surface-elevated);
+  --surface-3: #222B38;
+
+  /* Hairline Precision Borders */
+  --border-subtle: var(--pulse-border-hairline);
+  --border-default: var(--pulse-border-subtle);
+  --border-strong: var(--pulse-border-active);
+
+  /* Laser Telemetry Signals */
+  --accent: var(--pulse-cyan);
+  --accent-hover: #33F3FF;
+  --accent-subtle: var(--pulse-cyan-subtle);
+  --focus-ring: var(--pulse-cyan);
+
+  --success: var(--pulse-provenance-green);
+  --warning: var(--pulse-standby-amber);
+  --danger: var(--pulse-fault-red);
+
+  /* Typography */
+  --text-primary: var(--pulse-titanium);
+  --text-secondary: #94A3B8;
+  --text-muted: var(--pulse-slate-muted);
+
+  /* Easing Physics */
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="light"] {
+  --surface-0: #F8FAFC;
+  --surface-1: #FFFFFF;
+  --surface-2: #F1F5F9;
+  --surface-3: #E2E8F0;
+
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-default: rgba(0, 0, 0, 0.14);
+  --border-strong: rgba(0, 0, 0, 0.25);
+
+  --accent: #0098A6;
+  --accent-hover: #00828F;
+  --accent-subtle: rgba(0, 152, 166, 0.12);
+  --focus-ring: #0098A6;
+
+  --success: #059669;
+  --warning: #D97706;
+  --danger: #DC2626;
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+}
+
+/* ==========================================================================
+   Disciplined Typography & Hierarchy
+   ========================================================================== */
+
+h1, h2, h3, .font-heading {
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.pulse-mono-meta {
+  font-family: var(--pulse-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Restrained Tactile Interactivity
+   ========================================================================== */
+
+/* Primary Action CTA - Flat Signal Cyan with crisp dark typography */
+.pulse-btn-primary {
+  background-color: var(--accent);
+  color: var(--pulse-obsidian, #08080A);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: -0.01em;
+  border-radius: 6px;
+  padding: 0.75rem 1.375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  transition: transform 0.2s var(--ease-snap), 
+              box-shadow 0.2s var(--ease-snap), 
+              background-color 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.pulse-btn-primary:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 14px -2px rgba(0, 240, 255, 0.35);
+}
+
+.pulse-btn-primary:active {
+  transform: translateY(0.5px) scale(0.985);
+  box-shadow: 0 1px 4px rgba(0, 240, 255, 0.2);
+}
+
+/* Interactive Navigation Card (Mostly flat, hairline border, subtle lift) */
+.pulse-card-interactive {
+  background-color: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  transition: transform 0.2s var(--ease-snap), 
+              border-color 0.2s var(--ease-snap), 
+              background-color 0.15s ease;
+}
+
+.pulse-card-interactive:hover {
+  border-color: rgba(0, 240, 255, 0.35);
+  background-color: var(--surface-2);
+  transform: translateY(-1.5px);
+}
+
+.pulse-card-interactive:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Reduced Motion Respect */
+@media (prefers-reduced-motion: reduce) {
+  .pulse-btn-primary,
+  .pulse-card-interactive {
+    transition: none !important;
+    transform: none !important;
+  }
+}

@@ -89,14 +89,15 @@ export function Home() {
           {/* Left Column: Tag, Headline, Description, Button */}
           <div className="w-full flex flex-col items-center lg:items-start text-center lg:text-left">
             {/* Top Tag */}
-            <div className={`flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-5 ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
-              <div className="inline-flex items-center gap-2 px-3 min-h-[1.75rem] py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-xs font-medium">
-                <span>Cognitive reaction &amp; memory assessments</span>
+            <div className={`flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-6 ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-[11px] font-mono tracking-wider uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" aria-hidden="true" />
+                <span>Cognitive Telemetry &amp; Benchmark</span>
               </div>
             </div>
 
             {/* Main Headline */}
-            <h1 className={`font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.03em] leading-[1.12] mb-5 text-[var(--text-primary)] break-words ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
+            <h1 className={`font-heading text-4xl sm:text-5xl lg:text-[3.65rem] font-bold tracking-[-0.035em] leading-[1.08] mb-5 text-[var(--text-primary)] break-words ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
               Measure your reaction time and cognitive performance.
             </h1>
 
@@ -105,20 +106,20 @@ export function Home() {
               PULSE evaluates visual reaction latency, directional choice speed, and working memory through research-informed assessment protocols.
             </p>
 
-            {/* Primary Action Button - Standard robust link supporting modifier clicks */}
+            {/* Primary Action Button */}
             <div className={`flex items-center gap-3 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
               <Link 
                 to={ROUTES.ASSESSMENTS}
                 id="start-lab-btn"
-                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold text-xs px-6 py-3.5 rounded-md inline-flex items-center justify-center gap-2.5 cursor-pointer max-w-full transition-[background-color,transform,box-shadow] duration-150 motion-reduce:transition-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
+                className="pulse-btn-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
               >
                 <span>Start assessments</span>
-                <ArrowRight size={16} aria-hidden="true" />
+                <ArrowRight size={15} aria-hidden="true" />
               </Link>
             </div>
           </div>
 
-          {/* Right Column: Navigation Cards - Native accessible links */}
+          {/* Right Column: Navigation Cards */}
           <div className="w-full max-w-[360px] flex flex-col gap-2.5 shrink-0 mx-auto lg:mx-0">
             {HOME_NAV_CARDS.map((card, idx) => {
               const Icon = card.icon;
@@ -127,10 +128,10 @@ export function Home() {
                 <div key={card.to} className={shouldReduceMotion ? '' : `animate-home-fade ${staggerClass}`}>
                   <Link
                     to={card.to}
-                    className="w-full text-left bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg p-3.5 sm:p-4 flex items-center justify-between transition-[background-color,border-color] duration-150 motion-reduce:transition-none group"
+                    className="w-full text-left pulse-card pulse-card-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] p-4 flex items-center justify-between group cursor-pointer"
                   >
                     <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                      <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/30 flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent)] shrink-0 transition-colors duration-150 motion-reduce:transition-none">
+                      <div className="w-9 h-9 rounded-md bg-[var(--surface-2)] group-hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] group-hover:border-[var(--accent)]/40 flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent)] shrink-0 transition-colors duration-200">
                         <Icon size={18} aria-hidden="true" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -142,7 +143,7 @@ export function Home() {
                         </div>
                       </div>
                     </div>
-                    <ArrowRight size={15} aria-hidden="true" className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-0.5 transition-[color,transform] duration-150 motion-reduce:transition-none motion-reduce:transform-none shrink-0 ml-2" />
+                    <ArrowRight size={15} aria-hidden="true" className="text-[var(--text-muted)] group-hover:text-[var(--accent)] group-hover:translate-x-1 transition-[color,transform] duration-200 shrink-0 ml-2" />
                   </Link>
                 </div>
               );

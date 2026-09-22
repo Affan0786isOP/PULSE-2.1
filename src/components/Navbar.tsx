@@ -3,6 +3,7 @@ import { Activity, Menu, X, ArrowLeft, Settings, Info, RefreshCw } from 'lucide-
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { GooeyNav } from './ui/gooey-nav';
+import { PulseLogo } from './brand';
 
 import { resolveActiveNavId } from '../lib/navigation';
 export { resolveActiveNavId };
@@ -189,7 +190,7 @@ export function Navbar({
     <nav 
       ref={navRef}
       aria-label="Global Navigation"
-      className="min-h-[3.75rem] border-b border-[var(--border-subtle)] bg-[var(--surface-0)] sticky top-0 z-50 flex items-center justify-between px-4 sm:px-8 md:px-12 w-full shrink-0 transition-colors duration-200"
+      className="min-h-[3.75rem] border-b border-[var(--border-subtle)] bg-[var(--surface-0)]/95 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-4 sm:px-8 md:px-12 w-full shrink-0 transition-colors duration-200"
       style={{ 
         paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))', 
         paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))', 
@@ -213,7 +214,7 @@ export function Navbar({
           className="flex items-center gap-2.5 group cursor-pointer active:scale-[0.98] transition-transform rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
           <div className="w-7 h-7 rounded-md bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] transition-colors">
-            <Activity size={16} aria-hidden="true" className="stroke-[2.2]" />
+            <PulseLogo variant="mark" size={17} color="var(--accent)" />
           </div>
           <div className="flex flex-col text-left">
             <span className="font-heading font-bold text-sm tracking-wider text-[var(--text-primary)] leading-none">
@@ -316,7 +317,7 @@ export function Navbar({
               animate={{ opacity: 1, y: 0, scaleY: 1 }}
               exit={{ opacity: 0, y: -6, scaleY: 0.96 }}
               transition={{ duration: 0.16, ease: "easeOut" }}
-              className="absolute top-full left-0 w-full bg-[var(--surface-1)] border-b border-[var(--border-subtle)] flex flex-col p-4 gap-1 lg:hidden z-50 origin-top"
+              className="absolute top-full left-0 w-full bg-[var(--surface-1)] border-b border-[var(--border-subtle)] shadow-2xl flex flex-col p-4 gap-1 lg:hidden z-50 origin-top"
             >
               {navItems.map(item => (
                 <Link

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, Database, ArrowRight, Zap, Trophy, Settings, Info, Download, Maximize2, Minimize2, ShieldCheck, AlertCircle, RefreshCw, ListChecks, BarChart2, X } from 'lucide-react';
+import { PulseLogo } from './brand';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../AuthContext';
 import { usePwaInstall } from '../lib/usePwaInstall';
@@ -236,7 +237,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             aria-label="PULSE Home"
           >
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shadow-xs transition-transform group-active:scale-95">
-              <Activity size={16} aria-hidden="true" className="stroke-[2.5]" />
+              <PulseLogo variant="mark" size={17} color="var(--accent)" />
             </div>
             <span className="font-heading font-extrabold text-xs sm:text-base tracking-tight text-[var(--text-primary)] leading-none">
               PULSE
