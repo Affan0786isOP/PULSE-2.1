@@ -183,14 +183,14 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         </div>
 
         {/* Leaderboard Table / Content */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-4 sm:p-6 backdrop-blur-xl flex-1">
+        <div className="pulse-card rounded-lg p-4 sm:p-6 flex-1">
           {loading ? (
             <div className="py-4">
               <SkeletonTable rows={7} cols={5} />
             </div>
           ) : error ? (
             <div className="py-16 flex flex-col items-center justify-center text-center max-w-md mx-auto">
-              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4">
+              <div className="w-12 h-12 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4">
                 <AlertCircle size={24} />
               </div>
               <h3 className="text-base font-bold text-[var(--text-main)] mb-1">
@@ -202,7 +202,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               <button
                 type="button"
                 onClick={() => fetchLeaderboard()}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] border border-[var(--border-subtle)] hover:border-[var(--cyan-primary)] text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer"
+                className="pulse-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-xs font-mono transition-colors cursor-pointer"
               >
                 <RefreshCw size={14} />
                 <span>Try Again</span>
@@ -210,7 +210,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             </div>
           ) : displayedEntries.length === 0 ? (
             <div className="py-16 flex flex-col items-center justify-center text-center max-w-md mx-auto">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--cyan-primary)] mb-4">
+              <div className="w-12 h-12 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--cyan-primary)] mb-4">
                 <Inbox size={24} />
               </div>
               <h3 className="text-base font-bold text-[var(--text-main)] mb-1">
@@ -222,9 +222,9 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               <button
                 type="button"
                 onClick={() => onNavigate(currentProto.route)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--cyan-primary)] hover:opacity-90 text-black font-bold text-xs uppercase tracking-wider transition-opacity active:scale-95 cursor-pointer"
+                className="pulse-btn-primary cursor-pointer text-xs font-semibold"
               >
-                <Play size={14} className="fill-black" />
+                <Play size={14} className="fill-current" />
                 <span>Take {currentProto.name} Test</span>
               </button>
             </div>
@@ -274,7 +274,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                         <td className="py-3.5 px-4 text-xs text-[var(--text-muted)] uppercase">
                           {proto?.name || entry.assessmentType}
                         </td>
-                        <td className="py-3.5 px-4 text-right font-bold text-[var(--cyan-primary)]">
+                        <td className="py-3.5 px-4 text-right font-bold text-[var(--accent)] pulse-tabular">
                           {formattedScore} <span className="text-xs text-[var(--text-muted)] font-normal">{unit}</span>
                         </td>
                         <td className="py-3.5 px-4 text-right text-xs text-[var(--text-muted)]">

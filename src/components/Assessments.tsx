@@ -101,22 +101,22 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                 whileHover={assessment.status === 'AVAILABLE' ? { y: -3, transition: { duration: 0.15 } } : undefined}
                 whileTap={assessment.status === 'AVAILABLE' ? { scale: 0.98 } : undefined}
                 onClick={() => assessment.status === 'AVAILABLE' && onNavigate(assessment.id)}
-                className={`relative p-5 border rounded-md flex flex-col text-left h-56 w-full transition-colors transition-transform transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                className={`relative p-5 rounded-lg flex flex-col text-left h-56 w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   assessment.status === 'AVAILABLE' 
-                    ? 'bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.99] border-[var(--border-subtle)] hover:border-[var(--border-default)] cursor-pointer group shadow-sm' 
-                    : 'bg-[var(--surface-1)] border-[var(--border-subtle)] opacity-40 cursor-not-allowed'
+                    ? 'pulse-card pulse-card-interactive cursor-pointer group' 
+                    : 'bg-[var(--surface-1)] border border-[var(--border-subtle)] opacity-40 cursor-not-allowed'
                 }`}
               >
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="pulse-mono-meta px-2 py-0.5 rounded-md bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
                     {assessment.type}
                   </span>
-                  <span className="text-[11px] font-mono text-[var(--accent)]">
+                  <span className="pulse-mono-meta text-[var(--accent)]">
                     {assessment.status.toLowerCase()}
                   </span>
                 </div>
                 
-                <h3 className="font-heading text-lg font-semibold text-[var(--text-primary)] mb-2">
+                <h3 className="font-heading text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)] mb-1.5">
                   {assessment.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
@@ -124,9 +124,9 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                 </p>
                 
                 {assessment.status === 'AVAILABLE' && (
-                  <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
-                    <span>Start assessment</span>
-                    <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                  <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-mono font-medium text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors">
+                    <span>START ASSESSMENT</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
                   </div>
                 )}
               </motion.button>
