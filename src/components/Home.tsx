@@ -74,6 +74,24 @@ export function Home() {
         description="An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
         schema={HOME_SCHEMA}
       />
+
+      {/* Ambient atmosphere layer — radial glow + film grain */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background: 'radial-gradient(ellipse 70% 55% at 50% 38%, rgba(34,199,214,0.045) 0%, transparent 70%)',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E\")",
+          opacity: 1,
+        }}
+      />
+
       {/* Top Navbar Header */}
       <Navbar currentView="home" />
 
@@ -81,51 +99,56 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 flex-1 flex flex-col justify-center py-8 lg:py-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg"
+        className="relative z-10 w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-10 flex-1 flex flex-col justify-center py-10 lg:py-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg"
       >
         
-        <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] items-center gap-10 lg:gap-14 my-auto">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] items-center gap-12 lg:gap-16 my-auto">
           
-          {/* Left Column: Tag, Headline, Description, Button */}
+          {/* Left Column: Eyebrow, Headline, Description, CTA */}
           <div className="w-full flex flex-col items-center lg:items-start text-center lg:text-left">
-            {/* Top Tag */}
-            <div className={`flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-6 ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-secondary)] text-[11px] font-mono tracking-wider uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" aria-hidden="true" />
-                <span>Cognitive Telemetry &amp; Benchmark</span>
+
+            {/* Eyebrow — monospace signal label */}
+            <div className={`mb-6 ${shouldReduceMotion ? '' : 'hero-enter hero-enter-0'}`}>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] text-[10px] font-mono tracking-[0.14em] uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shadow-[0_0_6px_var(--accent)]" aria-hidden="true" />
+                Cognitive Telemetry &amp; Benchmark
               </div>
             </div>
 
-            {/* Main Headline */}
-            <h1 className={`font-heading text-4xl sm:text-5xl lg:text-[3.65rem] font-bold tracking-[-0.035em] leading-[1.08] mb-5 text-[var(--text-primary)] break-words ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
+            {/* Hero Heading — viewport-scale display typography */}
+            <h1
+              className={`font-heading font-bold text-[var(--text-primary)] mb-6 hero-heading ${shouldReduceMotion ? '' : 'hero-enter hero-enter-1'}`}
+            >
               Measure your reaction time and cognitive performance.
             </h1>
 
-            {/* Description Paragraph - Aligned with actual protocols */}
-            <p className={`text-[var(--text-secondary)] text-base sm:text-lg max-w-xl font-normal leading-relaxed text-center lg:text-left mb-8 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-2'}`}>
+            {/* Subtext — max 20 words, muted, constrained */}
+            <p className={`text-[var(--text-secondary)] max-w-[44ch] font-normal leading-[1.65] mb-9 text-base sm:text-[1.0625rem] ${shouldReduceMotion ? '' : 'hero-enter hero-enter-2'}`}>
               PULSE evaluates visual reaction latency, directional choice speed, and working memory through research-informed assessment protocols.
             </p>
 
-            {/* Primary Action Button */}
-            <div className={`flex items-center gap-3 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
-              <Link 
+            {/* Primary CTA — single pill */}
+            <div className={`${shouldReduceMotion ? '' : 'hero-enter hero-enter-3'}`}>
+              <Link
                 to={ROUTES.ASSESSMENTS}
                 id="start-lab-btn"
-                className="pulse-btn-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
+                className="hero-cta pulse-btn-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-0)]"
               >
                 <span>Start assessments</span>
-                <ArrowRight size={15} aria-hidden="true" />
+                <ArrowRight size={14} aria-hidden="true" />
               </Link>
             </div>
           </div>
 
           {/* Right Column: Navigation Cards */}
-          <div className="w-full max-w-[360px] flex flex-col gap-2.5 shrink-0 mx-auto lg:mx-0">
+          <div className="w-full max-w-[340px] flex flex-col gap-2 shrink-0 mx-auto lg:mx-0">
             {HOME_NAV_CARDS.map((card, idx) => {
               const Icon = card.icon;
-              const staggerClass = `home-stagger-${idx + 1}`;
               return (
-                <div key={card.to} className={shouldReduceMotion ? '' : `animate-home-fade ${staggerClass}`}>
+                <div
+                  key={card.to}
+                  className={shouldReduceMotion ? '' : `hero-enter hero-enter-${idx + 2}`}
+                >
                   <Link
                     to={card.to}
                     className="w-full text-left pulse-card pulse-card-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] p-4 flex items-center justify-between group cursor-pointer"
@@ -155,7 +178,7 @@ export function Home() {
 
       {/* Minimal Footer */}
       <footer 
-        className="w-full border-t border-[var(--border-subtle)] py-4 px-4 sm:px-6 lg:px-10 text-center text-xs text-[var(--text-secondary)] font-mono flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0"
+        className="relative z-10 w-full border-t border-[var(--border-subtle)] py-4 px-4 sm:px-6 lg:px-10 text-center text-xs text-[var(--text-secondary)] font-mono flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0"
         style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
       >
         <div className="flex items-center gap-2">
