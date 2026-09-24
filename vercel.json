@@ -1,0 +1,47 @@
+{
+  "version": 2,
+  "cleanUrls": false,
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "dist/server.js"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/api",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/mobile/assets/:path*",
+      "destination": "/mobile/assets/:path*"
+    },
+    {
+      "source": "/mobile/:path*\\.:ext",
+      "destination": "/mobile/:path*\\.:ext"
+    },
+    {
+      "source": "/mobile",
+      "destination": "/mobile/index.html"
+    },
+    {
+      "source": "/mobile/",
+      "destination": "/mobile/index.html"
+    },
+    {
+      "source": "/mobile/:path*",
+      "destination": "/mobile/index.html"
+    },
+    {
+      "source": "/assets/:path*",
+      "destination": "/assets/:path*"
+    },
+    {
+      "source": "/((?!api/|mobile/|assets/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
