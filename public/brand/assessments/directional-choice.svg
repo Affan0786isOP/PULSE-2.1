@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+<title>PULSE Directional Choice assessment mark</title><desc>Four directional chevrons converging on a central target.</desc>
+<circle cx="64" cy="64" r="47" stroke="#00F0FF" stroke-width="3"/>
+<path d="M64 19v22M64 87v22M19 64h22M87 64h22" stroke="#00F0FF" stroke-width="2" opacity=".45"/>
+<path d="M58 42l6-7 6 7M58 86l6 7 6-7M42 58l-7 6 7 6M86 58l7 6-7 6" stroke="#00F0FF" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter"/>
+<rect x="49" y="49" width="30" height="30" rx="2" stroke="#F8FAFC" stroke-width="3"/>
+<path d="M58 64h12M64 58v12" stroke="#00F0FF" stroke-width="3" stroke-linecap="square"/>
+<circle cx="64" cy="64" r="4" fill="#00F0FF"/>
+</svg>
