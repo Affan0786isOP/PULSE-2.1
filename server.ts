@@ -3595,6 +3595,25 @@ async function startServer() {
       appType: 'custom',
     });
 
+    app.get(['/mobile', '/mobile/*'], async (req, res, next) => {
+      try {
+        const url = req.originalUrl || req.url;
+        let templatePath = path.resolve(process.cwd(), 'mobile', 'index.html');
+        if (!fs.existsSync(templatePath)) {
+          return next();
+        }
+        let template = fs.readFileSync(templatePath, 'utf-8');
+        template = template.replace('src="./src/main.tsx"', 'src="/mobile/src/main.tsx"');
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+      } catch (e) {
+        if (vite && typeof vite.ssrFixStacktrace === 'function') {
+          vite.ssrFixStacktrace(e as Error);
+        }
+        next(e);
+      }
+    });
+
     app.use(vite.middlewares);
 
     app.use('*', async (req, res, next) => {
@@ -3614,6 +3633,9 @@ async function startServer() {
           }
         }
         let template = fs.readFileSync(templatePath, 'utf-8');
+        if (req.path.startsWith('/mobile')) {
+          template = template.replace('src="./src/main.tsx"', 'src="/mobile/src/main.tsx"');
+        }
         template = await vite.transformIndexHtml(url, template);
         res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
       } catch (e) {

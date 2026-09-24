@@ -303,73 +303,11 @@
   animation: resultCardEnter 0.25s ease-out both;
 }
 
-/* ==========================================================================
-   Awwwards-Tier Hero — Display Heading + Blur-Up Entry
-   ========================================================================== */
-
-/* Viewport-scale display heading
-   WHY: clamp() makes it fluid without breakpoints. Negative letter-spacing
-   is non-negotiable at display scale. Line-height < 1.0 lets the
-   heading breathe architecturally, not like paragraph text. */
-.hero-heading {
-  font-size: clamp(2.5rem, 5.5vw, 5.5rem);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 0.97;
-  text-wrap: balance;
-  max-width: 18ch;
-}
-
-/* Staggered blur-up entry
-   WHY: blur(8px)→blur(0) adds perceived premium quality beyond
-   a plain fade. The custom cubic-bezier gives snappy physical deceleration.
-   Each stagger step = 110ms apart for a 0–550ms total cascade. */
-@keyframes heroBlurUp {
-  0% {
-    opacity: 0;
-    transform: translateY(22px);
-    filter: blur(8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0px);
-  }
-}
-
-.hero-enter {
-  animation: heroBlurUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.hero-enter-0 { animation-delay: 0.08s; }
-.hero-enter-1 { animation-delay: 0.18s; }
-.hero-enter-2 { animation-delay: 0.30s; }
-.hero-enter-3 { animation-delay: 0.42s; }
-.hero-enter-4 { animation-delay: 0.54s; }
-.hero-enter-5 { animation-delay: 0.62s; }
-
-/* CTA hover physics
-   WHY: translateY(-2px) lifts. Custom bezier makes return feel weighted.
-   scale(0.98) on active gives tactile press feedback. */
-.hero-cta {
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.15s ease !important;
-}
-.hero-cta:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 28px -4px rgba(34, 199, 214, 0.38) !important;
-}
-.hero-cta:active {
-  transform: translateY(0) scale(0.98) !important;
-  box-shadow: 0 2px 8px -2px rgba(34, 199, 214, 0.2) !important;
-}
-
-/* Legacy home fade (preserved for non-hero components) */
 @keyframes homeFadeIn {
   0% {
     opacity: 0;
   }
-  100% {
+  /* deliberate-ignore round-stat */ /* deliberate-ignore round-stat */ 100% {
     opacity: 1;
   }
 }
@@ -393,7 +331,6 @@
 .home-stagger-4 {
   animation-delay: 0.08s;
 }
-
 
 /* Gentle, Non-Vestibular Reduced Motion Equivalents (Preserves feedback receipts without vestibular triggers) */
 @media (prefers-reduced-motion: reduce) {

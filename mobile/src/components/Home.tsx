@@ -1,500 +1,269 @@
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { Link } from 'react-router-dom';
-import { Activity, Database, ArrowRight, Zap, Trophy, Settings, Info, Download, Maximize2, Minimize2, ShieldCheck, AlertCircle, RefreshCw, ListChecks, BarChart2, X } from 'lucide-react';
+import React, { useState, useEffect, useRef, Suspense, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Settings, Info, Maximize2, Minimize2, AlertCircle, RefreshCw, X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { PulseLogo } from './brand';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import { useAuth } from '../AuthContext';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { isMobileWelcomeSeen } from '../lib/welcomeStore';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SEO } from './SEO';
 
-// Lazy load modals to optimize Home startup performance
+export interface HeroAssessment {
+  id: string;
+  protocolNumber: string;
+  category: string;
+  title: string;
+  description: string;
+  targetRoute: string;
+}
+
+export const HERO_ASSESSMENTS: HeroAssessment[] = [
+  {
+    id: 'reaction',
+    protocolNumber: 'PROTOCOL 01',
+    category: 'LATENCY TELEMETRY',
+    title: 'VISUAL REACTION',
+    description: 'Measures pure somatic visual response latency with sub-millisecond precision.',
+    targetRoute: '/reaction-test',
+  },
+  {
+    id: 'direction',
+    protocolNumber: 'PROTOCOL 02',
+    category: 'CHOICE COORDINATION',
+    title: 'DIRECTIONAL CHOICE',
+    description: 'Evaluates cognitive bifurcation speed and motor execution under choice conditions.',
+    targetRoute: '/direction-test',
+  },
+  {
+    id: 'color',
+    protocolNumber: 'PROTOCOL 03',
+    category: 'COGNITIVE CONFLICT',
+    title: 'COLOR RECOGNITION',
+    description: 'Assesses semantic inhibitory control and selective attention thresholds.',
+    targetRoute: '/colour-recognition',
+  },
+  {
+    id: 'block',
+    protocolNumber: 'PROTOCOL 04',
+    category: 'SPATIAL WORKING MEMORY',
+    title: 'BLOCK MEMORY',
+    description: 'Benchmarks visuospatial memory span through progressive serial recall.',
+    targetRoute: '/block-memory',
+  },
+  {
+    id: 'number',
+    protocolNumber: 'PROTOCOL 05',
+    category: 'DIGIT SPAN MEMORY',
+    title: 'NUMBER MEMORY',
+    description: 'Tests phonological working memory limit with adaptive digit length scaling.',
+    targetRoute: '/number-memory',
+  },
+];
+
 const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
 const AddToHomeScreenModal = React.lazy(() => import('./AddToHomeScreenModal').then(m => ({ default: m.AddToHomeScreenModal })));
 
-// Non-blocking, accessible fallback when modal code chunks are loading
 const ModalLoadingFallback = () => (
-  <div 
-    role="status"
-    aria-live="polite"
-    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
-  >
-    <div className="p-3 rounded-xl bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-subtle)] flex items-center gap-2.5 text-xs text-[var(--text-secondary)] font-mono pointer-events-auto">
-      <RefreshCw size={14} className="animate-spin text-[var(--accent)]" aria-hidden="true" />
+  <div role="status" aria-live="polite" className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+    <div className="p-3 rounded-xl bg-[#12161B]/95 backdrop-blur-md border border-[rgba(255,255,255,0.08)] flex items-center gap-2.5 text-xs text-[#8A94A6] font-mono pointer-events-auto">
+      <RefreshCw size={14} className="animate-spin text-[#00F0FF]" aria-hidden="true" />
       <span>Loading dialog...</span>
     </div>
   </div>
 );
 
-const prefetchModals = () => {
-  if (typeof window === 'undefined') return;
-  import('./SettingsModal').catch(() => {});
-  import('./WelcomeModal').catch(() => {});
-  import('./AddToHomeScreenModal').catch(() => {});
-};
-
-const ROUTES = {
-  LEADERBOARD: '/leaderboard',
-  DATASET: '/dataset',
-  IMPROVE: '/improve',
-  PRIVACY: '/privacy',
-} as const;
-
-interface MobileNavCard {
-  id: string;
-  to: string;
-  label: string;
-  sublabel: string;
-  ariaLabel: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-const MOBILE_NAV_CARDS: readonly MobileNavCard[] = [
-  {
-    id: 'mobile-nav-leaderboard',
-    to: ROUTES.LEADERBOARD,
-    label: 'Leaderboard',
-    sublabel: 'Top ranks',
-    ariaLabel: 'View Leaderboard — Top ranks',
-    icon: Trophy,
-  },
-  {
-    id: 'mobile-nav-dataset',
-    to: ROUTES.DATASET,
-    label: 'Dataset',
-    sublabel: 'Telemetry',
-    ariaLabel: 'View Dataset — Telemetry',
-    icon: Database,
-  },
-  {
-    id: 'mobile-nav-improve',
-    to: ROUTES.IMPROVE,
-    label: 'Improve',
-    sublabel: 'Performance factors',
-    ariaLabel: 'View Improve — Factors that can affect reaction performance',
-    icon: Zap,
-  },
-  {
-    id: 'mobile-nav-privacy',
-    to: ROUTES.PRIVACY,
-    label: 'Privacy',
-    sublabel: 'Data ethics',
-    ariaLabel: 'View Privacy — Data ethics',
-    icon: ShieldCheck,
-  },
-];
-
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
+  const navigate = useNavigate();
   const { isConnecting, authError, retryAuth } = useAuth();
   const [displayedError, setDisplayedError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  // Initialize synchronously from storage to prevent jarring post-mount pop-in
   const [isWelcomeOpen, setIsWelcomeOpen] = useState<boolean>(() => !isMobileWelcomeSeen());
-  const [fullscreenNotice, setFullscreenNotice] = useState<string | null>(null);
-  const fullscreenNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Clean up timers on unmount
+  // Carousel State
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const dragControls = useDragControls();
+  
   useEffect(() => {
-    return () => {
-      if (fullscreenNoticeTimerRef.current) {
-        clearTimeout(fullscreenNoticeTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
-  const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
-
-  useEffect(() => {
-    if (authError) {
-      setDisplayedError(authError);
-      setIsRetrying(false);
-      console.warn('[PULSE Mobile Auth Notice]:', authError);
-    } else if (!isConnecting && !isRetrying) {
-      setDisplayedError(null);
+    let interval: NodeJS.Timeout;
+    if (isAutoPlaying && !isSettingsOpen && !isWelcomeOpen) {
+      interval = setInterval(() => {
+        setActiveIndex((prev) => (prev + 1) % HERO_ASSESSMENTS.length);
+      }, 5000);
     }
-  }, [authError, isConnecting, isRetrying]);
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, isSettingsOpen, isWelcomeOpen]);
 
-  const handleRetry = async () => {
-    setIsRetrying(true);
-    try {
-      await retryAuth();
-    } finally {
-      setIsRetrying(false);
+  const handleNext = () => {
+    triggerHaptic();
+    setActiveIndex((prev) => (prev + 1) % HERO_ASSESSMENTS.length);
+    setIsAutoPlaying(false);
+  };
+
+  const handlePrev = () => {
+    triggerHaptic();
+    setActiveIndex((prev) => (prev - 1 + HERO_ASSESSMENTS.length) % HERO_ASSESSMENTS.length);
+    setIsAutoPlaying(false);
+  };
+
+  const activeAssessment = HERO_ASSESSMENTS[activeIndex];
+
+  const toggleFullscreen = () => {
+    triggerHaptic();
+    const doc = document as any;
+    if (!isFullscreen) {
+      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+      else if (doc.documentElement.webkitRequestFullscreen) doc.documentElement.webkitRequestFullscreen();
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
     }
   };
 
-  const isActionInProgress = isRetrying || isConnecting;
-
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
-    if (typeof document === 'undefined') return false;
-    const doc = document as any;
-    return Boolean(
-      doc.fullscreenElement ||
-      doc.webkitFullscreenElement ||
-      doc.mozFullScreenElement ||
-      doc.msFullscreenElement
-    );
-  });
-
-  // Synchronize browser fullscreen changes without polling
   useEffect(() => {
     const updateFs = () => {
       const doc = document as any;
-      setIsFullscreen(
-        Boolean(
-          doc.fullscreenElement ||
-          doc.webkitFullscreenElement ||
-          doc.mozFullScreenElement ||
-          doc.msFullscreenElement
-        )
-      );
+      setIsFullscreen(Boolean(doc.fullscreenElement || doc.webkitFullscreenElement));
     };
-
     document.addEventListener('fullscreenchange', updateFs);
     document.addEventListener('webkitfullscreenchange', updateFs);
-    document.addEventListener('mozfullscreenchange', updateFs);
-    document.addEventListener('MSFullscreenChange', updateFs);
     return () => {
       document.removeEventListener('fullscreenchange', updateFs);
       document.removeEventListener('webkitfullscreenchange', updateFs);
-      document.removeEventListener('mozfullscreenchange', updateFs);
-      document.removeEventListener('MSFullscreenChange', updateFs);
     };
   }, []);
 
-  const showFullscreenFeedback = (msg: string) => {
-    if (fullscreenNoticeTimerRef.current) {
-      clearTimeout(fullscreenNoticeTimerRef.current);
-    }
-    setFullscreenNotice(msg);
-    fullscreenNoticeTimerRef.current = setTimeout(() => {
-      setFullscreenNotice(null);
-    }, 3200);
-  };
-
-  const handleToggleFullscreen = async () => {
-    try {
-      const doc = document as any;
-      const docEl = document.documentElement as any;
-      const isCurrentlyFs = Boolean(
-        doc.fullscreenElement ||
-        doc.webkitFullscreenElement ||
-        doc.mozFullScreenElement ||
-        doc.msFullscreenElement
-      );
-
-      const requestFS =
-        docEl.requestFullscreen ||
-        docEl.webkitRequestFullscreen ||
-        docEl.mozRequestFullScreen ||
-        docEl.msRequestFullscreen;
-
-      const exitFS =
-        doc.exitFullscreen ||
-        doc.webkitExitFullscreen ||
-        doc.mozCancelFullScreen ||
-        doc.msExitFullscreen;
-
-      if (!isCurrentlyFs) {
-        if (!requestFS) {
-          showFullscreenFeedback('Fullscreen is not supported on this browser/device');
-          return;
-        }
-        await requestFS.call(docEl);
-      } else {
-        if (exitFS) {
-          await exitFS.call(doc);
-        }
-      }
-    } catch (err) {
-      showFullscreenFeedback('Fullscreen unavailable or restricted by browser');
-    }
-  };
-
   return (
-    <div className="min-h-[100dvh] bg-transparent text-[var(--text-primary)] font-sans relative flex flex-col justify-between">
-      <SEO 
-        title="PULSE Mobile — Precision User Latency & Stimulus Evaluator"
-        description="Browser-based cognitive benchmarking suite optimized for mobile devices. Measure visual reaction times, directional choice speed, and working memory on the go."
-      />
-
-      {/* Top Header Minimal & Responsive */}
-      <header 
-        className="w-full flex items-center justify-between px-2.5 sm:px-4 py-2 z-20 shrink-0 border-b border-[var(--border-subtle)] bg-[var(--surface-0)]" 
-        style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0.75rem))' }}
-      >
-        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-          <button type="button"
-            id="mobile-home-logo-btn"
-            onClick={() => { triggerHaptic('tap'); onNavigate('home'); }}
-            className="flex items-center gap-2 cursor-pointer group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-md"
-            title="PULSE Home"
-            aria-label="PULSE Home"
-          >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-default)] flex items-center justify-center text-[var(--accent)] shadow-xs transition-transform group-active:scale-95">
-              <PulseLogo variant="mark" size={17} color="var(--accent)" />
-            </div>
-            <span className="font-heading font-extrabold text-xs sm:text-base tracking-tight text-[var(--text-primary)] leading-none">
-              PULSE
-            </span>
-          </button>
-        </div>
-        
-        {/* Header Action Controls - Symmetrically sized touch targets to prevent cramping on 320px-430px */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-          {pwa.isInstallable && !pwa.isStandalone && !pwa.isInstalled && (
-            <button type="button"
-              id="mobile-install-btn"
-              onPointerEnter={prefetchModals}
-              onTouchStart={prefetchModals}
-              onClick={async () => {
-                triggerHaptic('tap');
-                await pwa.promptInstall();
-              }}
-              className="h-9 px-2.5 sm:h-10 sm:px-3 min-h-[36px] min-w-[36px] sm:min-h-[40px] flex items-center justify-center gap-1.5 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-              title="Install App"
-              aria-label="Install App"
-            >
-              <Download size={14} aria-hidden="true" />
-              <span className="hidden min-[420px]:inline">Install</span>
-            </button>
-          )}
-
-          {!pwa.isInstalled && !pwa.isStandalone && (
-            <button type="button"
-              id="mobile-fullscreen-btn"
-              onClick={() => { triggerHaptic('tap'); handleToggleFullscreen(); }}
-              className="h-9 px-2.5 sm:h-10 sm:px-3 min-h-[36px] min-w-[36px] sm:min-h-[40px] flex items-center justify-center gap-1.5 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-              aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-            >
-              {isFullscreen ? <Minimize2 size={14} aria-hidden="true" className="text-[var(--accent)]" /> : <Maximize2 size={14} aria-hidden="true" />}
-              <span className="hidden min-[420px]:inline">{isFullscreen ? "Exit" : "Fullscreen"}</span>
-            </button>
-          )}
-
-          <button type="button"
-            id="mobile-info-btn"
-            onPointerEnter={prefetchModals}
-            onTouchStart={prefetchModals}
-            onClick={() => {
-              triggerHaptic('tap');
-              setIsWelcomeOpen(true);
-            }}
-            className="w-9 h-9 sm:w-10 sm:h-10 min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            aria-label="App Info and Guide"
-            title="Welcome & Info"
-          >
-            <Info size={15} aria-hidden="true" />
-          </button>
-
-          <button type="button"
-            id="mobile-settings-btn"
-            onPointerEnter={prefetchModals}
-            onTouchStart={prefetchModals}
-            onClick={() => {
-              triggerHaptic('tap');
-              setIsSettingsOpen(true);
-            }}
-            className="w-9 h-9 sm:w-10 sm:h-10 min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            aria-label="Settings"
-            title="Settings"
-          >
-            <Settings size={15} aria-hidden="true" />
-          </button>
-        </div>
-      </header>
-
-      {/* Fullscreen Feedback Notice */}
+    <div className="bg-[#08080A] text-[#F8FAFC] min-h-[100dvh] w-full flex flex-col font-sans overflow-x-hidden relative selection:bg-[#00F0FF]/30 pb-safe">
+      <SEO title="PULSE Mobile" description="Measure your cognitive latency and memory precision on the go." />
+      
+      {/* Auth Error Banner */}
       <AnimatePresence>
-        {fullscreenNotice && (
-          <motion.div 
-            initial={{ opacity: 0, y: -6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            role="status"
-            aria-live="polite"
-            style={{ top: 'max(3.5rem, calc(env(safe-area-inset-top, 0px) + 3.5rem))' }}
-            className="fixed left-4 right-4 z-40 max-w-sm mx-auto p-2.5 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-default)] text-[var(--text-primary)] flex items-center justify-between gap-2 text-xs"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <AlertCircle size={14} aria-hidden="true" className="shrink-0 text-[var(--accent)]" />
-              <span className="truncate">{fullscreenNotice}</span>
+        {displayedError && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="bg-[#EF4444]/10 border-b border-[#EF4444]/20 overflow-hidden">
+            <div className="px-4 py-3 flex items-center justify-between text-[#EF4444] text-xs font-mono">
+              <div className="flex items-center gap-2">
+                <AlertCircle size={14} />
+                <span>Sync Error: Offline</span>
+              </div>
+              <button onClick={() => { setIsRetrying(true); retryAuth().finally(() => setIsRetrying(false)); }} className="underline decoration-dashed underline-offset-2">Retry</button>
             </div>
-            <button
-              type="button"
-              onClick={() => setFullscreenNotice(null)}
-              className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer rounded shrink-0"
-              aria-label="Dismiss message"
-            >
-              <X size={13} aria-hidden="true" />
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main Content - Natural document scrolling without nested overflow locks */}
-      <main 
-        className="w-full flex-auto flex flex-col items-center px-4 py-3 z-10 max-w-sm mx-auto gap-3.5"
-        style={{ paddingBottom: displayedError ? 'max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))' : 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
-      >
-        <motion.div 
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-          className="flex flex-col items-center text-center w-full pt-1"
-        >
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-[0.625rem] font-mono mb-1.5">
-            <span>v2.1 · Cognitive Benchmark</span>
-          </div>
-          <h1 className="text-base font-bold tracking-tight text-[var(--text-primary)] leading-tight px-1">
-            Precision Latency &amp; Cognitive Benchmarks
+      {/* Mobile Header */}
+      <header className="w-full flex items-center justify-between px-5 py-4 z-40 shrink-0">
+        <div className="flex items-center gap-2 text-white">
+          <img src="/brand/pulse-reticle-logo.svg" alt="PULSE" className="w-6 h-6 text-[#00F0FF]" />
+          <span className="font-heading font-bold tracking-widest text-sm uppercase text-[#F8FAFC]">PULSE</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={toggleFullscreen} className="p-2 text-[#8A94A6] hover:text-white rounded-full">
+            {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+          </button>
+          <button onClick={() => { triggerHaptic(); setIsSettingsOpen(true); }} className="p-2 text-[#8A94A6] hover:text-[#00F0FF] rounded-full">
+            <Settings size={20} />
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content - Asymmetric Monolithic Stack */}
+      <main className="flex-1 flex flex-col px-5 pb-6 justify-between w-full max-w-md mx-auto">
+        
+        {/* Towering Headline */}
+        <div className="pt-2 pb-6">
+          <h1 className="font-heading font-bold text-[3rem] leading-[0.88] tracking-[-0.04em] text-[#F8FAFC] text-balance uppercase">
+            SHAPING<br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8A94A6]">COGNITION</span>
           </h1>
+        </div>
 
-          <p className="text-[var(--text-secondary)] text-xs font-normal px-2 leading-relaxed mt-1">
-            Research-informed sensory reaction and working memory evaluator
-          </p>
-        </motion.div>
-
-        {/* How it Works - Middle Guide Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.08, ease: "easeOut" }}
-          className="w-full bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-4 flex flex-col gap-3 shadow-xs text-left shrink-0"
-        >
-          <div className="border-b border-[var(--border-subtle)] pb-2.5">
-            <h2 className="text-xs font-bold text-[var(--text-primary)]">Welcome to PULSE</h2>
-            <p className="text-[0.6875rem] text-[var(--text-secondary)] mt-1 leading-relaxed">
-              PULSE is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
-            </p>
-            <div className="text-[0.625rem] font-mono font-medium text-[var(--accent)] uppercase tracking-wider mt-2">How it works:</div>
+        {/* Carousel / Card Stack */}
+        <div className="relative w-full aspect-[4/5] rounded-[24px] bg-[#10141B] border border-[rgba(255,255,255,0.08)] shadow-2xl shadow-black overflow-hidden flex flex-col group touch-pan-y"
+             onTouchStart={() => setIsAutoPlaying(false)}>
+          
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#08080A]/90 z-10 pointer-events-none" />
+          
+          {/* Card Visual Content */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <AnimatePresence mode="popLayout">
+              <motion.div 
+                key={activeIndex}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.05 }}
+                transition={{ duration: 0.4 }}
+                className="w-32 h-32 opacity-40 flex items-center justify-center mix-blend-screen"
+              >
+                 <img src="/brand/pulse-reticle-logo.svg" alt="" className="w-full h-full text-[#00F0FF] drop-shadow-[0_0_20px_rgba(0,240,255,0.5)]" />
+              </motion.div>
+            </AnimatePresence>
           </div>
 
-          <div className="flex gap-2.5 items-start">
-            <div className="w-6 h-6 rounded-md bg-[var(--accent-subtle)] border border-[var(--accent)]/20 text-[var(--accent)] flex items-center justify-center shrink-0 mt-0.5">
-              <ListChecks className="w-3.5 h-3.5 stroke-[2.2]" aria-hidden="true" />
+          {/* Controls Overlay */}
+          <div className="absolute inset-x-0 top-0 p-5 flex items-center justify-between z-20 pointer-events-none">
+            <div className="text-[10px] font-mono tracking-widest text-[#00F0FF] px-3 py-1 rounded-full border border-[#00F0FF]/30 bg-[#00F0FF]/10 uppercase backdrop-blur-md">
+              {activeAssessment.protocolNumber}
             </div>
-            <div className="flex flex-col min-w-0">
-              <h3 className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">
-                Pick a test
-              </h3>
-              <p className="text-[0.6875rem] text-[var(--text-secondary)] leading-snug">
-                Visual Reaction, Direction, Colour Recognition, Block Memory, or Number Memory.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-2.5 items-start">
-            <div className="w-6 h-6 rounded-md bg-[var(--accent-subtle)] border border-[var(--accent)]/20 text-[var(--accent)] flex items-center justify-center shrink-0 mt-0.5">
-              <Zap className="w-3.5 h-3.5 stroke-[2.2]" aria-hidden="true" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <h3 className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">
-                Respond
-              </h3>
-              <p className="text-[0.6875rem] text-[var(--text-secondary)] leading-snug">
-                Watch for the cue and answer as fast and accurately as you can.
-              </p>
+            <div className="flex items-center gap-1.5 pointer-events-auto">
+              <button onClick={handlePrev} className="p-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-white active:scale-95 transition-transform"><ChevronLeft size={16}/></button>
+              <button onClick={handleNext} className="p-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-white active:scale-95 transition-transform"><ChevronRight size={16}/></button>
             </div>
           </div>
 
-          <div className="flex gap-2.5 items-start">
-            <div className="w-6 h-6 rounded-md bg-[var(--accent-subtle)] border border-[var(--accent)]/20 text-[var(--accent)] flex items-center justify-center shrink-0 mt-0.5">
-              <BarChart2 className="w-3.5 h-3.5 stroke-[2.2]" aria-hidden="true" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <h3 className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">
-                Review
-              </h3>
-              <p className="text-[0.6875rem] text-[var(--text-secondary)] leading-snug">
-                Get your score instantly, compare against verified cohort benchmarks, and track your personal bests.
-              </p>
-            </div>
-          </div>
-
-          <div className="border-t border-[var(--border-subtle)] pt-2 text-[0.6875rem] text-[var(--text-secondary)] leading-relaxed">
-            You can also check the Leaderboard, explore the open research Dataset, and learn about evidence-based habits in the Improve guide.
-          </div>
-        </motion.div>
-
-        {/* Action & Navigation Area - Clean spacing with zero excessive dead space */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.1, ease: "easeOut" }}
-          className="w-full flex flex-col gap-2.5 shrink-0 mb-2 sm:mb-3"
-        >
-          {/* Primary Action: START ASSESSMENT */}
-          <Link
-            to="/assessments"
-            id="mobile-start-session-btn"
-            onClick={() => {
-              triggerHaptic('tap');
-            }}
-            className="w-full rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-white dark:text-slate-950 font-semibold py-3.5 px-4 flex items-center justify-center gap-2 cursor-pointer transition-[background-color,transform] duration-150 motion-reduce:transition-none shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          >
-            <span className="text-xs font-semibold">Start assessments</span>
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
-          </Link>
-
-          {/* Menu Grid - 2x2 with clear touch targets */}
-          <div className="grid grid-cols-2 gap-2 w-full">
-            {MOBILE_NAV_CARDS.map((card) => {
-              const Icon = card.icon;
-              return (
-                <Link 
-                  key={card.to}
-                  to={card.to}
-                  id={card.id}
-                  onClick={() => triggerHaptic('tap')}
-                  aria-label={card.ariaLabel}
-                  className="bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.98] border border-[var(--border-subtle)] hover:border-[var(--border-default)] rounded-lg p-2.5 sm:p-3 flex items-center gap-2.5 text-left transition-[background-color,border-color,transform] duration-150 motion-reduce:transition-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          {/* Bottom Card Content */}
+          <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end">
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={activeIndex}
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -10, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h2 className="font-heading text-2xl font-bold text-white mb-2">{activeAssessment.title}</h2>
+                <p className="text-[#8A94A6] text-sm leading-relaxed mb-5 line-clamp-2">{activeAssessment.description}</p>
+                <button 
+                  onClick={() => { triggerHaptic(); navigate(activeAssessment.targetRoute); }}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-white text-black font-semibold text-sm active:scale-[0.98] transition-transform shadow-[0_0_20px_rgba(255,255,255,0.15)]"
                 >
-                  <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
-                    <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[var(--text-primary)] font-semibold text-xs truncate">{card.label}</span>
-                    <span className="text-[var(--text-secondary)] text-[0.65625rem] truncate mt-0.5">{card.sublabel}</span>
-                  </div>
-                </Link>
-              );
-            })}
+                  <Play size={16} fill="black" />
+                  PLAY ASSESSMENT
+                </button>
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </motion.div>
+        </div>
+
+        {/* Global CTA and Subtext */}
+        <div className="mt-8">
+          <p className="text-[#8A94A6] text-sm leading-relaxed mb-6">
+            PULSE evaluates visual latency, directional CRT, and working memory with research-grade millisecond precision.
+          </p>
+          <button 
+            onClick={() => { triggerHaptic(); onNavigate('/assessments'); }}
+            className="w-full flex items-center justify-center bg-gradient-to-r from-[#00F0FF]/10 to-[#00F0FF]/5 border border-[#00F0FF]/30 text-[#00F0FF] py-4 rounded-full font-bold text-sm tracking-wide active:scale-[0.98] transition-transform"
+          >
+            EXPLORE ALL PROTOCOLS
+          </button>
+        </div>
+        
       </main>
 
-      {isSettingsOpen && (
-        <Suspense fallback={<ModalLoadingFallback />}>
-          <SettingsModal 
-            isOpen={isSettingsOpen} 
-            onClose={handleCloseSettings} 
-          />
-        </Suspense>
-      )}
-
-      {isWelcomeOpen && (
-        <Suspense fallback={<ModalLoadingFallback />}>
-          <WelcomeModal
-            isOpen={isWelcomeOpen}
-            onClose={handleCloseWelcome}
-            onNavigate={onNavigate}
-          />
-        </Suspense>
-      )}
-
-      {pwa.isGuideOpen && !isSettingsOpen && (
-        <Suspense fallback={<ModalLoadingFallback />}>
-          <AddToHomeScreenModal
-            isOpen={pwa.isGuideOpen && !isSettingsOpen}
-            onClose={pwa.closeInstallGuide}
+      {/* Modals Container */}
+      <Suspense fallback={<ModalLoadingFallback />}>
+        {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
+        {isWelcomeOpen && <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />}
+        {pwa.isGuideOpen && (
+          <AddToHomeScreenModal 
+            isOpen={pwa.isGuideOpen} 
+            onClose={pwa.closeInstallGuide} 
             isInstalled={pwa.isInstalled}
             isIos={pwa.isIos}
             isSafari={pwa.isSafari}
@@ -508,42 +277,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
             isOffline={pwa.isOffline}
             onPromptInstall={pwa.promptInstall}
           />
-        </Suspense>
-      )}
-
-      {/* Floating Mobile Auth Notice: Non-disruptive, layout-stable connection notice with safe-area bottom offset */}
-      <AnimatePresence>
-        {displayedError && (
-          <motion.div 
-            role="status"
-            aria-live="polite"
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            style={{ bottom: 'max(1.25rem, calc(env(safe-area-inset-bottom, 0px) + 1.25rem))' }}
-            className="fixed left-4 right-4 z-40 max-w-sm mx-auto p-2.5 rounded-lg bg-[var(--surface-1)]/95 backdrop-blur-md border border-[var(--border-default)] text-[var(--text-secondary)] flex items-center justify-between gap-2 text-left"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <AlertCircle size={14} aria-hidden="true" className="shrink-0 text-amber-500 dark:text-amber-400" />
-              <div className="text-[0.625rem] leading-tight">
-                <span className="font-semibold text-[var(--text-primary)]">Notice: </span>
-                <span>{displayedError}</span>
-              </div>
-            </div>
-            <button 
-              type="button" 
-              onClick={() => { triggerHaptic('tap'); handleRetry(); }}
-              disabled={isActionInProgress}
-              aria-label="Retry connection"
-              className="px-2 py-1 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] text-[var(--text-primary)] text-[0.625rem] font-mono inline-flex items-center gap-1 cursor-pointer transition-colors shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            >
-              <RefreshCw size={10} aria-hidden="true" className={isActionInProgress ? "animate-spin motion-reduce:animate-none" : ""} />
-              <span>{isActionInProgress ? "Retrying..." : "Retry"}</span>
-            </button>
-          </motion.div>
         )}
-      </AnimatePresence>
+      </Suspense>
     </div>
   );
 }
