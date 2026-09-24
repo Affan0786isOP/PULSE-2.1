@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+<title>PULSE Block Memory assessment mark</title><desc>Three by three spatial memory lattice with an ordered recall path.</desc>
+<rect x="17" y="17" width="94" height="94" rx="4" stroke="#00F0FF" stroke-width="3"/>
+<g stroke="#00F0FF" stroke-width="2" opacity=".4">
+<path d="M48 17v94M80 17v94M17 48h94M17 80h94"/>
+</g>
+<path d="M32 32h14v14H32zM64 32h14v14H64zM64 64h14v14H64zM32 80h14v14H32zM80 80h14v14H80z" fill="#00F0FF" opacity=".95"/>
+<path d="M39 39L71 39L71 71L39 87L87 87" stroke="#F8FAFC" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/>
+<circle cx="39" cy="39" r="4" fill="#F8FAFC"/>
+<circle cx="87" cy="87" r="4" fill="#00F0FF"/>
+</svg>
