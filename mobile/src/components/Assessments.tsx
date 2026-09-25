@@ -11,35 +11,40 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       title: 'Visual Reaction',
       description: 'Wait for the panel to turn white, then tap as fast as you can. Do not tap early!',
       type: 'LATENCY',
-      status: 'AVAILABLE'
+      status: 'AVAILABLE',
+      logo: '/brand/assessments/reaction.png'
     },
     {
       id: 'direction-test',
       title: 'Direction',
       description: 'Watch for the directional arrow or cue, then immediately tap the matching direction button.',
       type: 'COORDINATION',
-      status: 'AVAILABLE'
+      status: 'AVAILABLE',
+      logo: '/brand/assessments/direction.png'
     },
     {
       id: 'colour-recognition',
       title: 'Colour Recognition',
       description: 'Follow the prompt (MATCH THE WORD or MATCH THE COLOR) and tap the correct button despite mismatched colors.',
       type: 'COGNITIVE',
-      status: 'AVAILABLE'
+      status: 'AVAILABLE',
+      logo: '/brand/assessments/color.jpg'
     },
     {
       id: 'block-memory',
       title: 'Block Memory',
       description: 'Watch the sequence of blocks light up on the grid, then tap them in the exact same order.',
       type: 'MEMORY',
-      status: 'AVAILABLE'
+      status: 'AVAILABLE',
+      logo: '/brand/assessments/block.jpg'
     },
     {
       id: 'number-memory',
       title: 'Number Memory',
       description: 'Memorize the number shown on screen, then type the digits in order. Each round adds one more digit.',
       type: 'MEMORY',
-      status: 'AVAILABLE'
+      status: 'AVAILABLE',
+      logo: '/brand/assessments/number.png'
     }
   ];
 
@@ -110,10 +115,17 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                     : 'bg-[var(--surface-1)] border-[var(--border-subtle)] opacity-50 cursor-not-allowed'
                 }`}
               >
-                <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
-                    {assessment.type}
-                  </span>
+                <div className="flex justify-between items-start mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <img 
+                      src={assessment.logo} 
+                      alt={assessment.title}
+                      className="w-7 h-7 rounded object-contain bg-black/40 border border-white/10"
+                    />
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
+                      {assessment.type}
+                    </span>
+                  </div>
                   <span className="text-[11px] font-mono text-[var(--accent)]">
                     {assessment.status.toLowerCase()}
                   </span>

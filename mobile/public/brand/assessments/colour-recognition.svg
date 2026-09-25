@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+<title>PULSE Colour Recognition assessment mark</title><desc>Segmented target representing conflicting semantic and visual color signals.</desc>
+<circle cx="64" cy="64" r="47" stroke="#00F0FF" stroke-width="3"/>
+<circle cx="64" cy="64" r="29" stroke="#00F0FF" stroke-width="2"/>
+<path d="M64 17a47 47 0 0 1 47 47M111 64a47 47 0 0 1-47 47M64 111a47 47 0 0 1-47-47M17 64A47 47 0 0 1 64 17" stroke="#00F0FF" stroke-width="7" stroke-linecap="butt"/>
+<path d="M64 35v58M35 64h58" stroke="#F8FAFC" stroke-width="2"/>
+<circle cx="64" cy="64" r="13" stroke="#00F0FF" stroke-width="4"/>
+<path d="M55 55l18 18M73 55L55 73" stroke="#F8FAFC" stroke-width="3" stroke-linecap="square"/>
+<circle cx="64" cy="64" r="3" fill="#00F0FF"/>
+</svg>

@@ -18,6 +18,7 @@ export interface HeroAssessment {
   title: string;
   description: string;
   targetRoute: string;
+  logo: string;
 }
 
 export const HERO_ASSESSMENTS: HeroAssessment[] = [
@@ -28,6 +29,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Visual Reaction Test',
     description: 'Measure speed of eye-brain coordination with a rapid flash-to-tap test.',
     targetRoute: '/reaction-test',
+    logo: '/brand/assessments/reaction.png',
   },
   {
     id: 'direction',
@@ -36,6 +38,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Directional Choice',
     description: 'Evaluate cognitive bifurcation speed and motor execution under choice conditions.',
     targetRoute: '/direction-test',
+    logo: '/brand/assessments/direction.png',
   },
   {
     id: 'color',
@@ -44,6 +47,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Color Recognition',
     description: 'Assess semantic inhibitory control and selective attention thresholds.',
     targetRoute: '/colour-recognition',
+    logo: '/brand/assessments/color.jpg',
   },
   {
     id: 'block',
@@ -52,6 +56,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Block Memory',
     description: 'Benchmark visuospatial memory span through progressive serial recall.',
     targetRoute: '/block-memory',
+    logo: '/brand/assessments/block.jpg',
   },
   {
     id: 'number',
@@ -60,6 +65,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Number Memory',
     description: 'Test phonological working memory limit with adaptive digit length scaling.',
     targetRoute: '/number-memory',
+    logo: '/brand/assessments/number.png',
   },
 ];
 
@@ -222,12 +228,24 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
                       }
                     }}
                   >
+                    {/* Assessment Visual Graphic */}
+                    <div className="absolute top-4 right-4 z-10">
+                      <img 
+                        src={assessment.logo} 
+                        alt={assessment.title} 
+                        className="w-16 h-16 object-contain rounded-lg drop-shadow-[0_0_12px_rgba(0,240,255,0.25)] border border-white/10"
+                      />
+                    </div>
+
                     {/* Dark gradient overlay for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
                     
                     <div className="relative z-10 flex flex-col items-start text-left">
-                      <h2 className="font-heading text-xl font-bold text-white mb-2">{assessment.title}</h2>
-                      <p className="text-[#8A94A6] text-[13px] leading-relaxed mb-4">{assessment.description}</p>
+                      <div className="text-[10px] font-mono text-[#00F0FF] uppercase tracking-wider mb-1">
+                        {assessment.protocolNumber}
+                      </div>
+                      <h2 className="font-heading text-xl font-bold text-white mb-1.5">{assessment.title}</h2>
+                      <p className="text-[#8A94A6] text-[13px] leading-relaxed mb-3.5 pr-2">{assessment.description}</p>
                       
                       <div className="bg-[#052e16] border border-[#166534] px-2.5 py-1 rounded-md">
                         <span className="text-[10px] font-bold tracking-widest text-[#4ade80] uppercase">ACTIVE</span>

@@ -172,12 +172,12 @@ export function AssessmentHero3D() {
                     {/* Visualizer Background Graphic */}
                     <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgwem0yMCAyMGMwLTExLTAuNC0yMC0yMC0yMHMyMCA4LjkgMjAgMjAgMC40IDIwIDIwIDIwLTIwLTguOS0yMC0yMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] pointer-events-none" />
                     
-                    {/* P-Symbol Visual Focus */}
+                    {/* Assessment Custom Logo Visual Focus */}
                     <motion.img 
-                      src="/brand/pulse-reticle-logo.svg" 
-                      alt="PULSE Symbol"
-                      className="w-20 h-20 relative z-10"
-                      animate={isActive ? { scale: [1, 1.05, 1], filter: ['drop-shadow(0 0 0px #00F0FF)', 'drop-shadow(0 0 15px #00F0FF)', 'drop-shadow(0 0 0px #00F0FF)'] } : {}}
+                      src={assessment.logo} 
+                      alt={assessment.title}
+                      className="w-24 h-24 object-contain relative z-10 rounded-xl"
+                      animate={isActive ? { scale: [1, 1.05, 1], filter: ['drop-shadow(0 0 0px #00F0FF)', 'drop-shadow(0 0 15px rgba(0,240,255,0.4))', 'drop-shadow(0 0 0px #00F0FF)'] } : {}}
                       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                     />
                   </div>

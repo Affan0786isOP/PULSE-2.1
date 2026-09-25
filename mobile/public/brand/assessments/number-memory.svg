@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+<title>PULSE Number Memory assessment mark</title><desc>Modular digit-display bars representing encoded number sequences.</desc>
+<rect x="17" y="21" width="94" height="86" rx="5" stroke="#00F0FF" stroke-width="3"/>
+<path d="M31 39h18v12H31zM55 39h18v12H55zM79 39h18v12H79zM31 59h18v12H31zM55 59h18v12H55zM79 59h18v12H79zM31 79h18v12H31zM55 79h18v12H55zM79 79h18v12H79z" stroke="#00F0FF" stroke-width="2" opacity=".55"/>
+<path d="M35 43v4h10v-4M59 47v-4h10v4M83 43v4h10M35 63h10M59 63h10v6H59M83 63v8M35 83h10v8M59 83v8h10M83 91h10v-8" stroke="#F8FAFC" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/>
+<path d="M23 14h18M87 14h18" stroke="#00F0FF" stroke-width="2" opacity=".45"/>
+</svg>
