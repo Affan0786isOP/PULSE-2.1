@@ -60,15 +60,10 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full mx-auto flex-1 flex flex-col justify-center focus-visible:outline-none"
+        className="w-full mx-auto flex-1 flex flex-col justify-center focus-visible:outline-none pt-8 pb-12"
       >
-        {/* 3D Assessment Carousel */}
-        <div className={`w-full z-10 ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
-          <AssessmentHero3D />
-        </div>
-
-        {/* Bottom Anchored Typographic Anchor */}
-        <div className="w-full max-w-5xl mx-auto px-6 flex flex-col items-center text-center z-20 pb-8 pt-4">
+        {/* Top Typographic Section */}
+        <div className="w-full max-w-5xl mx-auto px-6 flex flex-col items-center text-center z-20 pt-4 pb-2">
           <div className={`mb-6 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
              <ProvenanceBadge />
           </div>
@@ -77,10 +72,18 @@ export function Home() {
             PRECISION COGNITIVE BENCHMARKING.<br className="hidden sm:block"/> MILLISECOND LATENCY. STANDARDIZED TELEMETRY.
           </h1>
 
-          <p className={`text-[#8A94A6] text-sm sm:text-base font-mono uppercase tracking-wider mb-8 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
+          <p className={`text-[#8A94A6] text-sm sm:text-base font-mono uppercase tracking-wider mb-2 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
             PULSE {APP_VERSION} / RESEARCH-GRADE NEURAL TELEMETRY
           </p>
+        </div>
 
+        {/* 3D Assessment Carousel */}
+        <div className={`w-full z-10 ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
+          <AssessmentHero3D />
+        </div>
+
+        {/* Bottom Action Section */}
+        <div className="w-full max-w-5xl mx-auto px-6 flex flex-col items-center text-center z-20">
           <div className={shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}>
             <button 
               onClick={() => navigate(ROUTES.ASSESSMENTS)}
