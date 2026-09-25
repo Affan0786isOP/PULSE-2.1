@@ -77,7 +77,7 @@ export function Navbar({
           )}
           
           <Link 
-            to="/mobile/"
+            to="/"
             onClick={(e) => {
               if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
                 onNavigate('home');

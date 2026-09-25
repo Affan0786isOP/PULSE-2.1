@@ -106,41 +106,47 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                 whileHover={assessment.status === 'AVAILABLE' ? { y: -3, transition: { duration: 0.15 } } : undefined}
                 whileTap={assessment.status === 'AVAILABLE' ? { scale: 0.98 } : undefined}
                 onClick={() => assessment.status === 'AVAILABLE' && onNavigate(assessment.id)}
-                className={`relative p-5 rounded-lg flex flex-col text-left h-56 w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                className={`relative rounded-xl flex flex-col text-left overflow-hidden w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   assessment.status === 'AVAILABLE' 
                     ? 'pulse-card pulse-card-interactive cursor-pointer group' 
                     : 'bg-[var(--surface-1)] border border-[var(--border-subtle)] opacity-40 cursor-not-allowed'
                 }`}
               >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <img 
-                      src={assessment.logo} 
-                      alt={assessment.title}
-                      className="w-8 h-8 rounded-md object-contain bg-black/40 border border-white/10"
-                    />
-                    <span className="pulse-mono-meta px-2 py-0.5 rounded-md bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
+                <div className="relative w-full h-40 bg-[#08080A] border-b border-[var(--border-subtle)] flex items-center justify-center overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-1)] to-transparent z-10 pointer-events-none" />
+                  <img 
+                    src={assessment.logo} 
+                    alt={assessment.title}
+                    className="w-24 h-24 object-contain relative z-0 drop-shadow-[0_0_20px_rgba(0,240,255,0.25)] group-hover:scale-110 group-hover:drop-shadow-[0_0_30px_rgba(0,240,255,0.4)] transition-all duration-500 ease-out"
+                  />
+                  <div className="absolute top-3 right-3 z-20">
+                     <span className="pulse-mono-meta text-[var(--accent)] bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/10 uppercase tracking-widest text-[10px]">
+                       {assessment.status}
+                     </span>
+                  </div>
+                </div>
+                
+                <div className="p-5 flex flex-col flex-1 bg-[var(--surface-1)]/50">
+                  <div className="mb-2.5">
+                    <span className="pulse-mono-meta px-2 py-0.5 rounded-md bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)] inline-block">
                       {assessment.type}
                     </span>
                   </div>
-                  <span className="pulse-mono-meta text-[var(--accent)]">
-                    {assessment.status.toLowerCase()}
-                  </span>
+                  
+                  <h3 className="font-heading text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)] mb-1.5 group-hover:text-[var(--accent)] transition-colors duration-300">
+                    {assessment.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
+                    {assessment.description}
+                  </p>
+                  
+                  {assessment.status === 'AVAILABLE' && (
+                    <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-mono font-medium text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors">
+                      <span>START ASSESSMENT</span>
+                      <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                    </div>
+                  )}
                 </div>
-                
-                <h3 className="font-heading text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)] mb-1.5">
-                  {assessment.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
-                  {assessment.description}
-                </p>
-                
-                {assessment.status === 'AVAILABLE' && (
-                  <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-mono font-medium text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors">
-                    <span>START ASSESSMENT</span>
-                    <span className="group-hover:translate-x-1 transition-transform">→</span>
-                  </div>
-                )}
               </motion.button>
             ))}
           </motion.div>

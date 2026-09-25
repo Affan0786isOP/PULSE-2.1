@@ -9,6 +9,7 @@ import { useAuth } from '../AuthContext';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { isMobileWelcomeSeen } from '../lib/welcomeStore';
 import { triggerHaptic } from '../lib/settingsStore';
+import { PulseLogo } from './brand';
 import { SEO } from './SEO';
 
 export interface HeroAssessment {
@@ -126,7 +127,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       {/* Header */}
       <header className="w-full max-w-md mx-auto flex items-center justify-between px-5 py-5 z-40 shrink-0">
         <div className="flex items-center gap-2 text-white">
-          <img src="/brand/pulse-reticle-logo.svg" alt="PULSE" className="w-6 h-6" />
+          <PulseLogo variant="mark" size={24} color="#00F0FF" />
           <span className="font-heading font-semibold text-lg tracking-wide text-white">Pulse</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -275,19 +276,19 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           <h3 className="text-[11px] font-mono font-bold tracking-widest text-[#8A94A6] mb-4">DIRECTORY</h3>
           
           <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => { triggerHaptic(); onNavigate('/leaderboard'); }} className="flex items-center gap-3 bg-[#13161C] hover:bg-[#1A1D24] active:scale-[0.98] transition-all rounded-xl p-4 border border-white/5 shadow-sm">
+            <button onClick={() => { triggerHaptic(); onNavigate('leaderboard'); }} className="flex items-center gap-3 bg-[#13161C] hover:bg-[#1A1D24] active:scale-[0.98] transition-all rounded-xl p-4 border border-white/5 shadow-sm">
               <Trophy size={18} className="text-[#8A94A6]" />
               <span className="text-sm font-semibold text-white tracking-wide">Leaderboard</span>
             </button>
-            <button onClick={() => { triggerHaptic(); navigate('/dashboard'); }} className="flex items-center gap-3 bg-[#13161C] hover:bg-[#1A1D24] active:scale-[0.98] transition-all rounded-xl p-4 border border-white/5 shadow-sm">
+            <button onClick={() => { triggerHaptic(); onNavigate('analytics'); }} className="flex items-center gap-3 bg-[#13161C] hover:bg-[#1A1D24] active:scale-[0.98] transition-all rounded-xl p-4 border border-white/5 shadow-sm">
               <BarChart2 size={18} className="text-[#8A94A6]" />
               <span className="text-sm font-semibold text-white tracking-wide">Analytics</span>
             </button>
-            <button onClick={() => { triggerHaptic(); navigate('/dataset'); }} className="flex items-center gap-3 bg-[#13161C] hover:bg-[#1A1D24] active:scale-[0.98] transition-all rounded-xl p-4 border border-white/5 shadow-sm">
+            <button onClick={() => { triggerHaptic(); onNavigate('dataset'); }} className="flex items-center gap-3 bg-[#13161C] hover:bg-[#1A1D24] active:scale-[0.98] transition-all rounded-xl p-4 border border-white/5 shadow-sm">
               <Folder size={18} className="text-[#8A94A6]" />
               <span className="text-sm font-semibold text-white tracking-wide">Dataset</span>
             </button>
-            <button onClick={() => { triggerHaptic(); navigate('/privacy'); }} className="flex items-center gap-3 bg-[#13161C] hover:bg-[#1A1D24] active:scale-[0.98] transition-all rounded-xl p-4 border border-white/5 shadow-sm">
+            <button onClick={() => { triggerHaptic(); onNavigate('privacy'); }} className="flex items-center gap-3 bg-[#13161C] hover:bg-[#1A1D24] active:scale-[0.98] transition-all rounded-xl p-4 border border-white/5 shadow-sm">
               <Shield size={18} className="text-[#8A94A6]" />
               <span className="text-sm font-semibold text-white tracking-wide">Privacy Policy</span>
             </button>

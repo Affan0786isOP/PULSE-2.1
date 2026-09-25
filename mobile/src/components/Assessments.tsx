@@ -109,37 +109,43 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                     onNavigate(assessment.id);
                   }
                 }}
-                className={`p-4 border rounded-md flex flex-col text-left w-full transition-colors transition-transform transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                className={`border rounded-xl flex flex-col text-left w-full overflow-hidden transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   assessment.status === 'AVAILABLE' 
-                    ? 'bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)] cursor-pointer shadow-sm active:scale-[0.99]' 
+                    ? 'bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)] cursor-pointer shadow-sm active:scale-[0.99] group' 
                     : 'bg-[var(--surface-1)] border-[var(--border-subtle)] opacity-50 cursor-not-allowed'
                 }`}
               >
-                <div className="flex justify-between items-start mb-2.5">
-                  <div className="flex items-center gap-2">
-                    <img 
-                      src={assessment.logo} 
-                      alt={assessment.title}
-                      className="w-7 h-7 rounded object-contain bg-black/40 border border-white/10"
-                    />
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
+                <div className="relative w-full h-32 bg-[#08080A] border-b border-[var(--border-subtle)] flex items-center justify-center overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-1)] to-transparent z-10 pointer-events-none" />
+                  <img 
+                    src={assessment.logo} 
+                    alt={assessment.title}
+                    className="w-20 h-20 object-contain relative z-0 drop-shadow-[0_0_15px_rgba(0,240,255,0.25)] group-active:scale-110 transition-transform duration-300 ease-out"
+                  />
+                  <div className="absolute top-3 right-3 z-20">
+                     <span className="text-[10px] font-mono text-[var(--accent)] bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/10 uppercase tracking-widest">
+                       {assessment.status}
+                     </span>
+                  </div>
+                </div>
+
+                <div className="p-4 flex flex-col flex-1 bg-[var(--surface-1)]/50">
+                  <div className="mb-2">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)] inline-block">
                       {assessment.type}
                     </span>
                   </div>
-                  <span className="text-[11px] font-mono text-[var(--accent)]">
-                    {assessment.status.toLowerCase()}
-                  </span>
+                  
+                  <h3 className="text-base font-semibold text-[var(--text-primary)] mb-1 font-heading group-active:text-[var(--accent)] transition-colors">{assessment.title}</h3>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">{assessment.description}</p>
+                  
+                  {assessment.status === 'AVAILABLE' && (
+                    <div className="mt-auto pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-medium text-[var(--text-secondary)] group-active:text-[var(--accent)] transition-colors">
+                      <span>Start assessment</span>
+                      <span className="group-active:translate-x-1 transition-transform">→</span>
+                    </div>
+                  )}
                 </div>
-                
-                <h3 className="text-base font-semibold text-[var(--text-primary)] mb-1 font-heading">{assessment.title}</h3>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">{assessment.description}</p>
-                
-                {assessment.status === 'AVAILABLE' && (
-                  <div className="mt-auto pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-medium text-[var(--text-secondary)]">
-                    <span>Start assessment</span>
-                    <span>→</span>
-                  </div>
-                )}
               </motion.button>
             ))}
           </motion.div>

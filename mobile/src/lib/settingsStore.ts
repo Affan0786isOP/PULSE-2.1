@@ -234,6 +234,70 @@ export function useSettings(): [UserSettings, (partial: Partial<UserSettings>) =
   return [settings, update];
 }
 
+export function hasExplicitStoredReducedMotionPreference(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return false;
+    const settings = JSON.parse(raw);
+    return Boolean(settings && typeof settings.reducedMotionEnabled === 'boolean');
+  } catch {
+    return false;
+  }
+}
+
+export function useReducedMotionPreference(): boolean {
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
+    if (hasExplicitStoredReducedMotionPreference()) {
+      return isReducedMotionActive();
+    }
+    return getDefaultReducedMotion();
+  });
+
+  useEffect(() => {
+    const handleSettingsChange = (e: Event) => {
+      const customEvent = e as CustomEvent<UserSettings>;
+      const nextVal = customEvent.detail ? customEvent.detail.reducedMotionEnabled : isReducedMotionActive();
+      setReducedMotion((prev) => (prev !== nextVal ? nextVal : prev));
+    };
+
+    window.addEventListener('pulse_settings_changed', handleSettingsChange);
+
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return () => {
+        window.removeEventListener('pulse_settings_changed', handleSettingsChange);
+      };
+    }
+
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const handleMediaChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      if (hasExplicitStoredReducedMotionPreference()) {
+        return;
+      }
+      const nextVal = 'matches' in event ? event.matches : mql.matches;
+      setReducedMotion((prev) => (prev !== nextVal ? nextVal : prev));
+    };
+
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', handleMediaChange);
+    } else if (typeof (mql as any).addListener === 'function') {
+      (mql as any).addListener(handleMediaChange);
+    }
+
+    return () => {
+      window.removeEventListener('pulse_settings_changed', handleSettingsChange);
+      if (typeof mql.removeEventListener === 'function') {
+        mql.removeEventListener('change', handleMediaChange);
+      } else if (typeof (mql as any).removeListener === 'function') {
+        (mql as any).removeListener(handleMediaChange);
+      }
+    };
+  }, []);
+
+  return reducedMotion;
+}
+
 // Single shared Web Audio tone synthesizer for audio cues
 
 let sharedAudioCtx: AudioContext | null = null;

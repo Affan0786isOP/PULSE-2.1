@@ -15,7 +15,15 @@ export function parseCookies(cookieHeader?: string): Record<string, string> {
     if (idx > -1) {
       const key = pair.substring(0, idx).trim();
       const val = pair.substring(idx + 1).trim();
-      if (key) cookies[key] = decodeURIComponent(val);
+      if (key) {
+        let decodedVal = val;
+        try {
+          decodedVal = decodeURIComponent(val);
+        } catch {
+          decodedVal = val;
+        }
+        cookies[key] = decodedVal;
+      }
     }
   }
   return cookies;
@@ -211,24 +219,27 @@ export function resolveDeviceRedirect(
   }
 
   if (decision.shouldUseMobile && !isMobilePath) {
-    const targetPath = `/mobile${pathname === '/' ? '' : pathname}`;
-    if (checkAndSetRedirectLoopGuard(targetPath)) {
+    const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
+    const targetPath = cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`;
+    const targetUrl = `${targetPath}${search}${hash}`;
+    if (checkAndSetRedirectLoopGuard(targetUrl)) {
       return { shouldRedirect: false };
     }
     return {
       shouldRedirect: true,
-      targetUrl: `${targetPath}${search}${hash}`,
+      targetUrl,
     };
   }
 
   if (!decision.shouldUseMobile && isMobilePath && (decision.isExplicitForceDesktop || !decision.isMobileDevice)) {
     const targetPath = pathname.replace(/^\/mobile\/?/, '/') || '/';
-    if (checkAndSetRedirectLoopGuard(targetPath)) {
+    const targetUrl = `${targetPath}${search}${hash}`;
+    if (checkAndSetRedirectLoopGuard(targetUrl)) {
       return { shouldRedirect: false };
     }
     return {
       shouldRedirect: true,
-      targetUrl: `${targetPath}${search}${hash}`,
+      targetUrl,
     };
   }
 
