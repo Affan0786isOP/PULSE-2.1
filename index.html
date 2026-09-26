@@ -169,9 +169,13 @@
         // Register Service Worker for PWA Add-to-Home-Screen support
         if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
           window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/sw.js').catch(function(err) {
-              console.log('SW registration note:', err);
-            });
+            try {
+              navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                console.log('SW registration note:', err);
+              });
+            } catch (e) {
+              console.log('SW registration exception:', e);
+            }
           });
         }
 

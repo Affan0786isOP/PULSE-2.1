@@ -5,8 +5,9 @@ import { getLeaderboardResults } from '@/lib/firestore';
 
 // Mock Firebase
 vi.mock('firebase/app', () => ({
-  initializeApp: vi.fn(),
+  initializeApp: vi.fn(() => ({})),
   getApps: vi.fn(() => [{}]),
+  getApp: vi.fn(() => ({})),
 }));
 
 vi.mock('firebase/firestore', async (importOriginal) => {
@@ -26,6 +27,8 @@ vi.mock('firebase/firestore', async (importOriginal) => {
 vi.mock('firebase/auth', () => ({
   getAuth: vi.fn(() => ({ currentUser: { uid: '123' }, onAuthStateChanged: vi.fn() })),
   signInAnonymously: vi.fn(),
+  setPersistence: vi.fn(() => Promise.resolve()),
+  inMemoryPersistence: {},
 }));
 
 describe('Firebase Integration Tests (Mocked)', () => {

@@ -3535,7 +3535,10 @@ async function startServer() {
       pathname.startsWith('/api') ||
       pathname.startsWith('/mobile') ||
       pathname.startsWith('/admin') ||
-      pathname.match(/\.(js|css|json|png|jpg|jpeg|gif|svg|ico|webmanifest|map|woff2?|ttf|eot)$/i)
+      pathname.startsWith('/@') ||
+      pathname.startsWith('/node_modules') ||
+      pathname.startsWith('/src') ||
+      pathname.match(/\.(js|jsx|ts|tsx|css|json|png|jpg|jpeg|gif|svg|ico|webmanifest|map|woff2?|ttf|eot)$/i)
     ) {
       return next();
     }
@@ -3597,6 +3600,9 @@ async function startServer() {
 
     app.get(['/mobile', '/mobile/*'], async (req, res, next) => {
       try {
+        if (req.path.startsWith('/mobile/src') || req.path.startsWith('/mobile/@') || path.extname(req.path)) {
+          return next();
+        }
         const url = req.originalUrl || req.url;
         let templatePath = path.resolve(process.cwd(), 'mobile', 'index.html');
         if (!fs.existsSync(templatePath)) {

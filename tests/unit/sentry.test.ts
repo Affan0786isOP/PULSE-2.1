@@ -28,7 +28,11 @@ describe('Sentry Privacy Scrubber', () => {
       },
       tags: { session: 'session_123', version: '1.0' },
       contexts: {
-        dataset: [{ dataset: 'secret3', info: 'ok' }]
+        dataset: [{ recordId: 'secret3', info: 'ok' }],
+        appState: {
+          screen: 'ReactionTest',
+          email: 'user@pulse-lab.in'
+        }
       },
       breadcrumbs: [{ data: { reactionTimes: [1, 2, 3], safeArray: [1] } }]
     };
@@ -48,12 +52,16 @@ describe('Sentry Privacy Scrubber', () => {
     expect(sanitizedEvent.tags.session).toBe('[Scrubbed]');
     expect(sanitizedEvent.tags.version).toBe('1.0');
     
-    // Check contexts (arrays)
-    expect(sanitizedEvent.contexts.dataset[0].dataset).toBe('[Scrubbed]');
-    expect(sanitizedEvent.contexts.dataset[0].info).toBe('ok');
+    // Check contexts: sensitive dataset key is scrubbed
+    expect(sanitizedEvent.contexts.dataset).toBe('[Scrubbed]');
+    
+    // Check nested context with non-sensitive parent
+    expect(sanitizedEvent.contexts.appState.screen).toBe('ReactionTest');
+    expect(sanitizedEvent.contexts.appState.email).toBe('[Scrubbed]');
 
     // Check breadcrumbs inside beforeSend
     expect(sanitizedEvent.breadcrumbs[0].data.reactionTimes).toBe('[Scrubbed]');
+    expect(sanitizedEvent.breadcrumbs[0].data.safeArray).toEqual([1]);
     
     // Check beforeBreadcrumb hook
     const mockCrumb = { data: { token: 'secretToken', normal: 123 } };

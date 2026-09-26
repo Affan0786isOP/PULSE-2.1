@@ -49,7 +49,7 @@ function App() {
 
   React.useEffect(() => {
     try {
-      const pathname = location.pathname || window.location.pathname || '';
+      const pathname = typeof window !== 'undefined' ? window.location.pathname : (location.pathname || '');
       const search = location.search || window.location.search || '';
       const hash = location.hash || window.location.hash || '';
       const decision = evaluateDeviceRouting(search);
