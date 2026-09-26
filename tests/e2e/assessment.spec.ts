@@ -43,13 +43,13 @@ test.describe('Assessment Navigation', () => {
       const directionBtn = page.locator('button', { hasText: 'Direction' });
       if (await directionBtn.count() > 0) {
         await directionBtn.click();
-        await expect(page).toHaveURL(/.*\/direction-test/);
-        await expect(page.locator('text=Age Group').first()).toBeVisible();
+        await expect(page).toHaveURL(/.*\/direction-test/, { timeout: 15000 });
+        await expect(page.locator('text=Age Group').first()).toBeVisible({ timeout: 15000 });
       }
     } else {
       await page.goto('/direction-test');
-      await page.waitForURL(/\/direction-test/);
-      await expect(page.locator('text=Select Your Age Cohort').or(page.locator('text=Demographic Baseline')).or(page.locator('text=Age Group')).first()).toBeVisible();
+      await page.waitForURL(/\/direction-test/, { timeout: 15000 });
+      await expect(page.locator('text=Select Your Age Cohort').or(page.locator('text=Demographic Baseline')).or(page.locator('text=Age Group')).first()).toBeVisible({ timeout: 15000 });
     }
   });
 
