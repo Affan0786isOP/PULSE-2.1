@@ -48,7 +48,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Color Recognition',
     description: 'Assess semantic inhibitory control and selective attention thresholds.',
     targetRoute: '/colour-recognition',
-    logo: '/brand/assessments/color.jpg',
+    logo: '/brand/assessments/color.png',
   },
   {
     id: 'block',
@@ -57,7 +57,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Block Memory',
     description: 'Benchmark visuospatial memory span through progressive serial recall.',
     targetRoute: '/block-memory',
-    logo: '/brand/assessments/block.jpg',
+    logo: '/brand/assessments/block.png',
   },
   {
     id: 'number',

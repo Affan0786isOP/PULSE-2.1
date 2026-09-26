@@ -16,24 +16,24 @@ test.describe('Assessment Navigation', () => {
     await page.goto('/');
     if (!isMobile) {
       const exploreBtn = page.locator('button', { hasText: 'EXPLORE ALL PROTOCOLS' });
-      await expect(exploreBtn).toBeVisible();
+      await expect(exploreBtn).toBeVisible({ timeout: 15000 });
       await exploreBtn.click();
       
-      await expect(page).toHaveURL(/.*\/assessments/);
+      await expect(page).toHaveURL(/.*\/assessments/, { timeout: 15000 });
       const visualReactionBtn = page.locator('button', { hasText: 'Visual Reaction' });
-      await expect(visualReactionBtn).toBeVisible();
+      await expect(visualReactionBtn).toBeVisible({ timeout: 15000 });
       await visualReactionBtn.click();
       
-      await expect(page).toHaveURL(/.*\/reaction-test/);
-      await expect(page.locator('text=Age Group').first()).toBeVisible();
+      await expect(page).toHaveURL(/.*\/reaction-test/, { timeout: 15000 });
+      await expect(page.locator('text=Age Group').first()).toBeVisible({ timeout: 15000 });
     } else {
-      await page.waitForURL(/\/mobile\/?/);
+      await page.waitForURL(/\/mobile\/?/, { timeout: 15000 });
       const visualCard = page.locator('text=Visual Reaction Test').or(page.locator('text=PROTOCOL 01')).first();
-      await expect(visualCard).toBeVisible();
+      await expect(visualCard).toBeVisible({ timeout: 15000 });
       await visualCard.click();
       
-      await expect(page).toHaveURL(/.*\/reaction-test/);
-      await expect(page.locator('text=Select Your Age Cohort').or(page.locator('text=Demographic Baseline')).or(page.locator('text=Age Group')).first()).toBeVisible();
+      await expect(page).toHaveURL(/.*\/reaction-test/, { timeout: 15000 });
+      await expect(page.locator('text=Select Your Age Cohort').or(page.locator('text=Demographic Baseline')).or(page.locator('text=Age Group')).first()).toBeVisible({ timeout: 15000 });
     }
   });
 

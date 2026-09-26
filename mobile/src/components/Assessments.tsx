@@ -28,7 +28,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Follow the prompt (MATCH THE WORD or MATCH THE COLOR) and tap the correct button despite mismatched colors.',
       type: 'COGNITIVE',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/color.jpg'
+      logo: '/brand/assessments/color.png'
     },
     {
       id: 'block-memory',
@@ -36,7 +36,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Watch the sequence of blocks light up on the grid, then tap them in the exact same order.',
       type: 'MEMORY',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/block.jpg'
+      logo: '/brand/assessments/block.png'
     },
     {
       id: 'number-memory',
