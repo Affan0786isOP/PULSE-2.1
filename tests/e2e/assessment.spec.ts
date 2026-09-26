@@ -25,7 +25,7 @@ test.describe('Assessment Navigation', () => {
       await visualReactionBtn.click();
       
       await expect(page).toHaveURL(/.*\/reaction-test/, { timeout: 15000 });
-      await expect(page.locator('text=Age Group').first()).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('text=Select Your Age Cohort').or(page.locator('text=Demographic Baseline')).or(page.locator('text=Age Group')).first()).toBeVisible({ timeout: 15000 });
     } else {
       await page.waitForURL(/\/mobile\/?/, { timeout: 15000 });
       const visualCard = page.locator('text=Visual Reaction Test').or(page.locator('text=PROTOCOL 01')).first();
@@ -44,7 +44,7 @@ test.describe('Assessment Navigation', () => {
       if (await directionBtn.count() > 0) {
         await directionBtn.click();
         await expect(page).toHaveURL(/.*\/direction-test/, { timeout: 15000 });
-        await expect(page.locator('text=Age Group').first()).toBeVisible({ timeout: 15000 });
+        await expect(page.locator('text=Select Your Age Cohort').or(page.locator('text=Demographic Baseline')).or(page.locator('text=Age Group')).first()).toBeVisible({ timeout: 15000 });
       }
     } else {
       await page.goto('/direction-test');

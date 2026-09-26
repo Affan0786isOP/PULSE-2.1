@@ -41,11 +41,7 @@ test.describe('Home Page', () => {
 
   test('no uncaught errors on load', async ({ page }) => {
     const errors: string[] = [];
-    page.on('pageerror', error => {
-      if (!error.message.includes('NS_ERROR_CONTENT_BLOCKED') && !error.message.includes('SecurityError')) {
-        errors.push(error.message);
-      }
-    });
+    page.on('pageerror', error => errors.push(error.message));
     await page.goto('/');
     expect(errors).toHaveLength(0);
   });
