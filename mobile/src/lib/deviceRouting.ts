@@ -231,7 +231,7 @@ export function resolveDeviceRedirect(
     };
   }
 
-  if (!decision.shouldUseMobile && isMobilePath && (decision.isExplicitForceDesktop || !decision.isMobileDevice)) {
+  if (!decision.shouldUseMobile && isMobilePath && decision.isExplicitForceDesktop) {
     const targetPath = pathname.replace(/^\/mobile\/?/, '/') || '/';
     const targetUrl = `${targetPath}${search}${hash}`;
     if (checkAndSetRedirectLoopGuard(targetUrl)) {
