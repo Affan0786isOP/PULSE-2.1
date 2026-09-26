@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Trophy, ArrowRight, RotateCcw, Activity, AlertCircle } from 'lucide-react';
 import { AssessmentType, getPersonalBest } from '../lib/firestore';
 import { isReducedMotionActive } from '../lib/settingsStore';
+import { RiveFeedback } from './RiveFeedback';
 
 export interface SupportingMetric {
   label: string;
@@ -20,6 +21,7 @@ export interface AssessmentResultRewardProps {
   isNewPersonalBest?: boolean;
   supportingMetrics?: SupportingMetric[];
   submissionError?: string | null;
+  riveAssetUrl?: string;
   onRetrySubmission?: () => void;
   isSubmitting?: boolean;
   onRetry: () => void;
@@ -81,6 +83,7 @@ export function AssessmentResultReward({
   isNewPersonalBest: propIsNewPersonalBest,
   supportingMetrics = [],
   submissionError,
+  riveAssetUrl,
   onRetrySubmission,
   isSubmitting = false,
   onRetry,
@@ -153,8 +156,13 @@ export function AssessmentResultReward({
         </div>
       )}
 
+      <RiveFeedback 
+        state={historyStats.isNewPersonalBest ? 'NEW_BEST' : 'SUCCESS'} 
+        assetUrl={riveAssetUrl}
+      />
+
       {/* Primary Authoritative Score */}
-      <div className="flex items-baseline justify-center gap-1.5 my-2">
+      <div className="flex items-baseline justify-center gap-1.5 my-2 z-10 relative">
         <span className="text-4xl sm:text-5xl font-mono font-bold tracking-tight text-[var(--text-primary)]">
           {animatedScore}
         </span>

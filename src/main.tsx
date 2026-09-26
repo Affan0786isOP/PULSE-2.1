@@ -6,6 +6,10 @@ import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import './index.css';
 import './styles/pulse-aesthetic.css';
 import './lib/pwaStore';
+import { initSentry } from './lib/sentry';
+
+initSentry();
+
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
