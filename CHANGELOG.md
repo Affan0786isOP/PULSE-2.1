@@ -9,6 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 - Documentation system overhaul and architecture specification suite.
 
+### Changed
+- **Backend modularisation:** Decomposed the 3,700-line `server.ts` into `server/` (`config`, `middleware`, `routes`, `services`, `engines`). API endpoints, request/response contracts, middleware order, rate limits and exports are unchanged; `server.ts` remains the entry point for `npm run dev`, the esbuild bundle and Vercel.
+- Consolidated the repeated inline HMAC calls behind `signProvenancePayload()` in `server/services/provenanceService.ts`.
+- Renamed the npm package from `react-example` to `pulse`.
+- Archived 46 legacy `fix_*` / `patch_*` scripts from the repository root into `scripts/archive/`.
+
+### Added
+- Unit tests for the server engines, provenance service, idempotency store and device-routing helpers (`tests/unit/serverEngines.test.ts`).
+
+### Fixed (docs)
+- `docs/ARCHITECTURE.md` rate-limit figures now match the code (general API 200 req / 15 min, admin login 10 req / 15 min).
+
 ---
 
 ## [2.2.0] — 2026-09-20 / 2026-09-24

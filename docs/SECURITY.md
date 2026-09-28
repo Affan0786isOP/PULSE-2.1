@@ -50,7 +50,7 @@ PULSE operates in compliance with international privacy mandates:
 | :--- | :--- | :--- | :--- |
 | 1 | Direct client database tampering | Firestore Security Rules (`allow write: if false`) | **BLOCKED** |
 | 2 | Forged score submissions | Server HMAC-SHA256 Provenance Attestation | **BLOCKED** |
-| 3 | Chronologically replayed trial logs | Monotonic sequence verification in `server.ts` | **BLOCKED** |
+| 3 | Chronologically replayed trial logs | Monotonic sequence verification in `server/engines/assessmentEngine.ts` | **BLOCKED** |
 | 4 | Superhuman synthetic reaction times | $80\text{ms}$ physiological floor validator | **BLOCKED** |
 | 5 | Cross-user trial eavesdropping | Firestore Rules (`participantId == request.auth.uid`) | **BLOCKED** |
 | 6 | Identity leakage in open research data | Schema key whitelist; complete absence of PII | **BLOCKED** |

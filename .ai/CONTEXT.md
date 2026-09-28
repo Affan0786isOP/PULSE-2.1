@@ -36,7 +36,7 @@
        │ 2. Execute Assessment Protocol (performance.now())
        │ 3. Submit Observations: POST /api/research/submit or /api/leaderboard/submit
        ▼
-[Express Server] (server.ts / Node.js)
+[Express Server] (server/ / Node.js)
        │
        │ 1. Validate Timestamps & Physiological Bounds (RT >= 80ms)
        │ 2. Calculate Derived Metrics (Mean, Median, Interference, Span)
@@ -70,7 +70,8 @@
 │   ├── specs/                # Deep technical specifications
 │   └── decisions/            # Architecture Decision Records (ADRs)
 ├── .ai/                      # AI agent rules, context snapshot, decisions
-└── server.ts                 # Full-stack Express API, provenance engine & static server
+├── server.ts                 # Thin entry point (re-exports server/index.ts)
+└── server/                   # Express API: config, middleware, routes, services, engines
 ```
 
 ---

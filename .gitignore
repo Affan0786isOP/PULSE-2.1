@@ -14,3 +14,6 @@ brag-output*
 *.local.json
 .mcp.json
 .cursor/
+
+# Vitest cache (created when TEMP is unset)
+vite-cache/

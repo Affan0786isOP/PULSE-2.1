@@ -10,7 +10,7 @@ PULSE consists of a dual-surface client layer (Desktop SPA + Mobile PWA) connect
 
 ```mermaid
 graph TD
-    ClientDesktop["Desktop Client (React 19 / Vite)<br/>Route: /"] -->|HTTPS / JSON| Server["Express API & Provenance Engine<br/>(server.ts / Node.js)"]
+    ClientDesktop["Desktop Client (React 19 / Vite)<br/>Route: /"] -->|HTTPS / JSON| Server["Express API & Provenance Engine<br/>(server/ / Node.js)"]
     ClientMobile["Mobile PWA Client (React 19 / Vite)<br/>Route: /mobile/"] -->|HTTPS / JSON| Server
 
     Server -->|Admin SDK (Signed Writes)| Firestore[("Google Cloud Firestore")]
@@ -86,16 +86,16 @@ State is partitioned across four clear tiers:
 
 ---
 
-## 5. Server Subsystem & API Routing (`server.ts`)
+## 5. Server Subsystem & API Routing (`server/`)
 
 The Express server handles five core operational domains:
 
 ```
-[Express Server (server.ts)]
+[Express Server (server/index.ts)]
   │
   ├── 1. Rate Limiting Middleware
-  │     ├── /api/admin/*              ──► generalApiLimiter (100 req / 15 min)
-  │     ├── /api/admin/login          ──► adminLoginLimiter (5 req / 15 min)
+  │     ├── /api/admin/*              ──► generalApiLimiter (200 req / 15 min)
+  │     ├── /api/admin/login          ──► adminLoginLimiter (10 req / 15 min)
   │     ├── /api/research/session/*   ──► sessionStartLimiter (30 req / 15 min)
   │     ├── /api/research/submit      ──► sessionSubmitLimiter (30 req / 15 min)
   │     └── /api/leaderboard/submit   ──► leaderboardSubmitLimiter (30 req / 15 min)
@@ -120,6 +120,44 @@ The Express server handles five core operational domains:
         ├── /api/admin/leaderboard/delete ──► Hard-delete fraudulent submission
         └── /api/admin/audit-logs       ──► Immutable moderation log retrieval
 ```
+
+### 5.1 Module Layout
+
+`server.ts` is a thin entry point (kept for `npm run dev`, the esbuild bundle and `api/index.ts` on Vercel). The application is composed in `server/index.ts` from the following modules:
+
+```
+server/
+├── index.ts                     App bootstrap: middleware order, route registration, listen
+├── config/
+│   ├── constants.ts             Valid age groups / assessment types, trial + idempotency limits
+│   ├── firebaseAdmin.ts         Admin SDK initialisation, Firestore accessor, diagnostics
+│   └── rateLimits.ts            Route-scoped rate limiters (in-memory store, see SECURITY.md §4)
+├── middleware/
+│   ├── security.ts              /api prefix normalisation, security headers, CSP
+│   ├── auth.ts                  Firebase ID-token verification, admin passcode + signed admin sessions
+│   └── deviceRouting.ts         Cookie/UA helpers, staging noindex, desktop <-> /mobile redirection
+├── routes/
+│   ├── researchRoutes.ts        session/start, submit, personal-best, verify-provenance, dataset (+summary)
+│   ├── leaderboardRoutes.ts     leaderboard read, submit, verify-provenance
+│   ├── adminRoutes.ts           login, audit log, moderation (hide / delete / list)
+│   └── staticRoutes.ts          Vite dev middleware or dist/ static serving + SPA/PWA fallbacks
+├── services/
+│   ├── provenanceService.ts     HMAC-SHA256 signing, constant-time compare, canonical trials digest
+│   ├── sessionService.ts        Firestore-backed experiment session lookup and validation
+│   ├── idempotencyService.ts    Bounded process-local idempotency cache
+│   └── leaderboardService.ts    Opt-in rules and score-metric validation
+└── engines/                     Pure functions: no Express, no Firestore
+    ├── assessmentEngine.ts      Structural / chronological / physiological trial checks + protocol dispatch
+    ├── reactionCalculator.ts    Visual reaction time, foreperiod generation, temporal dynamics
+    ├── flankerCalculator.ts     Direction (flanker) task and interference costs
+    ├── stroopCalculator.ts      Color-recognition (Stroop) task
+    ├── memoryCalculator.ts      Block (Corsi) and number (digit span) memory
+    ├── assessmentTypes.ts       Assessment-type alias normalisation
+    ├── prng.ts                  Seeded PRNG shared by server-side stimulus reconstruction
+    └── types.ts                 Shared derivation context / result types
+```
+
+The `engines/` layer can be unit-tested without HTTP wrappers (see `tests/unit/serverEngines.test.ts`).
 
 ---
 

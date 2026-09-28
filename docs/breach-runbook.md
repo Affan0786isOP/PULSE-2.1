@@ -53,7 +53,7 @@ If server credentials or administrative keys are suspected to be leaked:
      ```
    - Server-side Firebase Admin SDK bypasses client security rules and remains functional for diagnostics.
 2. **IP Rate Limit Tightening:**
-   - Adjust `express-rate-limit` settings in `server.ts` or edge proxy (Cloudflare/Cloud Run Armor) to throttle abusive source IPs.
+   - Adjust `express-rate-limit` settings in `server/config/rateLimits.ts` or edge proxy (Cloudflare/Cloud Run Armor) to throttle abusive source IPs.
 
 ---
 
