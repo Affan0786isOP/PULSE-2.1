@@ -2,7 +2,7 @@
 
 ## Create the composition brief
 
-Write `brag-output/composition-brief.md` before creating or editing the Hyperframes composition.
+Write `<output-dir>/composition-brief.md` before creating or editing the Hyperframes composition.
 
 ```markdown
 # Hyperframes Composition Brief: [App Name]
@@ -11,8 +11,8 @@ Write `brag-output/composition-brief.md` before creating or editing the Hyperfra
 Create a short launch-style brag video for [App Name].
 
 ## Output
-- Composition directory: `brag-output/composition/`
-- Rendered video: `brag-output/brag.mp4`
+- Composition directory: `<output-dir>/composition/`
+- Rendered video: `<output-dir>/brag.mp4`
 - Format: [landscape / vertical / square] — [width]x[height]
 - Duration: [15-25 seconds]
 
@@ -47,7 +47,7 @@ Create a short launch-style brag video for [App Name].
 - Visual references from the project: [short list]
 
 ## Storyboard
-Use the storyboard in `brag-output/brag-plan.md` as the creative contract.
+Use the storyboard in `<output-dir>/brag-plan.md` as the creative contract.
 
 Scene summary:
 1. [Scene name] — [duration]s — [what must be seen / read]
@@ -67,7 +67,7 @@ Scene summary:
 - SFX selection guidance: [how sound should match motion and interaction; examples only, not rigid rules]
 - SFX analysis guidance: [path to sfx-analysis.md/json if present; use lower high-frequency-risk sounds for repeated or polished moments]
 - Exact SFX choice: Hyperframes should choose filenames, timestamps, density, and volume based on the implemented animation.
-- Audio files: copy the chosen music and any Hyperframes-selected SFX into `brag-output/composition/assets/`
+- Audio files: copy the chosen music and any Hyperframes-selected SFX into `<output-dir>/composition/assets/`
 
 ## Hyperframes Instructions
 Load the composition-building Hyperframes domain skills — `hyperframes-core` (composition contract + `data-*` timing), `hyperframes-animation` (motion), `hyperframes-creative` (design spec, beats, audio-reactive), `hyperframes-keyframes` (seek-safe keyframes), and `hyperframes-cli` (lint/check/render). /brag is its own workflow: do not enter the `hyperframes` entry-point intent interview and do not route into its generic promo / launch-video workflow. Prefer native Hyperframes conventions over anything in `/brag`.
@@ -97,10 +97,10 @@ Read [audio.md](audio.md). Copy the planned music into `<output-dir>/composition
 
 ```bash
 mkdir -p <output-dir>/composition/assets/music
-cp <skill-assets>/music/<track>.mp3 <output-dir>/composition/assets/music/
+cp <skill-dir>/assets/music/<track>.mp3 <output-dir>/composition/assets/music/
 ```
 
-When running from an installed Claude skill, `<skill-assets>` is `~/.claude/skills/brag/assets/`. From the repo, it is `skills/brag/assets/`.
+`<skill-dir>` is this skill's own directory (see "Skill directory" in `SKILL.md`).
 
 Hyperframes copies any SFX it selects into the same `assets/` tree after choosing exact files.
 
@@ -176,19 +176,19 @@ This gives you two layers of musicality: the big moments land on the strongest h
 
 Do not force every tween onto a beat — readability and scene pacing come first. If snapping a tween to a beat hurts copy legibility or the product story, use the natural timing instead.
 
-If SFX are enabled, also pass `skills/brag/assets/sfx/sfx-analysis.md` as selection guidance. Prefer low high-frequency-risk files for repeated or polished moments. SFX on sequential events should fire at the same timestamp as the visual — the sound and motion land together.
+If SFX are enabled, also pass `<skill-dir>/assets/sfx/sfx-analysis.md` as selection guidance. Prefer low high-frequency-risk files for repeated or polished moments. SFX on sequential events should fire at the same timestamp as the visual — the sound and motion land together.
 
 ---
 
 ## Call Hyperframes
 
-After `brag-output/brag-plan.md`, `brag-output/composition-brief.md`, and selected audio assets exist:
+After `<output-dir>/brag-plan.md`, `<output-dir>/composition-brief.md`, and selected audio assets exist:
 
-1. Load the Hyperframes domain skills (`hyperframes-core`, `hyperframes-animation`, `hyperframes-creative`, `hyperframes-keyframes`, `hyperframes-cli`) to create or update `brag-output/composition/`. /brag is its own workflow — do not enter the `hyperframes` entry-point intent interview or route into its generic promo / launch-video workflow.
+1. Load the Hyperframes domain skills (`hyperframes-core`, `hyperframes-animation`, `hyperframes-creative`, `hyperframes-keyframes`, `hyperframes-cli`) to create or update `<output-dir>/composition/`. /brag is its own workflow — do not enter the `hyperframes` entry-point intent interview or route into its generic promo / launch-video workflow.
 2. Pass Hyperframes the composition brief, the brag plan, and the source files it should reference.
 3. Let Hyperframes choose the implementation details.
 4. Run Hyperframes check (the single gate before render).
-5. Render to `brag-output/brag.mp4`.
+5. Render to `<output-dir>/brag.mp4`.
 
 Do not manually copy stale composition snippets from this skill into the output. The point of delegating is to benefit from the latest Hyperframes guidance.
 
