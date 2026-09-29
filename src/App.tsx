@@ -42,6 +42,7 @@ function RedirectToMobile() {
 
 // Code-split routes for optimal Home startup performance
 const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
+const Analytics = React.lazy(() => import('./components/Analytics').then(m => ({ default: m.Analytics })));
 
 const DeferredAnalytics = React.memo(function DeferredAnalytics() {
   const [shouldLoad, setShouldLoad] = React.useState(false);
@@ -128,9 +129,9 @@ function App() {
       case 'assessments': navigate('/assessments'); break;
       case 'leaderboard': navigate('/leaderboard'); break;
       case 'dataset':
+        navigate('/dataset'); break;
       case 'analytics':
-        navigate('/dataset');
-        break;
+        navigate('/analytics'); break;
       case 'improve': navigate('/improve'); break;
       case 'visual-reaction':
       case 'reaction-test':
@@ -187,7 +188,7 @@ function App() {
                 <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                 <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
                 <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
-                <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
+                <Route path="/analytics" element={<Analytics onNavigate={handleNavigate} />} />
                 <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                 <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                 <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />

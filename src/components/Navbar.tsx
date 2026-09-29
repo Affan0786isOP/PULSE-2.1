@@ -164,6 +164,7 @@ export function Navbar({
     { id: 'assessments', label: 'Assessments', to: '/assessments' },
     { id: 'leaderboard', label: 'Leaderboard', to: '/leaderboard' },
     { id: 'dataset', label: 'Dataset', to: '/dataset' },
+    { id: 'analytics', label: 'Analytics', to: '/analytics' },
     { id: 'improve', label: 'Improve', to: '/improve' },
     { id: 'privacy', label: 'Privacy', to: '/privacy' }
   ];

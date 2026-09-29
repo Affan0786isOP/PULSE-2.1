@@ -33,6 +33,7 @@ const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ d
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
 const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
+const Analytics = React.lazy(() => import('./components/Analytics').then(m => ({ default: m.Analytics })));
 
 const RouteFallback = () => (
   <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center font-sans">
@@ -78,9 +79,9 @@ function App() {
       case 'assessments': navigate('/assessments'); break;
       case 'leaderboard': navigate('/leaderboard'); break;
       case 'dataset':
+        navigate('/dataset'); break;
       case 'analytics':
-        navigate('/dataset');
-        break;
+        navigate('/analytics'); break;
       case 'improve': navigate('/improve'); break;
       case 'visual-reaction':
       case 'reaction-test':
@@ -137,7 +138,7 @@ function App() {
                   <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
                   <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
-                  <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
+                  <Route path="/analytics" element={<Analytics onNavigate={handleNavigate} />} />
                   <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                   <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                   <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />
