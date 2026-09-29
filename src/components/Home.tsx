@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Zap, Database, ArrowRight, ShieldCheck, Trophy, Folder, Activity, Settings, Info, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Zap, Database, ShieldCheck, Trophy, Folder, Activity, Settings, Info, RefreshCw } from 'lucide-react';
 import { SEO } from './SEO';
 import { APP_VERSION } from '../lib/version';
 import { useReducedMotionPreference } from '../lib/settingsStore';
@@ -38,12 +38,11 @@ const ModalLoadingFallback = () => (
 
 export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
-  const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
 
   return (
-    <div className="min-h-[100dvh] bg-[#08080A] text-[#F8FAFC] font-sans selection:bg-[#00F0FF]/30 overflow-x-hidden relative flex flex-col justify-between">
+    <div className="h-[100dvh] bg-[#08080A] text-[#F8FAFC] font-sans selection:bg-[#00F0FF]/30 overflow-hidden relative flex flex-col">
       <a 
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:bg-[#00F0FF] focus:text-black focus:font-semibold focus:text-xs focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#00F0FF]"
@@ -65,7 +64,7 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1600px] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)] gap-12 focus-visible:outline-none pt-12 pb-16 px-6 sm:px-12 relative z-10"
+        className="w-full max-w-[1600px] h-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)] gap-8 focus-visible:outline-none py-6 lg:py-8 px-6 sm:px-12 relative z-10 min-h-0"
       >
         {/* Left Column: Hero & Assessment Carousel */}
         <div className="flex flex-col w-full h-full justify-center">
@@ -81,26 +80,13 @@ export function Home() {
             PULSE {APP_VERSION} / RESEARCH-GRADE NEURAL TELEMETRY
           </p>
 
-          <div className={`w-full z-10 flex-1 max-h-[500px] min-h-[400px] ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
+          <div className={`w-full z-10 flex-1 min-h-[250px] flex flex-col ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
             <AssessmentHero3D />
-          </div>
-
-          <div className={`mt-8 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
-            <button 
-              onClick={() => navigate(ROUTES.ASSESSMENTS)}
-              className="group relative inline-flex items-center justify-center gap-3 px-8 py-3.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#00F0FF]/40 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF] overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00F0FF]/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
-              <span className="relative z-10 text-sm font-semibold tracking-wide text-white group-hover:text-[#00F0FF] transition-colors">
-                EXPLORE ALL PROTOCOLS
-              </span>
-              <ArrowRight size={16} className="relative z-10 text-[#8A94A6] group-hover:text-[#00F0FF] group-hover:translate-x-1 transition-all duration-300" />
-            </button>
           </div>
         </div>
 
         {/* Right Column: Navigation Rail */}
-        <aside className="w-full flex flex-col pt-4 lg:pt-0 lg:pl-8 lg:border-l lg:border-white/5 relative z-20">
+        <aside className="w-full h-full flex flex-col pt-4 lg:pt-0 lg:pl-8 lg:border-l lg:border-white/5 relative z-20 overflow-y-auto no-scrollbar pb-4">
           <div className="flex items-center gap-3 mb-10 pl-2">
             <div className="w-10 h-10 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] transition-colors">
               <PulseLogo variant="mark" size={24} color="var(--accent)" />
