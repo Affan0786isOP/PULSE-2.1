@@ -6,7 +6,7 @@ This document covers local setup, environment configuration, build workflows, an
 
 ## 1. Prerequisites
 - **Node.js:** v20.x or higher (v22 recommended)
-- **Package Manager:** `npm` (v10+) or `bun`
+- **Package Manager:** `npm` (v10+). Pinned via `"packageManager"` in `package.json`; do not use `bun` or `yarn` for installs, as only `package-lock.json` is kept in sync.
 - **Operating System:** macOS, Linux, or Windows (PowerShell/WSL)
 
 ---

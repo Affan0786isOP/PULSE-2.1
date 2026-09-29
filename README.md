@@ -7,8 +7,8 @@
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
-- Node.js v20+ (v22 recommended)
-- `npm` or `bun`
+- Node.js v22.12+ (v22 LTS recommended). `firebase-admin`, `vitest`, and `jwks-rsa` all require Node 22.12+; see `"engines"` in `package.json`.
+- `npm` (v10+) — the canonical package manager for this repo, pinned via `"packageManager"` in `package.json`
 
 ### 2. Install & Launch
 ```bash
