@@ -20,15 +20,15 @@ export function useDatasetPipeline(initialAssessment: AssessmentId = 'visual-rea
     try {
       const data = await fetchAllCloudTrialObservations();
       const mapped = (data || []).map((d: any, idx: number) => ({
+        ...d,
         id: d.id || `obs-${idx}`,
         sessionId: d.sessionId || '',
         assessmentType: normalizeProtocolType(d.assessmentType || d.type || 'visual-reaction'),
-        scoreMetric: d.scoreMetric ?? d.reactionTimeMs ?? d.level ?? 0,
-        isValid: d.isValid === true || d.valid === true || d.validity === 'VALID',
+        scoreMetric: d.scoreMetric ?? d.reactionTimeMs ?? d.reactionTime ?? d.level ?? 0,
+        isValid: (d.isValid === true || d.valid === true || d.validity === 'VALID') && d.falseStart !== true && d.timedOut !== true,
         ageGroup: d.ageGroup || 'Unknown',
         deviceType: d.deviceType || 'desktop',
         timestamp: d.timestamp || d.createdAt || Date.now(),
-        ...d,
       }));
       setObservations(mapped);
     } catch (err: any) {

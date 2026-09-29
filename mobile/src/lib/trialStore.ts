@@ -265,6 +265,9 @@ export async function fetchCloudTrialObservationsPaginated(
       experimentId: data.experimentId || 'unknown',
       condition: data.condition || 'standard',
       test: data.test || 'visual-reaction',
+      assessmentType: data.assessmentType || data.test || 'visual-reaction',
+      scoreMetric: data.scoreMetric ?? data.reactionTimeMs ?? data.reactionTime ?? data.level ?? 0,
+      level: data.level !== undefined ? Number(data.level) : undefined,
       trialNumber: Number(data.trialNumber) || 1,
       stimulusTimestamp: typeof data.stimulusTimestamp === 'number' ? data.stimulusTimestamp : (data.stimulusTimestamp === null ? null : 0),
       responseTimestamp: typeof data.responseTimestamp === 'number' ? data.responseTimestamp : null,
@@ -275,6 +278,7 @@ export async function fetchCloudTrialObservationsPaginated(
       falseStart: Boolean(data.falseStart),
       timedOut: data.timedOut !== undefined ? Boolean(data.timedOut) : undefined,
       valid: data.valid !== undefined ? Boolean(data.valid) : undefined,
+      validity: data.validity !== undefined ? String(data.validity) : undefined,
       foreperiodMs: data.foreperiodMs !== undefined ? Number(data.foreperiodMs) : undefined,
       foreperiodCategory: (data.foreperiodCategory === 'SHORT' || data.foreperiodCategory === 'LONG')
         ? data.foreperiodCategory
