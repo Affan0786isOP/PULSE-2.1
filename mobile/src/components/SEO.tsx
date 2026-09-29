@@ -25,8 +25,6 @@ export function getCanonicalPath(pathname: string): string {
     case '/research-privacy':
     case '/privacy-policy':
       return '/privacy';
-    case '/analytics':
-      return '/dataset';
     default:
       return clean;
   }

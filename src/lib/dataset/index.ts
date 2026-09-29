@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AssessmentId, DatasetFilters, ObservationRecord, DatasetMode } from './types';
 import { fetchAllCloudTrialObservations } from '../trialStore';
+import { normalizeProtocolType } from './normalization';
 
 export * from './types';
 export * from './normalization';
@@ -8,7 +9,7 @@ export * from './normalization';
 export function useDatasetPipeline(initialAssessment: AssessmentId = 'visual-reaction') {
   const [activeAssessment, setActiveAssessment] = useState<AssessmentId>(initialAssessment);
   const [datasetMode, setDatasetMode] = useState<DatasetMode>('assessment');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [observations, setObservations] = useState<ObservationRecord[]>([]);
   const [filters, setFilters] = useState<DatasetFilters>({ assessmentType: 'all' });
@@ -21,9 +22,9 @@ export function useDatasetPipeline(initialAssessment: AssessmentId = 'visual-rea
       const mapped = (data || []).map((d: any, idx: number) => ({
         id: d.id || `obs-${idx}`,
         sessionId: d.sessionId || '',
-        assessmentType: d.assessmentType || d.type || 'visual-reaction',
+        assessmentType: normalizeProtocolType(d.assessmentType || d.type || 'visual-reaction'),
         scoreMetric: d.scoreMetric ?? d.reactionTimeMs ?? d.level ?? 0,
-        isValid: d.isValid !== false,
+        isValid: d.isValid === true || d.valid === true || d.validity === 'VALID',
         ageGroup: d.ageGroup || 'Unknown',
         deviceType: d.deviceType || 'desktop',
         timestamp: d.timestamp || d.createdAt || Date.now(),
@@ -48,7 +49,7 @@ export function useDatasetPipeline(initialAssessment: AssessmentId = 'visual-rea
 
   const filteredObservations = observations.filter((o) => {
     if (filters.assessmentType && filters.assessmentType !== 'all') {
-      if (o.assessmentType !== filters.assessmentType) return false;
+      if (normalizeProtocolType(o.assessmentType) !== normalizeProtocolType(filters.assessmentType)) return false;
     }
     return true;
   });
@@ -56,7 +57,7 @@ export function useDatasetPipeline(initialAssessment: AssessmentId = 'visual-rea
   const sectionObservations =
     datasetMode === 'data-explorer'
       ? filteredObservations
-      : filteredObservations.filter((o) => o.assessmentType === activeAssessment);
+      : filteredObservations.filter((o) => normalizeProtocolType(o.assessmentType) === normalizeProtocolType(activeAssessment));
 
   const totalObservationsCount = observations.length;
   const totalSessionsCount =

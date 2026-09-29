@@ -8,7 +8,8 @@ import {
   orderBy, 
   limit as firestoreLimit, 
   QueryDocumentSnapshot,
-  DocumentData
+  DocumentData,
+  startAfter
 } from 'firebase/firestore';
 
 import { getInMemorySessionTrials, recordInMemoryTrial } from './inMemorySessionStore';
@@ -33,6 +34,7 @@ export interface RawTrialObservation {
   falseStart: boolean;
   timedOut?: boolean;
   valid?: boolean;
+  validity?: string;
   foreperiodMs?: number;
   foreperiodCategory?: 'SHORT' | 'LONG';
   timestamp: string; 
@@ -133,6 +135,7 @@ export async function fetchCloudTrialObservations(limitCount: number = 200): Pro
         displayDelayOffsetMs: data.displayDelayOffsetMs !== undefined ? Number(data.displayDelayOffsetMs) : undefined,
         timedOut: data.timedOut !== undefined ? Boolean(data.timedOut) : undefined,
         valid: data.valid !== undefined ? Boolean(data.valid) : undefined,
+        validity: data.validity !== undefined ? String(data.validity) : undefined,
         foreperiodMs: data.foreperiodMs !== undefined ? Number(data.foreperiodMs) : undefined,
         foreperiodCategory: (data.foreperiodCategory === 'SHORT' || data.foreperiodCategory === 'LONG')
           ? data.foreperiodCategory
@@ -244,11 +247,8 @@ export async function fetchCloudTrialObservationsPaginated(
 
   constraints.push(orderBy('timestamp', 'desc'));
 
-  if (startAfterDoc) {
-    constraints.push(firestoreLimit(pageSize));
-  } else {
-    constraints.push(firestoreLimit(pageSize));
-  }
+  if (startAfterDoc) constraints.push(startAfter(startAfterDoc));
+  constraints.push(firestoreLimit(pageSize));
 
   const q = query(colRef, ...constraints);
   const snap = await getDocsFromServer(q);

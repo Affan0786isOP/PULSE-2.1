@@ -1,28 +1,34 @@
-import React from 'react';
-import { Activity, Database } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Activity, Database, Download, Gauge, RefreshCw, TrendingUp } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Navbar } from './Navbar';
 import { SEO } from './SEO';
-import { useDatasetPipeline } from '../../../src/lib/dataset';
+import { fetchAllCloudTrialObservations, RawTrialObservation } from '../lib/trialStore';
+import { VALID_AGE_GROUPS } from '../lib/firestore';
 
 export function Analytics({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const pipeline = useDatasetPipeline('visual-reaction');
-  const validCount = pipeline.sectionObservations.filter((observation) => observation.isValid).length;
+  const [observations, setObservations] = useState<RawTrialObservation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [protocol, setProtocol] = useState('visual-reaction');
+  const [ageGroup, setAgeGroup] = useState('All');
 
-  return (
-    <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans">
-      <SEO title="Analytics | PULSE" description="Review PULSE assessment telemetry." />
-      <Navbar currentView="analytics" onNavigate={onNavigate} />
-      <main className="px-4 py-5 space-y-4">
-        <div className="flex items-center gap-2 text-[var(--accent)] text-xs font-mono uppercase tracking-widest"><Activity size={14} /> Telemetry view</div>
-        <h1 className="font-heading text-2xl font-bold text-[var(--text-primary)]">Session analytics</h1>
-        <p className="text-sm text-[var(--text-secondary)]">Valid observations for the current assessment protocol.</p>
-        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4">
-          <Database size={18} className="text-[var(--accent)] mb-3" />
-          <div className="text-2xl font-mono font-bold text-[var(--text-primary)]">{validCount.toLocaleString()}</div>
-          <div className="mt-1 text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)]">Valid observations</div>
-        </div>
-        {pipeline.error && <div role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">{pipeline.error}</div>}
-      </main>
-    </div>
-  );
+  const refresh = useCallback(async () => {
+    setLoading(true); setError(null);
+    try { setObservations(await fetchAllCloudTrialObservations(500, 2000, protocol === 'all' ? {} : { test: protocol })); }
+    catch (cause: any) { setError(cause?.message || 'Failed to fetch dataset'); }
+    finally { setLoading(false); }
+  }, [protocol]);
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const valid = useMemo(() => observations.filter((observation) => (observation.valid === true || observation.validity === 'VALID') && observation.falseStart !== true && observation.timedOut !== true && typeof observation.reactionTime === 'number').filter((observation) => ageGroup === 'All' || observation.ageGroup === ageGroup), [observations, ageGroup]);
+  const values = valid.map((observation) => observation.reactionTime as number).filter(Number.isFinite);
+  const median = (items: number[]) => { const sorted = [...items].sort((a, b) => a - b); if (!sorted.length) return 0; const middle = Math.floor(sorted.length / 2); return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2; };
+  const metrics = { count: values.length, mean: values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0, median: median(values), best: values.length ? Math.min(...values) : 0 };
+  const sequence = [...valid].sort((a, b) => String(a.experimentId).localeCompare(String(b.experimentId)) || a.trialNumber - b.trialNumber).slice(0, 50).map((observation, index) => ({ trial: index + 1, value: observation.reactionTime }));
+  const cohortData = VALID_AGE_GROUPS.map((cohort) => { const cohortValues = valid.filter((observation) => observation.ageGroup === cohort).map((observation) => observation.reactionTime as number); return { cohort, median: Math.round(median(cohortValues)), n: cohortValues.length }; }).filter((entry) => entry.n > 0);
+  const exportJson = () => { const blob = new Blob([JSON.stringify(valid, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'pulse-analytics.json'; anchor.click(); URL.revokeObjectURL(url); };
+
+  return <div className="min-h-[100dvh] bg-transparent text-[var(--text-main)] font-sans"><SEO title="Analytics | PULSE" description="Explore PULSE cognitive assessment analytics." /><Navbar currentView="analytics" onNavigate={onNavigate} /><main className="px-4 py-5 space-y-4"><div className="flex items-center gap-2 text-[var(--accent)] text-xs font-mono uppercase tracking-widest"><Activity size={14} /> Dataset analytics</div><div><h1 className="font-heading text-2xl font-bold text-[var(--text-primary)]">Research analytics</h1><p className="mt-1 text-sm text-[var(--text-secondary)]">Protocol, cohort, and ordered observation summaries.</p></div><div className="grid grid-cols-2 gap-2"><label className="text-[10px] font-mono uppercase text-[var(--text-muted)]">Protocol<select value={protocol} onChange={(event) => setProtocol(event.target.value)} className="mt-1 w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] p-2 text-xs"><option value="all">All protocols</option><option value="visual-reaction">Visual reaction</option><option value="direction">Direction</option><option value="colour-recognition">Colour recognition</option><option value="block-memory">Block memory</option><option value="number-memory">Number memory</option></select></label><label className="text-[10px] font-mono uppercase text-[var(--text-muted)]">Age cohort<select value={ageGroup} onChange={(event) => setAgeGroup(event.target.value)} className="mt-1 w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border-default)] p-2 text-xs"><option>All</option>{VALID_AGE_GROUPS.map((group) => <option key={group}>{group}</option>)}</select></label></div><div className="flex gap-2"><button type="button" onClick={refresh} disabled={loading} className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] text-black px-3 py-2 text-xs font-mono disabled:opacity-50"><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> {loading ? 'Syncing' : 'Refresh'}</button><button type="button" onClick={exportJson} disabled={!valid.length} className="inline-flex items-center gap-2 rounded-lg bg-[var(--surface-1)] border border-[var(--border-default)] px-3 py-2 text-xs font-mono disabled:opacity-40"><Download size={14} /> JSON</button></div>{loading ? <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-8 text-center text-sm font-mono text-[var(--text-muted)]">Loading research dataset…</div> : error ? <div role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">Dataset unavailable: {error}</div> : !valid.length ? <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-8 text-center text-sm text-[var(--text-muted)]">No valid observations match the active filters.</div> : <><section className="grid grid-cols-2 gap-2">{[{ label: 'Valid', value: metrics.count, icon: Database }, { label: 'Mean', value: `${Math.round(metrics.mean)} ms`, icon: TrendingUp }, { label: 'Median', value: `${Math.round(metrics.median)} ms`, icon: Gauge }, { label: 'Best', value: `${Math.round(metrics.best)} ms`, icon: Activity }].map(({ label, value, icon: Icon }) => <div key={label} className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-3"><Icon size={15} className="text-[var(--accent)] mb-2" /><div className="text-lg font-mono font-bold">{value}</div><div className="text-[10px] font-mono uppercase text-[var(--text-muted)]">{label}</div></div>)}</section><MobileChart title="Ordered progression"><LineChart data={sequence}><CartesianGrid stroke="var(--border-subtle)" /><XAxis dataKey="trial" tick={{ fontSize: 9 }} /><YAxis tick={{ fontSize: 9 }} /><Tooltip /><Line dataKey="value" stroke="var(--accent)" dot={false} /></LineChart></MobileChart><MobileChart title="Cohort medians"><BarChart data={cohortData}><CartesianGrid stroke="var(--border-subtle)" /><XAxis dataKey="cohort" tick={{ fontSize: 8 }} /><YAxis tick={{ fontSize: 9 }} /><Tooltip /><Bar dataKey="median" fill="var(--accent)" /></BarChart></MobileChart></>}</main></div>;
 }
+function MobileChart({ title, children }: { title: string; children: React.ReactElement }) { return <section className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-3"><h2 className="text-xs font-mono uppercase text-[var(--text-secondary)] mb-3">{title}</h2><div className="h-56"><ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer></div></section>; }
