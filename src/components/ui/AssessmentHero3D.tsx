@@ -106,7 +106,7 @@ export function AssessmentHero3D() {
 
   return (
     <div 
-      className="relative w-full h-full flex flex-col items-center justify-center pt-8 pb-16"
+      className="relative w-full h-full flex flex-col items-center justify-center py-2 min-h-0"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
@@ -114,7 +114,7 @@ export function AssessmentHero3D() {
     >
       {/* 3D Stage */}
       <div 
-        className="relative w-full max-w-4xl h-[420px] flex items-center justify-center perspective-[1400px]"
+        className="relative w-full max-w-4xl flex-1 min-h-[200px] max-h-[420px] flex items-center justify-center perspective-[1400px]"
       >
         <button 
           onClick={handlePrev}
@@ -168,7 +168,7 @@ export function AssessmentHero3D() {
                     }
                   }}
                 >
-                  <div className="relative h-48 w-full bg-[#08080A] flex items-center justify-center border-b border-[var(--border-hairline)] overflow-hidden">
+                  <div className="relative h-[40%] min-h-[120px] w-full bg-[#08080A] flex items-center justify-center border-b border-[var(--border-hairline)] overflow-hidden">
                     {/* Visualizer Background Graphic */}
                     <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgwem0yMCAyMGMwLTExLTAuNC0yMC0yMC0yMHMyMCA4LjkgMjAgMjAgMC40IDIwIDIwIDIwLTIwLTguOS0yMC0yMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] pointer-events-none" />
                     
@@ -223,7 +223,7 @@ export function AssessmentHero3D() {
       </div>
 
       {/* Pagination Pill Dots */}
-      <div className="flex items-center gap-3 mt-10 z-20">
+      <div className="flex items-center gap-3 mt-4 z-20 shrink-0">
         {HERO_ASSESSMENTS.map((_, idx) => (
           <button
             key={idx}
