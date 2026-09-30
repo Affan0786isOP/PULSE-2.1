@@ -7,6 +7,7 @@ import { registerAdminRoutes } from './routes/adminRoutes';
 import { registerResearchRoutes } from './routes/researchRoutes';
 import { registerLeaderboardRoutes } from './routes/leaderboardRoutes';
 import { registerStaticRoutes } from './routes/staticRoutes';
+import { createServerContainer } from './container';
 
 export { getAdminDiagnosticMessage } from './config/firebaseAdmin';
 
@@ -31,20 +32,29 @@ async function startServer() {
 
   applyRateLimits(app);
 
-  registerAdminRoutes(app);
-  registerResearchRoutes(app);
-  registerLeaderboardRoutes(app);
+  const container = createServerContainer();
+
+  registerAdminRoutes(app, {
+    adminService: container.adminService
+  });
+  registerResearchRoutes(app, {
+    sessionService: container.sessionService,
+    personalBestService: container.personalBestService,
+    researchService: container.researchService
+  });
+  registerLeaderboardRoutes(app, {
+    leaderboardService: container.leaderboardService
+  });
 
   applyDeviceRoutingMiddleware(app);
   await registerStaticRoutes(app);
 
   // Centralized Global Error Handler (Prevents stack trace leaks to client)
-  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('[Server Unhandled Error]:', err instanceof Error ? err.message : String(err));
     if (res.headersSent) return;
     res.status(500).json({ success: false, error: 'An unexpected internal server error occurred' });
   });
-
 
   if (!process.env.VERCEL && !process.env.VERCEL_ENV && !process.env.NOW_REGION) {
     app.listen(PORT, '0.0.0.0', () => {

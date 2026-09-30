@@ -1,0 +1,237 @@
+{
+  "POST /api/research/session/start [no_auth]": {
+    "status": 401,
+    "body": {
+      "success": false,
+      "error": "Authentication required: missing or invalid Firebase ID token"
+    }
+  },
+  "POST /api/research/session/start [invalid_type]": {
+    "status": 400,
+    "body": {
+      "success": false,
+      "error": "Invalid or missing assessmentType"
+    }
+  },
+  "POST /api/research/session/start [invalid_age]": {
+    "status": 400,
+    "body": {
+      "success": false,
+      "error": "Invalid or missing ageGroup. A valid demographic age group is required."
+    }
+  },
+  "POST /api/research/session/start [db_null]": {
+    "status": 500,
+    "body": {
+      "success": false,
+      "error": "Database unavailable: Mock DB unavailable diagnostic"
+    }
+  },
+  "POST /api/research/session/start [success]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "hasSessionId": true,
+      "hasExpiresAt": true,
+      "assessmentType": "visual-reaction"
+    }
+  },
+  "GET /api/personal-best [no_auth]": {
+    "status": 401,
+    "body": {
+      "success": false,
+      "error": "Authentication required: missing or invalid Firebase ID token"
+    }
+  },
+  "GET /api/personal-best [missing_type]": {
+    "status": 400,
+    "body": {
+      "success": false,
+      "error": "Invalid or missing assessmentType query parameter"
+    }
+  },
+  "GET /api/personal-best [db_null]": {
+    "status": 500,
+    "body": {
+      "success": false,
+      "error": "Database unavailable: Server misconfiguration"
+    }
+  },
+  "GET /api/personal-best [valid_null]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "personalBest": null
+    }
+  },
+  "GET /api/personal-best [valid_found]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "personalBest": 215.5
+    }
+  },
+  "POST /api/research/submit [db_null]": {
+    "status": 500,
+    "body": {
+      "success": false,
+      "error": "Database unavailable: Mock DB unavailable diagnostic"
+    }
+  },
+  "POST /api/research/submit [session_not_found]": {
+    "status": 404,
+    "body": {
+      "success": false,
+      "error": "Experiment session not found or invalid"
+    }
+  },
+  "POST /api/research/submit [uid_mismatch]": {
+    "status": 403,
+    "body": {
+      "success": false,
+      "error": "Session UID mismatch with authenticated identity"
+    }
+  },
+  "POST /api/research/submit [session_expired]": {
+    "status": 400,
+    "body": {
+      "success": false,
+      "error": "Experiment session has expired"
+    }
+  },
+  "POST /api/research/submit [consumed_replay]": {
+    "status": 400,
+    "body": {
+      "success": false,
+      "error": "Experiment session has already been completed/consumed"
+    }
+  },
+  "GET /api/research/dataset [db_null]": {
+    "status": 503,
+    "body": {
+      "success": false,
+      "error": "Database service unavailable",
+      "records": []
+    }
+  },
+  "GET /api/research/dataset [empty]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "count": 0,
+      "hasMore": false,
+      "nextCursor": null,
+      "records": []
+    }
+  },
+  "GET /api/research/dataset/summary [db_null]": {
+    "status": 503,
+    "body": {
+      "success": false,
+      "error": "Database service unavailable"
+    }
+  },
+  "GET /api/research/dataset/summary [empty]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "totalRecords": 0,
+      "totalTrials": 0,
+      "counts": {
+        "visual-reaction": 0,
+        "direction": 0,
+        "color-recognition": 0,
+        "block-memory": 0,
+        "number-memory": 0
+      }
+    }
+  },
+  "POST /api/leaderboard/submit [db_null]": {
+    "status": 404,
+    "body": {
+      "success": false,
+      "error": "Experiment session not found"
+    }
+  },
+  "POST /api/leaderboard/submit [session_unconsumed]": {
+    "status": 400,
+    "body": {
+      "success": false,
+      "error": "Leaderboard submission requires a completed, consumed research session"
+    }
+  },
+  "GET /api/leaderboard [db_null]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "entries": []
+    }
+  },
+  "GET /api/leaderboard [empty]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "entries": []
+    }
+  },
+  "POST /api/admin/audit-log [unauthorized]": {
+    "status": 401,
+    "body": {
+      "success": false,
+      "error": "Unauthorized: Valid admin session required"
+    }
+  },
+  "POST /api/admin/audit-log [db_null]": {
+    "status": 503,
+    "body": {
+      "success": false,
+      "error": "Database service unavailable"
+    }
+  },
+  "POST /api/admin/audit-log [success]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "hasLogId": true,
+      "action": "TEST_ACTION",
+      "target": "TARGET_1"
+    }
+  },
+  "POST /api/admin/leaderboard/hide [db_null]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "message": "Leaderboard entry hidden successfully"
+    }
+  },
+  "POST /api/admin/leaderboard/hide [missing_doc]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "message": "Leaderboard entry hidden successfully"
+    }
+  },
+  "POST /api/admin/leaderboard/delete [db_null]": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "message": "Leaderboard entry deleted permanently"
+    }
+  },
+  "GET /api/admin/audit-logs [db_null]": {
+    "status": 503,
+    "body": {
+      "success": false,
+      "error": "Database service unavailable",
+      "logs": []
+    }
+  },
+  "GET /api/admin/leaderboard/all [db_null]": {
+    "status": 503,
+    "body": {
+      "success": false,
+      "error": "Database service unavailable",
+      "entries": []
+    }
+  }
+}

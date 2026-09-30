@@ -1,0 +1,18 @@
+{
+  "POST /api/research/session/start [success]": {
+    "collection": "experimentSessions",
+    "docCount": 1,
+    "sampleDocKeys": [
+      "ageGroup",
+      "assessmentType",
+      "consumed",
+      "createdAt",
+      "expiresAt",
+      "sessionId",
+      "uid"
+    ]
+  },
+  "POST /api/admin/leaderboard/hide [missing_doc]": {
+    "adminAuditLogsCount": 1
+  }
+}
