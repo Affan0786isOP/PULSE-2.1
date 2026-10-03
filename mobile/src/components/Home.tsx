@@ -14,6 +14,8 @@ import { CANONICAL_ASSESSMENT_IDS } from '@shared/contracts/common';
 import { ASSESSMENT_DEFINITIONS } from '@shared/registries/assessmentRegistry';
 import { HOMEPAGE_ASSESSMENT_PRESENTATION } from '@shared/homepage/assessmentPresentation';
 import { MobileHeaderMenu } from './home/MobileHeaderMenu';
+import { MobileHeroScene } from './home/MobileHeroScene';
+import { MobileProofScene } from './home/MobileProofScene';
 
 const TARGET_ROUTES: Record<string, string> = {
   'visual-reaction': '/reaction-test',
@@ -75,25 +77,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 px-5 pt-2 pb-8">
         
-        {/* Top Text / Hero Section */}
-        <section id="hero" className="scroll-mt-20 mb-8">
-          <div className="inline-flex items-center rounded-full bg-white/5 border border-white/10 px-3 py-1 mb-6">
-            <span className="text-[10px] font-mono font-medium tracking-wide text-[#8A94A6] uppercase flex items-center gap-2">
-              SYSTEM BENCHMARK v2.4 
-              <span className="w-1 h-1 rounded-full bg-[#8A94A6] opacity-50"></span> 
-              PRODUCTION READY
-            </span>
-          </div>
-          
-          <h1 className="font-heading font-bold text-[2.5rem] leading-[1.05] tracking-tight text-white mb-4">
-            Precision telemetry.<br />
-            Zero latency insight.
-          </h1>
-          
-          <p className="text-[#8A94A6] text-base leading-relaxed pr-4">
-            Run standardized cohort evaluations and audit high-throughput metrics across all systems.
-          </p>
-        </section>
+        {/* Wave 2 Scene 1: Mobile Hero */}
+        <MobileHeroScene />
+
+        {/* Wave 2 Scene 2: Mobile Proof */}
+        <MobileProofScene />
 
         {/* Carousel Section Anchor */}
         <section id="assessments" className="scroll-mt-20 mb-8">
@@ -199,7 +187,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         </section>
 
         {/* Stable Section Anchor Targets for Future Redesign Scenes */}
-        <div id="proof" className="scroll-mt-20 pointer-events-none" aria-hidden="true" />
         <div id="problem" className="scroll-mt-20 pointer-events-none" aria-hidden="true" />
         <div id="result" className="scroll-mt-20 pointer-events-none" aria-hidden="true" />
         <div id="why-pulse" className="scroll-mt-20 pointer-events-none" aria-hidden="true" />

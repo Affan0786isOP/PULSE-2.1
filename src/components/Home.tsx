@@ -1,11 +1,11 @@
 import React, { useState, Suspense } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { SEO } from './SEO';
-import { APP_VERSION } from '../lib/version';
 import { useReducedMotionPreference } from '../lib/settingsStore';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
-import { ProvenanceBadge } from './brand/ProvenanceBadge';
 import { DesktopPersistentNavigation } from './home/DesktopPersistentNavigation';
+import { HeroScene } from './home/HeroScene';
+import { ProofScene } from './home/ProofScene';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -65,29 +65,20 @@ export function Home() {
         className="w-full max-w-[1600px] mx-auto flex-1 flex flex-col focus-visible:outline-none py-6 lg:py-8 px-6 sm:px-12 relative z-10"
       >
         <div className="flex flex-col w-full justify-center">
-          <section id="hero" className="scroll-mt-24 pt-4 pb-6">
-            <div className={`mb-6 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
-               <ProvenanceBadge />
-            </div>
+          {/* Wave 2 Scene 1: Desktop Hero */}
+          <HeroScene />
 
-            <h1 className={`font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05] mb-5 text-[#F8FAFC] max-w-4xl text-balance ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-2'}`}>
-              PRECISION COGNITIVE BENCHMARKING.<br className="hidden sm:block"/> MILLISECOND LATENCY.<br className="hidden lg:block"/> STANDARDIZED TELEMETRY.
-            </h1>
-
-            <p className={`text-[#8A94A6] text-sm sm:text-base font-mono uppercase tracking-wider mb-8 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
-              PULSE {APP_VERSION} / RESEARCH-GRADE NEURAL TELEMETRY
-            </p>
-          </section>
+          {/* Wave 2 Scene 2: Desktop Proof */}
+          <ProofScene />
 
           {/* Dedicated Assessments Scene Anchor */}
-          <section id="assessments" className="scroll-mt-24 w-full z-10 flex-1 min-h-[300px] flex flex-col py-4">
+          <section id="assessments" className="scroll-mt-24 w-full z-10 flex-1 min-h-[300px] flex flex-col py-8">
             <div className={`w-full flex-1 flex flex-col ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
               <AssessmentHero3D />
             </div>
           </section>
 
           {/* Stable Section Anchor Targets for Future Redesign Scenes */}
-          <div id="proof" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
           <div id="problem" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
           <div id="result" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
           <div id="why-pulse" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
