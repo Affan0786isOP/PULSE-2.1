@@ -22,8 +22,8 @@ const PIPELINE_STAGES: PipelineStage[] = [
     name: 'Stimulus Presentation',
     badge: 'FRAME_CADENCE',
     icon: Activity,
-    description: 'Visual stimulus cues are scheduled across browser animation frames to sample nominal display refresh cadence.',
-    technicalMechanism: 'requestAnimationFrame frame delta sampling with theoretical display delay midpoint estimation.',
+    description: 'Visual stimulus timing is scheduled in the client; requestAnimationFrame sampling estimates display refresh cadence and timing offset.',
+    technicalMechanism: 'requestAnimationFrame frame-delta sampling with theoretical display-delay midpoint estimation.',
   },
   {
     step: '02',

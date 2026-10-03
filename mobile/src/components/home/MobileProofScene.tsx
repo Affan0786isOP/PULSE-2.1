@@ -22,7 +22,7 @@ const MOBILE_PIPELINE_CARDS: MobilePipelineCard[] = [
     title: 'Stimulus Presentation',
     badge: 'FRAME_CADENCE',
     icon: Activity,
-    summary: 'Visual stimulus events are coordinated across animation frames to estimate display cadence.',
+    summary: 'Visual stimulus timing is scheduled in the client; requestAnimationFrame samples display frame cadence for timing-offset estimation.',
     mechanism: 'requestAnimationFrame frame-delta sampling',
   },
   {
