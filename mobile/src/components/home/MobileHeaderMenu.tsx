@@ -58,18 +58,54 @@ export function MobileHeaderMenu({
     }
   };
 
-  // Close drawer on Escape key and handle focus restoration
+  const closeMenu = () => {
+    setIsOpen(false);
+    triggerButtonRef.current?.focus();
+  };
+
+  // Focus trap for drawer and Escape key listener
   useEffect(() => {
+    if (!isOpen) return;
+
+    // Focus the first appropriate focusable control inside the drawer
+    closeButtonRef.current?.focus();
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        setIsOpen(false);
-        triggerButtonRef.current?.focus();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMenu();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        if (!drawerRef.current) return;
+        const focusableElements = drawerRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+
+        if (!focusableElements.length) {
+          e.preventDefault();
+          return;
+        }
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement || !drawerRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement || !drawerRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
       }
     };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      closeButtonRef.current?.focus();
-    }
+
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -80,20 +116,18 @@ export function MobileHeaderMenu({
     if (target) {
       e.preventDefault();
       triggerHaptic();
-      setIsOpen(false);
+      closeMenu();
       target.scrollIntoView({
         behavior: shouldReduceMotion ? 'auto' : 'smooth',
       });
       window.history.pushState(null, '', `#${targetId}`);
-      triggerButtonRef.current?.focus();
     }
   };
 
   const handleRouteClick = (view: string) => {
     triggerHaptic();
-    setIsOpen(false);
+    closeMenu();
     onNavigate?.(view);
-    triggerButtonRef.current?.focus();
   };
 
   return (
@@ -157,7 +191,10 @@ export function MobileHeaderMenu({
           role="dialog"
           aria-modal="true"
           aria-label="Mobile Navigation Menu"
-          onClick={() => setIsOpen(false)}
+          onClick={() => {
+            triggerHaptic();
+            closeMenu();
+          }}
         >
           <div
             ref={drawerRef}
@@ -177,8 +214,7 @@ export function MobileHeaderMenu({
                 ref={closeButtonRef}
                 onClick={() => {
                   triggerHaptic();
-                  setIsOpen(false);
-                  triggerButtonRef.current?.focus();
+                  closeMenu();
                 }}
                 className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-[#8A94A6] hover:text-white rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]"
                 aria-label="Close menu"
@@ -284,7 +320,7 @@ export function MobileHeaderMenu({
                   <button
                     onClick={() => {
                       triggerHaptic();
-                      setIsOpen(false);
+                      closeMenu();
                       onOpenSettings();
                     }}
                     className="min-h-[44px] w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-sm font-medium text-[#8A94A6] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]"
@@ -297,7 +333,7 @@ export function MobileHeaderMenu({
                   <button
                     onClick={() => {
                       triggerHaptic();
-                      setIsOpen(false);
+                      closeMenu();
                       onOpenAbout();
                     }}
                     className="min-h-[44px] w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-sm font-medium text-[#8A94A6] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]"

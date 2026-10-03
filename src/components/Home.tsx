@@ -1,12 +1,10 @@
 import React, { useState, Suspense } from 'react';
-import { Link } from 'react-router-dom';
-import { Zap, ShieldCheck, Trophy, Folder, Activity, Settings, Info, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { SEO } from './SEO';
 import { APP_VERSION } from '../lib/version';
 import { useReducedMotionPreference } from '../lib/settingsStore';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { ProvenanceBadge } from './brand/ProvenanceBadge';
-import { PulseLogo } from './brand';
 import { DesktopPersistentNavigation } from './home/DesktopPersistentNavigation';
 
 const HOME_SCHEMA = {
@@ -16,14 +14,6 @@ const HOME_SCHEMA = {
   "url": "https://pulse-lab.in",
   "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
 };
-
-const ROUTES = {
-  ASSESSMENTS: '/assessments',
-  LEADERBOARD: '/leaderboard',
-  DATASET: '/dataset',
-  IMPROVE: '/improve',
-  PRIVACY: '/privacy',
-} as const;
 
 const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
@@ -72,9 +62,8 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1600px] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)] gap-8 focus-visible:outline-none py-6 lg:py-8 px-6 sm:px-12 relative z-10"
+        className="w-full max-w-[1600px] mx-auto flex-1 flex flex-col focus-visible:outline-none py-6 lg:py-8 px-6 sm:px-12 relative z-10"
       >
-        {/* Left Column: Hero & Assessment Carousel */}
         <div className="flex flex-col w-full justify-center">
           <section id="hero" className="scroll-mt-24 pt-4 pb-6">
             <div className={`mb-6 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
@@ -106,72 +95,6 @@ export function Home() {
           <div id="faq" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
           <div id="cta" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
         </div>
-
-        {/* Right Column: Navigation Rail */}
-        <aside className="w-full flex flex-col pt-4 lg:pt-0 lg:pl-8 lg:border-l lg:border-white/5 relative z-20 pb-4">
-          <div className="flex items-center gap-3 mb-10 pl-2">
-            <div className="w-10 h-10 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] transition-colors">
-              <PulseLogo variant="mark" size={24} color="var(--accent)" />
-            </div>
-            <span className="font-heading font-bold text-2xl tracking-widest text-[#F8FAFC]">PULSE</span>
-          </div>
-
-          <nav className="flex flex-col gap-2 mb-12">
-            <h3 className="text-[10px] font-mono font-bold tracking-widest text-[#8A94A6] uppercase mb-3 pl-3">Modules</h3>
-            <Link to={ROUTES.ASSESSMENTS} className="group flex items-center justify-between p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]">
-              <div className="flex items-center gap-3">
-                <Activity size={18} className="text-[#8A94A6] group-hover:text-[#00F0FF] transition-colors" />
-                <span className="text-sm font-semibold text-white tracking-wide">Assessments</span>
-              </div>
-            </Link>
-            <Link to={ROUTES.LEADERBOARD} className="group flex items-center justify-between p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]">
-              <div className="flex items-center gap-3">
-                <Trophy size={18} className="text-[#8A94A6] group-hover:text-[#00F0FF] transition-colors" />
-                <span className="text-sm font-semibold text-white tracking-wide">Leaderboard</span>
-              </div>
-            </Link>
-            <Link to={ROUTES.DATASET} className="group flex items-center justify-between p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]">
-              <div className="flex items-center gap-3">
-                <Folder size={18} className="text-[#8A94A6] group-hover:text-[#00F0FF] transition-colors" />
-                <span className="text-sm font-semibold text-white tracking-wide">Dataset</span>
-              </div>
-            </Link>
-            <Link to={ROUTES.IMPROVE} className="group flex items-center justify-between p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]">
-              <div className="flex items-center gap-3">
-                <Zap size={18} className="text-[#8A94A6] group-hover:text-[#00F0FF] transition-colors" />
-                <span className="text-sm font-semibold text-white tracking-wide">Improve</span>
-              </div>
-            </Link>
-            <Link to={ROUTES.PRIVACY} className="group flex items-center justify-between p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]">
-              <div className="flex items-center gap-3">
-                <ShieldCheck size={18} className="text-[#8A94A6] group-hover:text-[#00F0FF] transition-colors" />
-                <span className="text-sm font-semibold text-white tracking-wide">Privacy</span>
-              </div>
-            </Link>
-          </nav>
-
-          <nav className="flex flex-col gap-2 mt-auto">
-            <h3 className="text-[10px] font-mono font-bold tracking-widest text-[#8A94A6] uppercase mb-3 pl-3">System</h3>
-            <button 
-              onClick={() => setIsSettingsOpen(true)}
-              className="group flex items-center justify-between p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]"
-            >
-              <div className="flex items-center gap-3">
-                <Settings size={18} className="text-[#8A94A6] group-hover:text-white transition-colors" />
-                <span className="text-sm font-semibold text-[#8A94A6] group-hover:text-white transition-colors tracking-wide">Settings & Calibration</span>
-              </div>
-            </button>
-            <button 
-              onClick={() => setIsWelcomeOpen(true)}
-              className="group flex items-center justify-between p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all active:scale-[0.98] text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]"
-            >
-              <div className="flex items-center gap-3">
-                <Info size={18} className="text-[#8A94A6] group-hover:text-white transition-colors" />
-                <span className="text-sm font-semibold text-[#8A94A6] group-hover:text-white transition-colors tracking-wide">About & Info</span>
-              </div>
-            </button>
-          </nav>
-        </aside>
       </main>
 
       <Suspense fallback={<ModalLoadingFallback />}>
