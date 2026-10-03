@@ -191,6 +191,7 @@ vi.mock('../../server/middleware/auth', () => {
   };
 });
 
+import { createServerContainer } from '../../server/container';
 import { registerResearchRoutes } from '../../server/routes/researchRoutes';
 import { registerLeaderboardRoutes } from '../../server/routes/leaderboardRoutes';
 import { registerAdminRoutes } from '../../server/routes/adminRoutes';
@@ -239,9 +240,10 @@ describe('Record Golden Baseline', () => {
   beforeAll(async () => {
     app = express();
     app.use(express.json());
-    registerResearchRoutes(app);
-    registerLeaderboardRoutes(app);
-    registerAdminRoutes(app);
+    const container = createServerContainer();
+    registerResearchRoutes(app, { sessionService: container.sessionService, personalBestService: container.personalBestService, researchService: container.researchService });
+    registerLeaderboardRoutes(app, { leaderboardService: container.leaderboardService });
+    registerAdminRoutes(app, { adminService: container.adminService });
 
     await new Promise<void>(resolve => {
       server = app.listen(0, '127.0.0.1', () => resolve());

@@ -12,7 +12,7 @@ import { getAdminDiagnosticMessage } from '../config/firebaseAdmin';
 
 export function registerResearchRoutes(
   app: Express,
-  services?: {
+  services: {
     sessionService: ISessionService;
     personalBestService: IPersonalBestService;
     researchService: IResearchService;
@@ -27,7 +27,7 @@ export function registerResearchRoutes(
       }
 
       const { assessmentType, ageGroup } = req.body || {};
-      if (!services?.sessionService) {
+      if (!services.sessionService) {
         return res.status(500).json({ success: false, error: `Database unavailable: ${getAdminDiagnosticMessage()}` });
       }
 
@@ -73,10 +73,6 @@ export function registerResearchRoutes(
       const { assessmentType } = req.query || {};
       if (!assessmentType || typeof assessmentType !== 'string' || !VALID_ASSESSMENT_TYPES.includes(assessmentType)) {
         return res.status(400).json({ success: false, error: 'Invalid or missing assessmentType query parameter' });
-      }
-
-      if (!services?.personalBestService) {
-        return res.status(500).json({ success: false, error: 'Database unavailable: Server misconfiguration' });
       }
 
       try {
@@ -125,7 +121,7 @@ export function registerResearchRoutes(
         return res.status(400).json({ success: false, error: 'sessionId and idempotencyKey must be distinct' });
       }
 
-      if (!services?.researchService) {
+      if (!services.researchService) {
         return res.status(500).json({ success: false, error: `Database unavailable: ${getAdminDiagnosticMessage()}` });
       }
 
@@ -226,10 +222,6 @@ export function registerResearchRoutes(
       const limitCount = req.query.limit ? Math.min(Math.max(1, parseInt(String(req.query.limit), 10) || 1000), 5000) : 1000;
       const cursor = typeof req.query.cursor === 'string' && req.query.cursor.trim() ? req.query.cursor.trim() : null;
 
-      if (!services?.researchService) {
-        return res.status(503).json({ success: false, error: 'Database service unavailable', records: [] });
-      }
-
       try {
         const result = await services.researchService.getDataset({
           assessmentType,
@@ -261,10 +253,6 @@ export function registerResearchRoutes(
   // Public Research Dataset Summary Endpoint
   app.get('/api/research/dataset/summary', async (_req, res) => {
     try {
-      if (!services?.researchService) {
-        return res.status(503).json({ success: false, error: 'Database service unavailable' });
-      }
-
       try {
         const summary = await services.researchService.getDatasetSummary();
         return res.json({

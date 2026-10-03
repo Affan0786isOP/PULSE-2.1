@@ -7,7 +7,7 @@ import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayCont
 
 export function registerLeaderboardRoutes(
   app: Express,
-  services?: {
+  services: {
     leaderboardService: ILeaderboardService;
   }
 ): void {
@@ -44,11 +44,6 @@ export function registerLeaderboardRoutes(
 
       if (userId && typeof userId === 'string' && userId.trim() !== verifiedUser.uid) {
         return res.status(403).json({ success: false, error: 'Participant identity mismatch with authenticated user' });
-      }
-
-      if (!services?.leaderboardService) {
-        // Initial session read was skipped -> returns 404 matching baseline
-        return res.status(404).json({ success: false, error: 'Experiment session not found' });
       }
 
       try {
@@ -118,10 +113,6 @@ export function registerLeaderboardRoutes(
   app.get('/api/leaderboard', async (req, res) => {
     try {
       const rawType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : null;
-
-      if (!services?.leaderboardService) {
-        return res.json({ success: true, entries: [] });
-      }
 
       try {
         const entries = await services.leaderboardService.getPublicLeaderboard(rawType);
