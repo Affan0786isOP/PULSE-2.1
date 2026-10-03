@@ -29,7 +29,7 @@ describe('Wave 2 Scenes — Desktop & Mobile Hero and Proof', () => {
     it('renders with stable #proof anchor and section title', () => {
       const html = renderToStaticMarkup(React.createElement(ProofScene));
       expect(html).toContain('id="proof"');
-      expect(html).toContain('How PULSE Isolates Pure Cognitive Latency');
+      expect(html).toContain('How PULSE Measures Client-Side Reaction Latency');
     });
 
     it('renders all 4 measurement pipeline stages', () => {
@@ -39,9 +39,9 @@ describe('Wave 2 Scenes — Desktop & Mobile Hero and Proof', () => {
       expect(html).toContain('STAGE 02');
       expect(html).toContain('Human Response Capture');
       expect(html).toContain('STAGE 03');
-      expect(html).toContain('Latency Isolation');
+      expect(html).toContain('Trial Validation &amp; Correction');
       expect(html).toContain('STAGE 04');
-      expect(html).toContain('Standardized Telemetry');
+      expect(html).toContain('Session Metrics &amp; Summary');
     });
 
     it('contains launcher link leading to #assessments', () => {
@@ -55,7 +55,7 @@ describe('Wave 2 Scenes — Desktop & Mobile Hero and Proof', () => {
       const html = renderToStaticMarkup(React.createElement(MobileHeroScene));
       expect(html).toContain('id="hero"');
       expect(html).toContain('Precision telemetry');
-      expect(html).toContain('Zero latency');
+      expect(html).toContain('Local timing');
     });
 
     it('contains accessible touch-target CTAs linking to #assessments and #proof', () => {
@@ -69,15 +69,15 @@ describe('Wave 2 Scenes — Desktop & Mobile Hero and Proof', () => {
     it('renders with stable #proof anchor and sequential pipeline cards', () => {
       const html = renderToStaticMarkup(React.createElement(MobileProofScene));
       expect(html).toContain('id="proof"');
-      expect(html).toContain('The 4-Stage Telemetry Pipeline');
+      expect(html).toContain('The 4-Stage Evaluation Pipeline');
       expect(html).toContain('STAGE 01');
       expect(html).toContain('Stimulus Presentation');
       expect(html).toContain('STAGE 02');
       expect(html).toContain('Touch Response');
       expect(html).toContain('STAGE 03');
-      expect(html).toContain('Latency Isolation');
+      expect(html).toContain('Trial Validation');
       expect(html).toContain('STAGE 04');
-      expect(html).toContain('Standardized Result');
+      expect(html).toContain('Session Metrics');
       expect(html).toContain('href="#assessments"');
     });
   });

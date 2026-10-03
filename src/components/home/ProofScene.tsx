@@ -20,34 +20,34 @@ const PIPELINE_STAGES: PipelineStage[] = [
   {
     step: '01',
     name: 'Stimulus Presentation',
-    badge: 'DISPLAY_SYNC',
+    badge: 'FRAME_CADENCE',
     icon: Activity,
-    description: 'Visual cues are synchronized with display refresh intervals, eliminating frame-phase tearing and onset latency ambiguity.',
-    technicalMechanism: 'requestAnimationFrame delta tracking and Web Audio API scheduled audio buffer onsets.',
+    description: 'Visual stimulus cues are scheduled across browser animation frames to sample nominal display refresh cadence.',
+    technicalMechanism: 'requestAnimationFrame frame delta sampling with theoretical display delay midpoint estimation.',
   },
   {
     step: '02',
     name: 'Human Response Capture',
-    badge: 'MICROSECOND_TIMER',
+    badge: 'MONOTONIC_TIMING',
     icon: Clock,
-    description: 'Pointer and keyboard input triggers are captured at the native DOM boundary with monotonic hardware timer precision.',
-    technicalMechanism: 'performance.now() hardware timestamps recorded immediately on incoming PointerEvent / KeyboardEvent.',
+    description: 'Pointer and keyboard responses are captured at the native DOM boundary with high-resolution timestamps.',
+    technicalMechanism: 'performance.now() or event.timeStamp recorded directly on incoming PointerEvent / KeyboardEvent.',
   },
   {
     step: '03',
-    name: 'Latency Isolation',
-    badge: 'JITTER_REMOVAL',
+    name: 'Trial Validation & Correction',
+    badge: 'TRIAL_VALIDATION',
     icon: Cpu,
-    description: 'Raw interval latency is isolated from browser composite times, garbage collection spikes, and synthetic event queue jitter.',
-    technicalMechanism: 'Hardware clock baseline subtraction with statistical outlier discrimination.',
+    description: 'Trials are filtered for anticipatory false starts and timeouts, adjusted by estimated display offset.',
+    technicalMechanism: '80ms physiological reaction floor check, timeout rejection, and display delay offset adjustment.',
   },
   {
     step: '04',
-    name: 'Standardized Telemetry',
-    badge: 'COGNITIVE_DISTRIBUTION',
+    name: 'Session Metrics & Summary',
+    badge: 'STATISTICAL_METRICS',
     icon: BarChart2,
-    description: 'Clean reaction latencies and choice error rates are benchmarked against standardized cognitive distribution baselines.',
-    technicalMechanism: 'Normalized percentile ranking with voluntary, privacy-preserving open dataset logging.',
+    description: 'Valid trial latencies are aggregated into mean, median, standard deviation, and consistency metrics.',
+    technicalMechanism: 'Unbiased sample variance (Bessel correction N-1) and coefficient-of-variation consistency calculation.',
   },
 ];
 
@@ -76,16 +76,16 @@ export function ProofScene({ onExploreAssessments }: ProofSceneProps) {
         {/* Section Header */}
         <div className="mb-14">
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-[11px] font-mono text-[#00F0FF] uppercase tracking-wider mb-4">
-            <span>[ PROTOCOL // MEASUREMENT FIDELITY ]</span>
+            <span>[ PROTOCOL // MEASUREMENT PIPELINE ]</span>
           </div>
           
           <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#F8FAFC] mb-4">
-            How PULSE Isolates Pure Cognitive Latency
+            How PULSE Measures Client-Side Reaction Latency
           </h2>
           
           <p className="text-[#94A3B8] text-base sm:text-lg max-w-3xl leading-relaxed text-pretty">
-            Typical web benchmarks measure network delay and script execution jitter rather than human cognition. 
-            PULSE isolates physiological reaction speed through a verified 4-stage client-side pipeline.
+            Web-based cognitive timing requires accounting for display cadence and event timing. 
+            PULSE structures evaluation through a factual 4-stage client-side pipeline.
           </p>
         </div>
 
@@ -142,14 +142,14 @@ export function ProofScene({ onExploreAssessments }: ProofSceneProps) {
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#2DD4BF] mb-2">
               <CheckCircle2 size={16} aria-hidden="true" />
-              <span>Documented Instrument Properties</span>
+              <span>Documented Evaluation Flow</span>
             </div>
             <h4 className="font-heading text-lg sm:text-xl font-semibold text-[#F8FAFC] mb-2">
-              Zero Server Latency. Fully Transparent Evaluation.
+              Local Timestamp Capture. Transparent Evaluation.
             </h4>
             <p className="text-xs sm:text-sm text-[#8A94A6] leading-relaxed">
-              Every stimulus, measurement tick, and trial evaluation executes locally in your browser. 
-              No surveillance trackers, no third-party cookies, and full user sovereignty over cognitive session records.
+              Stimulus presentation, response detection, and trial metrics are computed locally in the browser engine. 
+              Network round trips do not affect reaction timestamps, and anonymous session dataset contribution is voluntary.
             </p>
           </div>
 

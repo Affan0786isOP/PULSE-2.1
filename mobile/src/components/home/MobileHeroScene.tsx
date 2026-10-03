@@ -39,7 +39,7 @@ export function MobileHeroScene({ onExploreAssessments, onExploreProof }: Mobile
         <span className="text-[10px] font-mono font-medium tracking-wide text-[#8A94A6] uppercase flex items-center gap-2">
           SYSTEM BENCHMARK 
           <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-pulse" /> 
-          RESEARCH GRADE
+          LOCAL EVALUATOR
         </span>
       </motion.div>
 
@@ -51,7 +51,7 @@ export function MobileHeroScene({ onExploreAssessments, onExploreProof }: Mobile
         transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.06 }}
       >
         Precision telemetry.<br />
-        <span className="text-[#00F0FF]">Zero latency</span> insight.
+        <span className="text-[#00F0FF]">Local timing</span> insight.
       </motion.h1>
 
       {/* Narrative Description */}
@@ -61,8 +61,8 @@ export function MobileHeroScene({ onExploreAssessments, onExploreProof }: Mobile
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.12 }}
       >
-        Standardized cognitive benchmarking evaluating reaction latency, directional choice speed, 
-        and working memory with sub-millisecond hardware accuracy directly in your mobile browser.
+        Cognitive benchmarking evaluating reaction speed, directional choice, 
+        and working memory using high-resolution browser timestamps and display cadence estimation.
       </motion.p>
 
       {/* Action Buttons */}
@@ -108,18 +108,18 @@ export function MobileHeroScene({ onExploreAssessments, onExploreProof }: Mobile
       >
         <div className="p-2 rounded-lg bg-white/[0.02] border border-white/5 flex flex-col items-center">
           <Cpu size={14} className="text-[#00F0FF] mb-1" />
-          <span className="text-[10px] font-mono text-[#F8FAFC] font-semibold">Sub-ms</span>
+          <span className="text-[10px] font-mono text-[#F8FAFC] font-semibold">High-Res</span>
           <span className="text-[9px] text-[#8A94A6]">Timestamps</span>
         </div>
         <div className="p-2 rounded-lg bg-white/[0.02] border border-white/5 flex flex-col items-center">
           <Activity size={14} className="text-[#38BDF8] mb-1" />
-          <span className="text-[10px] font-mono text-[#F8FAFC] font-semibold">Display</span>
-          <span className="text-[9px] text-[#8A94A6]">Sync Rate</span>
+          <span className="text-[10px] font-mono text-[#F8FAFC] font-semibold">Cadence</span>
+          <span className="text-[9px] text-[#8A94A6]">Estimation</span>
         </div>
         <div className="p-2 rounded-lg bg-white/[0.02] border border-white/5 flex flex-col items-center">
           <Shield size={14} className="text-[#2DD4BF] mb-1" />
-          <span className="text-[10px] font-mono text-[#F8FAFC] font-semibold">100% Local</span>
-          <span className="text-[9px] text-[#8A94A6]">Client-Side</span>
+          <span className="text-[10px] font-mono text-[#F8FAFC] font-semibold">Local Calc</span>
+          <span className="text-[9px] text-[#8A94A6]">In-Browser</span>
         </div>
       </motion.div>
     </section>

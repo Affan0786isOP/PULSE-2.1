@@ -37,9 +37,9 @@ export function HeroScene({ onExploreAssessments, onExploreProof }: HeroScenePro
       >
         {/* Subtle Crosshair Reticle Markers */}
         <div className="absolute top-8 left-0 right-0 flex justify-between text-[10px] font-mono text-[#475569] tracking-widest px-4 border-b border-white/5 pb-2">
-          <span>SYS_CLOCK: 1000Hz_CALIBRATED</span>
-          <span className="hidden md:inline">REFRESH_SYNC: AUTO_DETECT</span>
-          <span>LATENCY_ISOLATION: ACTIVE</span>
+          <span>TIMER: HIGH_RES_MONOTONIC</span>
+          <span className="hidden md:inline">FRAME_CADENCE: ESTIMATION_ACTIVE</span>
+          <span>TRIAL_VALIDATION: ACTIVE</span>
         </div>
         <div className="absolute -top-12 -left-12 w-64 h-64 rounded-full bg-[#00F0FF]/5 blur-3xl" />
         <div className="absolute top-1/2 -right-12 w-80 h-80 rounded-full bg-[#3B82F6]/5 blur-3xl" />
@@ -87,9 +87,9 @@ export function HeroScene({ onExploreAssessments, onExploreProof }: HeroScenePro
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: shouldReduceMotion ? 0 : 0.2 }}
         >
-          An open-source cognitive measurement instrument quantifying visual reaction latency, 
-          directional choice discrimination, and spatial working memory with sub-millisecond hardware 
-          clock fidelity directly inside the browser.
+          An open-source cognitive measurement instrument evaluating visual reaction latency, 
+          directional choice discrimination, and spatial working memory using high-resolution browser 
+          timestamps and estimated display cadence correction.
         </motion.p>
 
         {/* Action Controls */}
@@ -137,10 +137,10 @@ export function HeroScene({ onExploreAssessments, onExploreProof }: HeroScenePro
             <Cpu size={18} className="text-[#00F0FF] mt-0.5 shrink-0" aria-hidden="true" />
             <div>
               <div className="text-xs font-mono font-semibold uppercase tracking-wider text-[#F8FAFC] mb-1">
-                Sub-ms Clocks
+                High-Resolution Timing
               </div>
               <p className="text-xs text-[#8A94A6] leading-relaxed">
-                <code className="text-[#CBD5E1] font-mono">performance.now()</code> hardware timer timestamps bypassing JS event loop delay.
+                <code className="text-[#CBD5E1] font-mono">performance.now()</code> monotonic timestamps recorded directly upon DOM input events.
               </p>
             </div>
           </div>
@@ -149,10 +149,10 @@ export function HeroScene({ onExploreAssessments, onExploreProof }: HeroScenePro
             <Activity size={18} className="text-[#38BDF8] mt-0.5 shrink-0" aria-hidden="true" />
             <div>
               <div className="text-xs font-mono font-semibold uppercase tracking-wider text-[#F8FAFC] mb-1">
-                Display Sync
+                Cadence Estimation
               </div>
               <p className="text-xs text-[#8A94A6] leading-relaxed">
-                Synchronized to display refresh frames via <code className="text-[#CBD5E1] font-mono">requestAnimationFrame</code> delta tracking.
+                Display frame intervals sampled via <code className="text-[#CBD5E1] font-mono">requestAnimationFrame</code> to estimate display latency offsets.
               </p>
             </div>
           </div>
@@ -161,10 +161,10 @@ export function HeroScene({ onExploreAssessments, onExploreProof }: HeroScenePro
             <ShieldCheck size={18} className="text-[#2DD4BF] mt-0.5 shrink-0" aria-hidden="true" />
             <div>
               <div className="text-xs font-mono font-semibold uppercase tracking-wider text-[#F8FAFC] mb-1">
-                Client Isolation
+                Local Computation
               </div>
               <p className="text-xs text-[#8A94A6] leading-relaxed">
-                Zero network round-trip overhead. Pure local client execution and transparent open dataset.
+                Reaction latencies are captured locally in the browser without network latency affecting timestamp capture.
               </p>
             </div>
           </div>

@@ -20,34 +20,34 @@ const MOBILE_PIPELINE_CARDS: MobilePipelineCard[] = [
   {
     step: '01',
     title: 'Stimulus Presentation',
-    badge: 'DISPLAY_SYNC',
+    badge: 'FRAME_CADENCE',
     icon: Activity,
-    summary: 'Visual stimuli are synchronized to display refresh boundaries to avoid frame-phase onset distortion.',
-    mechanism: 'requestAnimationFrame frame-delta tracking',
+    summary: 'Visual stimulus events are coordinated across animation frames to estimate display cadence.',
+    mechanism: 'requestAnimationFrame frame-delta sampling',
   },
   {
     step: '02',
     title: 'Touch Response',
-    badge: 'HARDWARE_CLOCK',
+    badge: 'MONOTONIC_TIMING',
     icon: Clock,
-    summary: 'Touch and pointer contact timestamps are recorded at the native document level.',
-    mechanism: 'performance.now() microsecond timer precision',
+    summary: 'Touch and pointer contact timestamps are recorded at the native document boundary.',
+    mechanism: 'performance.now() high-resolution timestamp capture',
   },
   {
     step: '03',
-    title: 'Latency Isolation',
-    badge: 'JITTER_FILTER',
+    title: 'Trial Validation',
+    badge: 'VALIDITY_FILTER',
     icon: Cpu,
-    summary: 'Composite delays and browser event loop spikes are filtered out from measured reaction time.',
-    mechanism: 'Algorithmic baseline variance subtraction',
+    summary: 'Anticipatory false starts and timeouts are filtered out, with estimated display offset applied.',
+    mechanism: 'Physiological reaction floor and display offset adjustment',
   },
   {
     step: '04',
-    title: 'Standardized Result',
-    badge: 'PERCENTILE',
+    title: 'Session Metrics',
+    badge: 'SUMMARY_STATS',
     icon: BarChart2,
-    summary: 'Latencies and choice error rates are normalized against standardized cohort distributions.',
-    mechanism: 'Client-side scoring with opt-in open telemetry',
+    summary: 'Trial latencies are aggregated into mean, median, standard deviation, and consistency scores.',
+    mechanism: 'Client-side statistical aggregation and optional leaderboard submission',
   },
 ];
 
@@ -76,15 +76,15 @@ export function MobileProofScene({ onExploreAssessments }: MobileProofSceneProps
       {/* Header */}
       <div className="mb-6">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-[#00F0FF] uppercase tracking-wider mb-3">
-          <span>[ MEASUREMENT FIDELITY ]</span>
+          <span>[ METHODOLOGY // PIPELINE ]</span>
         </div>
         
         <h2 className="font-heading text-2xl font-bold tracking-tight text-white mb-2">
-          The 4-Stage Telemetry Pipeline
+          The 4-Stage Evaluation Pipeline
         </h2>
         
         <p className="text-[#8A94A6] text-xs leading-relaxed">
-          How PULSE captures genuine cognitive reaction latency on mobile hardware without network distortion.
+          How PULSE measures reaction latency directly on mobile browsers without network interference.
         </p>
       </div>
 
@@ -131,10 +131,10 @@ export function MobileProofScene({ onExploreAssessments }: MobileProofSceneProps
       <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10">
         <div className="flex items-center gap-2 text-xs font-mono text-[#2DD4BF] uppercase tracking-wide mb-1.5">
           <CheckCircle2 size={15} aria-hidden="true" />
-          <span>Local Client Execution</span>
+          <span>Local Measurement Engine</span>
         </div>
         <p className="text-xs text-[#8A94A6] leading-relaxed mb-4">
-          All stimulus timing and touch latency calculations execute directly in mobile memory. Zero tracking cookies, zero external telemetry lags.
+          Stimulus presentation and touch latency timestamps are processed locally in browser memory. Network delays do not affect local reaction-time calculation.
         </p>
 
         <a
