@@ -20,20 +20,13 @@ import type { IResearchService } from './services/interfaces/IResearchService';
 import type { ILeaderboardService } from './services/interfaces/ILeaderboardService';
 import type { IAdminService } from './services/interfaces/IAdminService';
 
-import { SessionService, setDefaultSessionService } from './services/sessionService';
+import { SessionService } from './services/sessionService';
 import { PersonalBestService } from './services/personalBestService';
 import { ResearchService } from './services/researchService';
 import { LeaderboardAppService } from './services/leaderboardAppService';
 import { AdminService } from './services/adminService';
 
 export interface ServerContainer {
-  sessionRepository: ISessionRepository;
-  researchSubmissionRepository: IResearchSubmissionRepository;
-  researchDatasetRepository: IResearchDatasetRepository;
-  leaderboardSubmissionRepository: ILeaderboardSubmissionRepository;
-  leaderboardRepository: ILeaderboardRepository;
-  adminAuditRepository: IAdminAuditRepository;
-
   sessionService: ISessionService;
   personalBestService: IPersonalBestService;
   researchService: IResearchService;
@@ -52,8 +45,6 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
   const adminAuditRepository = new FirestoreAdminAuditRepository(getDb);
 
   const sessionService = new SessionService(sessionRepository);
-  setDefaultSessionService(sessionService);
-
   const personalBestService = new PersonalBestService(sessionRepository);
   const researchService = new ResearchService(
     sessionService,
@@ -69,13 +60,6 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
   const adminService = new AdminService(adminAuditRepository, leaderboardRepository);
 
   return {
-    sessionRepository,
-    researchSubmissionRepository,
-    researchDatasetRepository,
-    leaderboardSubmissionRepository,
-    leaderboardRepository,
-    adminAuditRepository,
-
     sessionService,
     personalBestService,
     researchService,

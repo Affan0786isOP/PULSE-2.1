@@ -2,7 +2,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import type { ILeaderboardRepository } from '../interfaces/ILeaderboardRepository';
 import type { LeaderboardEntryRecord, AdminLeaderboardEntryRecord } from '../../models/leaderboardModels';
 import { normalizeAssessmentType } from '../../engines/assessmentTypes';
-import { isOptedInLeaderboardUser } from '../../services/leaderboardService';
+import { isOptedInLeaderboardUser } from '../../../shared/domain/leaderboardEligibility';
 
 export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
   constructor(private readonly getDb: () => Firestore | null) {}

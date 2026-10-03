@@ -3,63 +3,41 @@ import * as fs from 'fs';
 import * as path from 'path';
 import ts from 'typescript';
 
-const wave2CreatedOrModifiedFiles = [
-  'server/models/sessionModels.ts',
-  'server/models/submissionModels.ts',
-  'server/models/researchModels.ts',
-  'server/models/leaderboardModels.ts',
-  'server/models/adminModels.ts',
-  'server/models/replayContracts.ts',
-  'server/repositories/interfaces/ISessionRepository.ts',
-  'server/repositories/interfaces/IResearchSubmissionRepository.ts',
-  'server/repositories/interfaces/IResearchDatasetRepository.ts',
-  'server/repositories/interfaces/ILeaderboardSubmissionRepository.ts',
-  'server/repositories/interfaces/ILeaderboardRepository.ts',
-  'server/repositories/interfaces/IAdminAuditRepository.ts',
-  'server/repositories/firestore/firestoreSessionRepository.ts',
-  'server/repositories/firestore/firestoreResearchSubmissionRepository.ts',
-  'server/repositories/firestore/firestoreResearchDatasetRepository.ts',
-  'server/repositories/firestore/firestoreLeaderboardSubmissionRepository.ts',
-  'server/repositories/firestore/firestoreLeaderboardRepository.ts',
-  'server/repositories/firestore/firestoreAdminAuditRepository.ts',
-  'server/services/interfaces/ISessionService.ts',
-  'server/services/interfaces/IPersonalBestService.ts',
-  'server/services/interfaces/IResearchService.ts',
-  'server/services/interfaces/ILeaderboardService.ts',
-  'server/services/interfaces/IAdminService.ts',
-  'server/services/sessionService.ts',
-  'server/services/personalBestService.ts',
-  'server/services/researchService.ts',
-  'server/services/leaderboardAppService.ts',
-  'server/services/adminService.ts',
-  'server/container.ts',
-  'server/routes/researchRoutes.ts',
-  'server/routes/leaderboardRoutes.ts',
-  'server/routes/adminRoutes.ts',
-  'server/index.ts',
-  'tests/unit/serverModels.test.ts',
-  'tests/unit/serverRepositories.test.ts',
-  'tests/unit/serverServices.test.ts',
-  'tests/unit/serverRoutesDelegation.test.ts',
-  'tests/unit/serverRoutesParity.test.ts',
-  'tests/unit/serverRoutesBoundary.test.ts'
-];
+function getAllTsFiles(dir: string, fileList: string[] = []): string[] {
+  if (!fs.existsSync(dir)) return fileList;
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      getAllTsFiles(fullPath, fileList);
+    } else if (file.endsWith('.ts')) {
+      fileList.push(fullPath);
+    }
+  }
+  return fileList;
+}
 
 describe('Server Architecture Boundary & Zero-Any AST Scan', () => {
-  it('enforces zero explicit any and no unsafe casts across all Wave 2 created/modified files', () => {
+  it('enforces zero explicit any and no unsafe casts across all server files', () => {
     const violations: string[] = [];
+    const serverDir = path.join(process.cwd(), 'server');
+    const allFiles = getAllTsFiles(serverDir);
 
-    for (const relPath of wave2CreatedOrModifiedFiles) {
-      const fullPath = path.join(process.cwd(), relPath);
-      if (!fs.existsSync(fullPath)) continue;
-
+    for (const fullPath of allFiles) {
+      const relPath = path.relative(process.cwd(), fullPath).replace(/\\/g, '/');
+      
+      // Exclude legacy engine and config files from strict zero-any requirement for now
+      if (relPath.includes('server/engines/') || relPath.includes('server/config/') || relPath.includes('provenanceService.ts')) {
+        continue;
+      }
+      
       const content = fs.readFileSync(fullPath, 'utf-8');
       const sourceFile = ts.createSourceFile(relPath, content, ts.ScriptTarget.Latest, true);
 
       function visit(node: ts.Node) {
         if (node.kind === ts.SyntaxKind.AnyKeyword) {
           const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
-          violations.push(`${relPath}:${line + 1}:${character + 1} - Explicit 'any' keyword prohibited in Wave 2 files`);
+          violations.push(`${relPath}:${line + 1}:${character + 1} - Explicit 'any' keyword prohibited in server layer`);
         }
         if (ts.isAsExpression(node)) {
           const typeText = node.type.getText(sourceFile);
@@ -82,11 +60,11 @@ describe('Server Architecture Boundary & Zero-Any AST Scan', () => {
 
   it('enforces infrastructure layer boundary: Firestore access isolated behind repositories', () => {
     const boundaryViolations: string[] = [];
+    const serverDir = path.join(process.cwd(), 'server');
+    const allFiles = getAllTsFiles(serverDir);
 
-    for (const relPath of wave2CreatedOrModifiedFiles) {
-      const fullPath = path.join(process.cwd(), relPath);
-      if (!fs.existsSync(fullPath)) continue;
-
+    for (const fullPath of allFiles) {
+      const relPath = path.relative(process.cwd(), fullPath).replace(/\\/g, '/');
       const content = fs.readFileSync(fullPath, 'utf-8');
 
       // Prohibit direct Firestore SDK imports in routes, models, and services
@@ -100,7 +78,6 @@ describe('Server Architecture Boundary & Zero-Any AST Scan', () => {
           boundaryViolations.push(`${relPath}: Direct 'firebase-admin/firestore' import prohibited`);
         }
         if (content.includes("from '../config/firebaseAdmin'") && !relPath.includes('personalBestService') && !relPath.includes('leaderboardAppService') && !relPath.includes('researchRoutes')) {
-          // getAdminDiagnosticMessage or safeLogWarning is fine, but getAdminDb is prohibited
           if (content.includes('getAdminDb')) {
             boundaryViolations.push(`${relPath}: Prohibited 'getAdminDb' import`);
           }

@@ -94,20 +94,3 @@ export class SessionService implements ISessionService {
     return { valid: true, session };
   }
 }
-
-// Backward-compatible module export for legacy callers
-let defaultSessionService: ISessionService | null = null;
-export function setDefaultSessionService(service: ISessionService) {
-  defaultSessionService = service;
-}
-
-export async function getAndValidateSession(
-  sessionId: string,
-  userUid: string,
-  requestedAssessmentType: string
-): Promise<{ valid: boolean; session?: ExperimentSessionRecord; error?: string; status?: number }> {
-  if (defaultSessionService) {
-    return defaultSessionService.getAndValidateSession(sessionId, userUid, requestedAssessmentType);
-  }
-  return { valid: false, error: 'Database unavailable: Server misconfiguration', status: 500 };
-}

@@ -8,7 +8,8 @@ import {
   safeCompareHex,
   computeCanonicalTrialsDigest,
 } from '../../server/services/provenanceService';
-import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric } from '../../server/services/leaderboardService';
+import { isValidLeaderboardScoreMetric } from '../../server/services/leaderboardService';
+import { isOptedInLeaderboardUser } from '../../shared/domain/leaderboardEligibility';
 import { getIdempotency, setIdempotency, isValidIdempotencyKey } from '../../server/services/idempotencyService';
 import { parseCookies, isTruthyRoutingFlag, isMobileUserAgent } from '../../server/middleware/deviceRouting';
 
