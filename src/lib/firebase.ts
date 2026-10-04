@@ -78,27 +78,8 @@ const app = isConfigured ? (!getApps().length ? initializeApp(firebaseConfig) : 
 const rawDbId = import.meta.env.VITE_FIREBASE_DATABASE_ID || (hasAppletConfig ? appletConfig.firestoreDatabaseId : undefined);
 const dbId = typeof rawDbId === 'string' && rawDbId.trim() && rawDbId !== '(default)' ? rawDbId.trim() : undefined;
 
-let dbInstance: ReturnType<typeof getFirestore> | null = null;
 const db: ReturnType<typeof getFirestore> | null = app
-  ? (new Proxy({} as any, {
-      get(_, prop) {
-        if (!dbInstance && app) {
-          dbInstance = dbId ? getFirestore(app, dbId) : getFirestore(app);
-        }
-        const target = dbInstance as any;
-        const value = target ? target[prop] : undefined;
-        if (typeof value === 'function') {
-          return value.bind(target);
-        }
-        return value;
-      },
-      has(_, prop) {
-        if (!dbInstance && app) {
-          dbInstance = dbId ? getFirestore(app, dbId) : getFirestore(app);
-        }
-        return dbInstance ? prop in (dbInstance as any) : false;
-      }
-    }) as any)
+  ? (dbId ? getFirestore(app, dbId) : getFirestore(app))
   : null;
 
 const auth = app ? getAuth(app) : null;
