@@ -9,11 +9,11 @@ interface StimulusReticleProps {
 }
 
 const stateColors: Record<ReticleState, string> = {
-  idle: '#00F0FF',
-  armed: '#F59E0B',
-  stimulus: '#FFFFFF',
-  verified: '#10B981',
-  fault: '#EF4444',
+  idle: 'var(--accent, #22C7D6)',
+  armed: 'var(--warning, #F2B84B)',
+  stimulus: 'var(--text-primary, #FFFFFF)',
+  verified: 'var(--success, #34C759)',
+  fault: 'var(--danger, #E05260)',
 };
 
 export const StimulusReticle: React.FC<StimulusReticleProps> = ({

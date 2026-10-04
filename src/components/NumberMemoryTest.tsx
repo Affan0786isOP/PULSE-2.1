@@ -449,9 +449,19 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
             btnClass += " text-white/50 hover:text-white/80";
           }
           
+          const ariaLabel = key === 'del' ? 'Delete digit' : key === 'enter' ? 'Submit sequence' : `Digit ${key}`;
           return (
             <button type="button"
               key={key}
+              aria-label={ariaLabel}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.code === 'Space') {
+                  e.preventDefault();
+                  if (key === 'del') handleBackspace();
+                  else if (key === 'enter') handleSubmit();
+                  else handleNumberInput(key);
+                }
+              }}
               onPointerDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -459,7 +469,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
                 else if (key === 'enter') handleSubmit();
                 else handleNumberInput(key);
               }}
-              className={btnClass}
+              className={`${btnClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]`}
             >
               {key === 'del' ? <Delete size={20} /> : key === 'enter' ? '↵' : key}
             </button>

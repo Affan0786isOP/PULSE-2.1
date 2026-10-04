@@ -13,19 +13,19 @@ export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({
 }) => {
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] border font-mono text-[11px] font-medium tracking-wide select-none ${
+      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border font-mono text-[11px] font-semibold tracking-wider select-none ${
         verified
-          ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30'
-          : 'bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30'
+          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+          : 'bg-rose-500/10 text-rose-400 border-rose-500/25'
       } ${className}`}
     >
       <span className="relative flex h-2 w-2">
         {verified && (
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
         )}
         <span
           className={`relative inline-flex rounded-full h-2 w-2 ${
-            verified ? 'bg-[#10B981]' : 'bg-[#EF4444]'
+            verified ? 'bg-emerald-400' : 'bg-rose-400'
           }`}
         />
       </span>

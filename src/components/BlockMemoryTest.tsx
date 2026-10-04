@@ -687,8 +687,17 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
                   blockClass += " hover:bg-white/15 active:bg-white/25";
                 }
 return (
-                  <div 
+                  <button 
+                    type="button"
                     key={`block-${i}`}
+                    disabled={engineState !== 'INPUT'}
+                    aria-label={`Block ${i + 1}`}
+                    onKeyDown={(e) => {
+                      if (engineState === 'INPUT' && (e.key === 'Enter' || e.code === 'Space')) {
+                        e.preventDefault();
+                        handleBlockClick(i);
+                      }
+                    }}
                     onPointerDown={(e) => {
                       if (engineState === 'INPUT') {
                         e.preventDefault();
@@ -696,7 +705,7 @@ return (
                         handleBlockClick(i);
                       }
                     }}
-                    className={blockClass}
+                    className={`${blockClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]`}
                   />
                 );
               })}

@@ -11,7 +11,7 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
   variant = 'horizontal',
   size,
   className = '',
-  color = '#00F0FF',
+  color = 'var(--accent, #22C7D6)',
 }) => {
   // Standalone P-Symbol Path Elements
   const symbolPaths = (

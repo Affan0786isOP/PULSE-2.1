@@ -27,9 +27,6 @@ export function registerResearchRoutes(
       }
 
       const { assessmentType, ageGroup } = req.body || {};
-      if (!services.sessionService) {
-        return res.status(500).json({ success: false, error: `Database unavailable: ${getAdminDiagnosticMessage()}` });
-      }
 
       try {
         const sessionInfo = await services.sessionService.startSession({
@@ -121,9 +118,6 @@ export function registerResearchRoutes(
         return res.status(400).json({ success: false, error: 'sessionId and idempotencyKey must be distinct' });
       }
 
-      if (!services.researchService) {
-        return res.status(500).json({ success: false, error: `Database unavailable: ${getAdminDiagnosticMessage()}` });
-      }
 
       const serverDeviceCategory: 'mobile' | 'desktop' = isMobileUserAgent(req) ? 'mobile' : 'desktop';
 

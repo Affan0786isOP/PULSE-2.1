@@ -829,32 +829,40 @@ return (
               </div>
             </div>
 
-            {/* Mobile Controls */}
+            {/* Directional Pad Controls */}
             {(engineState !== 'READY') && (
-              <div className="w-full max-w-[280px] mt-6 grid grid-cols-3 gap-2">
+              <div 
+                role="group" 
+                aria-label="Directional choice response pad" 
+                className="w-full max-w-[280px] mt-6 grid grid-cols-3 gap-2"
+              >
                 <div></div>
                 <button type="button" 
+                  aria-label="Direction Up"
                   onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('UP'); }}
-                  className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-lg flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-white transition-colors cursor-pointer"
+                  className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-xl flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-slate-950 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
                   <ArrowUp size={24} />
                 </button>
                 <div></div>
                 <button type="button" 
+                  aria-label="Direction Left"
                   onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('LEFT'); }}
-                  className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-lg flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-white transition-colors cursor-pointer"
+                  className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-xl flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-slate-950 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
                   <ArrowLeft size={24} />
                 </button>
                 <button type="button" 
+                  aria-label="Direction Down"
                   onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('DOWN'); }}
-                  className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-lg flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-white transition-colors cursor-pointer"
+                  className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-xl flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-slate-950 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
                   <ArrowDown size={24} />
                 </button>
                 <button type="button" 
+                  aria-label="Direction Right"
                   onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('RIGHT'); }}
-                  className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-lg flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-white transition-colors cursor-pointer"
+                  className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-xl flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-slate-950 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
                   <ArrowRight size={24} />
                 </button>

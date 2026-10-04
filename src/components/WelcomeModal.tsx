@@ -139,10 +139,10 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 ref={closeButtonRef}
                 type="button" 
                 onClick={handleClose}
-                className="w-7 h-7 rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center justify-center transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                aria-label="Close"
+                className="w-8 h-8 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center justify-center transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                aria-label="Close dialog"
               >
-                <X size={15} />
+                <X size={16} />
               </button>
             </div>
 
@@ -198,7 +198,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                   type="checkbox" 
                   checked={dontShowAgain}
                   onChange={handleDontShowAgain}
-                  className="w-3.5 h-3.5 rounded border-[var(--border-default)] bg-[var(--surface-1)] text-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] cursor-pointer" 
+                  className="w-3.5 h-3.5 rounded border-[var(--border-default)] bg-[var(--surface-1)] text-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] cursor-pointer" 
                 />
                 Don't show this again
               </label>
@@ -210,9 +210,9 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 type="button" 
                 id="welcome-start-assessments-btn"
                 onClick={handleStartAssessments}
-                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 rounded-md py-2.5 px-4 text-xs font-semibold cursor-pointer transition-[background-color,transform] shadow-sm text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 rounded-xl py-3 px-4 text-xs font-semibold cursor-pointer transition-all shadow-sm text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
               >
-                Start assessments
+                Start Cognitive Battery
               </button>
             </div>
           </motion.div>

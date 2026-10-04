@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from 'motion/react';
 import { Navbar } from "./Navbar";
+import { Footer } from "./Footer";
 import {
   PHYSIOLOGICAL_FACTORS,
   PREPARATION_HABITS,
@@ -599,6 +600,8 @@ export function Improve({
           </motion.div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

@@ -865,9 +865,22 @@ return (
             </AssessmentResultReward>
           </div>
         ) : (
-          <div className={apparatusClass} onPointerDown={(e) =>
-
- { e.preventDefault(); executeTrigger(e.nativeEvent); }}>
+          <div 
+            role="button"
+            tabIndex={0}
+            aria-label="Reaction test stimulus area. Press spacebar or click/tap to react."
+            className={apparatusClass} 
+            onKeyDown={(e) => {
+              if (e.code === 'Space' || e.key === 'Enter') {
+                e.preventDefault();
+                executeTrigger(e.nativeEvent);
+              }
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              executeTrigger(e.nativeEvent);
+            }}
+          >
             {engineState === 'STARTING' && statusMessage.match(/Starting in (\d)/) && (
               <CountdownOverlay count={parseInt(statusMessage.match(/Starting in (\d)/)?.[1] || '3', 10)} />
             )}

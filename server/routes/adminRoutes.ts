@@ -64,9 +64,6 @@ export function registerAdminRoutes(
       const cleanTarget = target.trim();
       const cleanNote = (typeof note === 'string') ? note.trim() : '';
 
-      if (!services.adminService) {
-        return res.status(503).json({ success: false, error: 'Database service unavailable' });
-      }
 
       try {
         const log = await services.adminService.recordAuditLog({
@@ -107,9 +104,7 @@ export function registerAdminRoutes(
         return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
       }
 
-      if (services.adminService) {
-        await services.adminService.hideLeaderboardEntry(id, reason);
-      }
+      await services.adminService.hideLeaderboardEntry(id, reason);
 
       return res.json({ success: true, message: 'Leaderboard entry hidden successfully' });
     } catch {
@@ -128,9 +123,7 @@ export function registerAdminRoutes(
         return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
       }
 
-      if (services.adminService) {
-        await services.adminService.deleteLeaderboardEntry(id, reason);
-      }
+      await services.adminService.deleteLeaderboardEntry(id, reason);
 
       return res.json({ success: true, message: 'Leaderboard entry deleted permanently' });
     } catch {
@@ -143,9 +136,6 @@ export function registerAdminRoutes(
     try {
       if (!verifyAdminSession(req)) {
         return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required', logs: [] });
-      }
-      if (!services.adminService) {
-        return res.status(503).json({ success: false, error: 'Database service unavailable', logs: [] });
       }
       try {
         const logs = await services.adminService.getAuditLogs(200);
@@ -167,9 +157,6 @@ export function registerAdminRoutes(
     try {
       if (!verifyAdminSession(req)) {
         return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required', entries: [] });
-      }
-      if (!services.adminService) {
-        return res.status(503).json({ success: false, error: 'Database service unavailable', entries: [] });
       }
       try {
         const entries = await services.adminService.getAllLeaderboardEntries(500);

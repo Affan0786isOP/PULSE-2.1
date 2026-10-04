@@ -47,12 +47,14 @@ export function AssessmentHero3D() {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept when user is in an input or modal dialog
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        return;
+      }
       if (e.key === 'ArrowLeft') {
         handlePrev();
       } else if (e.key === 'ArrowRight') {
         handleNext();
-      } else if (e.key === 'Enter') {
-        handleLaunch();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -70,8 +72,8 @@ export function AssessmentHero3D() {
 
     // Default styles for hidden cards
     let rotateY = 0;
-    let translateZ = -400;
-    let scale = 0.7;
+    let translateZ = -300;
+    let scale = 0.75;
     let opacity = 0;
     let zIndex = 0;
 
@@ -82,23 +84,23 @@ export function AssessmentHero3D() {
       opacity = 1;
       zIndex = 30;
     } else if (offset === -1) {
-      rotateY = 22;
-      translateZ = -180;
-      scale = 0.85;
-      opacity = 0.6;
+      rotateY = 16;
+      translateZ = -140;
+      scale = 0.88;
+      opacity = 0.65;
       zIndex = 20;
     } else if (offset === 1) {
-      rotateY = -22;
-      translateZ = -180;
-      scale = 0.85;
-      opacity = 0.6;
+      rotateY = -16;
+      translateZ = -140;
+      scale = 0.88;
+      opacity = 0.65;
       zIndex = 20;
     }
 
     if (shouldReduceMotion) {
       rotateY = 0;
-      translateZ = offset === 0 ? 0 : -100;
-      scale = offset === 0 ? 1 : 0.9;
+      translateZ = offset === 0 ? 0 : -50;
+      scale = offset === 0 ? 1 : 0.92;
     }
 
     return { rotateY, translateZ, scale, opacity, zIndex, offset };
@@ -114,17 +116,18 @@ export function AssessmentHero3D() {
     >
       {/* 3D Stage */}
       <div 
-        className="relative w-full max-w-4xl flex-1 min-h-[200px] max-h-[420px] flex items-center justify-center perspective-[1400px]"
+        className="relative w-full max-w-4xl flex-1 min-h-[300px] max-h-[460px] flex items-center justify-center perspective-[1200px]"
       >
         <button 
+          type="button"
           onClick={handlePrev}
-          className="absolute left-4 z-40 p-3 rounded-full bg-[var(--surface-1)]/80 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-2)] transition-colors"
-          aria-label="Previous assessment"
+          className="absolute left-2 sm:left-4 z-40 p-2.5 sm:p-3 rounded-full bg-[var(--surface-1)]/90 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          aria-label="Previous assessment protocol"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={20} className="sm:w-6 sm:h-6" />
         </button>
 
-        <div className="relative w-full max-w-lg h-full transform-style-3d">
+        <div className="relative w-full max-w-[460px] h-[340px] sm:h-[380px] transform-style-3d">
           <AnimatePresence initial={false}>
             {HERO_ASSESSMENTS.map((assessment, index) => {
               const { rotateY, translateZ, scale, opacity, zIndex, offset } = getCardStyle(index);
@@ -140,10 +143,10 @@ export function AssessmentHero3D() {
                     scale,
                     opacity,
                     zIndex,
-                    x: offset === -1 ? '-50%' : offset === 1 ? '50%' : '0%'
+                    x: offset === -1 ? '-42%' : offset === 1 ? '42%' : '0%'
                   }}
                   transition={{
-                    duration: 0.6,
+                    duration: 0.5,
                     ease: [0.16, 1, 0.3, 1]
                   }}
                   style={{
@@ -155,10 +158,10 @@ export function AssessmentHero3D() {
                     transformOrigin: 'center center',
                     pointerEvents: Math.abs(offset) <= 1 ? 'auto' : 'none'
                   }}
-                  className={`flex flex-col bg-[#10141B] rounded-2xl border ${
+                  className={`flex flex-col bg-[var(--surface-1)] rounded-2xl border transition-colors ${
                     isActive 
-                      ? 'border-[#00F0FF]/40 shadow-[0_20px_50px_rgba(0,0,0,0.8),_0_0_30px_rgba(0,240,255,0.15)]' 
-                      : 'border-[var(--border-hairline)]'
+                      ? 'border-[var(--accent)]/50 shadow-[0_16px_40px_rgba(0,0,0,0.6),0_0_25px_var(--accent-subtle)]' 
+                      : 'border-[var(--border-subtle)]'
                   } overflow-hidden cursor-pointer`}
                   onClick={() => {
                     if (isActive) {
@@ -168,42 +171,48 @@ export function AssessmentHero3D() {
                     }
                   }}
                 >
-                  <div className="relative h-[40%] min-h-[120px] w-full bg-[#08080A] flex items-center justify-center border-b border-[var(--border-hairline)] overflow-hidden">
-                    {/* Visualizer Background Graphic */}
-                    <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgwem0yMCAyMGMwLTExLTAuNC0yMC0yMC0yMHMyMCA4LjkgMjAgMjAgMC40IDIwIDIwIDIwLTIwLTguOS0yMC0yMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] pointer-events-none" />
+                  <div className="relative h-[38%] min-h-[110px] w-full bg-[var(--surface-0)] flex items-center justify-center border-b border-[var(--border-subtle)] overflow-hidden">
+                    {/* Visualizer Technical Grid Accent */}
+                    <div 
+                      className="absolute inset-0 opacity-20 pointer-events-none"
+                      style={{
+                        backgroundImage: 'var(--bg-grid-pattern)',
+                        backgroundSize: '48px 48px'
+                      }}
+                    />
                     
                     {/* Assessment Custom Logo Visual Focus */}
                     <motion.img 
                       src={assessment.logo} 
                       alt={assessment.title}
-                      className="w-24 h-24 object-contain relative z-10 rounded-xl"
-                      animate={isActive ? { scale: [1, 1.05, 1], filter: ['drop-shadow(0 0 0px #00F0FF)', 'drop-shadow(0 0 15px rgba(0,240,255,0.4))', 'drop-shadow(0 0 0px #00F0FF)'] } : {}}
+                      className="w-20 h-20 sm:w-22 sm:h-22 object-contain relative z-10 rounded-xl"
+                      animate={isActive ? { scale: [1, 1.04, 1] } : {}}
                       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                     />
                   </div>
                   
-                  <div className="p-6 flex flex-col flex-1">
-                    <div className="text-[11px] text-[#00F0FF] font-mono tracking-widest mb-2 uppercase">
+                  <div className="p-5 sm:p-6 flex flex-col flex-1">
+                    <div className="text-[11px] text-[var(--accent)] font-mono font-medium tracking-widest mb-1.5 uppercase">
                       {assessment.protocolNumber} • {assessment.category}
                     </div>
-                    <h3 className="font-heading text-2xl font-bold text-[#F8FAFC] tracking-tight mb-3">
+                    <h3 className="font-heading text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight mb-2">
                       {assessment.title}
                     </h3>
-                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-1">
+                    <p className="text-[var(--text-secondary)] text-xs sm:text-sm leading-relaxed mb-4 flex-1 line-clamp-2 sm:line-clamp-3">
                       {assessment.description}
                     </p>
-                    <div className={`mt-auto flex items-center justify-center gap-2 py-3 rounded-full text-sm font-semibold transition-colors duration-300 ${
+                    <div className={`mt-auto flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold tracking-wide transition-all ${
                       isActive 
-                        ? 'bg-[#00F0FF]/10 text-[#00F0FF] hover:bg-[#00F0FF]/20' 
-                        : 'bg-[var(--surface-2)] text-[var(--text-muted)]'
+                        ? 'bg-[var(--accent)] text-slate-950 hover:bg-[var(--accent-hover)] active:scale-[0.98]' 
+                        : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                     }`}>
                       {isActive ? (
                         <>
-                          <Play size={16} fill="currentColor" />
-                          LAUNCH PROTOCOL
+                          <Play size={15} fill="currentColor" />
+                          <span>LAUNCH PROTOCOL</span>
                         </>
                       ) : (
-                        <span>SELECT</span>
+                        <span>SELECT PROTOCOL</span>
                       )}
                     </div>
                   </div>
@@ -214,26 +223,30 @@ export function AssessmentHero3D() {
         </div>
 
         <button 
+          type="button"
           onClick={handleNext}
-          className="absolute right-4 z-40 p-3 rounded-full bg-[var(--surface-1)]/80 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-2)] transition-colors"
-          aria-label="Next assessment"
+          className="absolute right-2 sm:right-4 z-40 p-2.5 sm:p-3 rounded-full bg-[var(--surface-1)]/90 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          aria-label="Next assessment protocol"
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={20} className="sm:w-6 sm:h-6" />
         </button>
       </div>
 
       {/* Pagination Pill Dots */}
-      <div className="flex items-center gap-3 mt-4 z-20 shrink-0">
-        {HERO_ASSESSMENTS.map((_, idx) => (
+      <div className="flex items-center gap-2.5 mt-4 z-20 shrink-0" role="tablist" aria-label="Assessment protocols">
+        {HERO_ASSESSMENTS.map((assessment, idx) => (
           <button
-            key={idx}
+            key={assessment.id}
+            type="button"
+            role="tab"
+            aria-selected={idx === activeIndex}
             onClick={() => handleSelect(idx)}
-            className={`transition-all duration-300 rounded-full h-1.5 ${
+            className={`transition-all duration-300 rounded-full h-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
               idx === activeIndex 
-                ? 'w-8 bg-[#00F0FF]' 
-                : 'w-2 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'
+                ? 'w-8 bg-[var(--accent)]' 
+                : 'w-2.5 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'
             }`}
-            aria-label={`Go to slide ${idx + 1}`}
+            aria-label={`Select protocol ${idx + 1}: ${assessment.title}`}
           />
         ))}
       </div>

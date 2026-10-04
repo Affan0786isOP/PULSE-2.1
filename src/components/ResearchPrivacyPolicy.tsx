@@ -1,5 +1,6 @@
 import { ShieldCheck, Lock, Users, Database, Globe, RefreshCw, Layers, ExternalLink, HelpCircle } from 'lucide-react';
 import { Navbar } from './Navbar';
+import { Footer } from './Footer';
 import { motion } from 'motion/react';
 import { SEO } from './SEO';
 
@@ -228,6 +229,8 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
           </section>
         </motion.div>
       </main>
+
+      <Footer />
     </div>
   );
 }

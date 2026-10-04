@@ -810,8 +810,15 @@ return (
                       <button type="button"
                         key={`${c.name}-${i}`}
                         disabled={engineState === 'FEEDBACK'}
+                        aria-label={`Select color option ${c.name}`}
                         onPointerDown={(e) => { e.preventDefault(); executeTrigger(c.name, e.nativeEvent); }}
-                        className={btnClass}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.code === 'Space') {
+                            e.preventDefault();
+                            executeTrigger(c.name, e.nativeEvent);
+                          }
+                        }}
+                        className={`${btnClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]`}
                         style={{ backgroundColor: c.value, borderColor: engineState === 'FEEDBACK' ? undefined : c.value }}
                       >
                         {c.name}

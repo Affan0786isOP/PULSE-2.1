@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Navbar } from './Navbar';
+import { Footer } from './Footer';
 import { SEO } from './SEO';
 import { useDatasetPipeline } from '../lib/dataset';
 import { DatasetHeader } from './dataset/DatasetHeader';
@@ -87,14 +88,14 @@ export function Dataset({ onNavigate }: DatasetProps) {
     (datasetMode === 'data-explorer' ? sectionObservations.length === 0 : validSectionObservations.length === 0);
 
   return (
-    <div className="bg-transparent text-[var(--text-main)] font-sans min-h-[100dvh] w-full flex flex-col selection:bg-cyan-500/30">
+    <div className="bg-[var(--bg-base)] text-[var(--text-primary)] font-sans min-h-[100dvh] w-full flex flex-col selection:bg-[var(--accent-subtle)]">
       <SEO
         title="Dataset & Data Explorer | PULSE"
         description="Explore anonymized reaction time and cognitive performance data from the global PULSE dataset."
       />
       <Navbar currentView="dataset" onNavigate={onNavigate} />
 
-      <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5 flex flex-col gap-3">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col gap-4">
         {/* Dataset Header */}
         <DatasetHeader
           loading={loading}
@@ -103,7 +104,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
           onRefresh={refresh}
         />
 
-        {/* Global Filter Bar - only rendered in Data Explorer mode to keep primary assessment view clean and assessment-first */}
+        {/* Global Filter Bar - rendered in Raw Data Explorer mode */}
         {!loading && !error && !isEmptyDataset && datasetMode === 'data-explorer' && (
           <DatasetFilterBar
             filters={filters}
@@ -117,12 +118,12 @@ export function Dataset({ onNavigate }: DatasetProps) {
           />
         )}
 
-        {/* Dense Research Toolbar: Protocol Tabs + Explorer Mode Switch */}
+        {/* Research Toolbar: Protocol Tabs + Mode Switch */}
         {!loading && !error && !isEmptyDataset && (
-          <div className="flex flex-wrap items-center justify-between gap-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-2 sm:p-2.5">
             {/* Protocol Tabs */}
             <div 
-              className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5"
+              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5"
               role="tablist"
               aria-label="Assessment Protocols"
             >
@@ -132,7 +133,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 onClick={handlePrevProtocol}
                 aria-label="Previous Assessment"
                 title="Previous Assessment (Left Arrow)"
-                className="w-7 h-7 flex sm:hidden items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-95 shrink-0"
+                className="w-7 h-7 flex sm:hidden items-center justify-center rounded-lg bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] active:scale-95 shrink-0"
               >
                 <ChevronLeft size={14} />
               </button>
@@ -153,13 +154,13 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     role="tab"
                     aria-selected={isActive}
                     aria-label={`Select ${p.name}`}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium whitespace-nowrap transition-colors transition-transform cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium whitespace-nowrap transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${
                       isActive
-                        ? 'bg-[var(--cyan-primary)] text-black font-bold shadow-sm'
-                        : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-panel-hover)] border border-[var(--border-subtle)]'
+                        ? 'bg-[var(--accent)] text-slate-950 font-bold shadow-sm'
+                        : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                     }`}
                   >
-                    <Icon size={13} className={isActive ? 'text-black' : 'text-[var(--cyan-primary)]'} />
+                    <Icon size={13} className={isActive ? 'text-slate-950' : 'text-[var(--accent)]'} />
                     <span>{p.name}</span>
                   </button>
                 );
@@ -171,114 +172,109 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 onClick={handleNextProtocol}
                 aria-label="Next Assessment"
                 title="Next Assessment (Right Arrow)"
-                className="w-7 h-7 flex sm:hidden items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-95 shrink-0"
+                className="w-7 h-7 flex sm:hidden items-center justify-center rounded-lg bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] active:scale-95 shrink-0"
               >
                 <ChevronRight size={14} />
               </button>
             </div>
 
             {/* Mode Toggle: Charts vs Raw Data Explorer */}
-            <div className="flex items-center gap-1 shrink-0 ml-auto">
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
               <button
                 type="button"
-                onClick={() => setDatasetMode('data-explorer')}
-                aria-label="Open Data Explorer"
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-colors transition-transform cursor-pointer ${
+                onClick={() => setDatasetMode(datasetMode === 'data-explorer' ? 'assessment' : 'data-explorer')}
+                aria-label={datasetMode === 'data-explorer' ? 'Return to Visualization' : 'Open Raw Data Explorer'}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${
                   datasetMode === 'data-explorer'
-                    ? 'bg-[var(--cyan-primary)] text-black font-bold shadow-sm'
-                    : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-panel-hover)] border border-[var(--border-subtle)]'
+                    ? 'bg-[var(--accent)] text-slate-950 font-bold shadow-sm'
+                    : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                 }`}
               >
-                <Table size={13} className={datasetMode === 'data-explorer' ? 'text-black' : 'text-[var(--cyan-primary)]'} />
-                <span>Raw Data Explorer</span>
+                <Table size={13} className={datasetMode === 'data-explorer' ? 'text-slate-950' : 'text-[var(--accent)]'} />
+                <span>{datasetMode === 'data-explorer' ? 'Protocol Charts' : 'Raw Data Explorer'}</span>
               </button>
             </div>
           </div>
         )}
 
         {loading ? (
-          /* Loading State: Skeletons matching Leaderboard */
-          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 backdrop-blur-xl">
+          <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl p-4 sm:p-6">
             <SkeletonTable rows={7} cols={5} />
           </div>
         ) : error ? (
-          /* Error State */
-          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 backdrop-blur-xl flex-1 flex flex-col items-center justify-center">
+          <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl p-8 flex-1 flex flex-col items-center justify-center">
             <div className="py-10 flex flex-col items-center justify-center text-center max-w-md mx-auto">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-3">
-                <AlertCircle size={20} />
+              <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-3">
+                <AlertCircle size={22} />
               </div>
-              <h3 className="text-sm font-bold text-[var(--text-main)] mb-1">
-                Unable to Load Dataset
+              <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">
+                Unable to Load Telemetry Dataset
               </h3>
-              <p className="text-xs font-mono text-[var(--text-muted)] mb-4">
+              <p className="text-xs font-mono text-[var(--text-secondary)] mb-5">
                 {error}
               </p>
               <button
                 type="button"
                 onClick={refresh}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] border border-[var(--border-subtle)] hover:border-[var(--cyan-primary)] text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--accent)] text-xs font-mono text-[var(--text-primary)] transition-all cursor-pointer active:scale-95"
               >
-                <RefreshCw size={13} />
+                <RefreshCw size={14} />
                 <span>Try Again</span>
               </button>
             </div>
           </div>
         ) : isEmptyDataset ? (
-          /* Empty State */
-          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 backdrop-blur-xl flex-1 flex flex-col items-center justify-center">
-            <div className="py-10 flex flex-col items-center justify-center text-center max-w-md mx-auto">
-              <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--cyan-primary)] mb-3">
-                <Database size={20} />
+          <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl p-8 flex-1 flex flex-col items-center justify-center">
+            <div className="py-12 flex flex-col items-center justify-center text-center max-w-md mx-auto">
+              <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] mb-4">
+                <Database size={22} />
               </div>
-              <h3 className="text-sm font-bold text-[var(--text-main)] mb-1">
-                No Data Recorded Yet
+              <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">
+                No Telemetry Recorded Yet
               </h3>
-              <p className="text-xs text-[var(--text-secondary)] mb-4 leading-relaxed">
-                No test data has been recorded yet. Complete an assessment to record the first results.
+              <p className="text-xs text-[var(--text-secondary)] mb-6 leading-relaxed">
+                The global research dataset is currently unpopulated. Complete an assessment protocol to register the inaugural verified benchmark.
               </p>
               <button
                 type="button"
                 onClick={() => onNavigate('assessments')}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[var(--cyan-primary)] hover:opacity-90 text-black font-bold text-xs uppercase tracking-wider transition-opacity active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-semibold text-xs cursor-pointer active:scale-95 transition-all"
               >
-                <Play size={13} className="fill-black" />
-                <span>Start an Assessment</span>
+                <Play size={14} className="fill-current" />
+                <span>Begin Assessment</span>
               </button>
             </div>
           </div>
         ) : (
-          /* Normal Populated Dataset View */
           <>
             {isSectionEmpty ? (
-              <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 backdrop-blur-xl flex-1 flex flex-col items-center justify-center">
+              <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl p-8 flex-1 flex flex-col items-center justify-center">
                 <div className="py-10 flex flex-col items-center justify-center text-center max-w-md mx-auto">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-amber-400 mb-3">
-                    <Database size={20} />
+                  <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-amber-400 mb-4">
+                    <Database size={22} />
                   </div>
-                  <h3 className="text-sm font-bold text-[var(--text-main)] mb-1">
-                    No Data Available
+                  <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">
+                    No Matching Observations
                   </h3>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-4">
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-5">
                     {isFiltered
-                      ? "Active filters exclude all records for this assessment protocol."
-                      : "No valid data available for this section yet."}
+                      ? "Active cohort or hardware filters exclude all records for this assessment protocol."
+                      : "No valid telemetry observations recorded for this section yet."}
                   </p>
                   {isFiltered && (
                     <button
                       type="button"
                       id="dataset-empty-reset-filters-btn"
                       onClick={resetFilters}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] border border-[var(--border-subtle)] hover:border-[var(--cyan-primary)] text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer active:scale-95"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--accent)] text-xs font-mono text-[var(--text-primary)] transition-all cursor-pointer active:scale-95"
                     >
-                      <RotateCcw size={13} />
+                      <RotateCcw size={14} />
                       <span>Reset Filters</span>
                     </button>
                   )}
                 </div>
               </div>
             ) : (
-              /* Active Section Slot */
               <DatasetContentSlot
                 activeAssessment={activeAssessment}
                 datasetMode={datasetMode}
@@ -288,7 +284,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
           </>
         )}
       </main>
+
+      <Footer />
     </div>
   );
 }
-

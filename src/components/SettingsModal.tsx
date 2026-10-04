@@ -524,7 +524,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <button type="button"
                           id="toggle-fullscreen-btn"
                           onClick={handleToggleFullscreen}
-                          className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors"
+                          className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                         >
                           {isFullscreen ? 'Exit' : 'Enter'}
                         </button>
@@ -583,7 +583,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             await pwa.promptInstall();
                           }
                         }}
-                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors flex items-center gap-1.5"
+                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         <Download size={12} />
                         <span>{pwa.isInstalled ? 'Details' : 'Install'}</span>
@@ -618,7 +618,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         {settings.soundEnabled && (
                           <button type="button"
                             onClick={handleTestSound}
-                            className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                           >
                             Test
                           </button>
@@ -629,7 +629,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           aria-checked={settings.soundEnabled}
                           aria-label="Toggle Auditory Stimuli & Sound FX"
                           onClick={handleToggleSound}
-                          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
+                          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                             settings.soundEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                           }`}
                         >
@@ -662,7 +662,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         {settings.hapticsEnabled && hapticsAvailable && (
                           <button type="button"
                             onClick={handleTestHaptic}
-                            className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                            className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                           >
                             Test
                           </button>
@@ -674,7 +674,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           aria-label="Toggle Haptic Vibration"
                           disabled={!hapticsAvailable}
                           onClick={handleToggleHaptics}
-                          className={`w-9 h-5 rounded-full transition-colors relative ${
+                          className={`w-9 h-5 rounded-full transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                             !hapticsAvailable
                               ? 'opacity-40 cursor-not-allowed bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                               : settings.hapticsEnabled ? 'bg-[var(--accent)] cursor-pointer' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)] cursor-pointer'
@@ -715,7 +715,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         id="recalibrate-display-btn"
                         onClick={handleRecalibrateDisplay}
                         disabled={isRecalibrating}
-                        className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         <RefreshCw size={11} className={isRecalibrating ? 'animate-spin' : ''} />
                         <span>{isRecalibrating ? 'Calibrating...' : 'Recalibrate'}</span>
@@ -776,7 +776,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         aria-checked={settings.reducedMotionEnabled}
                         aria-label="Toggle Reduced Motion"
                         onClick={handleToggleReducedMotion}
-                        className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
+                        className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                           settings.reducedMotionEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                         }`}
                       >
@@ -802,7 +802,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         aria-checked={settings.exhibitionModeEnabled}
                         aria-label="Toggle Exhibition Kiosk Mode"
                         onClick={handleToggleExhibition}
-                        className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
+                        className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                           settings.exhibitionModeEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                         }`}
                       >
@@ -825,7 +825,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       <button type="button"
                         id="clear-session-cache-btn"
                         onClick={handleClearCache}
-                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-rose-500/10 border border-[var(--border-subtle)] hover:border-rose-500/30 text-[var(--text-secondary)] hover:text-rose-500 font-mono text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-rose-500/10 border border-[var(--border-subtle)] hover:border-rose-500/30 text-[var(--text-secondary)] hover:text-rose-500 font-mono text-xs transition-colors cursor-pointer flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {clearedNotice ? (
                           <>
