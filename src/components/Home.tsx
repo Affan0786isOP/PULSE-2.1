@@ -2,10 +2,12 @@ import React, { useState, Suspense } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { SEO } from './SEO';
 import { useReducedMotionPreference } from '../lib/settingsStore';
-import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { DesktopPersistentNavigation } from './home/DesktopPersistentNavigation';
 import { HeroScene } from './home/HeroScene';
 import { ProofScene } from './home/ProofScene';
+import { AssessmentsScene } from './home/AssessmentsScene';
+import { ProblemScene } from './home/ProblemScene';
+import { ResultScene } from './home/ResultScene';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -71,16 +73,16 @@ export function Home() {
           {/* Wave 2 Scene 2: Desktop Proof */}
           <ProofScene />
 
-          {/* Dedicated Assessments Scene Anchor */}
-          <section id="assessments" className="scroll-mt-24 w-full z-10 flex-1 min-h-[300px] flex flex-col py-8">
-            <div className={`w-full flex-1 flex flex-col ${shouldReduceMotion ? '' : 'animate-home-fade'}`}>
-              <AssessmentHero3D />
-            </div>
-          </section>
+          {/* Wave 3 Scene 1: Desktop Assessments Discovery */}
+          <AssessmentsScene />
+
+          {/* Wave 3 Scene 2: Desktop Problem Contrast */}
+          <ProblemScene />
+
+          {/* Wave 3 Scene 3: Desktop Result Telemetry */}
+          <ResultScene />
 
           {/* Stable Section Anchor Targets for Future Redesign Scenes */}
-          <div id="problem" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
-          <div id="result" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
           <div id="why-pulse" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
           <div id="how-it-works" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />
           <div id="faq" className="scroll-mt-24 pointer-events-none" aria-hidden="true" />

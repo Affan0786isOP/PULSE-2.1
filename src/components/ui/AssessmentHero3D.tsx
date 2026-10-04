@@ -2,65 +2,126 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
-import { HERO_ASSESSMENTS, HeroAssessment } from '../../data/assessmentsHero';
+import { CANONICAL_ASSESSMENT_IDS, AssessmentId } from '@shared/contracts/common';
+import { ASSESSMENT_DEFINITIONS } from '@shared/registries/assessmentRegistry';
+import { HOMEPAGE_ASSESSMENT_PRESENTATION } from '@shared/homepage/assessmentPresentation';
 import { useReducedMotionPreference } from '../../lib/settingsStore';
+
+const TARGET_ROUTES: Record<AssessmentId, string> = {
+  'visual-reaction': '/reaction-test',
+  'direction': '/direction-test',
+  'color-recognition': '/colour-recognition',
+  'block-memory': '/block-memory',
+  'number-memory': '/number-memory',
+};
+
+export interface DesktopAssessmentCard {
+  id: AssessmentId;
+  protocolNumber: string;
+  category: string;
+  title: string;
+  description: string;
+  targetRoute: string;
+  logo: string;
+}
+
+const DESKTOP_ASSESSMENTS: DesktopAssessmentCard[] = CANONICAL_ASSESSMENT_IDS.map((id) => {
+  const def = ASSESSMENT_DEFINITIONS[id];
+  const pres = HOMEPAGE_ASSESSMENT_PRESENTATION[id];
+  return {
+    id,
+    protocolNumber: pres.protocolNumber,
+    category: pres.category,
+    title: def.displayName.toUpperCase(),
+    description: pres.heroDescription,
+    targetRoute: TARGET_ROUTES[id] || '/assessments',
+    logo: pres.logoPath,
+  };
+});
 
 export function AssessmentHero3D() {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotionPreference();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const startAutoplay = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      if (!isPaused) {
-        setActiveIndex((prev) => (prev + 1) % HERO_ASSESSMENTS.length);
-      }
-    }, 5000);
-  }, [isPaused]);
-
+  // Viewport intersection observer (>50% visibility)
   useEffect(() => {
-    startAutoplay();
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [startAutoplay]);
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setIsInView(true);
+      return;
+    }
 
-  const handleNext = () => {
-    setActiveIndex((prev) => (prev + 1) % HERO_ASSESSMENTS.length);
-  };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.5 }
+    );
 
-  const handlePrev = () => {
-    setActiveIndex((prev) => (prev - 1 + HERO_ASSESSMENTS.length) % HERO_ASSESSMENTS.length);
-  };
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Autoplay Option B: Advance only when in view, not hovered, not focused, and motion not reduced
+  useEffect(() => {
+    if (shouldReduceMotion || !isInView || isHovered || isFocused) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % DESKTOP_ASSESSMENTS.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [shouldReduceMotion, isInView, isHovered, isFocused]);
+
+  const handleNext = useCallback(() => {
+    setActiveIndex((prev) => (prev + 1) % DESKTOP_ASSESSMENTS.length);
+  }, []);
+
+  const handlePrev = useCallback(() => {
+    setActiveIndex((prev) => (prev - 1 + DESKTOP_ASSESSMENTS.length) % DESKTOP_ASSESSMENTS.length);
+  }, []);
 
   const handleSelect = (index: number) => {
     setActiveIndex(index);
   };
 
-  const handleLaunch = () => {
-    navigate(HERO_ASSESSMENTS[activeIndex].targetRoute);
-  };
+  const handleLaunch = useCallback(() => {
+    navigate(DESKTOP_ASSESSMENTS[activeIndex].targetRoute);
+  }, [activeIndex, navigate]);
 
-  // Keyboard navigation
+  // Scoped keyboard navigation: Listen ONLY when container or children are focused (:focus-within)
   useEffect(() => {
+    if (!isFocused) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
+        e.preventDefault();
         handlePrev();
       } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
         handleNext();
       } else if (e.key === 'Enter') {
-        handleLaunch();
+        if (document.activeElement === containerRef.current) {
+          e.preventDefault();
+          handleLaunch();
+        }
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex]);
+  }, [isFocused, handlePrev, handleNext, handleLaunch]);
 
   const getCardStyle = (index: number) => {
-    const total = HERO_ASSESSMENTS.length;
+    const total = DESKTOP_ASSESSMENTS.length;
     let offset = (index - activeIndex + total) % total;
     
     // Normalize offset to -2, -1, 0, 1, 2
@@ -106,11 +167,20 @@ export function AssessmentHero3D() {
 
   return (
     <div 
-      className="relative w-full h-full flex flex-col items-center justify-center py-2 min-h-0"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
-      onBlur={() => setIsPaused(false)}
+      ref={containerRef}
+      tabIndex={0}
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Cognitive Assessments Discovery Carousel"
+      className="relative w-full h-full flex flex-col items-center justify-center py-2 min-h-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00F0FF]/30 rounded-2xl"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setIsFocused(false);
+        }
+      }}
     >
       {/* 3D Stage */}
       <div 
@@ -118,7 +188,7 @@ export function AssessmentHero3D() {
       >
         <button 
           onClick={handlePrev}
-          className="absolute left-4 z-40 p-3 rounded-full bg-[var(--surface-1)]/80 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-2)] transition-colors"
+          className="absolute left-4 z-40 p-3 rounded-full bg-[var(--surface-1)]/80 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-2)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]"
           aria-label="Previous assessment"
         >
           <ChevronLeft size={24} />
@@ -126,7 +196,7 @@ export function AssessmentHero3D() {
 
         <div className="relative w-full max-w-lg h-full transform-style-3d">
           <AnimatePresence initial={false}>
-            {HERO_ASSESSMENTS.map((assessment, index) => {
+            {DESKTOP_ASSESSMENTS.map((assessment, index) => {
               const { rotateY, translateZ, scale, opacity, zIndex, offset } = getCardStyle(index);
               const isActive = offset === 0;
 
@@ -215,7 +285,7 @@ export function AssessmentHero3D() {
 
         <button 
           onClick={handleNext}
-          className="absolute right-4 z-40 p-3 rounded-full bg-[var(--surface-1)]/80 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-2)] transition-colors"
+          className="absolute right-4 z-40 p-3 rounded-full bg-[var(--surface-1)]/80 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--surface-2)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF]"
           aria-label="Next assessment"
         >
           <ChevronRight size={24} />
@@ -224,11 +294,11 @@ export function AssessmentHero3D() {
 
       {/* Pagination Pill Dots */}
       <div className="flex items-center gap-3 mt-4 z-20 shrink-0">
-        {HERO_ASSESSMENTS.map((_, idx) => (
+        {DESKTOP_ASSESSMENTS.map((_, idx) => (
           <button
             key={idx}
             onClick={() => handleSelect(idx)}
-            className={`transition-all duration-300 rounded-full h-1.5 ${
+            className={`transition-all duration-300 rounded-full h-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00F0FF] ${
               idx === activeIndex 
                 ? 'w-8 bg-[#00F0FF]' 
                 : 'w-2 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'
