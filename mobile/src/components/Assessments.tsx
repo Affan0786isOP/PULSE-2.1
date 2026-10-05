@@ -66,8 +66,8 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
   return (
     <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans">
       <SEO 
-        title="Cognitive & Latency Assessments | PULSE Mobile"
-        description="Benchmark reaction times, color recognition, directional choices, and working memory from your mobile browser."
+        title="Assessments | PULSE"
+        description="Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory."
       />
       <Navbar 
         currentView="assessments" 
