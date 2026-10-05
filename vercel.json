@@ -333,6 +333,21 @@
   ],
   "headers": [
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "test.pulse-lab.in"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
       "source": "/dataset",
       "headers": [
         {
