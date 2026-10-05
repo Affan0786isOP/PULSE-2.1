@@ -33,7 +33,7 @@ export function DatasetComingSoon() {
             id="dataset-coming-soon-title"
             className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[var(--text-primary)]"
           >
-            COMING SOON
+            PUBLIC RESEARCH DATASET — COMING SOON
           </h1>
 
           <p className="mt-5 text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed max-w-xl mx-auto">
