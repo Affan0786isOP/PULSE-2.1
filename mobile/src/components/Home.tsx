@@ -11,6 +11,7 @@ import { isMobileWelcomeSeen } from '../lib/welcomeStore';
 import { triggerHaptic } from '../lib/settingsStore';
 import { PulseLogo } from './brand';
 import { SEO } from './SEO';
+import { WhatIsPulseScene } from '../../../src/components/home/WhatIsPulseScene';
 
 export interface HeroAssessment {
   id: string;
@@ -300,6 +301,8 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           </p>
         </div>
       </main>
+
+      <WhatIsPulseScene />
 
       {/* Modals Container */}
       <Suspense fallback={null}>
