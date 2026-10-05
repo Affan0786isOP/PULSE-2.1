@@ -128,7 +128,7 @@ export function SEO({
     updateLinkTag('canonical', finalCanonical);
 
     // 4. Update Robots Tag
-    updateMetaTag('name', 'robots', effectiveNoindex ? 'noindex, nofollow' : 'index, follow');
+    updateMetaTag('name', 'robots', effectiveNoindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
 
     // 5. Open Graph Meta Tags
     updateMetaTag('property', 'og:title', title, 'property');
@@ -140,12 +140,26 @@ export function SEO({
     updateMetaTag('property', 'og:image:width', '1200', 'property');
     updateMetaTag('property', 'og:image:height', '630', 'property');
     updateMetaTag('property', 'og:image:type', 'image/png', 'property');
+    updateMetaTag('property', 'og:image:alt', 'PULSE cognitive benchmarking', 'property');
+
+    // Desktop pages advertise the dedicated mobile equivalent while keeping desktop canonical.
+    const mobileAlternateHref = siteUrl + (canonicalPath === '/' ? '/mobile/' : '/mobile' + canonicalPath);
+    let mobileAlternate = document.querySelector<HTMLLinkElement>('link[rel="alternate"][media="only screen and (max-width: 768px)"]');
+    if (!mobileAlternate) {
+      mobileAlternate = document.createElement('link');
+      mobileAlternate.setAttribute('rel', 'alternate');
+      mobileAlternate.setAttribute('media', 'only screen and (max-width: 768px)');
+      document.head.appendChild(mobileAlternate);
+    }
+    mobileAlternate.setAttribute('href', mobileAlternateHref);
 
     // 6. Twitter Meta Tags
     updateMetaTag('name', 'twitter:card', 'summary_large_image');
     updateMetaTag('name', 'twitter:title', title);
     updateMetaTag('name', 'twitter:description', description);
+    updateMetaTag('name', 'twitter:url', finalCanonical);
     updateMetaTag('name', 'twitter:image', ogImage);
+    updateMetaTag('name', 'twitter:image:alt', 'PULSE cognitive benchmarking');
 
     // 7. Structured Data (JSON-LD)
     const currentOwnerId = String(++nextOwnerId);
