@@ -15,24 +15,24 @@ test.describe('Home Page', () => {
   test('loads and displays branding', async ({ page, isMobile }) => {
     await page.goto('/');
     if (!isMobile) {
-      await expect(page.locator('text=PRECISION COGNITIVE BENCHMARKING').first()).toBeVisible();
+      await expect(page.getByText('PRECISION COGNITIVE BENCHMARKING', { exact: false }).first()).toBeVisible();
       await expect(page).toHaveURL(/.*\/$/);
     } else {
       await page.waitForURL(/\/mobile\/?/);
-      await expect(page.locator('text=Precision telemetry').or(page.locator('text=Pulse')).first()).toBeVisible();
+      await expect(page.getByText('Precision cognitive benchmarking.', { exact: true })).toBeVisible();
     }
   });
 
   test('navigation to assessments', async ({ page, isMobile }) => {
     await page.goto('/');
     if (!isMobile) {
-      const exploreBtn = page.locator('button', { hasText: 'EXPLORE ALL PROTOCOLS' });
-      await expect(exploreBtn).toBeVisible();
-      await exploreBtn.click();
-      await expect(page).toHaveURL(/.*\/assessments/);
+      const launchButton = page.getByRole('button', { name: 'Launch Visual Reaction' });
+      await expect(launchButton).toBeVisible();
+      await launchButton.click();
+      await expect(page).toHaveURL(/.*\/reaction-test/);
     } else {
       await page.waitForURL(/\/mobile\/?/);
-      const card = page.locator('text=Visual Reaction Test').or(page.locator('text=PROTOCOL 01')).first();
+      const card = page.getByText('Visual Reaction', { exact: true }).first();
       await expect(card).toBeVisible();
       await card.click();
       await expect(page).toHaveURL(/.*\/reaction-test/);
