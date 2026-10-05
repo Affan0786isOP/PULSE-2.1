@@ -123,7 +123,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
   return (
     <div className="bg-[#0B0B0E] text-[#F8FAFC] min-h-[100dvh] w-full flex flex-col font-sans overflow-x-hidden relative selection:bg-white/30 pb-safe">
-      <SEO title="Pulse Mobile" description="Precision telemetry. Zero latency insight." />
+      <SEO
+      title="PULSE — Precision User Latency & Stimulus Evaluator"
+      description="An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
+      schema={HOME_SCHEMA}
+    />
 
       {/* Header */}
       <header className="w-full max-w-md mx-auto flex items-center justify-between px-5 py-5 z-40 shrink-0">
