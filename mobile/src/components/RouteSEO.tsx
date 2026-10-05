@@ -1,6 +1,6 @@
 import { SEO, getCanonicalPath, isProductionHost } from './SEO';
 import { useLocation } from 'react-router-dom';
-import metadata from '../../shared/seoMetadata.json';
+import metadata from '../../../shared/seoMetadata.json';
 
 const SITE_URL = metadata.site.url;
 
