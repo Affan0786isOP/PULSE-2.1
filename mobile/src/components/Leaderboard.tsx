@@ -85,7 +85,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   return (
     <div className="bg-transparent text-[var(--text-main)] font-sans h-full max-h-full w-full overflow-hidden flex flex-col selection:bg-cyan-500/30">
       <SEO 
-        title="Verified Leaderboard & Cohort Rankings | PULSE Mobile"
+        title="Verified Leaderboard & Cohort Rankings | PULSE"
         description="Compare your cognitive performance results against our global anonymous cohort rankings in real-time."
       />
       <Navbar 
