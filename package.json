@@ -85,5 +85,10 @@
     "esbuild@0.28.2": true,
     "protobufjs@7.6.6": true,
     "@firebase/util@1.15.3": true
+  },
+  "overrides": {
+    "jwks-rsa": {
+      "jose": "5.10.0"
+    }
   }
 }
