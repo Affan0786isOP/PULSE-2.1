@@ -66,7 +66,7 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1600px] mx-auto min-h-[100dvh] flex-none grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(240px,290px)] gap-8 lg:gap-12 focus-visible:outline-none py-6 sm:py-8 lg:py-10 px-6 sm:px-12 relative z-10 overflow-hidden"
+        className="w-full max-w-[1600px] mx-auto h-[100dvh] min-h-0 flex-none grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(240px,290px)] gap-8 lg:gap-12 focus-visible:outline-none py-6 sm:py-8 lg:py-10 px-6 sm:px-12 relative z-10 overflow-hidden"
       >
         {/* Left Column: Hero & Interactive Protocol Showcase */}
         <section aria-labelledby="hero-heading" className="flex flex-col w-full justify-between min-h-0">
