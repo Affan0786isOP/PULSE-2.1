@@ -1,4 +1,4 @@
-import { SEO, getCanonicalPath, isProductionHost } from './SEO';
+import { SEO, getCanonicalPath } from './SEO';
 import { useLocation } from 'react-router-dom';
 import metadata from '../../../shared/seoMetadata.json';
 
@@ -6,12 +6,7 @@ const SITE_URL = metadata.site.url;
 
 function getAbsoluteCanonical(pathname: string): string {
   const canonicalPath = getCanonicalPath(pathname);
-  const base =
-    isProductionHost()
-      ? SITE_URL
-      : (typeof window !== 'undefined' && window.location.origin
-        ? window.location.origin
-        : SITE_URL);
+  const base = SITE_URL;
   return base + (canonicalPath === '/' ? '' : canonicalPath);
 }
 
