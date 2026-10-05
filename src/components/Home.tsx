@@ -1,13 +1,12 @@
 import React, { useState, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { Zap, Database, ShieldCheck, Trophy, Folder, Activity, Settings, Info, RefreshCw, Cpu, Layers, Sparkles, ArrowRight, Compass, Palette, Grid, Hash, ExternalLink } from 'lucide-react';
+import { Zap, ShieldCheck, Trophy, Folder, Activity, Settings, Info, RefreshCw, ArrowRight, Sparkles, ExternalLink } from 'lucide-react';
 import { SEO } from './SEO';
 import { APP_VERSION } from '../lib/version';
 import { useReducedMotionPreference } from '../lib/settingsStore';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { ProvenanceBadge } from './brand/ProvenanceBadge';
-import { PulseLogo, TelemetryMetricCard } from './brand';
-import { Footer } from './Footer';
+import { PulseLogo } from './brand';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -43,7 +42,7 @@ export function Home() {
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-primary)] font-sans selection:bg-[var(--accent-subtle)] overflow-x-hidden relative flex flex-col">
+    <div className="h-[100dvh] bg-[var(--bg-base)] text-[var(--text-primary)] font-sans selection:bg-[var(--accent-subtle)] overflow-hidden relative flex flex-col">
       <a 
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:bg-[var(--accent)] focus:text-slate-950 focus:font-semibold focus:text-xs focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
@@ -66,7 +65,7 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1600px] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(240px,290px)] gap-8 lg:gap-12 focus-visible:outline-none py-6 sm:py-8 lg:py-10 px-6 sm:px-12 relative z-10"
+        className="w-full max-w-[1600px] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(240px,290px)] gap-8 lg:gap-12 focus-visible:outline-none py-6 sm:py-8 lg:py-10 px-6 sm:px-12 relative z-10 overflow-hidden"
       >
         {/* Left Column: Hero & Interactive Protocol Showcase */}
         <section aria-labelledby="hero-heading" className="flex flex-col w-full justify-between min-h-0">
@@ -224,78 +223,6 @@ export function Home() {
           </nav>
         </aside>
       </main>
-
-      {/* Structured Telemetry Showcase Below-the-fold */}
-      <section className="w-full border-t border-[var(--border-subtle)] bg-[var(--surface-1)]/40 relative z-10 py-12 sm:py-16">
-        <div className="max-w-[1600px] mx-auto px-6 sm:px-12 flex flex-col gap-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div>
-              <span className="text-[11px] font-mono font-semibold text-[var(--accent)] uppercase tracking-widest block mb-1">
-                METHODOLOGY
-              </span>
-              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-tight">
-                Standardized Telemetry Architecture
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-md leading-relaxed">
-              PULSE combines monotonic Web Audio clocks, native display refresh polling, and input latency modeling to ensure cross-platform parity.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--border-subtle)] flex flex-col">
-              <div className="w-9 h-9 rounded-lg bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--border-subtle)] flex items-center justify-center mb-4">
-                <Cpu size={18} />
-              </div>
-              <h3 className="font-heading font-bold text-base text-[var(--text-primary)] mb-1.5">
-                Hardware Refresh Measurement
-              </h3>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
-                Measures the v-sync refresh cycle (60Hz, 120Hz, 144Hz, 240Hz) and compensates for frame display quantum delays in stimulus scheduling.
-              </p>
-              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] font-mono text-[11px] text-[var(--accent)]">
-                requestAnimationFrame Calibrated
-              </div>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--border-subtle)] flex flex-col">
-              <div className="w-9 h-9 rounded-lg bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--border-subtle)] flex items-center justify-center mb-4">
-                <Layers size={18} />
-              </div>
-              <h3 className="font-heading font-bold text-base text-[var(--text-primary)] mb-1.5">
-                Cognitive Dual-Task Battery
-              </h3>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
-                Evaluates choice bifurcation (CRT), Stroop-like color conflict, Corsi block span, and adaptive digit memory.
-              </p>
-              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] font-mono text-[11px] text-emerald-400">
-                5 Coordinated Assessment Tracks
-              </div>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--border-subtle)] flex flex-col">
-              <div className="w-9 h-9 rounded-lg bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--border-subtle)] flex items-center justify-center mb-4">
-                <Database size={18} />
-              </div>
-              <h3 className="font-heading font-bold text-base text-[var(--text-primary)] mb-1.5">
-                Open Anonymized Data Lake
-              </h3>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
-                Streams observational telemetry to public analytics. Export CSVs and query distributions across age cohorts and display hardware.
-              </p>
-              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] font-mono text-[11px] text-[var(--text-muted)]">
-                HMAC-Signed Research Telemetry
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Semantic Platform Footer */}
-      <Footer 
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenWelcome={() => setIsWelcomeOpen(true)}
-      />
 
       <Suspense fallback={<ModalLoadingFallback />}>
         {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
