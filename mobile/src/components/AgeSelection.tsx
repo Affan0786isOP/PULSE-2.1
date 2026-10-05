@@ -90,10 +90,10 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
             <User size={16} />
           </div>
           <h2 className="font-heading text-base font-bold tracking-tight text-[var(--text-primary)]">
-            Select Your Age Cohort
+            Select your age group
           </h2>
           <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">
-            PULSE uses broad age groups to contextualize your performance against empirical research cohorts.
+            PULSE compares your performance to others in your age group.
           </p>
         </div>
 

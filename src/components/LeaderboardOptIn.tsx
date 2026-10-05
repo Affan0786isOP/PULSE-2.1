@@ -108,7 +108,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
       setOptInState('SUCCESS');
     } else {
       isSubmittingRef.current = false;
-      setErrorMsg(res.error || 'Failed to synchronize with leaderboard.');
+      setErrorMsg(res.error || 'Failed to save to the leaderboard.');
       setOptInState('ERROR');
     }
   };
@@ -117,7 +117,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
     return (
       <div className="w-full bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--color-success)] p-2 rounded-lg flex items-center justify-center text-center animate-[fadeIn_0.2s_ease-out]">
         <span className="font-mono text-xs font-medium">
-          ✓ Added to public research leaderboard
+          ✓ Added to leaderboard
         </span>
       </div>
     );
@@ -127,14 +127,14 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
     return (
       <div className="w-full bg-[var(--surface-2)]/60 border border-[var(--border-subtle)] p-2 sm:p-2.5 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left transition-colors">
         <div className="flex flex-col">
-          <span className="font-mono font-semibold text-[11px] text-[var(--text-primary)] uppercase tracking-wide">Public Research Leaderboard</span>
-          <span className="text-[var(--text-muted)] text-[10px] font-mono">Publish this trial score to the global leaderboard</span>
+          <span className="font-mono font-semibold text-[11px] text-[var(--text-primary)] uppercase tracking-wide">Public Leaderboard</span>
+          <span className="text-[var(--text-muted)] text-[10px] font-mono">Add your score to the public leaderboard.</span>
         </div>
         <button type="button"
           onClick={() => setOptInState('OPTING_IN')}
           className="h-7 px-2.5 bg-[var(--surface-2)] hover:bg-[var(--border-subtle)] active:scale-95 border border-[var(--border-subtle)] rounded-md text-[var(--text-primary)] font-mono text-[11px] uppercase tracking-wider transition-colors cursor-pointer shrink-0"
         >
-          Publish Result
+          Add Score
         </button>
       </div>
     );
@@ -146,9 +146,9 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
         isKeyboardOpen ? 'py-1.5 my-1' : ''
       }`}
     >
-      <span className="font-mono font-bold text-[11px] text-[var(--text-primary)] uppercase tracking-wide mb-0.5">Enter Display Identifier</span>
+      <span className="font-mono font-bold text-[11px] text-[var(--text-primary)] uppercase tracking-wide mb-0.5">Choose a Name</span>
       <p className="text-[var(--text-muted)] text-[9px] font-mono mb-2 max-w-md">
-        Your callsign/pseudonym will appear publicly on the global leaderboard.
+        This name will appear on the public leaderboard.
       </p>
       
       <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-1.5 max-w-sm">
@@ -166,7 +166,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
           }}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          placeholder="Callsign (e.g. Node-01)"
+          placeholder="Display name"
           disabled={optInState === 'SUBMITTING'}
           className="w-full h-8 bg-[var(--surface-1)] border border-[var(--border-subtle)] focus:border-[var(--border-strong)] rounded-md px-2.5 text-[var(--text-primary)] font-mono text-xs focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-1 text-center sm:text-left transition-colors"
           autoFocus

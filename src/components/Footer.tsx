@@ -31,8 +31,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenSettings, onOpenWelcome })
               </span>
             </div>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed max-w-md">
-              Precision User Latency &amp; Stimulus Evaluator. Research-grade telemetry engine 
-              delivering sub-millisecond sensory reaction, cognitive conflict, and working memory benchmarking in modern browsers.
+              Precision User Latency &amp; Stimulus Evaluator. A telemetry engine that benchmarks sensory reaction, cognitive conflict, and working memory in modern browsers with sub-millisecond precision.
             </p>
             <div className="flex items-center gap-4 text-xs font-mono text-[var(--text-muted)] pt-1">
               <span className="inline-flex items-center gap-1.5 text-emerald-400">
@@ -110,7 +109,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenSettings, onOpenWelcome })
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-[var(--border-subtle)]/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[var(--text-muted)] font-mono">
           <div>
-            &copy; {new Date().getFullYear()} PULSE Research Initiative. Zero advertising, zero telemetry sales.
+            &copy; {new Date().getFullYear()} PULSE Research Initiative. No ads or data sales.
           </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">

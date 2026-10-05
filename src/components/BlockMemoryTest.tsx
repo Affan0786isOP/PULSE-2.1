@@ -322,7 +322,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
       if (livesRef.current > 1) {
         const remaining = livesRef.current - 1;
         setLives(remaining);
-        setStatusMessage(`SEQUENCE FAILED - LIVES: ${remaining}`);
+        setStatusMessage(`Incorrect. Lives remaining: ${remaining}`);
         setInputPrompt('Get ready...');
         transitionTimeoutRef.current = setTimeout(() => {
           if (engineStateRef.current === 'UNMOUNTED') return;
@@ -330,8 +330,8 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         }, 1500);
       } else {
         setLives(0);
-        setStatusMessage('GAME OVER');
-        setInputPrompt('Seeing your score...');
+        setStatusMessage('Game over');
+        setInputPrompt('Saving score...');
         transitionTimeoutRef.current = setTimeout(() => {
           if (engineStateRef.current === 'UNMOUNTED') return;
           const duration = assessmentStartTimeRef.current !== null ? Math.round(performance.now() - assessmentStartTimeRef.current) : (totalTimeMsRef.current || 0);
@@ -398,7 +398,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         if (engineStateRef.current === 'UNMOUNTED') return;
         if (levelRef.current >= 100) {
           setStatusMessage('You beat the game!');
-          setInputPrompt('Seeing your score...');
+          setInputPrompt('Saving score...');
           setTimeout(() => {
             if (engineStateRef.current === 'UNMOUNTED') return;
             const duration = assessmentStartTimeRef.current !== null ? Math.round(performance.now() - assessmentStartTimeRef.current) : (totalTimeMsRef.current || 0);
@@ -497,7 +497,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         trials: rawObservationsRef.current
       }).then(res => {
       if (!res || !res.success) {
-        setSubmissionError(res?.error || 'Synchronization failed. Please try again.');
+        setSubmissionError(res?.error || 'Could not save score. Please try again.');
       } else {
         hasSubmittedRef.current = true;
         if (typeof res.isNewPersonalBest === 'boolean') {
@@ -506,7 +506,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
       }
     }).catch(err => {
       console.error("Failed to submit result:", err);
-      setSubmissionError(err.message || 'Synchronization failed. Please try again.');
+      setSubmissionError(err.message || 'Could not save score. Please try again.');
     }).finally(() => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -524,7 +524,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
       // If a test is running, abort it to prevent timers from firing behind the modal
       if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
         if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
-        setStatusMessage('TEST INTERRUPTED');
+        setStatusMessage('Test interrupted');
         setInputPrompt('Settings opened. Click to restart.');
         setEngineState('READY');
         engineStateRef.current = 'READY';
@@ -545,13 +545,13 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-xl font-bold text-[var(--text-primary)]">Session Initialization Failed</h2>
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">Could not start session</h2>
             <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
             <button
               onClick={() => initSession(selectedAgeGroup)}
               className="px-6 py-2.5 rounded-xl bg-[var(--cyan-primary)] text-black font-semibold hover:opacity-90 active:scale-[0.98] transition-[opacity,transform] flex items-center gap-2 cursor-pointer"
             >
-              <RefreshCw className="w-4 h-4" /> Retry Connection
+              <RefreshCw className="w-4 h-4" /> Retry
             </button>
           </div>
         </main>
@@ -615,8 +615,8 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
             </div>
             {engineState !== 'READY' && (
               <div className="w-full flex justify-between items-center font-mono text-[0.85rem] text-[var(--text-muted)] animate-[fadeIn_0.5s_ease-out]">
-                <div className="tracking-[1px]">LEVEL: <span className="text-white">{level}</span></div>
-                <div className="tracking-[1px] flex items-center gap-1">LIVES: <span className="text-[var(--color-error)] flex gap-1 ml-1">{Array.from({ length: 3 }).map((_, i) => <Heart key={i} size={14} className={i < lives ? "fill-current" : "opacity-30"} />)}</span></div>
+                <div className="tracking-[1px]">Level: <span className="text-white">{level}</span></div>
+                <div className="tracking-[1px] flex items-center gap-1">Lives: <span className="text-[var(--color-error)] flex gap-1 ml-1">{Array.from({ length: 3 }).map((_, i) => <Heart key={i} size={14} className={i < lives ? "fill-current" : "opacity-30"} />)}</span></div>
               </div>
             )}
           </div>

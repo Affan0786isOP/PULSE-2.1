@@ -37,10 +37,10 @@ export class ErrorBoundary extends Component<Props, State> {
               <AlertCircle size={24} />
             </div>
             <h2 className="text-lg font-bold tracking-tight text-white mb-2">
-              Application Notice
+              Something went wrong
             </h2>
             <p className="text-xs text-slate-400 mb-5 leading-relaxed">
-              PULSE encountered a rendering interruption. You can reload the application to restore evaluation.
+              PULSE encountered an error. Reload the page to continue.
             </p>
             {this.state.error?.message && (
               <div className="w-full bg-[#0B0D10] border border-[#1e293b] rounded p-3 mb-5 text-left text-xs font-mono text-red-300 overflow-x-auto max-h-28">
@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 active:scale-95 active:bg-cyan-600 text-slate-950 font-semibold text-xs transition-colors transition-transform transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 cursor-pointer"
             >
               <RotateCcw size={16} />
-              Reload Application
+              Reload page
             </button>
           </div>
         </div>

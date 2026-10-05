@@ -17,11 +17,11 @@ export function NotFound({ onNavigate }: { onNavigate: (view: string) => void })
           404
         </h1>
         <h2 className="font-heading text-xs text-[var(--accent)] tracking-widest font-semibold mb-4 uppercase">
-          PROTOCOL NOT FOUND
+          Page not found
         </h2>
         
         <p className="font-sans text-[var(--text-secondary)] max-w-sm mx-auto text-xs sm:text-sm leading-relaxed mb-8">
-          The requested module or assessment path does not exist in the active telemetry registry.
+          The page or assessment you are looking for does not exist.
         </p>
 
         <button type="button" 

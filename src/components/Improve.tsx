@@ -40,11 +40,11 @@ import {
 } from "lucide-react";
 
 const improveSections = [
-  { id: "factors", label: "Physiological Factors" },
-  { id: "checklist", label: "Action Checklist" },
-  { id: "ledger", label: "Research Ledger" },
-  { id: "expectations", label: "Expectation Management" },
-  { id: "recommendations", label: "System Recommendations" },
+  { id: "factors", label: "Physiological factors" },
+  { id: "checklist", label: "Preparation checklist" },
+  { id: "ledger", label: "Research findings" },
+  { id: "expectations", label: "Expectations" },
+  { id: "recommendations", label: "Best practices" },
 ];
 
 const FACTOR_ICONS: Record<string, React.ElementType> = {
@@ -188,8 +188,8 @@ export function Improve({
   return (
     <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-cyan-500/30 relative">
       <SEO 
-        title="Evidence-Based Performance & Latency Optimization | PULSE"
-        description="Explore peer-reviewed research, physiological factors, and habit preparation protocols to support cognitive response consistency and minimize latency."
+        title="Performance Guide | PULSE"
+        description="Review research, physiological factors, and preparation habits that affect response time and measurement consistency."
       />
       <Navbar currentView="improve" onNavigate={onNavigate} />
 
@@ -234,14 +234,14 @@ export function Improve({
             {/* Header Section */}
             <div className="text-center md:text-left border-b border-[var(--border-subtle)] pb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-xs font-mono mb-3">
-                <Sparkles size={13} />
-                <span>Scientific protocol</span>
+                <BookOpen size={13} />
+                <span>Performance guide</span>
               </div>
               <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)] mb-3">
-                Evidence-Based Performance &amp; Consistency
+                Performance &amp; Consistency
               </h1>
               <p className="text-[var(--text-secondary)] text-sm sm:text-base max-w-2xl leading-relaxed">
-                Peer-reviewed research, physiological variables, and structured habit protocols to understand response latency and sustain measurement consistency.
+                Review the physiological factors and habits that affect response latency and measurement consistency.
               </p>
             </div>
 
@@ -252,10 +252,10 @@ export function Improve({
                   Biological &amp; environmental factors
                 </span>
                 <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
-                  What Affects Measured Reaction Time?
+                  What affects measured reaction time?
                 </h2>
                 <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-2xl">
-                  Response latency is dynamic and reflects biological states, environmental cues, hardware pipelines, and fatigue levels.
+                  Response time changes based on biological states, environmental cues, hardware, and fatigue.
                 </p>
               </div>
 
@@ -308,13 +308,13 @@ export function Improve({
               <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="text-center sm:text-left">
                   <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                    Habit preparation
+                    Daily habits
                   </span>
                   <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-1">
-                    Daily Habit Preparation Checklist
+                    Preparation checklist
                   </h2>
                   <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-2xl">
-                    Self-reported lifestyle habits that support physiological stability and test-retest consistency.
+                    Check off the habits you follow to maintain testing consistency.
                   </p>
                 </div>
                 {checkedItems.size > 0 && (
@@ -324,7 +324,7 @@ export function Improve({
                     className="self-center sm:self-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-mono transition-[transform,background-color,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] cursor-pointer"
                   >
                     <RotateCcw size={12} />
-                    <span>Reset Checklist</span>
+                    <span>Reset checklist</span>
                   </button>
                 )}
               </div>
@@ -333,10 +333,10 @@ export function Improve({
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-medium text-xs sm:text-sm text-[var(--text-primary)]">
-                      Preparation Adherence
+                      Preparation progress
                     </span>
                     <span className="text-[var(--accent)] font-mono text-xs font-semibold">
-                      {checkedItems.size} of {PREPARATION_HABITS.length} HABITS CHECKED ({habitCompletionPercentage}%)
+                      {checkedItems.size} of {PREPARATION_HABITS.length} habits checked ({habitCompletionPercentage}%)
                     </span>
                   </div>
                   <div className="w-full h-2 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
@@ -394,7 +394,7 @@ export function Improve({
                 <div className="mt-5 pt-4 border-t border-[var(--border-subtle)] flex items-center gap-2 text-[11px] text-[var(--text-muted)] font-mono">
                   <ShieldCheck size={14} className="text-[var(--accent)] shrink-0" />
                   <span>
-                    Habit adherence supports baseline testing consistency and minimizes fatigue dips; it is not a direct measure of cognitive intelligence.
+                    These habits support testing consistency and minimize fatigue. They do not directly measure cognitive ability.
                   </span>
                 </div>
               </div>
@@ -404,10 +404,10 @@ export function Improve({
             <section id="ledger" className="scroll-mt-8">
               <div className="mb-4 text-center md:text-left">
                 <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                  NEUROSCIENCE RESEARCH LEDGER
+                  Research ledger
                 </span>
                 <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                  Synaptic Insights &amp; Findings
+                  Research findings
                 </h2>
               </div>
 
@@ -469,7 +469,7 @@ export function Improve({
                 {/* Carousel Controls */}
                 <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
                   <span className="text-xs text-[var(--text-muted)] font-mono hidden sm:inline-block">
-                    Peer-reviewed scientific citation
+                    Citation
                   </span>
                   <div className="flex items-center gap-2 ml-auto">
                     <button
@@ -500,22 +500,22 @@ export function Improve({
                   Expectation management
                 </span>
                 <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                  Can Everyone Improve Their Results?
+                  Can you improve your results?
                 </h2>
               </div>
               <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 md:p-8 space-y-3.5 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
                 <p>
-                  While absolute physiological limits set a floor on neural transmission speed, day-to-day variance is heavily driven by focus drift, sleep debt, and environmental distractions.
+                  Absolute physiological limits set a floor on neural transmission speed, but day-to-day variance depends heavily on focus, sleep, and environmental distractions.
                 </p>
                 <p>
-                  By practicing consistent sleep hygiene, minimizing input latency in your physical hardware setup, and engaging in structured assessment tasks, you can minimize preventable performance dips and achieve higher consistency.
+                  You can minimize performance dips and achieve higher consistency by maintaining good sleep habits, minimizing hardware input latency, and practicing the tasks.
                 </p>
                 <div className="pt-3 border-t border-[var(--border-subtle)] space-y-2">
                   <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                    <strong className="text-[var(--text-primary)] font-semibold">Practice &amp; Familiarity Effects:</strong> Longitudinal performance gains on repetitive benchmark tasks largely reflect procedural familiarity, stimulus anticipation, and motor pattern learning rather than generalized expansion of innate cognitive capacity.
+                    Longitudinal gains on benchmark tasks largely reflect task familiarity, stimulus anticipation, and motor pattern learning rather than an expansion of overall cognitive capacity.
                   </p>
                   <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                    <strong className="text-[var(--text-primary)] font-semibold">Age Cohort Variance:</strong> Variations observed across age cohorts reflect normative sensory-motor processing differences across populations rather than an absolute indicator of individual biological decline.
+                    Variations across age cohorts reflect sensory-motor processing differences across populations rather than an absolute indicator of individual biological decline.
                   </p>
                 </div>
               </div>
@@ -525,38 +525,38 @@ export function Improve({
             <section id="recommendations" className="scroll-mt-8">
               <div className="mb-6 text-center md:text-left">
                 <span className="font-mono text-xs text-[var(--text-muted)] font-semibold tracking-wider uppercase block mb-1">
-                  Protocol recommendations
+                  Best practices
                 </span>
                 <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
-                  System Recommendations
+                  How to improve
                 </h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
                 {[
                   {
                     num: "01",
-                    title: "Train Consistently",
-                    desc: "Short daily sessions of 5–10 minutes yield better task familiarity than sporadic long sessions.",
+                    title: "Train consistently",
+                    desc: "Short daily sessions of 5–10 minutes build better task familiarity than sporadic long sessions.",
                   },
                   {
                     num: "02",
-                    title: "Incorporate Rest",
-                    desc: "Avoid back-to-back testing without rest to prevent eye fatigue and attention degradation.",
+                    title: "Incorporate rest",
+                    desc: "Avoid back-to-back testing to prevent eye fatigue and attention drops.",
                   },
                   {
                     num: "03",
-                    title: "Prioritize Accuracy",
-                    desc: "Establish low error rates first before attempting to maximize raw execution speed.",
+                    title: "Prioritize accuracy",
+                    desc: "Establish a low error rate before attempting to maximize speed.",
                   },
                   {
                     num: "04",
-                    title: "Peak Alertness",
-                    desc: "Test when fully alert to establish true biological baselines rather than fatigued states.",
+                    title: "Test at peak alertness",
+                    desc: "Test when fully alert to establish a true baseline.",
                   },
                   {
                     num: "05",
-                    title: "Track Baseline Trends",
-                    desc: "Evaluate progress across multi-week rolling averages rather than individual trial spikes.",
+                    title: "Track baseline trends",
+                    desc: "Evaluate progress using multi-week rolling averages rather than individual trials.",
                   },
                 ].map((tip) => (
                   <div
@@ -564,7 +564,7 @@ export function Improve({
                     className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-5 flex flex-col justify-between hover:border-[var(--border-default)] transition-colors"
                   >
                     <div className="font-mono text-xs font-semibold text-[var(--accent)] mb-2">
-                      Recommendation {tip.num}
+                      Tip {tip.num}
                     </div>
                     <h3 className="font-heading font-semibold text-sm text-[var(--text-primary)] mb-1">
                       {tip.title}

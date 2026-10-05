@@ -16,11 +16,11 @@ export function NotFound({ onNavigate }: { onNavigate: (view: string) => void })
           404
         </h1>
         <h2 className="font-heading text-sm text-[var(--accent)] tracking-widest font-semibold mb-4 uppercase">
-          PAGE NOT FOUND
+          Page not found
         </h2>
         
         <p className="font-sans text-[var(--text-secondary)] max-w-xs mx-auto text-xs sm:text-sm leading-relaxed mb-8">
-          The module or assessment you are looking for does not exist in the current system registry.
+          The page or assessment you are looking for does not exist.
         </p>
 
         <button type="button" 

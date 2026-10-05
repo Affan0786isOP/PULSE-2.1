@@ -25,46 +25,46 @@ export interface HeroAssessment {
 export const HERO_ASSESSMENTS: HeroAssessment[] = [
   {
     id: 'reaction',
-    protocolNumber: 'PROTOCOL 01',
-    category: 'LATENCY TELEMETRY',
-    title: 'Visual Reaction Test',
-    description: 'Measure speed of eye-brain coordination with a rapid flash-to-tap test.',
+    protocolNumber: 'TEST 01',
+    category: 'LATENCY',
+    title: 'Visual Reaction',
+    description: 'Wait for the visual signal, then respond as quickly as possible. Measures basic reaction time.',
     targetRoute: '/reaction-test',
     logo: '/brand/assessments/reaction.png',
   },
   {
     id: 'direction',
-    protocolNumber: 'PROTOCOL 02',
-    category: 'CHOICE COORDINATION',
+    protocolNumber: 'TEST 02',
+    category: 'CHOICE REACTION',
     title: 'Directional Choice',
-    description: 'Evaluate cognitive bifurcation speed and motor execution under choice conditions.',
+    description: 'Tap the arrow that matches the direction on screen. Measures how fast you process and react to new information.',
     targetRoute: '/direction-test',
     logo: '/brand/assessments/direction.png',
   },
   {
     id: 'color',
-    protocolNumber: 'PROTOCOL 03',
-    category: 'COGNITIVE CONFLICT',
-    title: 'Color Recognition',
-    description: 'Assess semantic inhibitory control and selective attention thresholds.',
+    protocolNumber: 'TEST 03',
+    category: 'STROOP EFFECT',
+    title: 'Colour Recognition',
+    description: 'Identify the color of the text when the word and its color do not match. Tests attention and cognitive flexibility.',
     targetRoute: '/colour-recognition',
     logo: '/brand/assessments/color.png',
   },
   {
     id: 'block',
-    protocolNumber: 'PROTOCOL 04',
-    category: 'SPATIAL WORKING MEMORY',
+    protocolNumber: 'TEST 04',
+    category: 'CORSI BLOCKS',
     title: 'Block Memory',
-    description: 'Benchmark visuospatial memory span through progressive serial recall.',
+    description: 'Remember and repeat increasingly long sequences of highlighted blocks. Tests spatial memory.',
     targetRoute: '/block-memory',
     logo: '/brand/assessments/block.png',
   },
   {
     id: 'number',
-    protocolNumber: 'PROTOCOL 05',
-    category: 'DIGIT SPAN MEMORY',
+    protocolNumber: 'TEST 05',
+    category: 'DIGIT SPAN',
     title: 'Number Memory',
-    description: 'Test phonological working memory limit with adaptive digit length scaling.',
+    description: 'Remember increasingly long sequences of numbers. Tests short-term working memory.',
     targetRoute: '/number-memory',
     logo: '/brand/assessments/number.png',
   },
@@ -163,12 +163,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
           </div>
           
           <h1 className="font-heading font-bold text-[2.5rem] leading-[1.05] tracking-tight text-white mb-4">
-            Precision telemetry.<br />
-            Zero latency insight.
+            Precision cognitive benchmarking.
           </h1>
           
           <p className="text-[#8A94A6] text-base leading-relaxed pr-4">
-            Run standardized cohort evaluations and audit high-throughput metrics across all systems.
+            Open-source telemetry measuring reaction latency, choice speed, and working memory.
           </p>
         </div>
 

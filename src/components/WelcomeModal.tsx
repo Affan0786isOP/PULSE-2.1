@@ -150,7 +150,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
               Welcome to PULSE
             </h2>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">
-              Precision User Latency &amp; Stimulus Evaluator — an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
+              Precision User Latency &amp; Stimulus Evaluator is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
             </p>
 
             {/* How it works */}
@@ -182,13 +182,13 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 </div>
                 <div className="min-w-0">
                   <div className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">Review</div>
-                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Get your score instantly, evaluate your personal results, and compare against reference benchmarks.</div>
+                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Get your score instantly and compare it against reference benchmarks.</div>
                 </div>
               </div>
             </div>
 
             <p className="text-[11px] text-[var(--text-muted)] leading-relaxed mb-3.5">
-              You can also check the Leaderboard, explore the open research Dataset, and review evidence-based habit recommendations in the Improve guide.
+              You can also compare scores on the Leaderboard, download the open Dataset, or read habit recommendations in the Improve guide.
             </p>
 
             {/* Footer Checkbox */}

@@ -9,40 +9,40 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
     {
       id: 'reaction-test',
       title: 'Visual Reaction',
-      description: 'Wait for the panel to turn white, then tap as fast as you can. Do not tap early!',
-      type: 'LATENCY',
+      description: 'Wait for the visual signal, then respond as quickly as possible. Measures basic reaction time.',
+      type: 'REACTION TIME',
       status: 'AVAILABLE',
       logo: '/brand/assessments/reaction.png'
     },
     {
       id: 'direction-test',
-      title: 'Direction',
-      description: 'Watch for the directional arrow or cue, then immediately tap the matching direction button.',
-      type: 'COORDINATION',
+      title: 'Directional Choice',
+      description: 'Tap the arrow that matches the direction on screen. Measures how fast you process and react to new information.',
+      type: 'CHOICE SPEED',
       status: 'AVAILABLE',
       logo: '/brand/assessments/direction.png'
     },
     {
       id: 'colour-recognition',
       title: 'Colour Recognition',
-      description: 'Follow the prompt (MATCH THE WORD or MATCH THE COLOR) and tap the correct button despite mismatched colors.',
-      type: 'COGNITIVE',
+      description: 'Identify the color of the text when the word and its color do not match. Tests attention and cognitive flexibility.',
+      type: 'ATTENTION',
       status: 'AVAILABLE',
       logo: '/brand/assessments/color.png'
     },
     {
       id: 'block-memory',
       title: 'Block Memory',
-      description: 'Watch the sequence of blocks light up on the grid, then tap them in the exact same order.',
-      type: 'MEMORY',
+      description: 'Remember and repeat increasingly long sequences of highlighted blocks. Tests spatial memory.',
+      type: 'SPATIAL MEMORY',
       status: 'AVAILABLE',
       logo: '/brand/assessments/block.png'
     },
     {
       id: 'number-memory',
       title: 'Number Memory',
-      description: 'Memorize the number shown on screen, then type the digits in order. Each round adds one more digit.',
-      type: 'MEMORY',
+      description: 'Remember increasingly long sequences of numbers. Tests short-term working memory.',
+      type: 'WORKING MEMORY',
       status: 'AVAILABLE',
       logo: '/brand/assessments/number.png'
     }
@@ -86,7 +86,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
         <div className="w-full max-w-sm z-10 flex flex-col pb-8">
           <div className="mb-4 pt-1">
             <p className="text-[var(--text-secondary)] text-xs">
-              Select an assessment protocol to evaluate cognitive speed and accuracy.
+              Five tasks measuring reaction time, attention, and memory.
             </p>
           </div>
           

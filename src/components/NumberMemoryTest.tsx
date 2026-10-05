@@ -170,7 +170,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
   const playSequence = async (seq: string) => {
     setEngineState('SHOWING'); engineStateRef.current = 'SHOWING';
     setStatusMessage('Memorize');
-    setInputPrompt('Memorize the number');
+    setInputPrompt('Remember this number');
     
     // Show sequence for a brief period proportional to length
     const showTime = Math.max(1000, seq.length * 500); // 500ms per digit, min 1s
@@ -183,7 +183,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       stimulusWallTimestamp.current = Date.now();
       setPlayerInput('');
       setStatusMessage('Your turn');
-      setInputPrompt('Type the number');
+      setInputPrompt('Enter the number');
     }, showTime);
   };
 
@@ -323,7 +323,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       if (livesRef.current > 1) {
         const remaining = livesRef.current - 1;
         setLives(remaining);
-        setStatusMessage(`SEQUENCE FAILED - LIVES: ${remaining}`);
+        setStatusMessage(`Incorrect. ${remaining} ${remaining === 1 ? 'life' : 'lives'} left`);
         setInputPrompt('Get ready...');
         transitionTimeoutRef.current = setTimeout(() => {
           if (engineStateRef.current === 'UNMOUNTED') return;
@@ -331,8 +331,8 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
         }, 1500);
       } else {
         setLives(0);
-        setStatusMessage('GAME OVER');
-        setInputPrompt('Seeing your score...');
+        setStatusMessage('Game over');
+        setInputPrompt('Saving your score...');
         transitionTimeoutRef.current = setTimeout(() => {
           if (engineStateRef.current === 'UNMOUNTED') return;
           const duration = assessmentStartTimeRef.current !== null ? Math.round(performance.now() - assessmentStartTimeRef.current) : (totalTimeMsRef.current || 0);
@@ -346,7 +346,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
     } else {
       // Success
       setEngineState('SUCCESS'); engineStateRef.current = 'SUCCESS';
-      setStatusMessage('Correct!');
+      setStatusMessage('Correct');
       setInputPrompt('Next level...');
       playAudioCue('success');
       triggerHaptic('success');
@@ -354,8 +354,8 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       transitionTimeoutRef.current = setTimeout(() => {
         if (engineStateRef.current === 'UNMOUNTED') return;
         if (levelRef.current >= 100) {
-          setStatusMessage('You beat the game!');
-          setInputPrompt('Seeing your score...');
+          setStatusMessage('Test complete');
+          setInputPrompt('Saving your score...');
           transitionTimeoutRef.current = setTimeout(() => {
             if (engineStateRef.current === 'UNMOUNTED') return;
             const duration = assessmentStartTimeRef.current !== null ? Math.round(performance.now() - assessmentStartTimeRef.current) : (totalTimeMsRef.current || 0);
@@ -506,7 +506,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
         trials: rawObservationsRef.current
       }).then(res => {
       if (!res || !res.success) {
-        setSubmissionError(res?.error || 'Synchronization failed. Please try again.');
+        setSubmissionError(res?.error || 'Could not save your score. Please try again.');
       } else {
         hasSubmittedRef.current = true;
         if (typeof res.isNewPersonalBest === 'boolean') {
@@ -515,7 +515,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       }
     }).catch(err => {
       console.error("Failed to submit result:", err);
-      setSubmissionError(err.message || 'Synchronization failed. Please try again.');
+      setSubmissionError(err.message || 'Could not save your score. Please try again.');
     }).finally(() => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -554,13 +554,13 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
         <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">Session Initialization Failed</h2>
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">Could not start session</h2>
             <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
             <button
               onClick={() => initSession(selectedAgeGroup)}
               className="px-6 py-2.5 rounded-xl bg-[var(--cyan-primary)] text-black font-semibold hover:opacity-90 transition flex items-center gap-2"
             >
-              <RefreshCw className="w-4 h-4" /> Retry Connection
+              <RefreshCw className="w-4 h-4" /> Try again
             </button>
           </div>
         </main>
@@ -686,13 +686,13 @@ return (
 
               {engineState === 'SUCCESS' && (
                 <div className="font-['Space_Grotesk'] text-3xl md:text-4xl text-[var(--color-success)] tracking-[4px] opacity-80">
-                  LEVEL {level} CLEARED
+                  LEVEL {level} PASSED
                 </div>
               )}
 
               {engineState === 'FAILED' && (
                 <div className="flex flex-col items-center gap-2">
-                  <div className="text-[var(--text-muted)] text-sm font-mono tracking-widest uppercase mb-1">Sequence was</div>
+                  <div className="text-[var(--text-muted)] text-sm font-mono tracking-widest uppercase mb-1">The number was</div>
                   <div className="font-['Space_Grotesk'] text-3xl text-white tracking-[4px] mb-4 line-through opacity-50">
                     {sequence}
                   </div>

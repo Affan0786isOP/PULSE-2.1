@@ -111,7 +111,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: MobileWelcomeModal
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="font-bold text-xs tracking-wide text-[var(--text-primary)] leading-tight">PULSE</div>
-                  <div className="text-[10px] text-[var(--text-muted)] tracking-tight truncate font-mono">Mobile Benchmark Suite</div>
+                  <div className="text-[10px] text-[var(--text-muted)] tracking-tight truncate font-mono">Cognitive Benchmarking Suite</div>
                 </div>
               </div>
 
@@ -130,7 +130,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: MobileWelcomeModal
               Welcome to PULSE
             </h2>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">
-              Precision User Latency &amp; Stimulus Evaluator — an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
+              Precision User Latency &amp; Stimulus Evaluator is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
             </p>
 
             {/* How it works */}
@@ -162,13 +162,13 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: MobileWelcomeModal
                 </div>
                 <div className="min-w-0">
                   <div className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">Review</div>
-                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Get your score instantly, evaluate your personal results, and compare against reference benchmarks.</div>
+                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Get your score instantly and compare it against reference benchmarks.</div>
                 </div>
               </div>
             </div>
 
             <p className="text-[11px] text-[var(--text-muted)] leading-relaxed mb-3.5">
-              You can also check the Leaderboard, explore the open research Dataset, and review evidence-based habit recommendations in the Improve guide.
+              You can also compare scores on the Leaderboard, download the open Dataset, or read habit recommendations in the Improve guide.
             </p>
 
             {/* Footer Checkbox */}
@@ -192,7 +192,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: MobileWelcomeModal
                 onClick={handleStartAssessments}
                 className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 rounded-md py-2.5 px-4 text-xs font-semibold cursor-pointer transition-[background-color,transform] shadow-sm text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
-                Start assessments
+                Start Cognitive Battery
               </button>
             </div>
           </motion.div>

@@ -127,7 +127,7 @@ export function Navbar({
             id="mobile-nav-settings-btn"
             disabled={isAssessmentActive}
             aria-disabled={isAssessmentActive}
-            title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings"}
+            title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings & Calibration"}
             onClick={() => {
               if (!isAssessmentActive) {
                 triggerHaptic('tap');

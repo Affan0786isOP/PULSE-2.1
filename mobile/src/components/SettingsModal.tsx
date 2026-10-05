@@ -516,7 +516,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           </div>
                           <div>
                             <div className="text-xs font-semibold text-[var(--text-primary)]">Fullscreen Focus</div>
-                            <div className="text-[10px] text-[var(--text-muted)]">Distraction-free assessment atmosphere</div>
+                            <div className="text-[10px] text-[var(--text-muted)]">Run tests without browser distractions</div>
                           </div>
                         </div>
 
@@ -567,7 +567,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             )}
                           </div>
                           <div className="text-[10px] text-[var(--text-muted)]">
-                            {pwa.isInstalled ? 'Standalone display mode active' : 'Add to home screen for fast launching'}
+                            {pwa.isInstalled ? 'Running as a standalone app' : 'Add to home screen to launch quickly'}
                           </div>
                         </div>
                       </div>
@@ -608,7 +608,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           {settings.soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
                         </div>
                         <div>
-                          <div className="text-xs font-semibold text-[var(--text-primary)]">Auditory Stimuli &amp; Sound FX</div>
+                          <div className="text-xs font-semibold text-[var(--text-primary)]">Audio Feedback</div>
                           <div className="text-[10px] text-[var(--text-muted)]">Audio beeps and click feedback</div>
                         </div>
                       </div>
@@ -626,7 +626,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           id="toggle-sound-btn"
                           role="switch"
                           aria-checked={settings.soundEnabled}
-                          aria-label="Toggle Auditory Stimuli & Sound FX"
+                          aria-label="Toggle Audio Feedback"
                           onClick={handleToggleSound}
                           className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
                             settings.soundEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
@@ -652,7 +652,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div>
                           <div className="text-xs font-semibold text-[var(--text-primary)]">Haptic Vibration</div>
                           <div className="text-[10px] text-[var(--text-muted)]">
-                            {!hapticsAvailable ? 'Not supported on this device/browser' : 'Tactile pulse on button inputs'}
+                            {!hapticsAvailable ? 'Not supported on this device/browser' : 'Vibrate on button press'}
                           </div>
                         </div>
                       </div>
@@ -767,7 +767,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <div className="p-3 flex items-center justify-between">
                       <div>
                         <div className="text-xs font-semibold text-[var(--text-primary)]">Reduced Motion</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Suppresses application animations, background particles, and UI transitions</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">Disable animations, background particles, and transitions</div>
                       </div>
                       <button type="button"
                         id="toggle-reduced-motion-btn"
@@ -793,7 +793,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <div className="p-3 flex items-center justify-between">
                       <div>
                         <div className="text-xs font-semibold text-[var(--text-primary)]">Exhibition Kiosk Mode</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Locks navigation for public testing terminals</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">Lock navigation for public terminals</div>
                       </div>
                       <button type="button"
                         id="toggle-exhibition-btn"

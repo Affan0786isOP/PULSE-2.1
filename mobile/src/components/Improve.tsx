@@ -163,14 +163,14 @@ export function Improve({
           {/* Header Banner */}
           <div className="text-center pt-2 pb-2 border-b border-[var(--border-subtle)]">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-[11px] font-mono mb-1.5">
-              <Sparkles size={12} />
-              <span>SCIENTIFIC PROTOCOL</span>
+              <BookOpen size={12} />
+              <span>PERFORMANCE GUIDE</span>
             </div>
             <h1 className="font-heading text-xl font-bold tracking-tight text-[var(--text-primary)]">
-              Improve Speed &amp; Focus
+              Performance &amp; Consistency
             </h1>
             <p className="text-[var(--text-secondary)] text-xs mt-1 leading-relaxed">
-              Evidence-based habits and physiological factors to sustain test-retest consistency.
+              Review the physiological factors and habits that affect response latency and measurement consistency.
             </p>
           </div>
 
@@ -315,10 +315,10 @@ export function Improve({
           <section className="flex flex-col gap-2.5">
             <div>
               <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
-                Scientific literature
+                Research ledger
               </span>
               <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
-                Synaptic Insights &amp; Findings
+                Research findings
               </h2>
             </div>
 
@@ -399,19 +399,19 @@ export function Improve({
                 Expectation management
               </span>
               <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
-                Can Everyone Improve?
+                Can you improve your results?
               </h2>
             </div>
             <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed">
               <p>
-                Day-to-day reaction latency varies based on sleep debt, mental fatigue, and input device responsiveness.
+                Absolute physiological limits set a floor on neural transmission speed, but day-to-day variance depends heavily on focus, sleep, and environmental distractions. You can minimize performance dips and achieve higher consistency by maintaining good sleep habits, minimizing hardware input latency, and practicing the tasks.
               </p>
               <div className="pt-2 border-t border-[var(--border-subtle)] space-y-1.5">
                 <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                  <strong className="text-[var(--text-primary)] font-semibold">Practice Effects:</strong> Gains on repetitive benchmark tasks largely reflect task familiarity, stimulus anticipation, and practice effects rather than generalized expansion of innate cognitive capacity.
+                  Longitudinal gains on benchmark tasks largely reflect task familiarity, stimulus anticipation, and motor pattern learning rather than an expansion of overall cognitive capacity.
                 </p>
                 <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                  <strong className="text-[var(--text-primary)] font-semibold">Age Cohorts:</strong> Response variations across age cohorts reflect normative sensory-motor processing differences across populations.
+                  Variations across age cohorts reflect sensory-motor processing differences across populations rather than an absolute indicator of individual biological decline.
                 </p>
               </div>
             </div>
@@ -421,10 +421,10 @@ export function Improve({
           <section className="flex flex-col gap-2.5">
             <div>
               <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
-                Key principles
+                Best practices
               </span>
               <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
-                System Recommendations
+                How to improve
               </h2>
             </div>
 
@@ -432,24 +432,29 @@ export function Improve({
               {[
                 {
                   num: "01",
-                  title: "Consistency",
-                  desc: "Short daily 5-minute sessions beat occasional long sessions.",
+                  title: "Train consistently",
+                  desc: "Short daily sessions of 5-10 minutes build better task familiarity than sporadic long sessions.",
                 },
                 {
                   num: "02",
-                  title: "Accuracy First",
-                  desc: "Build consistency before chasing raw latency speed.",
+                  title: "Incorporate rest",
+                  desc: "Avoid back-to-back testing to prevent eye fatigue and attention drops.",
                 },
                 {
                   num: "03",
-                  title: "Peak Readiness",
-                  desc: "Test when rested and alert to set true biological baselines.",
+                  title: "Prioritize accuracy",
+                  desc: "Establish a low error rate before attempting to maximize speed.",
                 },
                 {
                   num: "04",
-                  title: "Track Rolling Trends",
-                  desc: "Evaluate multi-week rolling averages rather than single trial spikes.",
+                  title: "Test at peak alertness",
+                  desc: "Test when fully alert to establish a true baseline.",
                 },
+                {
+                  num: "05",
+                  title: "Track baseline trends",
+                  desc: "Evaluate progress using multi-week rolling averages rather than individual trials.",
+                }
               ].map((tip) => (
                 <div
                   key={tip.num}

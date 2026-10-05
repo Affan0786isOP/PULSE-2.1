@@ -206,8 +206,11 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--cyan-primary)] mb-3">
                 <Inbox size={20} />
               </div>
-              <p className="text-xs text-[var(--text-secondary)] mb-4">
-                No public rankings yet for {currentProto?.name || 'this test'}.
+              <h3 className="text-sm font-bold text-[var(--text-main)] mb-1">
+                No telemetry recorded
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)] mb-4 px-2">
+                Be the first to complete the {currentProto?.name || 'test'} battery and submit your result.
               </p>
               <button
                 type="button"

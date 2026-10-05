@@ -110,7 +110,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       } else {
         const errorMsg = res?.error
           ? `(${res.status || 'Error'}): ${res.error}`
-          : 'Failed to initialize authoritative experiment session.';
+          : 'Failed to start session.';
         setSessionError(errorMsg);
       }
     } catch (err: any) {
@@ -542,7 +542,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     setIsSubmitting(true);
     
     if (reportStats.average === 0) {
-      setSubmissionError('Assessment non-submittable: Zero valid responses recorded.');
+      setSubmissionError('Cannot submit: no valid responses.');
       isSubmittingRef.current = false;
       setIsSubmitting(false);
       return;
@@ -563,7 +563,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         trials: rawObservationsRef.current
       }).then(res => {
       if (!res || !res.success) {
-        setSubmissionError(res?.error || 'Synchronization failed. Please try again.');
+        setSubmissionError(res?.error || 'Sync failed. Please try again.');
       } else {
         hasSubmittedRef.current = true;
         if (res.derivedMetrics) {
@@ -584,7 +584,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       }
     }).catch(err => {
       console.error("Failed to submit result:", err);
-      setSubmissionError(err.message || 'Synchronization failed. Please try again.');
+      setSubmissionError(err.message || 'Sync failed. Please try again.');
     }).finally(() => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -625,7 +625,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">Session Initialization Failed</h2>
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">Could not start session</h2>
             <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
             <button
               onClick={() => initSession(selectedAgeGroup)}

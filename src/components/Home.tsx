@@ -72,7 +72,7 @@ export function Home() {
         <section aria-labelledby="hero-heading" className="flex flex-col w-full justify-between min-h-0">
           <div className="flex flex-col">
             <div className={`mb-5 sm:mb-6 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
-              <ProvenanceBadge label="RESEARCH-GRADE TELEMETRY" />
+              <ProvenanceBadge label="RESEARCH TELEMETRY" />
             </div>
 
             <h1 
@@ -109,7 +109,7 @@ export function Home() {
               <span className="font-heading font-semibold text-sm sm:text-base text-[var(--text-primary)] mt-0.5">Zero PII Collected</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Battery Protocols</span>
+              <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Test Battery</span>
               <span className="font-heading font-semibold text-sm sm:text-base text-[var(--text-primary)] mt-0.5">5 Standardized Tests</span>
             </div>
           </div>
@@ -231,14 +231,14 @@ export function Home() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <span className="text-[11px] font-mono font-semibold text-[var(--accent)] uppercase tracking-widest block mb-1">
-                MEASUREMENT RIGOR
+                METHODOLOGY
               </span>
               <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-tight">
                 Standardized Telemetry Architecture
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-md leading-relaxed">
-              Every millisecond counts. PULSE combines monotonic Web Audio clocks, native display refresh polling, and input latency modeling to ensure true cross-platform parity.
+              PULSE combines monotonic Web Audio clocks, native display refresh polling, and input latency modeling to ensure cross-platform parity.
             </p>
           </div>
 
@@ -248,10 +248,10 @@ export function Home() {
                 <Cpu size={18} />
               </div>
               <h3 className="font-heading font-bold text-base text-[var(--text-primary)] mb-1.5">
-                Hardware Refresh Interception
+                Hardware Refresh Measurement
               </h3>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
-                Measures the actual v-sync refresh cycle (60Hz, 120Hz, 144Hz, 240Hz) and compensates for frame display quantum delays in stimulus scheduling.
+                Measures the v-sync refresh cycle (60Hz, 120Hz, 144Hz, 240Hz) and compensates for frame display quantum delays in stimulus scheduling.
               </p>
               <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] font-mono text-[11px] text-[var(--accent)]">
                 requestAnimationFrame Calibrated
@@ -266,7 +266,7 @@ export function Home() {
                 Cognitive Dual-Task Battery
               </h3>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
-                Beyond pure motor reflex: evaluates choice bifurcation (CRT), Stroop-like color conflict, Corsi block span, and adaptive digit memory.
+                Evaluates choice bifurcation (CRT), Stroop-like color conflict, Corsi block span, and adaptive digit memory.
               </p>
               <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] font-mono text-[11px] text-emerald-400">
                 5 Coordinated Assessment Tracks
@@ -281,7 +281,7 @@ export function Home() {
                 Open Anonymized Data Lake
               </h3>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
-                Real-time observational telemetry streamed to public analytics. Export CSVs and query distributions across age cohorts and display hardware.
+                Streams observational telemetry to public analytics. Export CSVs and query distributions across age cohorts and display hardware.
               </p>
               <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] font-mono text-[11px] text-[var(--text-muted)]">
                 HMAC-Signed Research Telemetry

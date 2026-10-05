@@ -9,53 +9,53 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
   const assessments = [
     {
       id: 'reaction-test',
-      protocolNumber: 'PROTOCOL 01',
+      protocolNumber: 'TEST 01',
       title: 'Visual Reaction',
-      description: 'Measures pure somatic visual latency. Wait for the signal, then respond immediately with millisecond precision.',
-      type: 'LATENCY TELEMETRY',
+      description: 'Wait for the visual signal, then respond as quickly as possible. Measures basic reaction time.',
+      type: 'REACTION TIME',
       status: 'AVAILABLE',
       logo: '/brand/assessments/reaction.png',
-      badge: 'Sub-Millisecond Engine'
+      badge: 'Latency'
     },
     {
       id: 'direction-test',
-      protocolNumber: 'PROTOCOL 02',
+      protocolNumber: 'TEST 02',
       title: 'Directional Choice',
-      description: 'Evaluates cognitive bifurcation speed and motor execution under two-choice or four-choice directional stimulus conditions.',
-      type: 'CHOICE COORDINATION',
+      description: 'Press the arrow key that matches the direction on screen. Measures how fast you process and react to new information.',
+      type: 'CHOICE SPEED',
       status: 'AVAILABLE',
       logo: '/brand/assessments/direction.png',
-      badge: 'CRT Telemetry'
+      badge: 'Choice Reaction'
     },
     {
       id: 'colour-recognition',
-      protocolNumber: 'PROTOCOL 03',
+      protocolNumber: 'TEST 03',
       title: 'Colour Recognition',
-      description: 'Assesses semantic inhibitory control and selective attention under conflicting lexical and chromatic cues.',
-      type: 'COGNITIVE CONFLICT',
+      description: 'Identify the color of the text when the word and its color do not match. Tests attention and cognitive flexibility.',
+      type: 'ATTENTION',
       status: 'AVAILABLE',
       logo: '/brand/assessments/color.png',
-      badge: 'Stroop Paradigm'
+      badge: 'Stroop Effect'
     },
     {
       id: 'block-memory',
-      protocolNumber: 'PROTOCOL 04',
+      protocolNumber: 'TEST 04',
       title: 'Block Memory',
-      description: 'Benchmarks visuospatial working memory span through progressive spatial block sequence recall.',
-      type: 'SPATIAL WORKING MEMORY',
+      description: 'Remember and repeat increasingly long sequences of highlighted blocks. Tests spatial memory.',
+      type: 'SPATIAL MEMORY',
       status: 'AVAILABLE',
       logo: '/brand/assessments/block.png',
-      badge: 'Corsi Span'
+      badge: 'Corsi Blocks'
     },
     {
       id: 'number-memory',
-      protocolNumber: 'PROTOCOL 05',
+      protocolNumber: 'TEST 05',
       title: 'Number Memory',
-      description: 'Tests phonological loop capacity with adaptive digit span scaling until working memory limit is reached.',
-      type: 'DIGIT SPAN MEMORY',
+      description: 'Remember increasingly long sequences of numbers. Tests short-term working memory.',
+      type: 'WORKING MEMORY',
       status: 'AVAILABLE',
       logo: '/brand/assessments/number.png',
-      badge: 'Adaptive Span'
+      badge: 'Digit Span'
     }
   ];
 
@@ -77,8 +77,8 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
   return (
     <div className="bg-[var(--bg-base)] text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans relative selection:bg-[var(--accent-subtle)]">
       <SEO 
-        title="Cognitive & Latency Assessments | PULSE"
-        description="Explore and start browser-based assessment protocols including reaction time, directional choice speed (CRT), color recognition, block recall, and number memory."
+        title="Assessments | PULSE"
+        description="Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory."
       />
       <Navbar 
         currentView="assessments" 
@@ -99,14 +99,14 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
               <span className="font-mono text-xs text-[var(--accent)] tracking-widest uppercase font-medium">
-                COGNITIVE BENCHMARK BATTERY
+                TEST BATTERY
               </span>
             </div>
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--text-primary)]">
-              Assessment Protocols
+              Assessments
             </h1>
             <p className="text-[var(--text-secondary)] text-sm sm:text-base max-w-2xl leading-relaxed">
-              Standardized neural latency, choice coordination, and working memory recall protocols calibrated to your display's hardware refresh rate.
+              Five tasks measuring reaction time, attention, and memory.
             </p>
           </header>
           
@@ -170,7 +170,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                   
                   {assessment.status === 'AVAILABLE' && (
                     <div className="mt-auto pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors">
-                      <span className="tracking-wide">Launch Battery</span>
+                      <span className="tracking-wide">Start test</span>
                       <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
                     </div>
                   )}

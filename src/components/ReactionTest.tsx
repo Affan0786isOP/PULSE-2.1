@@ -105,12 +105,12 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
       } else {
         const errorMsg = res?.error
           ? `(${res.status || 'Error'}): ${res.error}`
-          : 'Failed to initialize authoritative experiment session.';
+          : 'Failed to start session.';
         setSessionError(errorMsg);
         setIsSessionLoading(false);
       }
     } catch (err: any) {
-      setSessionError(err.message || 'Failed to initialize session. Please check your connection and retry.');
+      setSessionError(err.message || 'Failed to start session. Check your connection and retry.');
       setIsSessionLoading(false);
     }
   }, []);
@@ -263,9 +263,9 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     stimulusPresentedAtRef.current = 0;
 
     setEngineState('AWAITING_STIMULUS'); engineStateRef.current = 'AWAITING_STIMULUS';
-    setStatusMessage('Wait for screen flash...');
+    setStatusMessage('Wait for the flash...');
     if (timerRef.current) timerRef.current.textContent = "000.0";
-    setInputPrompt("HOLD POSITION... DO NOT TRIGGER");
+    setInputPrompt("Do not click yet");
 
     const prng = seedPRNG(`${sessionId || 'vrt'}-reaction-delays-t${nextTrial}-a${attemptNumberRef.current}`);
     const generated = generateVrtForeperiod(prng);
@@ -284,7 +284,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     setEngineState('TRIAL_COMPLETE'); engineStateRef.current = 'TRIAL_COMPLETE';
     setStatusMessage('False Start');
     if (timerRef.current) timerRef.current.textContent = "ERR";
-    setInputPrompt("Triggered too soon! Click to try again");
+    setInputPrompt("You clicked too soon. Click to try again.");
     playAudioCue('error');
     triggerHaptic('error');
 
@@ -348,7 +348,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     setEngineState('TRIAL_COMPLETE'); engineStateRef.current = 'TRIAL_COMPLETE';
     setStatusMessage('Too Slow');
     if (timerRef.current) timerRef.current.textContent = ">3000";
-    setInputPrompt("Too slow (>3.0s)! Click to try again");
+    setInputPrompt("You took longer than 3 seconds. Click to try again.");
     playAudioCue('error');
     triggerHaptic('error');
 
@@ -450,7 +450,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
       setEngineState('TRIAL_COMPLETE'); engineStateRef.current = 'TRIAL_COMPLETE';
       setStatusMessage('False Start');
       if (timerRef.current) timerRef.current.textContent = `${rawLatency.toFixed(0)}ms`;
-      setInputPrompt("Anticipatory reaction (<80ms). Click to try again");
+      setInputPrompt("Under 80ms is a guess. Click to try again.");
       playAudioCue('error');
       triggerHaptic('error');
 
@@ -504,7 +504,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     setEngineState('TRIAL_COMPLETE'); engineStateRef.current = 'TRIAL_COMPLETE';
     if (timerRef.current) timerRef.current.textContent = netLatency.toFixed(1);
     
-    setStatusMessage('Good job!');
+    setStatusMessage('Recorded');
     setInputPrompt(currentTrial < TOTAL_TRIALS ? "Click to continue" : "Click to see your score");
     playAudioCue('success');
     triggerHaptic('success');
@@ -662,7 +662,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     setIsSubmitting(true);
     
     if (reportStats.average === 0) {
-      setSubmissionError('Assessment non-submittable: Zero valid responses recorded.');
+      setSubmissionError('Cannot submit: no valid responses.');
       isSubmittingRef.current = false;
       setIsSubmitting(false);
       return;
@@ -683,7 +683,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         trials: rawObservationsRef.current
       }).then(res => {
       if (!res || !res.success) {
-        setSubmissionError(res?.error || 'Synchronization failed. Please try again.');
+        setSubmissionError(res?.error || 'Sync failed. Please try again.');
       } else {
         hasSubmittedRef.current = true;
         if (res.derivedMetrics) {
@@ -703,7 +703,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
       }
     }).catch(err => {
       console.error("Failed to submit result:", err);
-      setSubmissionError(err.message || 'Synchronization failed. Please try again.');
+      setSubmissionError(err.message || 'Sync failed. Please try again.');
     }).finally(() => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -745,7 +745,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-xl font-bold text-[var(--text-main)]">Session Initialization Failed</h2>
+            <h2 className="text-xl font-bold text-[var(--text-main)]">Could not start session</h2>
             <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
             <button
               onClick={() => initSession(selectedAgeGroup)}
@@ -804,7 +804,7 @@ return (
         {engineState !== 'REPORT' && (
           <div className="w-full max-w-[800px] flex flex-col items-center gap-4 z-30 px-4 mb-8">
             <div className="font-mono text-[0.75rem] text-[#8b9bb466] tracking-[2px] uppercase text-center w-full animate-[fadeIn_0.5s_ease-out] min-h-[1.5rem]">
-              {isSessionLoading ? 'INITIALIZING AUTHORITATIVE SESSION...' : inputPrompt}
+              {isSessionLoading ? 'STARTING SESSION...' : inputPrompt}
             </div>
             <div className="flex justify-center items-center font-mono text-[0.85rem] text-[var(--text-muted)] animate-[fadeIn_0.5s_ease-out]">
               <div className="tracking-[1px]">TRIAL: <span className="text-white">{currentTrial}</span> / {TOTAL_TRIALS}</div>

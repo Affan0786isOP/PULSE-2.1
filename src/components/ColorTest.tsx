@@ -110,7 +110,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       } else {
         const errorMsg = res?.error
           ? `(${res.status || 'Error'}): ${res.error}`
-          : 'Failed to initialize authoritative experiment session.';
+          : 'Failed to start the session.';
         setSessionError(errorMsg);
       }
     } catch (err: any) {
@@ -542,7 +542,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     setIsSubmitting(true);
     
     if (reportStats.average === 0) {
-      setSubmissionError('Assessment non-submittable: Zero valid responses recorded.');
+      setSubmissionError('Cannot save: no valid responses recorded.');
       isSubmittingRef.current = false;
       setIsSubmitting(false);
       return;
@@ -563,7 +563,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         trials: rawObservationsRef.current
       }).then(res => {
       if (!res || !res.success) {
-        setSubmissionError(res?.error || 'Synchronization failed. Please try again.');
+        setSubmissionError(res?.error || 'Could not save results. Please try again.');
       } else {
         hasSubmittedRef.current = true;
         if (res.derivedMetrics) {
@@ -584,7 +584,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       }
     }).catch(err => {
       console.error("Failed to submit result:", err);
-      setSubmissionError(err.message || 'Synchronization failed. Please try again.');
+      setSubmissionError(err.message || 'Could not save results. Please try again.');
     }).finally(() => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -625,13 +625,13 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">Session Initialization Failed</h2>
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">Could Not Start Session</h2>
             <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
             <button
               onClick={() => initSession(selectedAgeGroup)}
               className="px-6 py-2.5 rounded-xl bg-[var(--cyan-primary)] text-black font-semibold hover:opacity-90 transition flex items-center gap-2"
             >
-              <RefreshCw className="w-4 h-4" /> Retry Connection
+              <RefreshCw className="w-4 h-4" /> Try Again
             </button>
           </div>
         </main>
@@ -872,7 +872,7 @@ return (
             {/* Content */}
             <div className="space-y-2.5 text-xs text-[var(--text-secondary)] leading-relaxed">
               <p className="text-[11px] sm:text-xs text-[var(--text-muted)] font-medium">
-                Check the instruction prompt at the top of each round before selecting your answer:
+                Read the instruction at the top of each round before you answer:
               </p>
 
               {/* Rule 1: MATCH THE WORD */}
@@ -941,7 +941,7 @@ return (
                 }}
                 className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[var(--cyan-primary)] hover:bg-[#00d0dd] text-black font-heading font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer active:scale-95 text-center"
               >
-                Got It, Let's Play!
+                Start
               </button>
             </div>
           </div>

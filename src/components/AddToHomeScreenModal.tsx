@@ -173,7 +173,7 @@ export function AddToHomeScreenModal({
                     </span>
                   </div>
                   <p className="text-xs text-[var(--text-muted)]">
-                    Standalone window &amp; convenient home screen access
+                    Open PULSE in its own window from your home screen
                   </p>
                 </div>
               </div>
@@ -200,10 +200,10 @@ export function AddToHomeScreenModal({
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wide">
-                      Installed Application Active
+                      App installed
                     </h4>
                     <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
-                      PULSE is running as an installed standalone application with dedicated viewport isolation.
+                      PULSE is running in its own window.
                     </p>
                   </div>
                 </div>
@@ -215,16 +215,16 @@ export function AddToHomeScreenModal({
                       <div className="w-5 h-5 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] flex items-center justify-center">
                         <Zap size={12} />
                       </div>
-                      <span className="text-xs font-bold text-[var(--text-primary)]">Dedicated Viewport</span>
-                      <span className="text-[10px] text-[var(--text-muted)] leading-tight">Runs in an isolated window without standard browser address bars</span>
+                      <span className="text-xs font-bold text-[var(--text-primary)]">App window</span>
+                      <span className="text-[10px] text-[var(--text-muted)] leading-tight">Runs in its own window without browser address bars</span>
                     </div>
 
                     <div className="p-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex flex-col gap-1">
                       <div className="w-5 h-5 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] flex items-center justify-center">
                         <Maximize2 size={12} />
                       </div>
-                      <span className="text-xs font-bold text-[var(--text-primary)]">Edge-to-Edge Canvas</span>
-                      <span className="text-[10px] text-[var(--text-muted)] leading-tight">Uninterrupted screen space with full hardware touch responsiveness</span>
+                      <span className="text-xs font-bold text-[var(--text-primary)]">Full screen</span>
+                      <span className="text-[10px] text-[var(--text-muted)] leading-tight">More screen space and faster touch response</span>
                     </div>
                   </div>
 
@@ -236,7 +236,7 @@ export function AddToHomeScreenModal({
                         <span>In-App Browser Detected</span>
                       </div>
                       <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                        In-app browsers (social media and messaging webviews) do not support home screen installation. Open this page directly in <strong className="text-[var(--text-primary)]">Chrome</strong> or <strong className="text-[var(--text-primary)]">Safari</strong> to install.
+                        Browsers inside social media or messaging apps cannot install apps to your home screen. Open this page directly in <strong className="text-[var(--text-primary)]">Chrome</strong> or <strong className="text-[var(--text-primary)]">Safari</strong> to install.
                       </p>
                     </div>
                   ) : isIosChrome ? (
@@ -302,7 +302,7 @@ export function AddToHomeScreenModal({
                         <span>Add to Home Screen on iOS</span>
                       </div>
                       <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                        Tap your browser's <strong className="text-[var(--text-primary)]">Share</strong> or <strong className="text-[var(--text-primary)]">Menu</strong> button and select <strong className="text-[var(--text-primary)]">Add to Home Screen</strong>, or copy the URL to open in Safari / Chrome.
+                        Tap the <strong className="text-[var(--text-primary)]">Share</strong> or <strong className="text-[var(--text-primary)]">Menu</strong> button and select <strong className="text-[var(--text-primary)]">Add to Home Screen</strong>, or copy the URL to open in Safari or Chrome.
                       </p>
                       <button
                         type="button"
@@ -372,7 +372,7 @@ export function AddToHomeScreenModal({
                   ) : hasNativePrompt ? (
                     <div className="space-y-3">
                       <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                        Install PULSE directly to your device for instant one-tap launching and an isolated window.
+                        Install PULSE to open it directly from your home screen in its own window.
                       </p>
 
                       <button 
@@ -382,13 +382,13 @@ export function AddToHomeScreenModal({
                         className="w-full py-2.5 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-2 transition-colors active:scale-98 cursor-pointer shadow-sm"
                       >
                         <Download size={14} />
-                        <span>Install PULSE Application</span>
+                        <span>Install PULSE</span>
                       </button>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                        Install PULSE via your browser menu for one-tap home screen access and standalone execution.
+                        Install PULSE from your browser menu to open it directly from your home screen.
                       </p>
 
                       <div className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg p-3 space-y-2 mt-2 font-mono text-xs">
@@ -411,10 +411,10 @@ export function AddToHomeScreenModal({
             <div className="px-5 py-3 border-t border-[var(--border-subtle)] bg-[var(--surface-1)] flex items-center justify-between shrink-0">
               <span className="text-[10px] font-mono text-[var(--text-muted)]">
                 {isInstalled 
-                  ? 'Standalone Mode Ready' 
+                  ? 'App installed' 
                   : isOffline 
-                    ? 'Offline Mode Active' 
-                    : 'Local client cache enabled'}
+                    ? 'Offline' 
+                    : 'Ready to install'}
               </span>
               <button 
                 type="button"

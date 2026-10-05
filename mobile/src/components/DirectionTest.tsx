@@ -99,7 +99,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       } else {
         const errorMsg = res?.error
           ? `(${res.status || 'Error'}): ${res.error}`
-          : 'Failed to initialize authoritative experiment session.';
+          : 'Failed to start session.';
         setSessionError(errorMsg);
       }
     } catch (err: any) {
@@ -182,7 +182,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       }
     });
     
-    setStatusMessage('Press Arrow or Tap Button Now!');
+    setStatusMessage('Press the matching arrow');
     setInputPrompt("");
     if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     updateLiveTimer();
@@ -199,9 +199,9 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
     if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     setEngineState('TRIAL_COMPLETE'); engineStateRef.current = 'TRIAL_COMPLETE';
-    setStatusMessage('Too Slow');
+    setStatusMessage('Too slow');
     if (timerRef.current) timerRef.current.textContent = ">3000";
-    setInputPrompt("Too slow (>3.0s)!");
+    setInputPrompt("Too slow (over 3 seconds).");
     playAudioCue('error');
     triggerHaptic('error');
 
@@ -294,15 +294,15 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     }
 
     setEngineState('STARTING'); engineStateRef.current = 'STARTING';
-    setStatusMessage('Initializing...');
+    setStatusMessage('Setting up...');
     if (timerRef.current) timerRef.current.textContent = "000.0";
-    setInputPrompt("Click to start");
+    setInputPrompt("");
 
     if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
     stimulusTimeout.current = setTimeout(() => {
       setEngineState('AWAITING_STIMULUS'); engineStateRef.current = 'AWAITING_STIMULUS';
-      setStatusMessage('Wait for arrow...');
-      setInputPrompt("HOLD POSITION... DO NOT TRIGGER");
+      setStatusMessage('Wait');
+      setInputPrompt("Wait for the next arrow");
 
       const prng = seedPRNG(sessionId + "-direction-" + (currentTrialRef.current - 1));
       const windowDelay = prng() * (MAX_DELAY - MIN_DELAY) + MIN_DELAY;
@@ -319,9 +319,9 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
     if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     setEngineState('TRIAL_COMPLETE'); engineStateRef.current = 'TRIAL_COMPLETE';
-    setStatusMessage('False Start');
+    setStatusMessage('False start');
     if (timerRef.current) timerRef.current.textContent = "ERR";
-    setInputPrompt("Too soon! Click to try this trial again");
+    setInputPrompt("Too soon. Click to try again.");
     playAudioCue('error');
     triggerHaptic('error');
 
@@ -367,9 +367,9 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     // Physiological RT threshold check (choice reaction times < 80ms are anticipatory guesses)
     if (rawLatency < 80) {
       setEngineState('TRIAL_COMPLETE'); engineStateRef.current = 'TRIAL_COMPLETE';
-      setStatusMessage('False Start');
+      setStatusMessage('False start');
       if (timerRef.current) timerRef.current.textContent = `${rawLatency.toFixed(0)}ms`;
-      setInputPrompt("Anticipatory reaction (<80ms). Click to try again");
+      setInputPrompt("Too fast (under 80ms). Click to try again.");
       playAudioCue('error');
       triggerHaptic('error');
 
@@ -404,8 +404,8 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     if (timerRef.current) timerRef.current.textContent = netLatency.toFixed(1);
     
     const isCorrect = dir === currentDirection;
-    setStatusMessage(isCorrect ? 'Correct!' : 'Incorrect!');
-    setInputPrompt(currentTrialRef.current < TOTAL_TRIALS ? "Get ready..." : "Click to see your score");
+    setStatusMessage(isCorrect ? 'Correct' : 'Incorrect');
+    setInputPrompt(currentTrialRef.current < TOTAL_TRIALS ? "Get ready" : "Click to see your score");
 
     if (isCorrect) {
       playAudioCue('success');
@@ -467,7 +467,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     } else if (engineStateRef.current === 'TRIAL_COMPLETE') {
       if (dir) return; // Prevent manual advance
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
-      const isRetry = statusMessage === 'False Start';
+      const isRetry = statusMessage === 'False start';
       if (!isRetry && currentTrialRef.current >= TOTAL_TRIALS) {
         calculateAndFinalizeMetrics(trialDatasetRef.current);
       } else {
@@ -544,7 +544,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     timerClass += " text-[var(--cyan-primary)]";
     statusClass += " text-[var(--cyan-primary)]";
   } else if (engineState === 'TRIAL_COMPLETE') {
-    const isError = statusMessage === 'False Start' || statusMessage === 'Incorrect!' || statusMessage === 'Too Slow';
+    const isError = statusMessage === 'False start' || statusMessage === 'Incorrect' || statusMessage === 'Too slow';
     if (isError) {
       apparatusClass += " border-[rgba(255,51,102,0.4)] bg-[rgba(255,51,102,0.05)] animate-[hardwareShake_0.4s_cubic-bezier(.36,.07,.19,.97)_both]";
       timerClass += " text-[var(--color-error)]";
@@ -585,7 +585,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       setCurrentTrial(0); 
       currentTrialRef.current = 0;
       setStatusMessage('Click to start'); 
-      setInputPrompt('Press arrow key or tap button to start'); 
+      setInputPrompt('Press space or click to start'); 
       setFalseStartsCount(0);
       falseStartsCountRef.current = 0;
     }
@@ -597,7 +597,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     setIsSubmitting(true);
     
     if (reportStats.average === 0) {
-      setSubmissionError('Assessment non-submittable: Zero valid responses recorded.');
+      setSubmissionError('Cannot submit: no valid responses recorded.');
       isSubmittingRef.current = false;
       setIsSubmitting(false);
       return;
@@ -618,7 +618,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
         trials: rawObservationsRef.current
       }).then(res => {
       if (!res || !res.success) {
-        setSubmissionError(res?.error || 'Synchronization failed. Please try again.');
+        setSubmissionError(res?.error || 'Sync failed. Please try again.');
       } else {
         hasSubmittedRef.current = true;
         if (res.derivedMetrics) {
@@ -638,7 +638,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       }
     }).catch(err => {
       console.error("Failed to submit result:", err);
-      setSubmissionError(err.message || 'Synchronization failed. Please try again.');
+      setSubmissionError(err.message || 'Sync failed. Please try again.');
     }).finally(() => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -690,7 +690,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
         <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">Session Initialization Failed</h2>
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">Could not start session</h2>
             <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
             <button
               onClick={() => initSession(selectedAgeGroup)}
@@ -749,7 +749,7 @@ return (
         {engineState !== 'REPORT' && (
           <div className="w-full max-w-[800px] flex flex-col items-center gap-2 z-30 px-4 mb-8">
             <div className="font-mono text-xs text-[var(--text-muted)] tracking-wider uppercase text-center w-full animate-[fadeIn_0.3s_ease-out] min-h-[1.5rem]">
-              {isSessionLoading ? 'INITIALIZING AUTHORITATIVE SESSION...' : inputPrompt}
+              {isSessionLoading ? 'Connecting...' : inputPrompt}
             </div>
             <div className="flex justify-center items-center font-mono text-xs text-[var(--text-secondary)] animate-[fadeIn_0.3s_ease-out]">
               <div className="tracking-wide">TRIAL: <span className="text-[var(--text-primary)] font-bold">{currentTrial}</span> / {TOTAL_TRIALS}</div>

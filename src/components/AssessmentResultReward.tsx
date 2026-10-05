@@ -139,7 +139,7 @@ export function AssessmentResultReward({
       {/* Top Header: Assessment Title & Real Personal Best Badge */}
       <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
         <span className="font-mono text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-          {title} • Session Outcome
+          {title} Result
         </span>
         {historyStats.isNewPersonalBest && (
           <span className="inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--accent)] bg-[var(--accent-subtle)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
@@ -152,7 +152,7 @@ export function AssessmentResultReward({
       {historyStats.pbError && !submissionError && (
         <div className="w-full text-[10px] font-mono text-amber-400/80 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded text-center my-1 flex items-center justify-center gap-1.5">
           <AlertCircle size={11} className="shrink-0" />
-          <span>Personal best history unavailable</span>
+          <span>Could not load personal best</span>
         </div>
       )}
 
@@ -242,8 +242,8 @@ export function AssessmentResultReward({
             onClick={onViewLeaderboard}
             id="result-leaderboard-button"
             className="w-10 h-10 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--border-subtle)] active:bg-[var(--surface-3)] active:scale-[0.97] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] flex items-center justify-center transition-[background-color,color,transform] cursor-pointer shrink-0"
-            title="View Leaderboard & Benchmarks"
-            aria-label="View Leaderboard & Benchmarks"
+            title="View leaderboard"
+            aria-label="View leaderboard"
           >
             <Trophy size={15} />
           </button>
