@@ -87,8 +87,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
   return (
     <div className="bg-transparent text-[var(--text-main)] font-sans min-h-[100dvh] w-full flex flex-col selection:bg-cyan-500/30">
       <SEO
-        title="Dataset & Data Explorer | PULSE Mobile"
-        description="Explore anonymized reaction time and cognitive performance data from the global PULSE research dataset."
+        title="Dataset Coming Soon | PULSE"
+        description="The public PULSE research dataset is being prepared for release."
       />
       <Navbar currentView="dataset" onNavigate={onNavigate} title="DATASET" />
 
