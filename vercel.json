@@ -1,4 +1,5 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "cleanUrls": false,
   "functions": {
@@ -6,45 +7,432 @@
       "includeFiles": "dist/server.js"
     }
   },
-  "rewrites": [
+  "redirects": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.ts"
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.pulse-lab.in"
+        }
+      ],
+      "destination": "https://pulse-lab.in/:path*",
+      "statusCode": 301,
+      "preserveQueryParams": true
     },
     {
-      "source": "/api",
-      "destination": "/api/index.ts"
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "pulse2-one.vercel.app"
+        }
+      ],
+      "destination": "https://pulse-lab.in/:path*",
+      "statusCode": 301,
+      "preserveQueryParams": true
     },
     {
-      "source": "/mobile/assets/:path*",
-      "destination": "/mobile/assets/:path*"
+      "source": "/index.html",
+      "destination": "/",
+      "statusCode": 301,
+      "preserveQueryParams": true
     },
     {
-      "source": "/mobile/:path*\\.:ext",
-      "destination": "/mobile/:path*\\.:ext"
+      "source": "/mobile/index.html",
+      "destination": "/mobile/",
+      "statusCode": 301,
+      "preserveQueryParams": true
     },
     {
       "source": "/mobile",
-      "destination": "/mobile/index.html"
+      "destination": "/mobile/",
+      "statusCode": 301,
+      "preserveQueryParams": true
     },
     {
-      "source": "/mobile/",
-      "destination": "/mobile/index.html"
+      "source": "/visual-reaction",
+      "destination": "/reaction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
     },
     {
-      "source": "/mobile/:path*",
-      "destination": "/mobile/index.html"
+      "source": "/visual-reaction/",
+      "destination": "/reaction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
     },
     {
-      "source": "/assets/:path*",
-      "destination": "/assets/:path*"
+      "source": "/direction",
+      "destination": "/direction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
     },
     {
-      "source": "/((?!api/|mobile/|assets/|.*\\..*).*)",
-      "destination": "/index.html"
+      "source": "/direction/",
+      "destination": "/direction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/color-recognition",
+      "destination": "/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/color-recognition/",
+      "destination": "/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/color-test",
+      "destination": "/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/color-test/",
+      "destination": "/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/block-memory-test",
+      "destination": "/block-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/block-memory-test/",
+      "destination": "/block-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/number-memory-test",
+      "destination": "/number-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/number-memory-test/",
+      "destination": "/number-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/research-privacy",
+      "destination": "/privacy",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/research-privacy/",
+      "destination": "/privacy",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/analytics",
+      "destination": "/dataset",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/analytics/",
+      "destination": "/dataset",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/visual-reaction",
+      "destination": "/mobile/reaction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/visual-reaction/",
+      "destination": "/mobile/reaction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/direction",
+      "destination": "/mobile/direction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/direction/",
+      "destination": "/mobile/direction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/color-recognition",
+      "destination": "/mobile/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/color-recognition/",
+      "destination": "/mobile/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/color-test",
+      "destination": "/mobile/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/color-test/",
+      "destination": "/mobile/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/block-memory-test",
+      "destination": "/mobile/block-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/block-memory-test/",
+      "destination": "/mobile/block-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/number-memory-test",
+      "destination": "/mobile/number-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/number-memory-test/",
+      "destination": "/mobile/number-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/research-privacy",
+      "destination": "/mobile/privacy",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/research-privacy/",
+      "destination": "/mobile/privacy",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/analytics",
+      "destination": "/mobile/dataset",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/analytics/",
+      "destination": "/mobile/dataset",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/assessments/",
+      "destination": "/assessments",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/leaderboard/",
+      "destination": "/leaderboard",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/dataset/",
+      "destination": "/dataset",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/improve/",
+      "destination": "/improve",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/privacy/",
+      "destination": "/privacy",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/reaction-test/",
+      "destination": "/reaction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/direction-test/",
+      "destination": "/direction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/colour-recognition/",
+      "destination": "/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/block-memory/",
+      "destination": "/block-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/number-memory/",
+      "destination": "/number-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/assessments/",
+      "destination": "/mobile/assessments",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/leaderboard/",
+      "destination": "/mobile/leaderboard",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/dataset/",
+      "destination": "/mobile/dataset",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/improve/",
+      "destination": "/mobile/improve",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/privacy/",
+      "destination": "/mobile/privacy",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/reaction-test/",
+      "destination": "/mobile/reaction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/direction-test/",
+      "destination": "/mobile/direction-test",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/colour-recognition/",
+      "destination": "/mobile/colour-recognition",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/block-memory/",
+      "destination": "/mobile/block-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/mobile/number-memory/",
+      "destination": "/mobile/number-memory",
+      "statusCode": 301,
+      "preserveQueryParams": true
+    },
+    {
+      "source": "/admin/",
+      "destination": "/admin",
+      "statusCode": 301,
+      "preserveQueryParams": true
     }
   ],
   "headers": [
+    {
+      "source": "/dataset",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/analytics",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/mobile/dataset",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/mobile/analytics",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/admin",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/admin/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
     {
       "source": "/assets/:path*",
       "headers": [
@@ -80,6 +468,141 @@
           "value": "public, max-age=3600"
         }
       ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/api",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/mobile/",
+      "destination": "/seo/mobile/home.html"
+    },
+    {
+      "source": "/mobile/assessments",
+      "destination": "/seo/mobile/assessments.html"
+    },
+    {
+      "source": "/mobile/leaderboard",
+      "destination": "/seo/mobile/leaderboard.html"
+    },
+    {
+      "source": "/mobile/dataset",
+      "destination": "/seo/mobile/dataset.html"
+    },
+    {
+      "source": "/mobile/improve",
+      "destination": "/seo/mobile/improve.html"
+    },
+    {
+      "source": "/mobile/privacy",
+      "destination": "/seo/mobile/privacy.html"
+    },
+    {
+      "source": "/mobile/reaction-test",
+      "destination": "/seo/mobile/reaction-test.html"
+    },
+    {
+      "source": "/mobile/direction-test",
+      "destination": "/seo/mobile/direction-test.html"
+    },
+    {
+      "source": "/mobile/colour-recognition",
+      "destination": "/seo/mobile/colour-recognition.html"
+    },
+    {
+      "source": "/mobile/block-memory",
+      "destination": "/seo/mobile/block-memory.html"
+    },
+    {
+      "source": "/mobile/number-memory",
+      "destination": "/seo/mobile/number-memory.html"
+    },
+    {
+      "source": "/assessments",
+      "destination": "/seo/assessments.html"
+    },
+    {
+      "source": "/leaderboard",
+      "destination": "/seo/leaderboard.html"
+    },
+    {
+      "source": "/dataset",
+      "destination": "/seo/dataset.html"
+    },
+    {
+      "source": "/improve",
+      "destination": "/seo/improve.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/seo/privacy.html"
+    },
+    {
+      "source": "/reaction-test",
+      "destination": "/seo/reaction-test.html"
+    },
+    {
+      "source": "/direction-test",
+      "destination": "/seo/direction-test.html"
+    },
+    {
+      "source": "/colour-recognition",
+      "destination": "/seo/colour-recognition.html"
+    },
+    {
+      "source": "/block-memory",
+      "destination": "/seo/block-memory.html"
+    },
+    {
+      "source": "/number-memory",
+      "destination": "/seo/number-memory.html"
+    },
+    {
+      "source": "/admin/login",
+      "destination": "/seo/admin--login.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/seo/admin.html"
+    },
+    {
+      "source": "/admin/overview",
+      "destination": "/seo/admin--overview.html"
+    },
+    {
+      "source": "/admin/moderation",
+      "destination": "/seo/admin--moderation.html"
+    },
+    {
+      "source": "/admin/quality",
+      "destination": "/seo/admin--quality.html"
+    },
+    {
+      "source": "/admin/export-audit",
+      "destination": "/seo/admin--export-audit.html"
+    },
+    {
+      "source": "/admin/audit",
+      "destination": "/seo/admin--audit.html"
     }
   ]
 }
