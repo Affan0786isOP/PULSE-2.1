@@ -48,12 +48,17 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
                       host.includes('ais-dev') || 
                       host.includes('run.app');
 
+    const isProduction = host === 'pulse-lab.in' || host === 'www.pulse-lab.in';
+
     if (isStaging) {
       res.setHeader('X-Robots-Tag', 'noindex, nofollow');
       if (req.path === '/robots.txt') {
         res.setHeader('Content-Type', 'text/plain');
         return res.send('User-agent: *\nDisallow: /\n');
       }
+    } else if (isProduction) {
+      // Production is explicitly indexable; do not inherit a noindex header.
+      res.setHeader('X-Robots-Tag', 'index, follow');
     }
 
     next();

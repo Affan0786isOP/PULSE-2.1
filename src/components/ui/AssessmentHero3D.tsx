@@ -136,6 +136,9 @@ export function AssessmentHero3D() {
               return (
                 <motion.div
                   key={assessment.id}
+                  role="button"
+                  tabIndex={Math.abs(offset) <= 1 ? 0 : -1}
+                  aria-label={isActive ? "Launch " + assessment.title : "Select " + assessment.title}
                   initial={false}
                   animate={{
                     rotateY,
@@ -158,11 +161,21 @@ export function AssessmentHero3D() {
                     transformOrigin: 'center center',
                     pointerEvents: Math.abs(offset) <= 1 ? 'auto' : 'none'
                   }}
-                  className={`flex flex-col bg-[var(--surface-1)] rounded-2xl border transition-colors ${
-                    isActive 
-                      ? 'border-[var(--accent)]/50 shadow-[0_16px_40px_rgba(0,0,0,0.6),0_0_25px_var(--accent-subtle)]' 
+                  className={"flex flex-col bg-[var(--surface-1)] rounded-2xl border transition-colors " + (
+                    isActive
+                      ? 'border-[var(--accent)]/50 shadow-[0_16px_40px_rgba(0,0,0,0.6),0_0_25px_var(--accent-subtle)]'
                       : 'border-[var(--border-subtle)]'
-                  } overflow-hidden cursor-pointer`}
+                  ) + " overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (isActive) {
+                        navigate(assessment.targetRoute);
+                      } else {
+                        handleSelect(index);
+                      }
+                    }
+                  }}
                   onClick={() => {
                     if (isActive) {
                       navigate(assessment.targetRoute);

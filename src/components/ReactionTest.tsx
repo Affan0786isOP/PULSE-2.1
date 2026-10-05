@@ -873,6 +873,7 @@ return (
             onKeyDown={(e) => {
               if (e.code === 'Space' || e.key === 'Enter') {
                 e.preventDefault();
+                e.stopPropagation();
                 executeTrigger(e.nativeEvent);
               }
             }}

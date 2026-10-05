@@ -6,6 +6,7 @@ import { useSettings } from './lib/settingsStore';
 import { useSystemTheme } from './lib/useSystemTheme';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { Home } from './components/Home';
+import { DatasetComingSoon } from '../../src/components/DatasetComingSoon';
 
 import { 
   evaluateDeviceRouting, 
@@ -32,7 +33,6 @@ const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({
 const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
-const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
 
 const RouteFallback = () => (
   <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center font-sans">
@@ -136,8 +136,8 @@ function App() {
                   <Route path="/index.html" element={<RedirectIndexHtml />} />
                   <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
-                  <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
-                  <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
+                  <Route path="/dataset" element={<DatasetComingSoon />} />
+                  <Route path="/analytics" element={<DatasetComingSoon />} />
                   <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                   <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                   <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />

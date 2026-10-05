@@ -16,16 +16,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pulse-lab.in/dataset</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pulse-lab.in/analytics</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://pulse-lab.in/improve</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
