@@ -174,8 +174,9 @@ export function SEO({
       }
       jsonLdScript.setAttribute('data-owner-id', currentOwnerId);
       jsonLdScript.textContent = serializedSchema;
-    } else if (jsonLdScript) {
-      jsonLdScript.remove();
+    } else {
+      // Preserve build-time JSON-LD on direct page loads. A page-level SEO component
+      // without a schema must not erase structured data already present in the HTML shell.
     }
 
     return () => {
