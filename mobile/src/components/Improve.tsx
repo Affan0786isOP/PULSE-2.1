@@ -140,8 +140,8 @@ export function Improve({
   return (
     <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-cyan-500/30 relative">
       <SEO 
-        title="Calibrating & Improving Input Latency | PULSE Mobile"
-        description="Evidence-based research, physiological variables, and habit preparation protocols to support response consistency and minimize latency."
+        title="Performance Guide | PULSE"
+        description="Review research, physiological factors, and preparation habits that affect response time and measurement consistency."
       />
       {/* Navbar Header */}
       <Navbar currentView="improve" onNavigate={onNavigate} title="IMPROVE" />
