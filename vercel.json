@@ -309,6 +309,26 @@
       "source": "/admin/",
       "destination": "/admin",
       "statusCode": 301
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/privacy",
+      "statusCode": 301
+    },
+    {
+      "source": "/privacy-policy/",
+      "destination": "/privacy",
+      "statusCode": 301
+    },
+    {
+      "source": "/mobile/privacy-policy",
+      "destination": "/mobile/privacy",
+      "statusCode": 301
+    },
+    {
+      "source": "/mobile/privacy-policy/",
+      "destination": "/mobile/privacy",
+      "statusCode": 301
     }
   ],
   "headers": [
