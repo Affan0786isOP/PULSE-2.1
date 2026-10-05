@@ -649,7 +649,8 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       />
       
       <main 
-        className="flex-1 w-full relative flex flex-col items-center justify-center overflow-y-auto bg-transparent py-4 pb-safe px-safe"
+        className="flex-1 w-full relative flex flex-col items-center justify-center overflow-y-auto bg-transparent py-4 pb-safe px-safe">
+        <h1 className="sr-only">Colour Recognition Test</h1>
         style={{ 
           paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
           paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
