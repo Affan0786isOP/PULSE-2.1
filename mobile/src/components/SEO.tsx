@@ -105,6 +105,7 @@ export function SEO({
     updateMetaTag('property', 'og:url', finalCanonical, 'property');
     updateMetaTag('property', 'og:type', ogType, 'property');
     updateMetaTag('property', 'og:site_name', 'PULSE', 'property');
+    updateMetaTag('property', 'og:locale', 'en_US', 'property');
     updateMetaTag('property', 'og:image', ogImage, 'property');
     updateMetaTag('property', 'og:image:width', '1200', 'property');
     updateMetaTag('property', 'og:image:height', '630', 'property');
