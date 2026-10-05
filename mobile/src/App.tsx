@@ -6,6 +6,7 @@ import { useSettings } from './lib/settingsStore';
 import { useSystemTheme } from './lib/useSystemTheme';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { Home } from './components/Home';
+import { RouteSEO } from './components/RouteSEO';
 import { DatasetComingSoon } from '../../src/components/DatasetComingSoon';
 
 import { 
@@ -131,6 +132,7 @@ function App() {
                 className="flex-1 flex flex-col w-full"
               >
                 <React.Suspense fallback={<RouteFallback />}>
+                <RouteSEO />
                 <Routes location={location}>
                   <Route path="/" element={<Home onNavigate={handleNavigate} />} />
                   <Route path="/index.html" element={<RedirectIndexHtml />} />
