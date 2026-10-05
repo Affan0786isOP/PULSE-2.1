@@ -82,7 +82,7 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     path: '/privacy',
     domain: undefined, // Deferred
     navigationLabel: 'Privacy',
-    aliases: ['/research-privacy'],
+    aliases: ['/research-privacy', '/privacy-policy'],
     deviceAvailability: 'all',
     seoBehavior: { index: true },
     isAdministrative: false,
