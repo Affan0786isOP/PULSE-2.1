@@ -86,10 +86,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   return (
     <div className="bg-transparent text-[var(--text-main)] font-sans min-h-[100dvh] w-full flex flex-col selection:bg-cyan-500/30">
-      <SEO
-        title="Dataset Coming Soon | PULSE"
-        description="The public PULSE research dataset is being prepared for release."
-      />
+      <SEO title="Dataset Coming Soon | PULSE" description="The public PULSE research dataset is being prepared for release." noindex />
       <Navbar currentView="dataset" onNavigate={onNavigate} title="DATASET" />
 
       <main 
