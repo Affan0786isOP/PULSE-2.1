@@ -16,5 +16,6 @@ Allow: /colour-recognition
 Disallow: /admin
 Disallow: /admin/
 Disallow: /admin/*
-
+Disallow: /api/
+Disallow: /seo/
 Sitemap: https://pulse-lab.in/sitemap.xml
