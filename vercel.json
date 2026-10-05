@@ -17,8 +17,7 @@
         }
       ],
       "destination": "https://pulse-lab.in/:path*",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/:path*",
@@ -29,344 +28,287 @@
         }
       ],
       "destination": "https://pulse-lab.in/:path*",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/index.html",
       "destination": "/",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/index.html",
       "destination": "/mobile/",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile",
       "destination": "/mobile/",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/visual-reaction",
       "destination": "/reaction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/visual-reaction/",
       "destination": "/reaction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/direction",
       "destination": "/direction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/direction/",
       "destination": "/direction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/color-recognition",
       "destination": "/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/color-recognition/",
       "destination": "/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/color-test",
       "destination": "/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/color-test/",
       "destination": "/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/block-memory-test",
       "destination": "/block-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/block-memory-test/",
       "destination": "/block-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/number-memory-test",
       "destination": "/number-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/number-memory-test/",
       "destination": "/number-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/research-privacy",
       "destination": "/privacy",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/research-privacy/",
       "destination": "/privacy",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/analytics",
       "destination": "/dataset",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/analytics/",
       "destination": "/dataset",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/visual-reaction",
       "destination": "/mobile/reaction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/visual-reaction/",
       "destination": "/mobile/reaction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/direction",
       "destination": "/mobile/direction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/direction/",
       "destination": "/mobile/direction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/color-recognition",
       "destination": "/mobile/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/color-recognition/",
       "destination": "/mobile/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/color-test",
       "destination": "/mobile/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/color-test/",
       "destination": "/mobile/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/block-memory-test",
       "destination": "/mobile/block-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/block-memory-test/",
       "destination": "/mobile/block-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/number-memory-test",
       "destination": "/mobile/number-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/number-memory-test/",
       "destination": "/mobile/number-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/research-privacy",
       "destination": "/mobile/privacy",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/research-privacy/",
       "destination": "/mobile/privacy",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/analytics",
       "destination": "/mobile/dataset",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/analytics/",
       "destination": "/mobile/dataset",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/assessments/",
       "destination": "/assessments",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/leaderboard/",
       "destination": "/leaderboard",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/dataset/",
       "destination": "/dataset",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/improve/",
       "destination": "/improve",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/privacy/",
       "destination": "/privacy",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/reaction-test/",
       "destination": "/reaction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/direction-test/",
       "destination": "/direction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/colour-recognition/",
       "destination": "/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/block-memory/",
       "destination": "/block-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/number-memory/",
       "destination": "/number-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/assessments/",
       "destination": "/mobile/assessments",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/leaderboard/",
       "destination": "/mobile/leaderboard",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/dataset/",
       "destination": "/mobile/dataset",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/improve/",
       "destination": "/mobile/improve",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/privacy/",
       "destination": "/mobile/privacy",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/reaction-test/",
       "destination": "/mobile/reaction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/direction-test/",
       "destination": "/mobile/direction-test",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/colour-recognition/",
       "destination": "/mobile/colour-recognition",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/block-memory/",
       "destination": "/mobile/block-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/mobile/number-memory/",
       "destination": "/mobile/number-memory",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     },
     {
       "source": "/admin/",
       "destination": "/admin",
-      "statusCode": 301,
-      "preserveQueryParams": true
+      "statusCode": 301
     }
   ],
   "headers": [
