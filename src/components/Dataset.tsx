@@ -89,10 +89,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   return (
     <div className="bg-[var(--bg-base)] text-[var(--text-primary)] font-sans min-h-[100dvh] w-full flex flex-col selection:bg-[var(--accent-subtle)]">
-      <SEO
-        title="Dataset & Data Explorer | PULSE"
-        description="Explore anonymized reaction time and cognitive performance data from the global PULSE dataset."
-      />
+      <SEO title="Dataset Coming Soon | PULSE" description="The public PULSE research dataset is being prepared for release." noindex />
       <Navbar currentView="dataset" onNavigate={onNavigate} />
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col gap-4">
