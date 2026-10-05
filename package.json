@@ -10,7 +10,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "dev": "tsx server.ts",
-    "build": "vite build && vite build --config mobile/vite.config.ts && esbuild server.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/server.js",
+    "build": "vite build && vite build --config mobile/vite.config.ts && node scripts/generate-seo-pages.mjs && esbuild server.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/server.js",
     "start": "node dist/server.js",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
