@@ -54,7 +54,7 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     navigationLabel: 'Dataset',
     aliases: [],
     deviceAvailability: 'all',
-    seoBehavior: { index: true },
+    seoBehavior: { index: false },
     isAdministrative: false,
   },
   {
@@ -64,7 +64,7 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     navigationLabel: 'Analytics',
     aliases: [],
     deviceAvailability: 'all',
-    seoBehavior: { index: true },
+    seoBehavior: { index: false },
     isAdministrative: false,
   },
   {
