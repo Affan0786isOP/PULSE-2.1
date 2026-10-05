@@ -5,6 +5,7 @@ import { SEO } from './SEO';
 import { APP_VERSION } from '../lib/version';
 import { useReducedMotionPreference } from '../lib/settingsStore';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
+import { WhatIsPulseScene } from './home/WhatIsPulseScene';
 import { ProvenanceBadge } from './brand/ProvenanceBadge';
 import { PulseLogo } from './brand';
 
@@ -42,7 +43,7 @@ export function Home() {
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
 
   return (
-    <div className="h-[100dvh] bg-[var(--bg-base)] text-[var(--text-primary)] font-sans selection:bg-[var(--accent-subtle)] overflow-hidden relative flex flex-col">
+    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] font-sans selection:bg-[var(--accent-subtle)] overflow-x-hidden relative flex flex-col">
       <a 
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:bg-[var(--accent)] focus:text-slate-950 focus:font-semibold focus:text-xs focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
@@ -65,7 +66,7 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1600px] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(240px,290px)] gap-8 lg:gap-12 focus-visible:outline-none py-6 sm:py-8 lg:py-10 px-6 sm:px-12 relative z-10 overflow-hidden"
+        className="w-full max-w-[1600px] mx-auto min-h-[100dvh] flex-none grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(240px,290px)] gap-8 lg:gap-12 focus-visible:outline-none py-6 sm:py-8 lg:py-10 px-6 sm:px-12 relative z-10 overflow-hidden"
       >
         {/* Left Column: Hero & Interactive Protocol Showcase */}
         <section aria-labelledby="hero-heading" className="flex flex-col w-full justify-between min-h-0">
@@ -223,6 +224,8 @@ export function Home() {
           </nav>
         </aside>
       </main>
+
+      <WhatIsPulseScene />
 
       <Suspense fallback={<ModalLoadingFallback />}>
         {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
