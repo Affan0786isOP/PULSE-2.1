@@ -1,0 +1,29 @@
+# PULSE
+
+> PULSE (Precision User Latency & Stimulus Evaluator) is an open-source, browser-based cognitive benchmarking suite for measuring human response and working-memory performance.
+
+Canonical website: https://pulse-lab.in
+Repository: https://github.com/Affan0786isOP/PULSE-2.1
+
+## Public pages
+
+- https://pulse-lab.in/ — PULSE overview and research telemetry introduction.
+- https://pulse-lab.in/assessments — Available cognitive assessments.
+- https://pulse-lab.in/reaction-test — Visual reaction assessment.
+- https://pulse-lab.in/direction-test — Directional choice assessment.
+- https://pulse-lab.in/colour-recognition — Colour recognition assessment.
+- https://pulse-lab.in/block-memory — Spatial working-memory assessment.
+- https://pulse-lab.in/number-memory — Number-memory assessment.
+- https://pulse-lab.in/leaderboard — Anonymous cohort leaderboard.
+- https://pulse-lab.in/improve — Performance and consistency guide.
+- https://pulse-lab.in/privacy — Research data ethics and privacy policy.
+
+## Non-public / non-indexed
+
+- https://pulse-lab.in/dataset — Dataset release page; currently not indexed.
+- https://pulse-lab.in/analytics — Dataset placeholder; currently not indexed.
+- https://pulse-lab.in/admin/ — Private administration area; do not index.
+
+## Notes
+
+PULSE uses canonical desktop URLs for its separate mobile experience. The mobile URL form is under https://pulse-lab.in/mobile/ and is not listed in the sitemap.
