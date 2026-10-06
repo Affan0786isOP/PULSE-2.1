@@ -348,6 +348,21 @@
       ]
     },
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "pulse-lab.in"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        }
+      ]
+    },
+    {
       "source": "/dataset",
       "headers": [
         {
