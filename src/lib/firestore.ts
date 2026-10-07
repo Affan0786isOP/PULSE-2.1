@@ -401,14 +401,14 @@ const PROTOCOL_ALIASES: Record<AssessmentType, string[]> = {
   'number-memory': ['number-memory']
 };
 
-export function normalizeAssessmentType(type: string): AssessmentType {
+export function normalizeAssessmentType(type: string): AssessmentType | null {
   const t = String(type || '').toLowerCase().trim();
   if (t === 'reaction-test' || t === 'visual-reaction') return 'visual-reaction';
   if (t === 'direction-test' || t === 'direction') return 'direction';
   if (t === 'colour-recognition' || t === 'color-test' || t === 'color-recognition') return 'color-recognition';
   if (t === 'block-memory') return 'block-memory';
   if (t === 'number-memory') return 'number-memory';
-  return 'visual-reaction';
+  return null;
 }
 
 export function isOptedInLeaderboardUser(displayName: string | null | undefined): boolean {
@@ -422,6 +422,8 @@ export function isOptedInLeaderboardUser(displayName: string | null | undefined)
 
 export const getLeaderboardResults = async (assessmentType: AssessmentType): Promise<LeaderboardEntry[]> => {
   const canonicalType = normalizeAssessmentType(assessmentType);
+  if (!canonicalType) return [];
+
   const isSpeed = canonicalType === 'visual-reaction' || canonicalType === 'direction' || canonicalType === 'color-recognition';
   const entriesMap = new Map<string, LeaderboardEntry>();
   let firestoreAttempted = false;
@@ -438,11 +440,12 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
         apiSucceeded = true;
         payload.entries.forEach((e: any) => {
           const name = String(e?.displayName || '').trim();
-          if (e && e.id && !entriesMap.has(e.id) && isOptedInLeaderboardUser(name)) {
+          const normalizedType = normalizeAssessmentType(e?.assessmentType || canonicalType);
+          if (normalizedType && e && e.id && !entriesMap.has(e.id) && isOptedInLeaderboardUser(name)) {
             entriesMap.set(e.id, {
               id: e.id,
               displayName: name,
-              assessmentType: normalizeAssessmentType(e.assessmentType || canonicalType),
+              assessmentType: normalizedType,
               scoreMetric: Number(e.scoreMetric),
               ageGroup: String(e.ageGroup || ''),
               createdAt: e.createdAt,
@@ -499,6 +502,7 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
 
               const rawType = String(data.assessmentType || canonicalType);
               const normalizedType = normalizeAssessmentType(rawType);
+              if (!normalizedType) return;
 
               if (!entriesMap.has(docSnap.id)) {
                 entriesMap.set(docSnap.id, {
@@ -537,6 +541,7 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
 
                 const rawType = String(data.assessmentType || canonicalType);
                 const normalizedType = normalizeAssessmentType(rawType);
+                if (!normalizedType) return;
 
                 if (!entriesMap.has(docSnap.id)) {
                   entriesMap.set(docSnap.id, {

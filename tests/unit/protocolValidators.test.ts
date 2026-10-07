@@ -86,6 +86,10 @@ describe('Protocol Validators', () => {
       expect(isValidVisualReactionObservation({ ...validVRT, averageReactionTime: 79 })).toBe(false);
       // fastest > average
       expect(isValidVisualReactionObservation({ ...validVRT, fastestReactionTime: 260 })).toBe(false);
+      // median < fastest
+      expect(isValidVisualReactionObservation({ ...validVRT, medianReactionTime: 190 })).toBe(false);
+      // median > slowest
+      expect(isValidVisualReactionObservation({ ...validVRT, medianReactionTime: 310 })).toBe(false);
     });
 
     it('rejects missing keys', () => {
