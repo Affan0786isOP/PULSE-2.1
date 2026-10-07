@@ -189,7 +189,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
     if (engineStateRef.current !== 'SHOWING') return;
     
     setEngineState('INPUT'); engineStateRef.current = 'INPUT';
-    stimulusWallTimestamp.current = Date.now();
+    stimulusWallTimestamp.current = performance.now();
     setPlayerSequence([]); playerSequenceRef.current = [];
     setStatusMessage('Your turn');
     setInputPrompt('Repeat the pattern');
@@ -246,7 +246,13 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
     }
   };
 
+  const lastClickTimeRef = useRef<number>(0);
+
   const handleBlockClick = (index: number) => {
+    const clickTime = performance.now();
+    if (clickTime - lastClickTimeRef.current < 300) return;
+    lastClickTimeRef.current = clickTime;
+
     if (engineStateRef.current !== 'INPUT') return;
 
     playAudioCue('click');
@@ -280,7 +286,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         timestamp: Date.now()
       };
 
-      const now = Date.now();
+      const now = performance.now();
       const stimTime = stimulusWallTimestamp.current || now;
       const obsIndex = rawObservationsRef.current.length + 1;
       const currentLvl = levelRef.current;
@@ -361,7 +367,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         timestamp: Date.now()
       };
 
-      const now = Date.now();
+      const now = performance.now();
       const stimTime = stimulusWallTimestamp.current || now;
       const obsIndex = rawObservationsRef.current.length + 1;
       const currentLvl = levelRef.current;
@@ -696,6 +702,7 @@ return (
                     onKeyDown={(e) => {
                       if (engineState === 'INPUT' && (e.key === 'Enter' || e.code === 'Space')) {
                         e.preventDefault();
+                        e.stopPropagation();
                         handleBlockClick(i);
                       }
                     }}

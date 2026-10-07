@@ -180,8 +180,9 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       if (engineStateRef.current !== 'SHOWING') return;
       
       setEngineState('INPUT'); engineStateRef.current = 'INPUT';
-      stimulusWallTimestamp.current = Date.now();
+      stimulusWallTimestamp.current = performance.now();
       setPlayerInput('');
+      inputRef.current = '';
       setStatusMessage('Your turn');
       setInputPrompt('Enter the number');
     }, showTime);
@@ -198,6 +199,8 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
     setTrialDataset([]);
     rawObservationsRef.current = [];
     setInputPrompt('');
+    setPlayerInput('');
+    inputRef.current = '';
     assessmentStartTimeRef.current = null;
     totalTimeMsRef.current = null;
     setTotalTimeMs(null);
@@ -237,6 +240,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       hasSubmittedRef.current = false; 
       setIsNewPersonalBest(undefined);
       setPlayerInput('');
+      inputRef.current = '';
     }
   };
 
@@ -247,14 +251,20 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       if (sequenceRef.current && prev.length >= sequenceRef.current.length) {
         return prev;
       }
-      return prev + num;
+      const newVal = prev + num;
+      inputRef.current = newVal;
+      return newVal;
     });
   };
 
   const handleBackspace = () => {
     playAudioCue('click');
     triggerHaptic('tap');
-    setPlayerInput(prev => prev.slice(0, -1));
+    setPlayerInput(prev => {
+      const newVal = prev.slice(0, -1);
+      inputRef.current = newVal;
+      return newVal;
+    });
   };
 
   const handleSubmit = () => {
@@ -264,7 +274,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
     if (input.length === 0) return; // Prevent empty submission
 
     const isCorrect = input === sequenceRef.current;
-    const now = Date.now();
+    const now = performance.now();
     const stimTime = stimulusWallTimestamp.current || now;
     const trialIndex = trialDataset.length + 1;
     
@@ -274,7 +284,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       generatedSequence: sequenceRef.current,
       playerSequence: input,
       correct: isCorrect,
-      timestamp: now
+      timestamp: Date.now()
     };
     
     if (!isCorrect && livesRef.current <= 1) {
@@ -457,6 +467,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.code === 'Space') {
                   e.preventDefault();
+                  e.stopPropagation();
                   if (key === 'del') handleBackspace();
                   else if (key === 'enter') handleSubmit();
                   else handleNumberInput(key);
@@ -483,6 +494,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
     if (engineState === 'READY' || engineState === 'STARTING') {
       hasSubmittedRef.current = false;
       setPlayerInput('');
+      inputRef.current = '';
     }
   }, [engineState]);
 
