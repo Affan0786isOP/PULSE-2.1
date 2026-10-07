@@ -57,7 +57,14 @@ export function validateVisualReactionTrial(
 }
 
 export function deriveVisualReactionMetrics(ctx: DerivationContext): DerivationResult {
-  const { trials, ageGroup, session, sessionId } = ctx;
+  const { trials: originalTrials, ageGroup, session, sessionId } = ctx;
+  const trials = originalTrials.filter((t, idx, arr) => {
+    for (let i = arr.length - 1; i > idx; i--) {
+      if (arr[i].trialNumber === t.trialNumber) return false;
+    }
+    return true;
+  });
+
     let falseStartsCount = 0;
     const validRTs: number[] = [];
     const chronoValidTrials: any[] = [];

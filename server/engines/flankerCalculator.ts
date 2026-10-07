@@ -92,8 +92,12 @@ export function deriveDirectionMetrics(ctx: DerivationContext): DerivationResult
         return { success: false, error: `Trial ${i + 1} has invalid or missing trialNumber.` };
       }
       const logicalIdx = t.trialNumber - 1;
+      let attemptNumber = 1;
+      for (let j = 0; j < i; j++) {
+        if (trials[j].trialNumber === t.trialNumber) attemptNumber++;
+      }
 
-      const prng = seedPRNG(sessionId + "-direction-" + logicalIdx);
+      const prng = seedPRNG(sessionId + "-direction-" + logicalIdx + "-a" + attemptNumber);
       const windowDelay = prng() * (3000 - 1000) + 1000;
       const DIRECTIONS = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
       const expectedDir = DIRECTIONS[Math.floor(prng() * DIRECTIONS.length)];

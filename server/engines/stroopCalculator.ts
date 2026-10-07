@@ -75,7 +75,7 @@ export function validateColorRecognitionTrial(
   const hasStimulus = rawStim !== null;
   const hasResponse = rawResp !== null || (typeof t.userResponse === 'string' && t.userResponse.trim().length > 0);
 
-  const derivedFalseStart = !hasStimulus || (hasStimulus && rawStim !== null && rawResp !== null && rawResp < rawStim) || (rawRt !== null && rawRt < 80.0);
+  const derivedFalseStart = !hasStimulus || (hasStimulus && rawStim !== null && rawResp !== null && rawResp < rawStim) || (rawRt !== null && rawRt < 80.01);
   const derivedTimedOut = !derivedFalseStart && (!hasResponse || rawRt === null || rawRt >= 3000.0 || (rawStim !== null && rawResp !== null && (rawResp - rawStim) >= 3000.0));
 
   const expectedCorrectResponse = expectedInstruction === 'WORD' ? expectedWord : expectedColor;
@@ -91,7 +91,7 @@ export function validateColorRecognitionTrial(
     if (!COLORS.includes(cleanUserResp)) {
       return { success: false, error: `Trial ${index + 1} has invalid userResponse '${t.userResponse}'.` };
     }
-    if (rawRt === null || !Number.isFinite(rawRt) || rawRt < 80.0 || rawRt >= 3000.0) {
+    if (rawRt === null || !Number.isFinite(rawRt) || rawRt < 80.01 || rawRt >= 3000.0) {
       return { success: false, error: `Trial ${index + 1} has invalid reactionTime (${rawRt}) for completed trial.` };
     }
     isCorrect = cleanUserResp === expectedCorrectResponse;
@@ -190,7 +190,7 @@ export function deriveColorRecognitionMetrics(ctx: DerivationContext): Derivatio
       let canonicalValidity = 'VALID';
       let canonicalQualityFlag: string | null = null;
       if (valRes.derivedFalseStart) {
-        if (rawRtPhysiological !== null && rawRtPhysiological < 80.0) {
+        if (rawRtPhysiological !== null && rawRtPhysiological < 80.01) {
           canonicalValidity = 'FALSE_START_PHYSIOLOGICAL';
           canonicalQualityFlag = 'ANTICIPATORY_RESPONSE';
         } else {
@@ -220,7 +220,7 @@ export function deriveColorRecognitionMetrics(ctx: DerivationContext): Derivatio
       t.correct = valRes.isCorrect === true;
       t.correctness = valRes.isCorrect === true;
       t.accuracy = valRes.isCorrect ? 1 : 0;
-      t.valid = !valRes.derivedFalseStart && !valRes.derivedTimedOut && rawRtPhysiological !== null && rawRtPhysiological >= 80.0 && rawRtPhysiological < 3000.0;
+      t.valid = !valRes.derivedFalseStart && !valRes.derivedTimedOut && rawRtPhysiological !== null && rawRtPhysiological >= 80.01 && rawRtPhysiological < 3000.0;
       t.validity = canonicalValidity;
       t.qualityFlag = canonicalQualityFlag;
 
@@ -256,11 +256,11 @@ export function deriveColorRecognitionMetrics(ctx: DerivationContext): Derivatio
     let interferenceCost: number | undefined = undefined;
 
     if (congruentTrials.length > 0) {
-      const cSum = congruentTrials.reduce((acc, t) => acc + Number(t.reactionTime), 0);
+      const cSum = congruentTrials.reduce((acc, t) => acc + Number(t.reactionTime ?? t.reactionTimeMs ?? t.rawReactionTime ?? t.rawLatencyMs ?? 0), 0);
       congruentAvg = Math.round((cSum / congruentTrials.length) * 100) / 100;
     }
     if (incongruentTrials.length > 0) {
-      const iSum = incongruentTrials.reduce((acc, t) => acc + Number(t.reactionTime), 0);
+      const iSum = incongruentTrials.reduce((acc, t) => acc + Number(t.reactionTime ?? t.reactionTimeMs ?? t.rawReactionTime ?? t.rawLatencyMs ?? 0), 0);
       incongruentAvg = Math.round((iSum / incongruentTrials.length) * 100) / 100;
     }
     if (congruentAvg !== undefined && incongruentAvg !== undefined) {
