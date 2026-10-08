@@ -46,6 +46,28 @@ export function AssessmentInfoPanel({
         event.preventDefault();
         setIsOpen(false);
         triggerRef.current?.focus();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !panelRef.current) return;
+
+      const focusable = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
       }
     };
 
@@ -91,7 +113,7 @@ export function AssessmentInfoPanel({
         id="assessment-info-panel"
         ref={panelRef}
         aria-hidden={!isOpen}
-        {...(!isOpen ? { inert: '' } : {})}
+        inert={!isOpen ? true : undefined}
         className={`fixed inset-y-0 right-0 z-[100] w-full max-w-2xl overflow-y-auto border-l border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-2xl transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'}`}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/95 px-5 py-4 backdrop-blur">
