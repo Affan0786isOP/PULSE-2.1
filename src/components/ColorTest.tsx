@@ -9,7 +9,6 @@ import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
 
-import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 function seedPRNG(seedStr: string): () => number {
   let h = 1779033703 ^ seedStr.length;
   for (let i = 0; i < seedStr.length; i++) {
@@ -658,7 +657,6 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         }}
       >
         <h1 className="sr-only">Colour Recognition Test</h1>
-        <AssessmentInfoPanel assessmentId="color-recognition" isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'} />
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
