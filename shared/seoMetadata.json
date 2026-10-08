@@ -3,131 +3,30 @@
     "url": "https://pulse-lab.in",
     "name": "PULSE",
     "legalName": "Precision User Latency & Stimulus Evaluator",
-    "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
+    "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.",
     "ogImage": "https://pulse-lab.in/og-image.png",
-    "logo": "https://pulse-lab.in/icon-512.png",
-    "repository": "https://github.com/Affan0786isOP/PULSE-2.1"
+    "logo": "https://pulse-lab.in/icon-512.png"
   },
   "routes": {
-    "/": {
-      "title": "PULSE — Precision User Latency & Stimulus Evaluator",
-      "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
-      "indexable": true,
-      "clientFallback": false
-    },
-    "/about": {
-      "title": "About PULSE — Cognitive Benchmarking Suite",
-      "description": "Learn about PULSE (Precision User Latency & Stimulus Evaluator), our standardized browser-based cognitive tests, telemetry engine, and privacy standards.",
-      "indexable": true,
-      "clientFallback": false
-    },
-    "/assessments": {
-      "title": "Assessments | PULSE",
-      "description": "Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory.",
-      "indexable": true,
-      "clientFallback": false
-    },
-    "/leaderboard": {
-      "title": "Verified Leaderboard & Cohort Rankings | PULSE",
-      "description": "Compare your cognitive performance results against our global anonymous cohort rankings in real-time.",
-      "indexable": true,
-      "clientFallback": false
-    },
-    "/dataset": {
-      "title": "Dataset Coming Soon | PULSE",
-      "description": "The public PULSE research dataset is being prepared for release.",
-      "indexable": false,
-      "clientFallback": false
-    },
-    "/analytics": {
-      "title": "Dataset Coming Soon | PULSE",
-      "description": "The public PULSE research dataset is being prepared for release.",
-      "indexable": false,
-      "clientFallback": false
-    },
-    "/improve": {
-      "title": "Performance Guide | PULSE",
-      "description": "Review research, physiological factors, and preparation habits that affect response time and measurement consistency.",
-      "indexable": true,
-      "clientFallback": false
-    },
-    "/privacy": {
-      "title": "Research Data Ethics & Privacy Policy | PULSE",
-      "description": "Our commitment to transparent research standards, strict data anonymization, telemetry consent guidelines, and open scientific integrity.",
-      "indexable": true,
-      "clientFallback": false
-    },
-    "/reaction-test": {
-      "title": "Visual Reaction Test | PULSE",
-      "description": "Measure visual reaction time with a browser-based millisecond reaction assessment and calibrated latency controls from PULSE.",
-      "indexable": true,
-      "clientFallback": true
-    },
-    "/direction-test": {
-      "title": "Directional Choice Test | PULSE",
-      "description": "Measure directional choice speed and discrimination with a browser-based PULSE cognitive assessment.",
-      "indexable": true,
-      "clientFallback": true
-    },
-    "/colour-recognition": {
-      "title": "Colour Recognition Test | PULSE",
-      "description": "Measure colour recognition and response accuracy with a browser-based PULSE cognitive assessment.",
-      "indexable": true,
-      "clientFallback": true
-    },
-    "/block-memory": {
-      "title": "Block Memory Test | PULSE",
-      "description": "Measure spatial working memory with a browser-based block-sequence memory assessment from PULSE.",
-      "indexable": true,
-      "clientFallback": true
-    },
-    "/number-memory": {
-      "title": "Number Memory Test | PULSE",
-      "description": "Measure working memory span with a browser-based number-memory assessment from PULSE.",
-      "indexable": true,
-      "clientFallback": true
-    },
-    "/admin/login": {
-      "title": "Admin Login | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin": {
-      "title": "PULSE Administration | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/overview": {
-      "title": "PULSE Administration | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/moderation": {
-      "title": "PULSE Moderation | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/quality": {
-      "title": "PULSE Quality | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/export-audit": {
-      "title": "PULSE Audit | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/audit": {
-      "title": "PULSE Audit | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    }
+    "/": {"title":"PULSE — Precision User Latency & Stimulus Evaluator","description":"A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.","indexable":true,"clientFallback":false},
+    "/about": {"title":"About PULSE — Cognitive Benchmarking Suite","description":"Learn about PULSE (Precision User Latency & Stimulus Evaluator), our standardized browser-based cognitive tests, telemetry engine, and privacy standards.","indexable":true,"clientFallback":false},
+    "/assessments": {"title":"Assessments | PULSE","description":"Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory.","indexable":true,"clientFallback":false},
+    "/leaderboard": {"title":"Verified Leaderboard & Cohort Rankings | PULSE","description":"Compare your cognitive performance results against our global anonymous cohort rankings in real-time.","indexable":true,"clientFallback":false},
+    "/dataset": {"title":"Dataset Coming Soon | PULSE","description":"The public PULSE research dataset is being prepared for release.","indexable":false,"clientFallback":false},
+    "/analytics": {"title":"Dataset Coming Soon | PULSE","description":"The public PULSE research dataset is being prepared for release.","indexable":false,"clientFallback":false},
+    "/improve": {"title":"Performance Guide | PULSE","description":"Review research, physiological factors, and preparation habits that affect response time and measurement consistency.","indexable":true,"clientFallback":false},
+    "/privacy": {"title":"Research Data Ethics & Privacy Policy | PULSE","description":"Our commitment to transparent research standards, strict data anonymization, telemetry consent guidelines, and open scientific integrity.","indexable":true,"clientFallback":false},
+    "/reaction-test": {"title":"Reaction Time Test | Visual Reaction Test | PULSE","description":"Benchmark visual reaction time using PULSE's browser-based reaction test, featuring randomized stimulus delays and an estimated display refresh adjustment.","indexable":true,"clientFallback":true},
+    "/direction-test": {"title":"Directional Choice Test: Response Speed | PULSE","description":"Measure directional choice reaction time and accuracy with PULSE's directional arrow assessment.","indexable":true,"clientFallback":true},
+    "/colour-recognition": {"title":"Colour Recognition Test: Stroop Task | PULSE","description":"Evaluate selective attention and cognitive conflict with PULSE's interactive colour recognition assessment.","indexable":true,"clientFallback":true},
+    "/block-memory": {"title":"Block Memory Test: Spatial Sequence Recall | PULSE","description":"Test spatial sequence recall with PULSE's 9-block tapping assessment.","indexable":true,"clientFallback":true},
+    "/number-memory": {"title":"Number Memory Test: Forward Digit Recall | PULSE","description":"Measure working memory capacity with PULSE's forward digit span assessment.","indexable":true,"clientFallback":true},
+    "/admin/login": {"title":"Admin Login | PULSE","description":"Private PULSE administration area.","indexable":false,"clientFallback":true},
+    "/admin": {"title":"PULSE Administration | PULSE","description":"Private PULSE administration area.","indexable":false,"clientFallback":true},
+    "/admin/overview": {"title":"PULSE Administration | PULSE","description":"Private PULSE administration area.","indexable":false,"clientFallback":true},
+    "/admin/moderation": {"title":"PULSE Moderation | PULSE","description":"Private PULSE administration area.","indexable":false,"clientFallback":true},
+    "/admin/quality": {"title":"PULSE Quality | PULSE","description":"Private PULSE administration area.","indexable":false,"clientFallback":true},
+    "/admin/export-audit": {"title":"PULSE Audit | PULSE","description":"Private PULSE administration area.","indexable":false,"clientFallback":true},
+    "/admin/audit": {"title":"PULSE Audit | PULSE","description":"Private PULSE administration area.","indexable":false,"clientFallback":true}
   }
 }
