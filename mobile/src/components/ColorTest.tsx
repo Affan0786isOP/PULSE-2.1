@@ -9,7 +9,7 @@ import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
 
-import { AssessmentInfoPanel } from './AssessmentInfoPanel';
+import { AssessmentInfoPanel } from '../../../src/components/AssessmentInfoPanel';
 function seedPRNG(seedStr: string): () => number {
   let h = 1779033703 ^ seedStr.length;
   for (let i = 0; i < seedStr.length; i++) {
