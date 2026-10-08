@@ -30,36 +30,36 @@ describe('SEO Shell Generator Output Verification', () => {
     {
       file: 'seo/reaction-test.html',
       mobileFile: 'seo/mobile/reaction-test.html',
-      expectedTitlePart: 'Visual Reaction Test',
-      expectedHeading: 'Visual Reaction Test',
+      expectedTitlePart: 'Reaction Time Test | Visual Reaction Test',
+      expectedHeading: 'Reaction Time Test',
       expectedFragment: 'PULSE'
     },
     {
       file: 'seo/direction-test.html',
       mobileFile: 'seo/mobile/direction-test.html',
-      expectedTitlePart: 'Directional Choice Test',
-      expectedHeading: 'Directional Choice Test',
+      expectedTitlePart: 'Directional Choice Test: Response Speed',
+      expectedHeading: 'Directional Choice Test: Response Speed',
       expectedFragment: 'PULSE'
     },
     {
       file: 'seo/colour-recognition.html',
       mobileFile: 'seo/mobile/colour-recognition.html',
-      expectedTitlePart: 'Colour Recognition Test',
-      expectedHeading: 'Colour Recognition Test',
+      expectedTitlePart: 'Colour Recognition Test: Stroop Task',
+      expectedHeading: 'Colour Recognition Test: Stroop Task',
       expectedFragment: 'PULSE'
     },
     {
       file: 'seo/block-memory.html',
       mobileFile: 'seo/mobile/block-memory.html',
-      expectedTitlePart: 'Block Memory Test',
-      expectedHeading: 'Block Memory Test',
+      expectedTitlePart: 'Block Memory Test: Spatial Sequence Recall',
+      expectedHeading: 'Block Memory Test: Spatial Sequence Recall',
       expectedFragment: 'PULSE'
     },
     {
       file: 'seo/number-memory.html',
       mobileFile: 'seo/mobile/number-memory.html',
-      expectedTitlePart: 'Number Memory Test',
-      expectedHeading: 'Number Memory Test',
+      expectedTitlePart: 'Number Memory Test: Forward Digit Recall',
+      expectedHeading: 'Number Memory Test: Forward Digit Recall',
       expectedFragment: 'PULSE'
     }
   ];
@@ -81,16 +81,21 @@ describe('SEO Shell Generator Output Verification', () => {
       const homepageHeading = 'PULSE — Precision User Latency &amp; Stimulus Evaluator';
       expect(content).not.toContain(`<h1 id="pulse-seo-shell-title" style="font-size:clamp(2rem,6vw,4rem);line-height:1.05;margin:0 0 1rem">${homepageHeading}</h1>`);
 
-      // 4. Shell exists exactly once
+      // 4. Route-specific assessment article is present for assessment pages.
+      if (file.includes('reaction-test') || file.includes('direction-test') || file.includes('colour-recognition') || file.includes('block-memory') || file.includes('number-memory')) {
+        expect(content).toContain('<article id="assessment-seo-article">');
+      }
+
+      // 5. Shell exists exactly once
       const shellMatches = content.match(/<main\b[^>]*\bid=["']pulse-seo-shell["']/gi);
       expect(shellMatches).not.toBeNull();
       expect(shellMatches?.length).toBe(1);
 
-      // 5. Canonical URL is strictly apex https://pulse-lab.in
+      // 6. Canonical URL is strictly apex https://pulse-lab.in
       expect(content).toContain('link rel="canonical" href="https://pulse-lab.in');
       expect(content).not.toContain('link rel="canonical" href="https://www.pulse-lab.in');
 
-      // 6. JSON-LD structured data exists and uses apex
+      // 7. JSON-LD structured data exists and uses apex
       expect(content).toContain('id="pulse-seo-jsonld" type="application/ld+json"');
       expect(content).not.toContain('https://www.pulse-lab.in');
     });
