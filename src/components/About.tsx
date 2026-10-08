@@ -25,12 +25,12 @@ const ABOUT_SCHEMA = {
   "@graph": [
     {
       "@type": "AboutPage",
-      "@id": "https://www.pulse-lab.in/about#webpage",
-      "url": "https://www.pulse-lab.in/about",
+      "@id": "https://pulse-lab.in/about#webpage",
+      "url": "https://pulse-lab.in/about",
       "name": "About PULSE — Cognitive Benchmarking Suite",
       "description": "Learn about PULSE (Precision User Latency & Stimulus Evaluator), our standardized browser-based cognitive tests, telemetry engine, and privacy standards.",
-      "isPartOf": { "@id": "https://www.pulse-lab.in/#website" },
-      "about": { "@id": "https://www.pulse-lab.in/#organization" },
+      "isPartOf": { "@id": "https://pulse-lab.in/#website" },
+      "about": { "@id": "https://pulse-lab.in/#organization" },
       "inLanguage": "en"
     }
   ]
@@ -40,7 +40,7 @@ const PROTOCOLS = [
   {
     id: 'reaction-test',
     title: 'Visual Reaction',
-    description: 'Measures simple visual reaction time with sub-frame timestamp synchronization and calibrated display latency controls.',
+    description: 'Measures simple visual reaction time with high-resolution frame-aligned timestamps and display latency offset calibration.',
     icon: Zap,
     metric: 'Latency (ms)'
   },
@@ -56,7 +56,7 @@ const PROTOCOLS = [
     title: 'Colour Recognition',
     description: 'Tests selective attention, cognitive flexibility, and conflict processing using chromatic stimulus tasks.',
     icon: Palette,
-    metric: 'Response Accuracy (ms)'
+    metric: 'Latency (ms)'
   },
   {
     id: 'block-memory',

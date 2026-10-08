@@ -1,11 +1,12 @@
 User-agent: *
 Allow: /
 
-# Exclude private/admin routes
+# Private & API routes
 Disallow: /admin
 Disallow: /admin/
-Disallow: /admin/*
-Disallow: /api
+Disallow: /api/
 
+# Internal pre-rendered SEO shells (served via rewrites)
 Disallow: /seo/
-Sitemap: https://www.pulse-lab.in/sitemap.xml
+
+Sitemap: https://pulse-lab.in/sitemap.xml

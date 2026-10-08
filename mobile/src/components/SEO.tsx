@@ -32,6 +32,12 @@ export function getCanonicalPath(pathname: string): string {
   }
 }
 
+export function isProductionHost(): boolean {
+  if (typeof window === 'undefined') return true;
+  const hostname = window.location.hostname;
+  return hostname === 'pulse-lab.in';
+}
+
 interface SEOProps {
   title: string;
   description: string;
@@ -48,16 +54,23 @@ export function SEO({
   canonicalUrl,
   noindex = false,
   ogType = 'website',
-  ogImage = 'https://www.pulse-lab.in/og-image.png',
+  ogImage = 'https://pulse-lab.in/og-image.png',
   schema
 }: SEOProps) {
   const location = useLocation();
 
+  const isProd = isProductionHost();
+  const isNonProd = !isProd;
+
   // Mobile URLs canonicalize to their corresponding desktop versions
-  const siteUrl = 'https://www.pulse-lab.in';
+  const siteUrl = isProd
+    ? 'https://pulse-lab.in'
+    : (typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pulse-lab.in');
   const canonicalPath = getCanonicalPath(location.pathname);
   const defaultCanonical = `${siteUrl}${canonicalPath === '/' ? '' : canonicalPath}`;
   const finalCanonical = canonicalUrl || defaultCanonical;
+
+  const effectiveNoindex = isNonProd || noindex;
 
   // Memoize serialized schema string to avoid unnecessary effect triggers when schema object is recreated on render
   const serializedSchema = useMemo(() => {
@@ -97,7 +110,7 @@ export function SEO({
     updateLinkTag('canonical', finalCanonical);
 
     // 4. Update Robots Tag
-    updateMetaTag('name', 'robots', noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+    updateMetaTag('name', 'robots', effectiveNoindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
 
     // 5. Open Graph Meta Tags
     updateMetaTag('property', 'og:title', title, 'property');

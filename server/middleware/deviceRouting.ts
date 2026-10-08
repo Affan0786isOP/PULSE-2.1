@@ -48,9 +48,9 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
                       host.includes('ais-dev') || 
                       host.includes('run.app');
 
-    const isProduction = host === 'pulse-lab.in' || host === 'www.pulse-lab.in';
+    const isProduction = host === 'pulse-lab.in';
 
-    if (isStaging) {
+    if (isStaging || (!isProduction && host !== 'localhost' && host !== '127.0.0.1')) {
       res.setHeader('X-Robots-Tag', 'noindex, nofollow');
       if (req.path === '/robots.txt') {
         res.setHeader('Content-Type', 'text/plain');

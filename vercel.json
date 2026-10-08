@@ -13,10 +13,10 @@
       "has": [
         {
           "type": "host",
-          "value": "pulse-lab.in"
+          "value": "www.pulse-lab.in"
         }
       ],
-      "destination": "https://www.pulse-lab.in/:path*",
+      "destination": "https://pulse-lab.in/:path*",
       "statusCode": 301
     },
     {
@@ -27,7 +27,7 @@
           "value": "pulse2-one.vercel.app"
         }
       ],
-      "destination": "https://www.pulse-lab.in/:path*",
+      "destination": "https://pulse-lab.in/:path*",
       "statusCode": 301
     },
     {
@@ -344,12 +344,6 @@
   "headers": [
     {
       "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "test.pulse-lab.in"
-        }
-      ],
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -362,7 +356,7 @@
       "has": [
         {
           "type": "host",
-          "value": "www.pulse-lab.in"
+          "value": "pulse-lab.in"
         }
       ],
       "headers": [

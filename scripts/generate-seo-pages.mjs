@@ -185,10 +185,12 @@ function replaceHead(html, pathname, route, isMobile) {
     '</ul></nav>' +
     '</main>';
 
-  output = output.replace(
-    /<noscript>You need to enable JavaScript to run this app\.<\/noscript>/i,
-    fallback
-  );
+  const shellRegex = /<main\b[^>]*\bid=["']pulse-seo-shell["'][^>]*>[\s\S]*?<\/main>/i;
+  if (!shellRegex.test(output)) {
+    throw new Error('Expected <main id="pulse-seo-shell"> was not found in HTML template for ' + (isMobile ? 'mobile ' : 'desktop ') + pathname);
+  }
+
+  output = output.replace(shellRegex, fallback);
 
   return output;
 }

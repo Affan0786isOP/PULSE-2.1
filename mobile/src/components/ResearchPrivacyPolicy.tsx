@@ -9,7 +9,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
       <SEO 
         title="Research Data Ethics & Privacy Policy | PULSE"
         description="Our commitment to transparent research standards, strict data anonymization, telemetry consent guidelines, and open scientific integrity."
-        canonicalUrl="https://www.pulse-lab.in/privacy"
+        canonicalUrl="https://pulse-lab.in/privacy"
       />
       <Navbar currentView="privacy" onNavigate={onNavigate} />
       

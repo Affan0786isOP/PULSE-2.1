@@ -35,21 +35,12 @@ export function getCanonicalPath(pathname: string): string {
 export function isProductionHost(): boolean {
   if (typeof window === 'undefined') return true;
   const hostname = window.location.hostname;
-  return hostname === 'pulse-lab.in' || hostname === 'www.pulse-lab.in';
+  return hostname === 'pulse-lab.in';
 }
 
 export function isStagingOrTestHost(): boolean {
   if (typeof window === 'undefined') return false;
-  const hostname = window.location.hostname;
-  return (
-    hostname === 'test.pulse-lab.in' ||
-    hostname.includes('staging') ||
-    hostname.includes('test.') ||
-    hostname.includes('ais-dev') ||
-    hostname.includes('run.app') ||
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1'
-  );
+  return !isProductionHost();
 }
 
 interface SEOProps {
@@ -68,27 +59,27 @@ export function SEO({
   canonicalUrl,
   noindex = false,
   ogType = 'website',
-  ogImage = 'https://www.pulse-lab.in/og-image.png',
+  ogImage = 'https://pulse-lab.in/og-image.png',
   schema
 }: SEOProps) {
   const location = useLocation();
 
   const isProd = isProductionHost();
-  const isStaging = isStagingOrTestHost();
+  const isNonProd = !isProd;
 
   // Determine standard canonical URL if not explicitly provided
-  // Production canonical is strictly https://www.pulse-lab.in
-  // Staging/test deployment uses its own origin and must not advertise itself as the production canonical
+  // Production canonical is strictly https://pulse-lab.in
+  // Non-production deployment uses its own origin and must not advertise itself as the production canonical
   const siteUrl = isProd
-    ? 'https://www.pulse-lab.in'
-    : (typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://www.pulse-lab.in');
+    ? 'https://pulse-lab.in'
+    : (typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pulse-lab.in');
 
   const canonicalPath = getCanonicalPath(location.pathname);
   const defaultCanonical = `${siteUrl}${canonicalPath === '/' ? '' : canonicalPath}`;
   const finalCanonical = canonicalUrl || defaultCanonical;
 
-  // Staging/test deployments force noindex, nofollow
-  const effectiveNoindex = isStaging || noindex;
+  // Non-production deployments (previews, staging, local) strictly force noindex, nofollow
+  const effectiveNoindex = isNonProd || noindex;
 
   // Memoize serialized schema string to avoid unnecessary effect triggers when schema object is recreated on render
   const serializedSchema = useMemo(() => {

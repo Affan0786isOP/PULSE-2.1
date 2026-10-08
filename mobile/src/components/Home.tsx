@@ -18,21 +18,21 @@ const HOME_SCHEMA = {
   "@graph": [
     {
       "@type": "WebSite",
-      "@id": "https://www.pulse-lab.in/#website",
-      "url": "https://www.pulse-lab.in/",
+      "@id": "https://pulse-lab.in/#website",
+      "url": "https://pulse-lab.in/",
       "name": "PULSE",
       "alternateName": "Precision User Latency & Stimulus Evaluator",
       "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
     },
     {
       "@type": "Organization",
-      "@id": "https://www.pulse-lab.in/#organization",
+      "@id": "https://pulse-lab.in/#organization",
       "name": "PULSE",
       "alternateName": "Precision User Latency & Stimulus Evaluator",
-      "url": "https://www.pulse-lab.in/",
+      "url": "https://pulse-lab.in/",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://www.pulse-lab.in/icon-512.png",
+        "url": "https://pulse-lab.in/icon-512.png",
         "width": 512,
         "height": 512
       },
@@ -40,10 +40,10 @@ const HOME_SCHEMA = {
     },
     {
       "@type": "SoftwareApplication",
-      "@id": "https://www.pulse-lab.in/#software",
+      "@id": "https://pulse-lab.in/#software",
       "name": "PULSE",
       "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
-      "url": "https://www.pulse-lab.in/",
+      "url": "https://pulse-lab.in/",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
       "offers": {
