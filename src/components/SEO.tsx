@@ -68,7 +68,7 @@ export function SEO({
   canonicalUrl,
   noindex = false,
   ogType = 'website',
-  ogImage = 'https://pulse-lab.in/og-image.png',
+  ogImage = 'https://www.pulse-lab.in/og-image.png',
   schema
 }: SEOProps) {
   const location = useLocation();
@@ -77,11 +77,11 @@ export function SEO({
   const isStaging = isStagingOrTestHost();
 
   // Determine standard canonical URL if not explicitly provided
-  // Production canonical is strictly https://pulse-lab.in
+  // Production canonical is strictly https://www.pulse-lab.in
   // Staging/test deployment uses its own origin and must not advertise itself as the production canonical
   const siteUrl = isProd
-    ? 'https://pulse-lab.in'
-    : (typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pulse-lab.in');
+    ? 'https://www.pulse-lab.in'
+    : (typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://www.pulse-lab.in');
 
   const canonicalPath = getCanonicalPath(location.pathname);
   const defaultCanonical = `${siteUrl}${canonicalPath === '/' ? '' : canonicalPath}`;

@@ -36,6 +36,10 @@ export function applySecurityMiddleware(app: Express): void {
       ? "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.run.app https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io"
       : "connect-src 'self' ws: wss: https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.run.app https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io";
 
+    const frameAncestors = isProd
+      ? "frame-ancestors 'self' https://ai.studio https://*.ai.studio https://aistudio.google.com"
+      : "frame-ancestors 'self' https://*.google.com https://*.googleusercontent.com https://*.run.app https://ai.studio https://*.ai.studio https://aistudio.google.com";
+
     const csp = [
       "default-src 'self'",
       scriptSrc,
@@ -44,7 +48,7 @@ export function applySecurityMiddleware(app: Express): void {
       "img-src 'self' data: blob: https://*.googleusercontent.com https://*.gstatic.com https://*.google.com",
       connectSrc,
       "worker-src 'self' blob:",
-      "frame-ancestors 'self' https://*.google.com https://*.googleusercontent.com https://*.run.app https://ai.studio https://*.ai.studio https://aistudio.google.com"
+      frameAncestors
     ].join('; ');
     
     res.setHeader('Content-Security-Policy', csp);

@@ -52,6 +52,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenSettings, onOpenWelcome })
               Protocols &amp; Data
             </h4>
             <nav className="flex flex-col gap-2 text-xs">
+              <Link to="/about" className="hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] rounded-xs w-fit">
+                About PULSE
+              </Link>
               <Link to="/assessments" className="hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] rounded-xs w-fit">
                 Cognitive Battery
               </Link>

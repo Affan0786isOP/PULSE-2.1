@@ -15,6 +15,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
 
     const snap = await db.collection('leaderboardResults')
       .where('assessmentType', '==', alias)
+      .where('hidden', '==', false)
       .orderBy('scoreMetric', direction)
       .limit(limitCount)
       .get();

@@ -2,28 +2,29 @@
 
 > PULSE (Precision User Latency & Stimulus Evaluator) is an open-source, browser-based cognitive benchmarking suite for measuring human response and working-memory performance.
 
-Canonical website: https://pulse-lab.in
+Canonical website: https://www.pulse-lab.in
 Repository: https://github.com/Affan0786isOP/PULSE-2.1
 
 ## Public pages
 
-- https://pulse-lab.in/ — PULSE overview and research telemetry introduction.
-- https://pulse-lab.in/assessments — Available cognitive assessments.
-- https://pulse-lab.in/reaction-test — Visual reaction assessment.
-- https://pulse-lab.in/direction-test — Directional choice assessment.
-- https://pulse-lab.in/colour-recognition — Colour recognition assessment.
-- https://pulse-lab.in/block-memory — Spatial working-memory assessment.
-- https://pulse-lab.in/number-memory — Number-memory assessment.
-- https://pulse-lab.in/leaderboard — Anonymous cohort leaderboard.
-- https://pulse-lab.in/improve — Performance and consistency guide.
-- https://pulse-lab.in/privacy — Research data ethics and privacy policy.
+- https://www.pulse-lab.in/ — PULSE overview and research telemetry introduction.
+- https://www.pulse-lab.in/about — About Pulse Evaluator, purpose, test batteries, and privacy.
+- https://www.pulse-lab.in/assessments — Available cognitive assessments.
+- https://www.pulse-lab.in/reaction-test — Visual reaction assessment.
+- https://www.pulse-lab.in/direction-test — Directional choice assessment.
+- https://www.pulse-lab.in/colour-recognition — Colour recognition assessment.
+- https://www.pulse-lab.in/block-memory — Spatial working-memory assessment.
+- https://www.pulse-lab.in/number-memory — Number-memory assessment.
+- https://www.pulse-lab.in/leaderboard — Anonymous cohort leaderboard.
+- https://www.pulse-lab.in/improve — Performance and consistency guide.
+- https://www.pulse-lab.in/privacy — Research data ethics and privacy policy.
 
 ## Non-public / non-indexed
 
-- https://pulse-lab.in/dataset — Dataset release page; currently not indexed.
-- https://pulse-lab.in/analytics — Dataset placeholder; currently not indexed.
-- https://pulse-lab.in/admin/ — Private administration area; do not index.
+- https://www.pulse-lab.in/dataset — Dataset release page; currently not indexed.
+- https://www.pulse-lab.in/analytics — Dataset placeholder; currently not indexed.
+- https://www.pulse-lab.in/admin/ — Private administration area; do not index.
 
 ## Notes
 
-PULSE uses canonical desktop URLs for its separate mobile experience. The mobile URL form is under https://pulse-lab.in/mobile/ and is not listed in the sitemap.
+PULSE uses canonical desktop URLs for its separate mobile experience. The mobile URL form is under https://www.pulse-lab.in/mobile/ and is not listed in the sitemap.

@@ -28,6 +28,16 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     isAdministrative: false,
   },
   {
+    routeId: 'about',
+    path: '/about',
+    domain: undefined,
+    navigationLabel: 'About',
+    aliases: [],
+    deviceAvailability: 'all',
+    seoBehavior: { index: true },
+    isAdministrative: false,
+  },
+  {
     routeId: 'assessments',
     path: '/assessments',
     domain: 'assessment',

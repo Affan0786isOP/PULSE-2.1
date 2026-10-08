@@ -55,7 +55,12 @@ export function resolveActiveNavId(currentView?: string, pathname: string = ''):
     return 'privacy';
   }
 
-  // 6. Home
+  // 6. About
+  if (v === 'about' || p.startsWith('/about')) {
+    return 'about';
+  }
+
+  // 7. Home
   if (v === 'home' || p === '/' || p === '/mobile/' || p === '/mobile') {
     return 'home';
   }

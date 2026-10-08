@@ -124,7 +124,8 @@ export class LeaderboardAppService implements ILeaderboardService {
       throw new AppError('Invalid or non-finite score metric for assessment type', 400);
     }
 
-    const tokenData = `lb:${normalizedAssessmentType}:${authoritativeAgeGroup}:${scoreMetric.toFixed(2)}:${displayName.trim()}:${trialsDigest || ''}`;
+    const sanitizedDisplayName = displayName.trim().replace(/:/g, '_');
+    const tokenData = `lb:${normalizedAssessmentType}:${authoritativeAgeGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest || ''}`;
     const provenanceToken = signProvenancePayload(tokenData);
 
     const leaderboardDocId = crypto.randomUUID();
@@ -133,6 +134,7 @@ export class LeaderboardAppService implements ILeaderboardService {
     const result = await this.submissionRepo.executeLeaderboardSubmission({
       leaderboardDocId,
       activeSessionId: sessionId,
+      userId,
       displayName: displayName.trim(),
       assessmentType: normalizedAssessmentType,
       scoreMetric,

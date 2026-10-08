@@ -1,17 +1,23 @@
 {
   "site": {
-    "url": "https://pulse-lab.in",
+    "url": "https://www.pulse-lab.in",
     "name": "PULSE",
     "legalName": "Precision User Latency & Stimulus Evaluator",
     "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
-    "ogImage": "https://pulse-lab.in/og-image.png",
-    "logo": "https://pulse-lab.in/icon-512.png",
+    "ogImage": "https://www.pulse-lab.in/og-image.png",
+    "logo": "https://www.pulse-lab.in/icon-512.png",
     "repository": "https://github.com/Affan0786isOP/PULSE-2.1"
   },
   "routes": {
     "/": {
       "title": "PULSE — Precision User Latency & Stimulus Evaluator",
       "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
+      "indexable": true,
+      "clientFallback": false
+    },
+    "/about": {
+      "title": "About PULSE — Cognitive Benchmarking Suite",
+      "description": "Learn about PULSE (Precision User Latency & Stimulus Evaluator), our standardized browser-based cognitive tests, telemetry engine, and privacy standards.",
       "indexable": true,
       "clientFallback": false
     },

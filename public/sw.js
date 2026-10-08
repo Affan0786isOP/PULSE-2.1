@@ -41,7 +41,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.filter((key) => key.startsWith('pulse-pwa-') && key !== CACHE_NAME).map((key) => caches.delete(key))
       );
     }).then(() => self.clients.claim())
   );
@@ -49,9 +49,20 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
+  const url = new URL(request.url);
   
-  // Skip non-GET, non-HTTP, and backend API endpoints
-  if (request.method !== 'GET' || !request.url.startsWith('http') || request.url.includes('/api/')) {
+  // Skip non-GET, non-HTTP, and backend API endpoints (including URL-normalized routes)
+  if (
+    request.method !== 'GET' ||
+    !request.url.startsWith('http') ||
+    url.pathname.startsWith('/api') ||
+    url.pathname.startsWith('/leaderboard') ||
+    url.pathname.startsWith('/personal-best') ||
+    url.pathname.startsWith('/research') ||
+    url.pathname.startsWith('/admin') ||
+    url.pathname.startsWith('/sessions') ||
+    url.pathname.startsWith('/health')
+  ) {
     return;
   }
 

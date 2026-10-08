@@ -24,6 +24,7 @@ function RedirectIndexHtml() {
 }
 
 // Code-split heavy routes for fast Home startup
+const About = React.lazy(() => import('../../src/components/About').then(m => ({ default: m.About })));
 const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
 const Leaderboard = React.lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
 const ReactionTest = React.lazy(() => import('./components/ReactionTest').then(m => ({ default: m.ReactionTest })));
@@ -76,6 +77,7 @@ function App() {
 
     switch (view) {
       case 'home': navigate('/'); break;
+      case 'about': navigate('/about'); break;
       case 'assessments': navigate('/assessments'); break;
       case 'leaderboard': navigate('/leaderboard'); break;
       case 'dataset':
@@ -135,6 +137,7 @@ function App() {
                 <RouteSEO />
                 <Routes location={location}>
                   <Route path="/" element={<Home onNavigate={handleNavigate} />} />
+                  <Route path="/about" element={<About onNavigate={handleNavigate} />} />
                   <Route path="/index.html" element={<RedirectIndexHtml />} />
                   <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />

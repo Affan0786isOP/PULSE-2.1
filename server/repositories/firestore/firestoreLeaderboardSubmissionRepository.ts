@@ -1,6 +1,8 @@
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { ILeaderboardSubmissionRepository } from '../interfaces/ILeaderboardSubmissionRepository';
 import type { LeaderboardSubmissionTxInput, LeaderboardSubmissionTxResult } from '../../models/leaderboardModels';
+import type { ExperimentSessionRecord } from '../../models/sessionModels';
+import { LeaderboardAlreadySubmittedError } from '../../models/replayContracts';
 
 export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSubmissionRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
@@ -25,6 +27,18 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
     };
 
     await db.runTransaction(async (tx) => {
+      const sessionSnap = await tx.get(sessionDocRef);
+      if (!sessionSnap.exists) {
+        throw new Error('SESSION_NOT_FOUND');
+      }
+      const sData = sessionSnap.data() as ExperimentSessionRecord;
+      if (sData.uid !== input.userId) {
+        throw new Error('SESSION_UID_MISMATCH');
+      }
+      if (sData.leaderboardSubmitted) {
+        throw new LeaderboardAlreadySubmittedError(sData);
+      }
+
       tx.set(leaderboardDocRef, leaderboardDoc);
       tx.set(sessionDocRef, {
         leaderboardSubmitted: true,

@@ -52,8 +52,12 @@ export function verifyAdminSession(req: express.Request): boolean {
   if (parts.length !== 4) return false;
 
   const [issuedAtStr, expiresAtStr, nonce, signature] = parts;
+  const issuedAt = Number(issuedAtStr);
   const expiresAt = Number(expiresAtStr);
-  if (isNaN(expiresAt) || Date.now() > expiresAt) return false;
+  const now = Date.now();
+  if (isNaN(issuedAt) || isNaN(expiresAt)) return false;
+  if (issuedAt > now + 60000 || now > expiresAt) return false;
+  if (expiresAt - issuedAt > 8 * 60 * 60 * 1000 + 60000 || expiresAt <= issuedAt) return false;
 
   const payload = `${issuedAtStr}:${expiresAtStr}:${nonce}`;
   const expectedSig = signProvenancePayload(payload);

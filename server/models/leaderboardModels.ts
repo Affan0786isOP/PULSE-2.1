@@ -27,6 +27,7 @@ export interface AdminLeaderboardEntryRecord {
 export interface LeaderboardSubmissionTxInput {
   leaderboardDocId: string;
   activeSessionId: string;
+  userId: string;
   displayName: string;
   assessmentType: string;
   scoreMetric: number;

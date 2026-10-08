@@ -104,7 +104,8 @@ export function registerLeaderboardRoutes(
     if (!provenanceToken || typeof provenanceToken !== 'string' || typeof scoreMetric !== 'number') {
       return res.json({ verified: false, reason: 'Missing parameters' });
     }
-    const tokenData = `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${(displayName || '').trim()}:${trialsDigest || ''}`;
+    const sanitizedDisplayName = (displayName || '').trim().replace(/:/g, '_');
+    const tokenData = `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest || ''}`;
     const expected = signProvenancePayload(tokenData);
     return res.json({ verified: safeCompareHex(expected, provenanceToken) });
   });

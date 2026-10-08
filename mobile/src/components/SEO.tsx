@@ -48,13 +48,13 @@ export function SEO({
   canonicalUrl,
   noindex = false,
   ogType = 'website',
-  ogImage = 'https://pulse-lab.in/og-image.png',
+  ogImage = 'https://www.pulse-lab.in/og-image.png',
   schema
 }: SEOProps) {
   const location = useLocation();
 
   // Mobile URLs canonicalize to their corresponding desktop versions
-  const siteUrl = 'https://pulse-lab.in';
+  const siteUrl = 'https://www.pulse-lab.in';
   const canonicalPath = getCanonicalPath(location.pathname);
   const defaultCanonical = `${siteUrl}${canonicalPath === '/' ? '' : canonicalPath}`;
   const finalCanonical = canonicalUrl || defaultCanonical;

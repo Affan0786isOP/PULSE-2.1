@@ -213,7 +213,7 @@ export function registerResearchRoutes(
       const assessmentType = rawType && rawType !== 'all' ? rawType : null;
       const ageGroup = typeof req.query.ageGroup === 'string' && req.query.ageGroup !== 'all' ? req.query.ageGroup.trim() : null;
       const completedAtMonth = typeof req.query.completedAtMonth === 'string' && req.query.completedAtMonth !== 'all' ? req.query.completedAtMonth.trim() : null;
-      const limitCount = req.query.limit ? Math.min(Math.max(1, parseInt(String(req.query.limit), 10) || 1000), 5000) : 1000;
+      const limitCount = req.query.limit ? Math.min(Math.max(1, parseInt(String(req.query.limit), 10) || 100), 250) : 100;
       const cursor = typeof req.query.cursor === 'string' && req.query.cursor.trim() ? req.query.cursor.trim() : null;
 
       try {

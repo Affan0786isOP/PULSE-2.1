@@ -199,7 +199,7 @@ export async function getCloudTrialsCount(filters: { test?: string; ageGroup?: s
   }
 
   const colRef = collection(db, 'assessmentTrials');
-  const constraints: any[] = [];
+  const constraints: any[] = [where('participantId', '==', auth.currentUser.uid)];
 
   if (filters.test && filters.test !== 'All') {
     constraints.push(where('test', '==', filters.test));
@@ -233,7 +233,7 @@ export async function fetchCloudTrialObservationsPaginated(
   }
 
   const colRef = collection(db, 'assessmentTrials');
-  const constraints: any[] = [];
+  const constraints: any[] = [where('participantId', '==', auth.currentUser.uid)];
 
   if (filters.test && filters.test !== 'All') {
     constraints.push(where('test', '==', filters.test));

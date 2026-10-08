@@ -99,9 +99,10 @@ function schemaFor(pathname, route) {
   if (pathname === '/') return homeSchema;
 
   const canonical = absoluteUrl(pathname);
+  const type = pathname === '/about' ? 'AboutPage' : 'WebPage';
   return {
     '@context': 'https://schema.org',
-    '@type': 'WebPage',
+    '@type': type,
     '@id': canonical + '#webpage',
     'url': canonical,
     'name': route.title,

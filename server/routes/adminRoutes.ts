@@ -20,11 +20,11 @@ export function registerAdminRoutes(
       }
 
       const configuredPasscode = getAdminPasscode();
-      const inputBuf = Buffer.from(passcode.trim(), 'utf8');
-      const targetBuf = Buffer.from(configuredPasscode.trim(), 'utf8');
+      const inputHash = crypto.createHash('sha256').update(Buffer.from(passcode.trim(), 'utf8')).digest();
+      const targetHash = crypto.createHash('sha256').update(Buffer.from(configuredPasscode.trim(), 'utf8')).digest();
 
-      // Constant-time comparison to prevent timing attacks
-      const isValid = inputBuf.length === targetBuf.length && crypto.timingSafeEqual(inputBuf, targetBuf);
+      // Constant-time comparison of fixed-length digests to prevent timing attacks and length leakage
+      const isValid = crypto.timingSafeEqual(inputHash, targetHash);
 
       if (!isValid) {
         return res.status(401).json({ success: false, error: 'Invalid admin passcode' });

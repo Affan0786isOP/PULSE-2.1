@@ -464,7 +464,7 @@ export class ResearchService implements IResearchService {
         assessmentType: normalizeAssessmentType(data.assessmentType || 'unknown'),
         ageGroup: data.ageGroup || (sessionData?.['ageGroup'] as string | undefined) || undefined,
         completedAtMonth: derivedMonth || undefined,
-        completedAtTimestamp: data.completedAtTimestamp || data.createdAt,
+        completedAtTimestamp: undefined,
         deviceCategory: (sessionData?.['deviceCategory'] as string | undefined) || (sessionData?.['device'] as string | undefined) || undefined,
         device: (sessionData?.['device'] as string | undefined) || (sessionData?.['deviceCategory'] as string | undefined) || undefined,
         inputModality: (sessionData?.['inputModality'] as string | undefined) || (sessionData?.['inputMethod'] as string | undefined) || undefined,

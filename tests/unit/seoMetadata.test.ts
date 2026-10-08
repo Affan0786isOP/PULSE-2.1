@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import metadata from '../../shared/seoMetadata.json';
 
 describe('SEO route registry', () => {
@@ -7,6 +8,7 @@ describe('SEO route registry', () => {
 
     expect(indexable).toEqual([
       '/',
+      '/about',
       '/assessments',
       '/leaderboard',
       '/improve',

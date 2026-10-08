@@ -105,15 +105,17 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
     const cookieDesktop = isTruthyRoutingFlag(cookies['pulse_force_desktop']);
     const cookieMobile = isTruthyRoutingFlag(cookies['pulse_force_mobile']);
 
+    const secureFlag = (req.secure || req.headers['x-forwarded-proto'] === 'https' || process.env.NODE_ENV === 'production') ? '; Secure' : '';
+
     if (hasForceMobileParam) {
       res.setHeader('Set-Cookie', [
-        'pulse_force_desktop=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
-        'pulse_force_mobile=true; Path=/; Max-Age=86400; SameSite=Lax'
+        `pulse_force_desktop=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT${secureFlag}`,
+        `pulse_force_mobile=true; Path=/; Max-Age=86400; SameSite=Lax${secureFlag}`
       ]);
     } else if (hasForceDesktopParam) {
       res.setHeader('Set-Cookie', [
-        'pulse_force_mobile=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
-        'pulse_force_desktop=true; Path=/; Max-Age=86400; SameSite=Lax'
+        `pulse_force_mobile=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT${secureFlag}`,
+        `pulse_force_desktop=true; Path=/; Max-Age=86400; SameSite=Lax${secureFlag}`
       ]);
     }
 

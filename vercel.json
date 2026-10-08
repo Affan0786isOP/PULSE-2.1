@@ -13,10 +13,10 @@
       "has": [
         {
           "type": "host",
-          "value": "www.pulse-lab.in"
+          "value": "pulse-lab.in"
         }
       ],
-      "destination": "https://pulse-lab.in/:path*",
+      "destination": "https://www.pulse-lab.in/:path*",
       "statusCode": 301
     },
     {
@@ -27,7 +27,7 @@
           "value": "pulse2-one.vercel.app"
         }
       ],
-      "destination": "https://pulse-lab.in/:path*",
+      "destination": "https://www.pulse-lab.in/:path*",
       "statusCode": 301
     },
     {
@@ -206,6 +206,16 @@
       "statusCode": 301
     },
     {
+      "source": "/about/",
+      "destination": "/about",
+      "statusCode": 301
+    },
+    {
+      "source": "/mobile/about/",
+      "destination": "/mobile/about",
+      "statusCode": 301
+    },
+    {
       "source": "/assessments/",
       "destination": "/assessments",
       "statusCode": 301
@@ -352,7 +362,7 @@
       "has": [
         {
           "type": "host",
-          "value": "pulse-lab.in"
+          "value": "www.pulse-lab.in"
         }
       ],
       "headers": [
@@ -489,6 +499,10 @@
       "destination": "/seo/mobile/home.html"
     },
     {
+      "source": "/mobile/about",
+      "destination": "/seo/mobile/about.html"
+    },
+    {
       "source": "/mobile/assessments",
       "destination": "/seo/mobile/assessments.html"
     },
@@ -527,6 +541,10 @@
     {
       "source": "/mobile/number-memory",
       "destination": "/seo/mobile/number-memory.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/seo/about.html"
     },
     {
       "source": "/assessments",

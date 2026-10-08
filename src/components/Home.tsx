@@ -14,21 +14,21 @@ const HOME_SCHEMA = {
   "@graph": [
     {
       "@type": "WebSite",
-      "@id": "https://pulse-lab.in/#website",
-      "url": "https://pulse-lab.in/",
+      "@id": "https://www.pulse-lab.in/#website",
+      "url": "https://www.pulse-lab.in/",
       "name": "PULSE",
       "alternateName": "Precision User Latency & Stimulus Evaluator",
       "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
     },
     {
       "@type": "Organization",
-      "@id": "https://pulse-lab.in/#organization",
+      "@id": "https://www.pulse-lab.in/#organization",
       "name": "PULSE",
       "alternateName": "Precision User Latency & Stimulus Evaluator",
-      "url": "https://pulse-lab.in/",
+      "url": "https://www.pulse-lab.in/",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://pulse-lab.in/icon-512.png",
+        "url": "https://www.pulse-lab.in/icon-512.png",
         "width": 512,
         "height": 512
       },
@@ -36,17 +36,17 @@ const HOME_SCHEMA = {
     },
     {
       "@type": "SoftwareApplication",
-      "@id": "https://pulse-lab.in/#software",
+      "@id": "https://www.pulse-lab.in/#software",
       "name": "PULSE",
       "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
-      "url": "https://pulse-lab.in/",
+      "url": "https://www.pulse-lab.in/",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
       "offers": {
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "USD",
-        "url": "https://pulse-lab.in/"
+        "url": "https://www.pulse-lab.in/"
       },
       "featureList": [
         "Visual Reaction Test",
@@ -58,18 +58,19 @@ const HOME_SCHEMA = {
     },
     {
       "@type": "WebPage",
-      "@id": "https://pulse-lab.in/#webpage",
-      "url": "https://pulse-lab.in/",
+      "@id": "https://www.pulse-lab.in/#webpage",
+      "url": "https://www.pulse-lab.in/",
       "name": "PULSE — Precision User Latency & Stimulus Evaluator",
       "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
-      "image": "https://pulse-lab.in/og-image.png",
-      "isPartOf": { "@id": "https://pulse-lab.in/#website" },
-      "about": { "@id": "https://pulse-lab.in/#organization" }
+      "image": "https://www.pulse-lab.in/og-image.png",
+      "isPartOf": { "@id": "https://www.pulse-lab.in/#website" },
+      "about": { "@id": "https://www.pulse-lab.in/#organization" }
     }
   ]
 };
 
 const ROUTES = {
+  ABOUT: '/about',
   ASSESSMENTS: '/assessments',
   LEADERBOARD: '/leaderboard',
   DATASET: '/dataset',
@@ -192,6 +193,16 @@ export function Home() {
             <h3 className="text-[10.5px] font-mono font-semibold tracking-widest text-[var(--text-muted)] uppercase mb-2 pl-2.5">
               Research Modules
             </h3>
+            <Link 
+              to={ROUTES.ABOUT} 
+              className="group flex items-center justify-between p-3 rounded-xl bg-[var(--surface-1)]/60 hover:bg-[var(--surface-1)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+            >
+              <div className="flex items-center gap-3">
+                <Info size={17} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" />
+                <span className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] tracking-wide">About Platform</span>
+              </div>
+              <ArrowRight size={14} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+            </Link>
             <Link 
               to={ROUTES.ASSESSMENTS} 
               className="group flex items-center justify-between p-3 rounded-xl bg-[var(--surface-1)]/60 hover:bg-[var(--surface-1)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
