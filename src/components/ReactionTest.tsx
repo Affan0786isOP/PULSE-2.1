@@ -9,6 +9,7 @@ import { AssessmentResultReward } from './AssessmentResultReward';
 import { motion } from 'motion/react';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
 
+import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 function seedPRNG(seedStr: string): () => number {
   let h = 1779033703 ^ seedStr.length;
   for (let i = 0; i < seedStr.length; i++) {
@@ -776,6 +777,7 @@ return (
         }}
       >
         <h1 className="sr-only">Visual Reaction Test</h1>
+        <AssessmentInfoPanel assessmentId="visual-reaction" isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'} />
         <style>{`
           @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
