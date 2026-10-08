@@ -10,6 +10,7 @@ import { AssessmentResultReward } from './AssessmentResultReward';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
 import { CountdownOverlay } from './CountdownOverlay';
 
+import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 function seedPRNG(seedStr: string): () => number {
   let h = 1779033703 ^ seedStr.length;
   for (let i = 0; i < seedStr.length; i++) {
@@ -597,6 +598,7 @@ return (
         }}
       >
         <h1 className="sr-only">Number Memory Test</h1>
+        <AssessmentInfoPanel assessmentId="number-memory" isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'} />
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
