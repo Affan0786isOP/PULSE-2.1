@@ -10,7 +10,6 @@ import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
 
-import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 function seedPRNG(seedStr: string): () => number {
   let h = 1779033703 ^ seedStr.length;
   for (let i = 0; i < seedStr.length; i++) {
@@ -722,7 +721,6 @@ return (
         }}
       >
         <h1 className="sr-only">Directional Choice Test</h1>
-        <AssessmentInfoPanel assessmentId="direction" isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'} />
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
