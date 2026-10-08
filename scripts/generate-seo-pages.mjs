@@ -1,7 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import metadata from '../shared/seoMetadata.json' with { type: 'json' };
-import assessmentContent from '../shared/content/assessmentContent.json' with { type: 'json' };
 
 const root = process.cwd();
 const distDir = path.join(root, 'dist');
@@ -58,7 +57,7 @@ const homeSchema = {
         'width': 512,
         'height': 512
       },
-      'sameAs': []
+      'sameAs': [metadata.site.repository]
     },
     {
       '@type': 'SoftwareApplication',
@@ -177,46 +176,14 @@ function replaceHead(html, pathname, route, isMobile) {
   output = output.replace(/<\/head>/i, headTags + '\n  </head>');
 
   const fallbackHeading = escapeHtml(route.title.replace(/\s*\|\s*PULSE$/, ''));
-  const article = assessmentContent[pathname];
-  const renderArticle = (content) => {
-    if (!content) return '';
-    const sections = content.sections.map((section) => {
-      const paragraphs = section.paragraphs.map((paragraph) => '<p>' + escapeHtml(paragraph) + '</p>').join('');
-      const list = section.listItems?.length
-        ? '<ul>' + section.listItems.map((item) => '<li>' + escapeHtml(item) + '</li>').join('') + '</ul>'
-        : '';
-      return '<section><h2>' + escapeHtml(section.heading) + '</h2>' + paragraphs + list + '</section>';
-    }).join('');
-    const faq = content.faq.length
-      ? '<section aria-labelledby="assessment-faq-heading"><h2 id="assessment-faq-heading">Frequently asked questions</h2>' +
-        content.faq.map((item) => '<div><h3>' + escapeHtml(item.question) + '</h3><p>' + escapeHtml(item.answer) + '</p></div>').join('') +
-        '</section>'
-      : '';
-    const links = content.relatedLinks.length
-      ? '<section aria-labelledby="assessment-related-heading"><h2 id="assessment-related-heading">Related PULSE assessments</h2><ul>' +
-        content.relatedLinks.map((link) => '<li><a href="' + escapeHtml(link.path) + '">' + escapeHtml(link.label) + '</a><p>' + escapeHtml(link.description) + '</p></li>').join('') +
-        '</ul></section>'
-      : '';
-    return '<article id="assessment-seo-article">' +
-      '<h1 id="pulse-seo-shell-title">' + escapeHtml(content.title) + '</h1>' +
-      '<p>' + escapeHtml(content.subtitle) + '</p>' +
-      sections + faq + links +
-      '</article>';
-  };
-
-  const shellBody = article
-    ? '<main id="pulse-seo-shell" aria-labelledby="pulse-seo-shell-title" style="max-width:960px;margin:0 auto;padding:4rem 1.5rem;font-family:system-ui,sans-serif;color:#f4f7fa;background:#0b0d10;line-height:1.6">' +
-      '<p style="margin:0 0 .5rem;font:600 .75rem/1.4 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#22c7d6">PULSE</p>' +
-      renderArticle(article) +
-      '</main>'
-    : '<main id="pulse-seo-shell" aria-labelledby="pulse-seo-shell-title" style="max-width:960px;margin:0 auto;padding:4rem 1.5rem;font-family:system-ui,sans-serif;color:#f4f7fa;background:#0b0d10;line-height:1.6">' +
-      '<p style="margin:0 0 .5rem;font:600 .75rem/1.4 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#22c7d6">PULSE</p>' +
-      '<h1 id="pulse-seo-shell-title" style="font-size:clamp(2rem,6vw,4rem);line-height:1.05;margin:0 0 1rem">' + fallbackHeading + '</h1>' +
-      '<p style="max-width:68ch">' + description + '</p>' +
-      '<nav aria-label="PULSE pages"><ul style="display:flex;flex-wrap:wrap;gap:.75rem;padding:0;margin:1.5rem 0 0;list-style:none">' +
-      navigationHtml +
-      '</ul></nav>' +
-      '</main>';
+  const fallback = '<main id="pulse-seo-shell" aria-labelledby="pulse-seo-shell-title" style="max-width:960px;margin:0 auto;padding:4rem 1.5rem;font-family:system-ui,sans-serif;color:#f4f7fa;background:#0b0d10;line-height:1.6">' +
+    '<p style="margin:0 0 .5rem;font:600 .75rem/1.4 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#22c7d6">PULSE</p>' +
+    '<h1 id="pulse-seo-shell-title" style="font-size:clamp(2rem,6vw,4rem);line-height:1.05;margin:0 0 1rem">' + fallbackHeading + '</h1>' +
+    '<p style="max-width:68ch">' + description + '</p>' +
+    '<nav aria-label="PULSE pages"><ul style="display:flex;flex-wrap:wrap;gap:.75rem;padding:0;margin:1.5rem 0 0;list-style:none">' +
+    navigationHtml +
+    '</ul></nav>' +
+    '</main>';
 
   const shellRegex = /<main\b[^>]*\bid=["']pulse-seo-shell["'][^>]*>[\s\S]*?<\/main>/i;
   if (!shellRegex.test(output)) {
