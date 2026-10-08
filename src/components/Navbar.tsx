@@ -161,12 +161,12 @@ export function Navbar({
 
   const navItems = [
     { id: 'home', label: 'Home', to: '/' },
-    { id: 'about', label: 'About', to: '/about' },
     { id: 'assessments', label: 'Assessments', to: '/assessments' },
     { id: 'leaderboard', label: 'Leaderboard', to: '/leaderboard' },
     { id: 'dataset', label: 'Dataset', to: '/dataset' },
     { id: 'improve', label: 'Improve', to: '/improve' },
-    { id: 'privacy', label: 'Privacy', to: '/privacy' }
+    { id: 'privacy', label: 'Privacy', to: '/privacy' },
+    { id: 'about', label: 'About', to: '/about' }
   ];
 
   const activeId = resolveActiveNavId(currentView, location.pathname);

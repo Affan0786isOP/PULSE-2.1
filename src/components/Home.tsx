@@ -194,16 +194,6 @@ export function Home() {
               Research Modules
             </h3>
             <Link 
-              to={ROUTES.ABOUT} 
-              className="group flex items-center justify-between p-3 rounded-xl bg-[var(--surface-1)]/60 hover:bg-[var(--surface-1)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-            >
-              <div className="flex items-center gap-3">
-                <Info size={17} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" />
-                <span className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] tracking-wide">About Platform</span>
-              </div>
-              <ArrowRight size={14} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-            </Link>
-            <Link 
               to={ROUTES.ASSESSMENTS} 
               className="group flex items-center justify-between p-3 rounded-xl bg-[var(--surface-1)]/60 hover:bg-[var(--surface-1)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             >
@@ -250,6 +240,16 @@ export function Home() {
               <div className="flex items-center gap-3">
                 <ShieldCheck size={17} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" />
                 <span className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] tracking-wide">Research Ethics</span>
+              </div>
+              <ArrowRight size={14} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+            </Link>
+            <Link 
+              to={ROUTES.ABOUT} 
+              className="group flex items-center justify-between p-3 rounded-xl bg-[var(--surface-1)]/60 hover:bg-[var(--surface-1)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+            >
+              <div className="flex items-center gap-3">
+                <Info size={17} className="text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" />
+                <span className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] tracking-wide">About Platform</span>
               </div>
               <ArrowRight size={14} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
             </Link>
