@@ -3,10 +3,11 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Navbar } from './Navbar';
 import { AgeSelection } from './AgeSelection';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import { Activity, HelpCircle, X, Check, RefreshCw } from 'lucide-react';
+import { Activity, Info, X, Check, RefreshCw } from 'lucide-react';
 import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
+import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
 
 function seedPRNG(seedStr: string): () => number {
@@ -55,7 +56,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   const hasSubmittedRef = useRef(false);
 
   const [engineState, setEngineState] = useState<EngineState>('READY');
-  const [showGuide, setShowGuide] = useState(true);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   const [, setCurrentTrial] = useState(0);
   const [trialDataset, setTrialDataset] = useState<Array<{
@@ -126,28 +127,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     initSession(selectedAgeGroup);
   }, [selectedAgeGroup, initSession]);
 
-  const openGuide = useCallback(() => {
-    if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
-      if (countdownInterval.current) clearInterval(countdownInterval.current);
-      if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
-      if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
-      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
-      setStatusMessage('TEST INTERRUPTED');
-      setEngineState('READY');
-      engineStateRef.current = 'READY';
-    }
-    setShowGuide(true);
-  }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showGuide) {
-        setShowGuide(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showGuide]);
 
   const updateLiveTimer = useCallback(() => {
     if (engineStateRef.current === 'STIMULUS_ACTIVE') {
@@ -489,15 +469,11 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   // MOUNT AUTOSTART
   useEffect(() => {
     if (!selectedAgeGroup || !sessionId) return;
-    if (showGuide) {
-      // Guide is displayed on start; test will begin once user clicks "Got It, Let's Play!"
-      return;
-    }
     if (engineStateRef.current === 'READY' || engineStateRef.current === 'UNMOUNTED') {
       engineStateRef.current = 'READY';
       startCountdown();
     }
-  }, [selectedAgeGroup, sessionId, showGuide]);
+  }, [selectedAgeGroup, sessionId]);
 
   let apparatusClass = "w-[90%] max-w-[800px] min-h-[450px] bg-[var(--bg-surface)] border border-[var(--glass-border)] rounded-[24px] flex flex-col relative backdrop-blur-[20px] transition-colors duration-200 ease-out p-6 md:p-10 touch-manipulation select-none";
   let timerClass = "font-mono font-bold tracking-[-1px] leading-none mb-[15px] transition-colors duration-100 ease-out text-3xl md:text-5xl text-[var(--text-muted)]";
@@ -615,7 +591,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return <AgeSelection assessmentId="color-recognition" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
   }
 
   if (sessionError) {
@@ -675,11 +651,20 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
           </div>
           <button
             type="button"
-            onClick={openGuide}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-mono text-[var(--cyan-primary)] transition-colors cursor-pointer shadow-sm active:scale-95"
+            onClick={() => setIsInfoOpen(true)}
+            disabled={engineState !== 'READY' && engineState !== 'UNMOUNTED'}
+            aria-label="About this assessment and methodology"
+            aria-expanded={isInfoOpen}
+            aria-controls="assessment-info-panel"
+            title={engineState !== 'READY' ? "Complete current test before viewing methodology" : "Assessment methodology & details"}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-colors shadow-sm ${
+              engineState !== 'READY'
+                ? 'border-[var(--border-subtle)] text-[var(--text-muted)] opacity-40 cursor-not-allowed'
+                : 'border-white/15 bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-cyan-300 cursor-pointer active:scale-95'
+            }`}
           >
-            <HelpCircle size={14} />
-            <span>How to Play</span>
+            <Info size={14} />
+            <span>Info</span>
           </button>
         </div>
         
@@ -832,116 +817,14 @@ return (
         )}
       </motion.div>
 
-      {/* HOW TO PLAY GUIDE POPUP */}
-      {showGuide && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-[fadeIn_0.2s_ease-out]"
-          onClick={() => setShowGuide(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="guide-title"
-        >
-          <div 
-            className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl w-full max-w-lg p-4 sm:p-5 relative text-left flex flex-col justify-between"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
-              <div>
-                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest font-bold block mb-0.5">Assessment Guide</span>
-                <h3 id="guide-title" className="text-lg sm:text-xl font-heading font-bold text-[var(--text-primary)]">
-                  How to Play: Colour Recognition
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowGuide(false)}
-                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[var(--text-muted)] hover:text-white transition-colors cursor-pointer"
-                aria-label="Close guide"
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            {/* Content */}
-            <div className="space-y-2.5 text-xs text-[var(--text-secondary)] leading-relaxed">
-              <p className="text-[11px] sm:text-xs text-[var(--text-muted)] font-medium">
-                Check the instruction prompt at the top of each round before selecting your answer:
-              </p>
-
-              {/* Rule 1: MATCH THE WORD */}
-              <div className="p-2.5 sm:p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/25">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-heading font-bold text-xs uppercase tracking-wider text-cyan-400">
-                    Rule 1: MATCH THE WRITTEN WORD
-                  </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold uppercase">
-                    Read Text
-                  </span>
-                </div>
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/50 border border-white/5 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-heading font-black text-base sm:text-lg tracking-wider" style={{ color: '#eab308' }}>
-                      RED
-                    </span>
-                    <span className="text-[10px] text-[var(--text-muted)]">(Yellow ink)</span>
-                  </div>
-                  <div className="flex items-center gap-1 font-mono font-bold text-[10px] sm:text-[11px] text-white bg-red-600 px-2 py-0.5 rounded">
-                    <Check size={12} className="stroke-[3]" /> Tap "RED"
-                  </div>
-                </div>
-              </div>
-
-              {/* Rule 2: MATCH THE COLOR */}
-              <div className="p-2.5 sm:p-3 rounded-xl bg-purple-500/10 border border-purple-500/25">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-heading font-bold text-xs uppercase tracking-wider text-purple-400">
-                    Rule 2: MATCH THE INK COLOR
-                  </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold uppercase">
-                    Match Ink
-                  </span>
-                </div>
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/50 border border-white/5 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-heading font-black text-base sm:text-lg tracking-wider" style={{ color: '#3b82f6' }}>
-                      YELLOW
-                    </span>
-                    <span className="text-[10px] text-[var(--text-muted)]">(Blue ink)</span>
-                  </div>
-                  <div className="flex items-center gap-1 font-mono font-bold text-[10px] sm:text-[11px] text-black bg-blue-500 px-2 py-0.5 rounded">
-                    <Check size={12} className="stroke-[3]" /> Tap "BLUE"
-                  </div>
-                </div>
-              </div>
-
-              {/* Game Info Pill */}
-              <div className="flex items-center justify-around bg-white/5 rounded-lg py-1.5 px-3 border border-white/10 text-[11px] font-mono text-[var(--text-muted)]">
-                <span>⚡ 15 Rounds</span>
-                <span>•</span>
-                <span>🔀 Shuffled Buttons</span>
-                <span>•</span>
-                <span>🎯 Speed & Accuracy</span>
-              </div>
-            </div>
-
-            {/* Action */}
-            <div className="mt-3 pt-2.5 border-t border-white/10 flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowGuide(false);
-                  startCountdown();
-                }}
-                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[var(--cyan-primary)] hover:bg-[#00d0dd] text-black font-heading font-bold text-xs uppercase tracking-wider transition-colors transition-transform transition-opacity cursor-pointer shadow-sm active:scale-95 text-center"
-              >
-                Got It, Let's Play!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       </main>
+
+      <AssessmentInfoPanel
+        route="/colour-recognition"
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+      />
     </div>
   );
 }

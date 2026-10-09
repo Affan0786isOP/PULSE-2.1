@@ -4,10 +4,11 @@ import { Navbar } from './Navbar';
 import { AgeSelection } from './AgeSelection';
 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Activity, RefreshCw } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Activity, RefreshCw, Info } from 'lucide-react';
 import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
+import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
 
 function seedPRNG(seedStr: string): () => number {
@@ -59,6 +60,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   const hasSubmittedRef = useRef(false);
 
   const [engineState, setEngineState] = useState<EngineState>('READY');
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   const [currentTrial, setCurrentTrial] = useState(0);
   const currentTrialRef = useRef(0);
@@ -680,7 +682,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return <AgeSelection assessmentId="direction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
   }
 
   if (sessionError) {
@@ -752,9 +754,42 @@ return (
             <div className="font-mono text-xs text-[var(--text-muted)] tracking-wider uppercase text-center w-full animate-[fadeIn_0.3s_ease-out] min-h-[1.5rem]">
               {isSessionLoading ? 'STARTING SESSION...' : inputPrompt}
             </div>
-            <div className="flex justify-center items-center font-mono text-xs text-[var(--text-secondary)] animate-[fadeIn_0.3s_ease-out]">
+            <div className="w-full flex justify-between items-center font-mono text-xs text-[var(--text-secondary)] animate-[fadeIn_0.3s_ease-out]">
               <div className="tracking-wide">TRIAL: <span className="text-[var(--text-primary)] font-bold">{currentTrial}</span> / {TOTAL_TRIALS}</div>
+              <button
+                type="button"
+                onClick={() => setIsInfoOpen(true)}
+                disabled={engineState !== 'READY' && engineState !== 'UNMOUNTED'}
+                aria-label="About this assessment and methodology"
+                aria-expanded={isInfoOpen}
+                aria-controls="assessment-info-panel"
+                title={engineState !== 'READY' ? "Complete current test before viewing methodology" : "Assessment methodology & details"}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs transition-all ${
+                  engineState !== 'READY'
+                    ? 'border-[var(--border-subtle)] text-[var(--text-muted)] opacity-40 cursor-not-allowed'
+                    : 'border-[var(--border-subtle)] text-cyan-400 hover:text-cyan-300 hover:border-cyan-500/50 bg-[var(--surface-1)] cursor-pointer'
+                }`}
+              >
+                <Info size={14} />
+                <span>Info</span>
+              </button>
             </div>
+          </div>
+        )}
+
+        {engineState === 'REPORT' && (
+          <div className="w-full max-w-[800px] flex justify-end px-4 mb-4 z-30">
+            <button
+              type="button"
+              onClick={() => setIsInfoOpen(true)}
+              aria-label="About this assessment and methodology"
+              aria-expanded={isInfoOpen}
+              aria-controls="assessment-info-panel"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] text-xs text-cyan-400 hover:text-cyan-300 hover:border-cyan-500/50 bg-[var(--surface-1)] cursor-pointer"
+            >
+              <Info size={14} />
+              <span>Info</span>
+            </button>
           </div>
         )}
 
@@ -873,6 +908,12 @@ return (
         )}
       </motion.div>
       </main>
+
+      <AssessmentInfoPanel
+        route="/direction-test"
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+      />
     </div>
   );
 }

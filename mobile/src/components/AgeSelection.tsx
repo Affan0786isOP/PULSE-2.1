@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { VALID_AGE_GROUPS, AgeGroup } from '../lib/firestore';
-import { ArrowLeft, User, Check, Activity, Sparkles, Compass, Zap, Target, Layers, ShieldCheck, Award, ArrowRight } from 'lucide-react';
+import { ArrowLeft, User, Check, Activity, Sparkles, Compass, Zap, Target, Layers, ShieldCheck, Award, ArrowRight, Info } from 'lucide-react';
 import { motion } from 'motion/react';
 import { triggerHaptic } from '../lib/settingsStore';
+import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 
 const AGE_METADATA: Record<AgeGroup, { label: string; range: string; icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }> }> = {
   'Children (8–12)': { label: 'Children', range: '8–12 yrs', icon: Sparkles },
@@ -14,8 +15,25 @@ const AGE_METADATA: Record<AgeGroup, { label: string; range: string; icon: React
   'Seniors (76+)': { label: 'Seniors', range: '76+ yrs', icon: Award }
 };
 
-export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup) => void; onCancel: () => void }) {
+interface AgeSelectionProps {
+  onSelect: (age: AgeGroup) => void;
+  onCancel: () => void;
+  assessmentId?: string;
+  route?: string;
+}
+
+export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSelectionProps) {
   const [selectedAge, setSelectedAge] = useState<AgeGroup | null>(null);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
+
+  // Resolve canonical route from route prop or assessmentId
+  const canonicalRoute = route || (assessmentId ? (
+    assessmentId === 'visual-reaction' ? '/reaction-test' :
+    assessmentId === 'direction' ? '/direction-test' :
+    assessmentId === 'color-recognition' ? '/colour-recognition' :
+    assessmentId === 'block-memory' ? '/block-memory' :
+    assessmentId === 'number-memory' ? '/number-memory' : undefined
+  ) : undefined);
 
   const handleSelect = (age: AgeGroup) => {
     triggerHaptic('tap');
@@ -72,9 +90,24 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
           </button>
         </div>
 
-        <span className="font-mono text-[10px] font-semibold tracking-wider text-[var(--text-muted)] uppercase bg-[var(--surface-1)] border border-[var(--border-subtle)] px-2.5 py-1 rounded-md">
-          Demographic Baseline
-        </span>
+        <div className="flex items-center gap-2">
+          {canonicalRoute && (
+            <button
+              type="button"
+              onClick={() => setIsInfoOpen(true)}
+              aria-label="About this assessment and methodology"
+              aria-expanded={isInfoOpen}
+              aria-controls="assessment-info-panel"
+              className="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--accent)] hover:bg-[var(--surface-2)] cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              title="Assessment methodology & details"
+            >
+              <Info size={16} />
+            </button>
+          )}
+          <span className="font-mono text-[10px] font-semibold tracking-wider text-[var(--text-muted)] uppercase bg-[var(--surface-1)] border border-[var(--border-subtle)] px-2.5 py-1 rounded-md">
+            Demographic Baseline
+          </span>
+        </div>
       </div>
 
       {/* Main Content Panel (No Scroll, 48px touch targets) */}
@@ -180,6 +213,14 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
       <div className="text-center py-1 shrink-0">
         <p className="font-mono text-[10px] text-[var(--text-muted)]">De-identified research baseline • PULSE</p>
       </div>
+
+      {canonicalRoute && (
+        <AssessmentInfoPanel
+          route={canonicalRoute}
+          isOpen={isInfoOpen}
+          onClose={() => setIsInfoOpen(false)}
+        />
+      )}
     </div>
   );
 }

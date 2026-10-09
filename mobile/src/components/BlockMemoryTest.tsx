@@ -4,10 +4,11 @@ import { Navbar } from './Navbar';
 import { AgeSelection } from './AgeSelection';
 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Heart, Activity, RefreshCw } from 'lucide-react';
+import { Heart, Activity, RefreshCw, Info } from 'lucide-react';
 import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
+import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
 import { CountdownOverlay } from './CountdownOverlay';
 
@@ -49,6 +50,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
   const levelAttemptsRef = useRef<Record<number, number>>({});
 
   const [engineState, setEngineState] = useState<EngineState>('READY');
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -535,7 +537,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return <AgeSelection assessmentId="block-memory" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
   }
 
   if (sessionError) {
@@ -614,12 +616,49 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
             <div className="font-mono text-[0.75rem] text-[#8b9bb466] tracking-[2px] uppercase text-center w-full animate-[fadeIn_0.5s_ease-out] min-h-[1.5rem]">
               {inputPrompt}
             </div>
-            {engineState !== 'READY' && (
-              <div className="w-full flex justify-between items-center font-mono text-[0.85rem] text-[var(--text-muted)] animate-[fadeIn_0.5s_ease-out]">
-                <div className="tracking-[1px]">LEVEL: <span className="text-white">{level}</span></div>
-                <div className="tracking-[1px] flex items-center gap-1">LIVES: <span className="text-[var(--color-error)] flex gap-1 ml-1">{Array.from({ length: 3 }).map((_, i) => <Heart key={i} size={14} className={i < lives ? "fill-current" : "opacity-30"} />)}</span></div>
-              </div>
-            )}
+            <div className="w-full flex justify-between items-center font-mono text-[0.85rem] text-[var(--text-muted)] animate-[fadeIn_0.5s_ease-out]">
+              {engineState !== 'READY' ? (
+                <>
+                  <div className="tracking-[1px]">LEVEL: <span className="text-white">{level}</span></div>
+                  <div className="tracking-[1px] flex items-center gap-1">LIVES: <span className="text-[var(--color-error)] flex gap-1 ml-1">{Array.from({ length: 3 }).map((_, i) => <Heart key={i} size={14} className={i < lives ? "fill-current" : "opacity-30"} />)}</span></div>
+                </>
+              ) : (
+                <div className="tracking-[1px]">9 BLOCKS • SPATIAL MEMORY</div>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsInfoOpen(true)}
+                disabled={engineState !== 'READY' && engineState !== 'UNMOUNTED'}
+                aria-label="About this assessment and methodology"
+                aria-expanded={isInfoOpen}
+                aria-controls="assessment-info-panel"
+                title={engineState !== 'READY' ? "Complete current test before viewing methodology" : "Assessment methodology & details"}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs transition-all ${
+                  engineState !== 'READY'
+                    ? 'border-[var(--border-subtle)] text-[var(--text-muted)] opacity-40 cursor-not-allowed'
+                    : 'border-[var(--border-subtle)] text-cyan-400 hover:text-cyan-300 hover:border-cyan-500/50 bg-[var(--surface-1)] cursor-pointer'
+                }`}
+              >
+                <Info size={14} />
+                <span>Info</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {engineState === 'REPORT' && (
+          <div className="w-full max-w-[800px] flex justify-end px-4 mb-4 z-30">
+            <button
+              type="button"
+              onClick={() => setIsInfoOpen(true)}
+              aria-label="About this assessment and methodology"
+              aria-expanded={isInfoOpen}
+              aria-controls="assessment-info-panel"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] text-xs text-cyan-400 hover:text-cyan-300 hover:border-cyan-500/50 bg-[var(--surface-1)] cursor-pointer"
+            >
+              <Info size={14} />
+              <span>Info</span>
+            </button>
           </div>
         )}
 
@@ -707,6 +746,12 @@ return (
         )}
       </motion.div>
       </main>
+
+      <AssessmentInfoPanel
+        route="/block-memory"
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+      />
     </div>
   );
 }
