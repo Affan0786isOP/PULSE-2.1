@@ -18,7 +18,7 @@ const HOME_SCHEMA = {
       "url": "https://pulse-lab.in/",
       "name": "PULSE",
       "alternateName": "Precision User Latency & Stimulus Evaluator",
-      "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
+      "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing."
     },
     {
       "@type": "Organization",
@@ -32,13 +32,12 @@ const HOME_SCHEMA = {
         "width": 512,
         "height": 512
       },
-      "sameAs": ["https://github.com/Affan0786isOP/PULSE-2.1"]
     },
     {
       "@type": "SoftwareApplication",
       "@id": "https://pulse-lab.in/#software",
       "name": "PULSE",
-      "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
+      "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.",
       "url": "https://pulse-lab.in/",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
@@ -61,7 +60,7 @@ const HOME_SCHEMA = {
       "@id": "https://pulse-lab.in/#webpage",
       "url": "https://pulse-lab.in/",
       "name": "PULSE — Precision User Latency & Stimulus Evaluator",
-      "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
+      "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.",
       "image": "https://pulse-lab.in/og-image.png",
       "isPartOf": { "@id": "https://pulse-lab.in/#website" },
       "about": { "@id": "https://pulse-lab.in/#organization" }
@@ -106,7 +105,7 @@ export function Home() {
 
       <SEO 
         title="PULSE — Precision User Latency & Stimulus Evaluator"
-        description="An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision."
+        description="A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing."
         schema={HOME_SCHEMA}
       />
       
