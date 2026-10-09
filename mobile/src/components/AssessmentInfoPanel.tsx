@@ -18,23 +18,68 @@ export const AssessmentInfoPanel: React.FC<AssessmentInfoPanelProps> = ({
   const article = contentMap[route];
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
 
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const getFocusableElements = () => {
+      if (!panelRef.current) return [];
+      return Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      );
+    };
+
+    if (!isOpen) {
+      const opener = openerRef.current;
+      openerRef.current = null;
+      if (opener?.isConnected) opener.focus();
+      return;
+    }
+
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement && !panelRef.current?.contains(activeElement)) {
+      openerRef.current = activeElement;
+    }
+
+    closeButtonRef.current?.focus();
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
+      if (!isOpen) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      const focusables = getFocusableElements();
+      if (focusables.length === 0) {
+        e.preventDefault();
+        closeButtonRef.current?.focus();
+        return;
+      }
+
+      const firstElement = focusables[0];
+      const lastElement = focusables[focusables.length - 1];
+
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
       }
     };
 
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      closeButtonRef.current?.focus();
-    }
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   if (!article) return null;
 
