@@ -53,7 +53,7 @@ export function WhatIsPulseScene() {
             </h2>
 
             <p className="mt-7 max-w-2xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base sm:leading-8">
-              PULSE is an open-source, browser-based cognitive benchmarking system.
+              PULSE is a browser-based cognitive benchmarking system.
               Controlled tasks, precise timing, and structured telemetry turn a simple
               response into a measurement you can study.
             </p>
