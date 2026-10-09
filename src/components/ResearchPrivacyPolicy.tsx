@@ -1,4 +1,4 @@
-import { ShieldCheck, Lock, Users, Database, Globe, RefreshCw, Layers, ExternalLink, HelpCircle } from 'lucide-react';
+import { ShieldCheck, Lock, Users, Database, RefreshCw, Layers, HelpCircle } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { motion } from 'motion/react';
@@ -38,25 +38,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-[var(--text-muted)] pt-1">
               <span>Last updated: September 2026</span>
               <span>•</span>
-              <a 
-                href="https://github.com/Affan0786isOP/PULSE-2.1" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-[var(--cyan-primary)] hover:underline active:opacity-70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] rounded-xs inline-flex items-center gap-1"
-              >
-                <Globe size={12} />
-                <span>Open-Source Repository</span>
-              </a>
-              <span>•</span>
-              <a 
-                href="https://github.com/Affan0786isOP/PULSE-2.1/issues" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-[var(--cyan-primary)] hover:underline active:opacity-70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] rounded-xs inline-flex items-center gap-1"
-              >
-                <HelpCircle size={12} />
-                <span>Data Inquiries &amp; Requests</span>
-              </a>
+              <span>Data &amp; methodology information</span>
             </div>
           </header>
 
@@ -212,17 +194,14 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
             </div>
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-3">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-[65ch]">
-                If you have questions about how PULSE handles data or privacy, please contact the maintainers or file an issue:
+                For questions about how PULSE handles data or methodology, review the platform information and privacy policy.
               </p>
               <div className="pt-1">
-                <a 
-                  href="https://github.com/Affan0786isOP/PULSE-2.1/issues" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href="/about"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--cyan-badge-bg)] hover:bg-[var(--cyan-badge-border)] active:scale-95 active:opacity-90 text-[var(--cyan-primary)] border border-[var(--cyan-badge-border)] rounded-lg text-sm font-medium transition-[transform,background-color,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                 >
-                  <span>Submit an Inquiry on GitHub Issues</span>
-                  <ExternalLink size={14} />
+                  <span>About PULSE</span>
                 </a>
               </div>
             </div>
