@@ -97,14 +97,6 @@ export const Footer: React.FC<FooterProps> = ({ onOpenSettings, onOpenWelcome })
                   Architecture Overview
                 </button>
               )}
-              <a 
-                href="https://github.com/Affan0786isOP/PULSE-2.1"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] rounded-xs w-fit inline-flex items-center gap-1"
-              >
-                <span>GitHub Repository</span>
-              </a>
             </nav>
           </div>
         </div>
