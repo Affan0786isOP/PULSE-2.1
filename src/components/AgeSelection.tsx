@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { VALID_AGE_GROUPS, AgeGroup } from '../lib/firestore';
-import { ArrowLeft, User, Check, Sparkles, Compass, Zap, Target, Layers, ShieldCheck, Award, ArrowRight } from 'lucide-react';
+import { ArrowLeft, User, Check, Sparkles, Compass, Zap, Target, Layers, ShieldCheck, Award, ArrowRight, Info } from 'lucide-react';
 import { motion } from 'motion/react';
+import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 
 const AGE_METADATA: Record<AgeGroup, { label: string; range: string; icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }> }> = {
   'Children (8–12)': { label: 'Children', range: '8–12 years', icon: Sparkles },
@@ -13,12 +14,29 @@ const AGE_METADATA: Record<AgeGroup, { label: string; range: string; icon: React
   'Seniors (76+)': { label: 'Seniors', range: '76+ years', icon: Award }
 };
 
-export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup) => void; onCancel: () => void }) {
+interface AgeSelectionProps {
+  onSelect: (age: AgeGroup) => void;
+  onCancel: () => void;
+  assessmentId?: string;
+  route?: string;
+}
+
+export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSelectionProps) {
   const [selectedAge, setSelectedAge] = useState<AgeGroup | null>(null);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   const handleSelect = (age: AgeGroup) => {
     setSelectedAge(age);
   };
+
+  // Resolve canonical route from route prop or assessmentId
+  const canonicalRoute = route || (assessmentId ? (
+    assessmentId === 'visual-reaction' ? '/reaction-test' :
+    assessmentId === 'direction' ? '/direction-test' :
+    assessmentId === 'color-recognition' ? '/colour-recognition' :
+    assessmentId === 'block-memory' ? '/block-memory' :
+    assessmentId === 'number-memory' ? '/number-memory' : undefined
+  ) : undefined);
 
   return (
     <div 
@@ -42,9 +60,25 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
           <span>Assessments</span>
         </button>
 
-        <span className="font-mono text-[10px] font-semibold tracking-wider text-[var(--text-muted)] uppercase bg-[var(--surface-1)] border border-[var(--border-subtle)] px-2.5 py-1 rounded-md">
-          Demographic Baseline
-        </span>
+        <div className="flex items-center gap-2">
+          {canonicalRoute && (
+            <button
+              type="button"
+              onClick={() => setIsInfoOpen(true)}
+              aria-label="About this assessment and methodology"
+              aria-expanded={isInfoOpen}
+              aria-controls="assessment-info-panel"
+              className="inline-flex items-center gap-1 text-xs font-mono text-cyan-400 hover:text-cyan-300 transition-colors h-8 px-2.5 rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] hover:bg-[var(--surface-2)] cursor-pointer"
+            >
+              <Info size={13} />
+              <span>Info</span>
+            </button>
+          )}
+
+          <span className="font-mono text-[10px] font-semibold tracking-wider text-[var(--text-muted)] uppercase bg-[var(--surface-1)] border border-[var(--border-subtle)] px-2.5 py-1 rounded-md">
+            Demographic Baseline
+          </span>
+        </div>
       </div>
 
       {/* Main Center Panel (Proportionate Desktop Grid) */}
@@ -59,101 +93,93 @@ export function AgeSelection({ onSelect, onCancel }: { onSelect: (age: AgeGroup)
           <div className="w-10 h-10 mx-auto rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] mb-2.5">
             <User size={18} />
           </div>
-          <h2 className="font-heading text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-1">
-            Select your age group
+          <h2 className="text-lg sm:text-xl font-heading font-semibold text-[var(--text-primary)] tracking-tight">
+            Select Your Age Group
           </h2>
-          <p className="text-xs text-[var(--text-secondary)] max-w-sm mx-auto leading-relaxed">
-            PULSE compares your performance to others in your age group.
+          <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-sm mx-auto">
+            Benchmarks normalize accuracy against peer cohorts. Anonymous and non-identifying.
           </p>
         </div>
 
-        {/* 2-Column Responsive Grid of Age Cohorts */}
-        <div 
-          role="radiogroup" 
-          aria-label="Select your age cohort" 
-          className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 mb-5 shrink-0"
-        >
-          {VALID_AGE_GROUPS.map((age, i) => {
-            const isSelected = selectedAge === age;
-            const meta = AGE_METADATA[age] || { label: age, range: '', icon: User };
-            const IconComponent = meta.icon;
-            const isLastOdd = i === VALID_AGE_GROUPS.length - 1;
+        {/* Dense Grid Options */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 w-full mb-4 sm:mb-5 overflow-y-auto max-h-[46vh] sm:max-h-none py-1">
+          {VALID_AGE_GROUPS.map((group) => {
+            const meta = AGE_METADATA[group];
+            const isSelected = selectedAge === group;
+            const Icon = meta?.icon || User;
 
             return (
-              <motion.button
+              <button
+                key={group}
                 type="button"
-                role="radio"
-                aria-checked={isSelected}
-                aria-label={`${meta.label} (${meta.range})`}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15, delay: i * 0.02 }}
-                whileTap={{ scale: 0.99 }}
-                key={age}
-                id={`age-option-${age.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                onClick={() => handleSelect(age)}
-                className={`w-full text-left p-3 rounded-xl border text-xs font-mono transition-colors duration-150 cursor-pointer flex items-center justify-between gap-3 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                  isLastOdd ? 'sm:col-span-2 sm:max-w-[calc(50%-0.3125rem)] sm:mx-auto' : ''
-                } ${
-                  isSelected 
-                    ? 'bg-[var(--surface-2)] border-[var(--accent)] text-[var(--text-primary)]' 
-                    : 'bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:border-[var(--border-default)] hover:text-[var(--text-primary)]'
+                onClick={() => handleSelect(group)}
+                className={`group flex items-center justify-between p-2.5 sm:p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                  isSelected
+                    ? 'border-[var(--accent)] bg-[var(--accent-subtle)] shadow-xs ring-1 ring-[var(--accent)]'
+                    : 'border-[var(--border-subtle)] bg-[var(--surface-2)] hover:border-[var(--border-default)] hover:bg-[var(--surface-3)]'
                 }`}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
-                    isSelected
-                      ? 'bg-[var(--accent)] text-slate-950 border-[var(--accent)]'
-                      : 'bg-[var(--surface-2)] text-[var(--accent)] border-[var(--border-subtle)]'
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${
+                    isSelected ? 'bg-[var(--accent)] text-black' : 'bg-[var(--surface-1)] text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'
                   }`}>
-                    <IconComponent size={15} />
+                    <Icon size={14} strokeWidth={2.2} />
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-xs truncate text-[var(--text-primary)]">
-                      {meta.label}
-                    </span>
-                    <span className="text-[11px] text-[var(--text-muted)]">
-                      {meta.range}
-                    </span>
+                  <div className="min-w-0 truncate">
+                    <div className="text-xs font-medium text-[var(--text-primary)] truncate">
+                      {meta?.label || group}
+                    </div>
+                    <div className="font-mono text-[10px] text-[var(--text-muted)]">
+                      {meta?.range}
+                    </div>
                   </div>
                 </div>
 
-                <div className="shrink-0">
-                  {isSelected ? (
-                    <div className="w-5 h-5 rounded-full bg-[var(--accent)] flex items-center justify-center text-slate-950">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                  ) : (
-                    <div className="w-4 h-4 rounded-full border border-[var(--border-subtle)]" />
-                  )}
+                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ml-2 transition-all ${
+                  isSelected
+                    ? 'border-[var(--accent)] bg-[var(--accent)] text-black'
+                    : 'border-[var(--border-subtle)] bg-transparent'
+                }`}>
+                  {isSelected && <Check size={10} strokeWidth={3} />}
                 </div>
-              </motion.button>
+              </button>
             );
           })}
         </div>
 
-        {/* Continue Action Button */}
-        <div className="w-full max-w-sm mx-auto shrink-0">
+        {/* Action Button */}
+        <div className="shrink-0 pt-2 border-t border-[var(--border-subtle)]">
           <button
             type="button"
-            id="continue-assessment-btn"
-            onClick={() => selectedAge && onSelect(selectedAge)}
+            id="continue-to-assessment-btn"
             disabled={!selectedAge}
-            className={`w-full h-11 px-5 rounded-xl font-mono font-bold text-xs tracking-wider uppercase inline-flex items-center justify-center gap-2 transition-colors active:scale-95 cursor-pointer ${
-              selectedAge 
-                ? 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950' 
-                : 'bg-[var(--surface-2)] text-[var(--text-muted)] cursor-not-allowed opacity-50 border border-[var(--border-subtle)]'
+            onClick={() => selectedAge && onSelect(selectedAge)}
+            className={`w-full py-2.5 px-4 rounded-xl font-heading font-medium text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 transition-all ${
+              selectedAge
+                ? 'bg-[var(--accent)] text-black hover:opacity-90 active:scale-[0.99] cursor-pointer shadow-xs'
+                : 'bg-[var(--surface-2)] text-[var(--text-muted)] border border-[var(--border-subtle)] cursor-not-allowed opacity-60'
             }`}
           >
-            <span>Continue to Test</span>
+            <span>Proceed to Assessment</span>
             <ArrowRight size={14} />
           </button>
         </div>
       </motion.div>
 
-      {/* Bottom subtle baseline note */}
-      <div className="text-center py-1 shrink-0">
-        <p className="font-mono text-[10px] text-[var(--text-muted)]">De-identified research baseline • PULSE</p>
+      {/* Info Drawer when opened */}
+      {canonicalRoute && (
+        <AssessmentInfoPanel
+          route={canonicalRoute}
+          isOpen={isInfoOpen}
+          onClose={() => setIsInfoOpen(false)}
+        />
+      )}
+
+      {/* Bottom Micro Context */}
+      <div className="text-center shrink-0 mt-2">
+        <p className="font-mono text-[10px] text-[var(--text-muted)]">
+          Data protocol: Anonymous peer aggregation only
+        </p>
       </div>
     </div>
   );
