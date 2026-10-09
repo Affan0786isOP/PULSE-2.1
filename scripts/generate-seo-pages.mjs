@@ -4,7 +4,9 @@ import metadata from '../shared/seoMetadata.json' with { type: 'json' };
 import assessmentContent from '../shared/content/assessmentContent.json' with { type: 'json' };
 
 const root = process.cwd();
-const distDir = path.join(root, 'dist');
+const distDir = process.env.PULSE_SEO_DIST_DIR
+  ? path.resolve(process.env.PULSE_SEO_DIST_DIR)
+  : path.join(root, 'dist');
 const siteUrl = metadata.site.url;
 
 function escapeHtml(value) {
