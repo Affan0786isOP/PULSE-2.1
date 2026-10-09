@@ -1,0 +1,345 @@
+{
+  "/reaction-test": {
+    "assessmentId": "visual-reaction",
+    "title": "Visual Reaction Time Test",
+    "subtitle": "Benchmark visual response latency with high-resolution timing",
+    "sections": [
+      {
+        "id": "what-is-reaction-time",
+        "heading": "What is Reaction Time?",
+        "paragraphs": [
+          "Reaction time measures the duration between the presentation of a sensory stimulus and the initiation of an appropriate motor response.",
+          "In simple visual reaction time tasks, an individual responds to a single visual trigger using a single predefined input action, reflecting visual sensory transmission, central processing, and motor output initiation."
+        ]
+      },
+      {
+        "id": "how-it-works",
+        "heading": "How the PULSE Test Works",
+        "paragraphs": [
+          "The PULSE visual reaction assessment consists of 10 trials designed to measure rapid visual detection.",
+          "Each trial displays a waiting state followed by a randomized foreperiod delay between 100ms and 3000ms. When the interface transitions to the active stimulus, respond immediately using the spacebar or screen tap."
+        ],
+        "listItems": [
+          "10 discrete trials per assessment session",
+          "Randomized foreperiods split between short and long intervals to prevent anticipation",
+          "False starts recorded if input occurs before the stimulus appears or within 80ms"
+        ]
+      },
+      {
+        "id": "measurement-methodology",
+        "heading": "How Results Are Measured",
+        "paragraphs": [
+          "Latency is captured using browser performance timestamps recorded at stimulus onset and input event dispatch.",
+          "To account for display refresh intervals, PULSE applies an estimated display refresh adjustment modeled at half the estimated frame interval. This correction represents a mathematical model of display presentation rather than physical hardware sensor telemetry."
+        ]
+      },
+      {
+        "id": "influencing-factors",
+        "heading": "Factors That Influence Scores",
+        "paragraphs": [
+          "Reaction time fluctuates based on physiological and environmental factors, including sleep quality, circadian rhythms, caffeine intake, mental fatigue, and environmental distractions."
+        ]
+      },
+      {
+        "id": "hardware-variances",
+        "heading": "Hardware and Environmental Latency",
+        "paragraphs": [
+          "Browser-based benchmarks are subject to external latency factors outside software control. Input-device polling intervals, display refresh rates, browser rendering pipelines, wireless connections, and operating system event scheduling all introduce variance.",
+          "While PULSE accounts for display frame intervals, local hardware transmission delays cannot be eliminated."
+        ]
+      },
+      {
+        "id": "testing-habits",
+        "heading": "Consistent Testing Practices",
+        "paragraphs": [
+          "For reliable longitudinal comparison, benchmark under consistent conditions: use wired input peripherals where available, test at similar times of day, and minimize background computer processing."
+        ]
+      },
+      {
+        "id": "interpreting-scores",
+        "heading": "Interpreting Your Score",
+        "paragraphs": [
+          "Session summaries report median latency, mean latency, and consistency scores across valid trials. Fast anticipatory attempts under 80ms are flagged as false starts to maintain benchmark validity."
+        ]
+      },
+      {
+        "id": "limitations",
+        "heading": "Testing Scope and Limitations",
+        "paragraphs": [
+          "PULSE provides browser-based performance benchmarking for personal tracking and research telemetry. It is not an instrument for medical, neurological, or attention deficit evaluation."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "Why do reaction times differ across devices?",
+        "answer": "Operating systems, display panels, and input controllers each introduce variable latency, producing slight differences between phones, tablets, and desktop computers."
+      },
+      {
+        "question": "Can visual reaction time improve with practice?",
+        "answer": "Consistent testing can improve familiarity, motor readiness, and response consistency, though physiological limits constrain absolute reaction thresholds."
+      },
+      {
+        "question": "What counts as a false start?",
+        "answer": "Inputs initiated while the stimulus is waiting or within 80ms of stimulus presentation are recorded as false starts."
+      }
+    ],
+    "relatedLinks": [
+      {
+        "path": "/direction-test",
+        "label": "Directional Choice Test",
+        "description": "Evaluate discrimination and motor response speed with directional cues."
+      },
+      {
+        "path": "/improve",
+        "label": "Performance Guide",
+        "description": "Review environmental factors and preparation habits for cognitive benchmarking."
+      },
+      {
+        "path": "/assessments",
+        "label": "All Assessments",
+        "description": "Explore the full suite of cognitive benchmarks in PULSE."
+      }
+    ]
+  },
+  "/direction-test": {
+    "assessmentId": "direction",
+    "title": "Directional Choice Reaction Test",
+    "subtitle": "Measure visual discrimination and choice response speed",
+    "sections": [
+      {
+        "id": "what-is-choice-reaction",
+        "heading": "What is Choice Reaction Time?",
+        "paragraphs": [
+          "Choice reaction time requires identifying a specific stimulus and selecting the matching response action among multiple options.",
+          "Unlike simple reaction tests with a single trigger, choice tasks engage sensory identification, cognitive spatial mapping, and motor selection."
+        ]
+      },
+      {
+        "id": "how-it-works",
+        "heading": "How the Test Works",
+        "paragraphs": [
+          "The directional test presents 10 trials featuring arrow stimuli facing Up, Down, Left, or Right.",
+          "Respond as quickly and accurately as possible using corresponding arrow keys or on-screen directional buttons."
+        ],
+        "listItems": [
+          "10 discrete stimulus trials",
+          "Four cardinal directions randomized per trial",
+          "Foreperiod delay between 1000ms and 3000ms"
+        ]
+      },
+      {
+        "id": "speed-accuracy",
+        "heading": "Speed and Accuracy Balance",
+        "paragraphs": [
+          "Performance is evaluated across both mean response time on correct choices and overall directional accuracy percentage."
+        ]
+      },
+      {
+        "id": "limitations",
+        "heading": "Scope and Testing Factors",
+        "paragraphs": [
+          "Physical keyboard layout, key switch travel, and touch responsiveness affect latency. This assessment serves as an educational benchmark and is not a clinical diagnostic measure."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "Why is choice reaction time slower than simple reaction time?",
+        "answer": "Choice tasks require sensory discrimination and action selection stages before motor command initiation, adding cognitive processing time."
+      }
+    ],
+    "relatedLinks": [
+      {
+        "path": "/reaction-test",
+        "label": "Visual Reaction Test",
+        "description": "Measure simple visual reaction speed to a single stimulus trigger."
+      },
+      {
+        "path": "/colour-recognition",
+        "label": "Colour Recognition Test",
+        "description": "Assess cognitive interference and selective attention."
+      }
+    ]
+  },
+  "/colour-recognition": {
+    "assessmentId": "color-recognition",
+    "title": "Colour Recognition & Interference Test",
+    "subtitle": "Evaluate selective attention with an interactive Stroop-style conflict task",
+    "sections": [
+      {
+        "id": "what-it-measures",
+        "heading": "Cognitive Conflict and Interference",
+        "paragraphs": [
+          "This task measures selective attention and cognitive control when processing competing information streams.",
+          "In Stroop-style conflict paradigms, automated reading processes can interfere with naming font ink colors when word meaning and ink color diverge."
+        ]
+      },
+      {
+        "id": "how-it-works",
+        "heading": "Assessment Structure",
+        "paragraphs": [
+          "The test consists of 15 rounds alternating between congruent and incongruent trials.",
+          "A prompt indicates whether to match the text meaning or the font color using five shuffled color choice buttons."
+        ],
+        "listItems": [
+          "15 randomized stimulus rounds",
+          "Dynamic matching rules (Word meaning vs Font color)",
+          "Shuffled response options to prevent static spatial memorization"
+        ]
+      },
+      {
+        "id": "scoring-and-interference",
+        "heading": "Interference Cost and Accuracy",
+        "paragraphs": [
+          "Scores summarize overall response latency, accuracy rates, and the interference cost representing latency differences between conflicting and congruent rounds."
+        ]
+      },
+      {
+        "id": "limitations",
+        "heading": "Display Considerations and Scope",
+        "paragraphs": [
+          "Screen color calibration, ambient lighting, and display contrast influence color perception. This task is an educational cognitive benchmark, not a clinical test for color vision deficiency."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "Why do button positions shuffle?",
+        "answer": "Shuffling button positions ensures each response requires active visual identification rather than habitual spatial motor memory."
+      }
+    ],
+    "relatedLinks": [
+      {
+        "path": "/direction-test",
+        "label": "Directional Choice Test",
+        "description": "Benchmark choice latency and directional discrimination."
+      },
+      {
+        "path": "/block-memory",
+        "label": "Block Memory Test",
+        "description": "Evaluate spatial working memory through sequential tapping."
+      }
+    ]
+  },
+  "/block-memory": {
+    "assessmentId": "block-memory",
+    "title": "Block Memory Test",
+    "subtitle": "Assess spatial sequence memory through progressive 9-block tapping patterns",
+    "sections": [
+      {
+        "id": "what-is-spatial-memory",
+        "heading": "Spatial Working Memory",
+        "paragraphs": [
+          "Spatial working memory supports the temporary retention and sequential recall of visual locations in space.",
+          "It plays a fundamental role in navigation, spatial reasoning, and visual-motor coordination."
+        ]
+      },
+      {
+        "id": "how-it-works",
+        "heading": "Sequence Recall Mechanics",
+        "paragraphs": [
+          "A 3x3 grid of 9 blocks highlights in a random sequence. Once playback concludes, tap the blocks in the identical order.",
+          "The sequence starts at length 2 and increases by one block with each successful round. Users start with 3 lives."
+        ],
+        "listItems": [
+          "3x3 layout with 9 interactive blocks",
+          "Sequence progression starting at level 1 with 2 blocks",
+          "3 lives before session concludes"
+        ]
+      },
+      {
+        "id": "scoring",
+        "heading": "Progression and Span Score",
+        "paragraphs": [
+          "Your final benchmark reflects the highest sequence span correctly completed before all 3 lives are exhausted."
+        ]
+      },
+      {
+        "id": "limitations",
+        "heading": "Scope and Strategies",
+        "paragraphs": [
+          "Visual path chunking and pattern association can aid recall. This benchmark is provided for personal tracking and cognitive exploration, not neurological memory diagnosis."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "How quickly do blocks flash?",
+        "answer": "Each block highlights for 400ms followed by a 200ms inter-stimulus pause before moving to the next position in the sequence."
+      }
+    ],
+    "relatedLinks": [
+      {
+        "path": "/number-memory",
+        "label": "Number Memory Test",
+        "description": "Measure sequential working memory capacity for numerical sequences."
+      },
+      {
+        "path": "/reaction-test",
+        "label": "Visual Reaction Test",
+        "description": "Benchmark visual response latency and motor speed."
+      }
+    ]
+  },
+  "/number-memory": {
+    "assessmentId": "number-memory",
+    "title": "Number Memory Test",
+    "subtitle": "Benchmark short-term digit recall capacity across increasing numerical sequences",
+    "sections": [
+      {
+        "id": "what-is-digit-span",
+        "heading": "Digit Span Working Memory",
+        "paragraphs": [
+          "Forward digit span measures the capacity of verbal working memory to temporarily retain and reproduce an arbitrary sequence of numbers.",
+          "It reflects storage capacity in short-term memory systems without long-term encoding."
+        ]
+      },
+      {
+        "id": "how-it-works",
+        "heading": "How the Assessment Operates",
+        "paragraphs": [
+          "Sequences begin at level 1 with 3 digits and increase by one digit with each successful round.",
+          "Numbers appear on screen for a duration scaled to the digit count before clearing. Enter the sequence using the number pad or keyboard. You have 3 lives."
+        ],
+        "listItems": [
+          "Initial level starts with 3 digits",
+          "Exposure time scaled to sequence length",
+          "3 lives before benchmark concludes"
+        ]
+      },
+      {
+        "id": "progression",
+        "heading": "Scoring and Level Advancement",
+        "paragraphs": [
+          "Correct entries advance you to longer sequences, while incorrect submissions deplete lives. Your recorded score is the highest level achieved."
+        ]
+      },
+      {
+        "id": "limitations",
+        "heading": "Strategies and Scope",
+        "paragraphs": [
+          "Chunking numbers into rhythmically grouped subsets can aid recall. This test is an educational benchmark, not a standardized psychometric IQ assessment."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "How long is each number displayed?",
+        "answer": "Exposure time scales dynamically with digit length, providing sufficient time to read each numerical string before input begins."
+      }
+    ],
+    "relatedLinks": [
+      {
+        "path": "/block-memory",
+        "label": "Block Memory Test",
+        "description": "Benchmark spatial sequence recall on a 9-block grid."
+      },
+      {
+        "path": "/improve",
+        "label": "Performance Guide",
+        "description": "Explore cognitive habits and factors that influence memory retention."
+      }
+    ]
+  }
+}

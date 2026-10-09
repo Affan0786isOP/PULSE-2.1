@@ -3,15 +3,14 @@
     "url": "https://pulse-lab.in",
     "name": "PULSE",
     "legalName": "Precision User Latency & Stimulus Evaluator",
-    "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
+    "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.",
     "ogImage": "https://pulse-lab.in/og-image.png",
-    "logo": "https://pulse-lab.in/icon-512.png",
-    "repository": "https://github.com/Affan0786isOP/PULSE-2.1"
+    "logo": "https://pulse-lab.in/icon-512.png"
   },
   "routes": {
     "/": {
       "title": "PULSE — Precision User Latency & Stimulus Evaluator",
-      "description": "An open-source, browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond precision.",
+      "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.",
       "indexable": true,
       "clientFallback": false
     },
@@ -58,32 +57,32 @@
       "clientFallback": false
     },
     "/reaction-test": {
-      "title": "Visual Reaction Test | PULSE",
-      "description": "Measure visual reaction time with a browser-based millisecond reaction assessment and calibrated latency controls from PULSE.",
+      "title": "Reaction Time Test | Visual Reaction Test | PULSE",
+      "description": "Benchmark visual reaction time using PULSE's browser-based reaction test, featuring randomized stimulus delays and an estimated display refresh adjustment.",
       "indexable": true,
       "clientFallback": true
     },
     "/direction-test": {
-      "title": "Directional Choice Test | PULSE",
-      "description": "Measure directional choice speed and discrimination with a browser-based PULSE cognitive assessment.",
+      "title": "Directional Choice Test: Response Speed | PULSE",
+      "description": "Measure directional choice reaction time and accuracy with PULSE's directional arrow assessment.",
       "indexable": true,
       "clientFallback": true
     },
     "/colour-recognition": {
-      "title": "Colour Recognition Test | PULSE",
-      "description": "Measure colour recognition and response accuracy with a browser-based PULSE cognitive assessment.",
+      "title": "Colour Recognition Test: Stroop Task | PULSE",
+      "description": "Evaluate selective attention and cognitive conflict with PULSE's interactive colour recognition assessment.",
       "indexable": true,
       "clientFallback": true
     },
     "/block-memory": {
-      "title": "Block Memory Test | PULSE",
-      "description": "Measure spatial working memory with a browser-based block-sequence memory assessment from PULSE.",
+      "title": "Block Memory Test: Spatial Sequence Recall | PULSE",
+      "description": "Test spatial sequence recall with PULSE's 9-block tapping assessment.",
       "indexable": true,
       "clientFallback": true
     },
     "/number-memory": {
-      "title": "Number Memory Test | PULSE",
-      "description": "Measure working memory span with a browser-based number-memory assessment from PULSE.",
+      "title": "Number Memory Test: Forward Digit Recall | PULSE",
+      "description": "Measure working memory capacity with PULSE's forward digit span assessment.",
       "indexable": true,
       "clientFallback": true
     },

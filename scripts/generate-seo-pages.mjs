@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import metadata from '../shared/seoMetadata.json' with { type: 'json' };
+import assessmentContent from '../shared/content/assessmentContent.json' with { type: 'json' };
 
 const root = process.cwd();
 const distDir = path.join(root, 'dist');
@@ -56,8 +57,7 @@ const homeSchema = {
         'url': metadata.site.logo,
         'width': 512,
         'height': 512
-      },
-      'sameAs': [metadata.site.repository]
+      }
     },
     {
       '@type': 'SoftwareApplication',
@@ -176,11 +176,58 @@ function replaceHead(html, pathname, route, isMobile) {
   output = output.replace(/<\/head>/i, headTags + '\n  </head>');
 
   const fallbackHeading = escapeHtml(route.title.replace(/\s*\|\s*PULSE$/, ''));
+  let innerContentHtml = '';
+  const articleData = assessmentContent[pathname];
+
+  if (articleData) {
+    const sectionsHtml = articleData.sections.map(section => {
+      const heading = '<h2 style="font-size:1.5rem;margin:2rem 0 0.75rem;color:#f4f7fa">' + escapeHtml(section.heading) + '</h2>';
+      const paragraphs = section.paragraphs.map(p => '<p style="margin:0 0 1rem;color:#94a3b8;line-height:1.7">' + escapeHtml(p) + '</p>').join('');
+      const list = section.listItems && section.listItems.length > 0
+        ? '<ul style="margin:0 0 1.5rem 1.5rem;padding:0;color:#94a3b8;line-height:1.7">' +
+          section.listItems.map(item => '<li style="margin-bottom:0.5rem">' + escapeHtml(item) + '</li>').join('') +
+          '</ul>'
+        : '';
+      return '<section id="' + escapeHtml(section.id) + '">' + heading + paragraphs + list + '</section>';
+    }).join('');
+
+    const faqHtml = articleData.faq && articleData.faq.length > 0
+      ? '<section id="faq" style="margin-top:2.5rem"><h2 style="font-size:1.5rem;margin:0 0 1rem;color:#f4f7fa">Frequently Asked Questions</h2>' +
+        articleData.faq.map(item =>
+          '<div style="margin-bottom:1.25rem"><h3 style="font-size:1.15rem;margin:0 0 0.35rem;color:#e2e8f0">' + escapeHtml(item.question) + '</h3><p style="margin:0;color:#94a3b8;line-height:1.7">' + escapeHtml(item.answer) + '</p></div>'
+        ).join('') +
+        '</section>'
+      : '';
+
+    const relatedHtml = articleData.relatedLinks && articleData.relatedLinks.length > 0
+      ? '<section id="related-resources" style="margin-top:2.5rem;border-top:1px solid #1e293b;padding-top:1.5rem"><h2 style="font-size:1.35rem;margin:0 0 1rem;color:#f4f7fa">Related Assessments &amp; Resources</h2><ul style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;padding:0;list-style:none;margin:0">' +
+        articleData.relatedLinks.map(link =>
+          '<li style="background:#11151c;border:1px solid #1e293b;border-radius:6px;padding:1rem"><a href="' + escapeHtml(link.path) + '" style="font-weight:600;color:#22c7d6;text-decoration:none">' + escapeHtml(link.label) + '</a><p style="margin:0.5rem 0 0;font-size:0.875rem;color:#94a3b8;line-height:1.5">' + escapeHtml(link.description) + '</p></li>'
+        ).join('') +
+        '</ul></section>'
+      : '';
+
+    innerContentHtml =
+      '<article id="assessment-seo-article">' +
+      '<header style="margin-bottom:2rem">' +
+      '<h1 id="pulse-seo-shell-title" style="font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;margin:0 0 0.75rem">' + escapeHtml(articleData.title) + '</h1>' +
+      '<p style="font-size:1.125rem;color:#38bdf8;margin:0 0 1rem">' + escapeHtml(articleData.subtitle) + '</p>' +
+      '<p style="max-width:68ch;color:#cbd5e1;line-height:1.7">' + description + '</p>' +
+      '</header>' +
+      sectionsHtml +
+      faqHtml +
+      relatedHtml +
+      '</article>';
+  } else {
+    innerContentHtml =
+      '<h1 id="pulse-seo-shell-title" style="font-size:clamp(2rem,6vw,4rem);line-height:1.05;margin:0 0 1rem">' + fallbackHeading + '</h1>' +
+      '<p style="max-width:68ch">' + description + '</p>';
+  }
+
   const fallback = '<main id="pulse-seo-shell" aria-labelledby="pulse-seo-shell-title" style="max-width:960px;margin:0 auto;padding:4rem 1.5rem;font-family:system-ui,sans-serif;color:#f4f7fa;background:#0b0d10;line-height:1.6">' +
     '<p style="margin:0 0 .5rem;font:600 .75rem/1.4 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#22c7d6">PULSE</p>' +
-    '<h1 id="pulse-seo-shell-title" style="font-size:clamp(2rem,6vw,4rem);line-height:1.05;margin:0 0 1rem">' + fallbackHeading + '</h1>' +
-    '<p style="max-width:68ch">' + description + '</p>' +
-    '<nav aria-label="PULSE pages"><ul style="display:flex;flex-wrap:wrap;gap:.75rem;padding:0;margin:1.5rem 0 0;list-style:none">' +
+    innerContentHtml +
+    '<nav aria-label="PULSE pages" style="margin-top:3rem;border-top:1px solid #1e293b;padding-top:1.5rem"><p style="font-size:0.875rem;color:#64748b;margin:0 0 0.75rem;text-transform:uppercase;letter-spacing:0.05em">Navigation</p><ul style="display:flex;flex-wrap:wrap;gap:.75rem;padding:0;margin:0;list-style:none">' +
     navigationHtml +
     '</ul></nav>' +
     '</main>';
