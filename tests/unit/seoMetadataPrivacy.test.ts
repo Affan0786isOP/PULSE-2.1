@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import metadata from '../../shared/seoMetadata.json';
+import fs from 'node:fs';
+import path from 'node:path';
 
 describe('SEO metadata consistency and privacy', () => {
   it('omits public repository references from site metadata', () => {
@@ -24,3 +26,14 @@ describe('SEO metadata consistency and privacy', () => {
     expect(metadata.routes['/number-memory'].title).toBe('Number Memory Test: Forward Digit Recall | PULSE');
   });
 });
+
+
+  it('has no repository or open-source claims in homepage source templates', () => {
+    const desktop = fs.readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf8');
+    const mobile = fs.readFileSync(path.resolve(process.cwd(), 'mobile/index.html'), 'utf8');
+    for (const source of [desktop, mobile]) {
+      expect(source).not.toContain('github.com/Affan0786isOP/PULSE-2.1');
+      expect(source).not.toContain('open-source');
+      expect(source).toContain('millisecond-resolution timing');
+    }
+  });
