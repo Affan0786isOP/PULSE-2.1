@@ -18,7 +18,7 @@ describe('SEO Shell Generator Output Verification', () => {
       mobileFile: 'seo/mobile/about.html',
       expectedTitlePart: 'About PULSE',
       expectedHeading: 'About PULSE — Cognitive Benchmarking Suite',
-      expectedFragment: 'What the Platform Does'
+      expectedFragment: 'About PULSE'
     },
     {
       file: 'seo/assessments.html',
@@ -30,41 +30,41 @@ describe('SEO Shell Generator Output Verification', () => {
     {
       file: 'seo/reaction-test.html',
       mobileFile: 'seo/mobile/reaction-test.html',
-      expectedTitlePart: 'Visual Reaction Test',
-      expectedHeading: 'Visual Reaction Test',
-      expectedFragment: 'PULSE'
+      expectedTitlePart: 'Reaction Time Test | Visual Reaction Test | PULSE',
+      expectedHeading: 'Visual Reaction Time Test',
+      expectedFragment: 'What is Reaction Time?'
     },
     {
       file: 'seo/direction-test.html',
       mobileFile: 'seo/mobile/direction-test.html',
-      expectedTitlePart: 'Directional Choice Test',
-      expectedHeading: 'Directional Choice Test',
-      expectedFragment: 'PULSE'
+      expectedTitlePart: 'Directional Choice Test: Response Speed | PULSE',
+      expectedHeading: 'Directional Choice Reaction Test',
+      expectedFragment: 'What is Choice Reaction Time?'
     },
     {
       file: 'seo/colour-recognition.html',
       mobileFile: 'seo/mobile/colour-recognition.html',
-      expectedTitlePart: 'Colour Recognition Test',
-      expectedHeading: 'Colour Recognition Test',
-      expectedFragment: 'PULSE'
+      expectedTitlePart: 'Colour Recognition Test: Stroop Task | PULSE',
+      expectedHeading: 'Colour Recognition &amp; Interference Test',
+      expectedFragment: 'Cognitive Conflict and Interference'
     },
     {
       file: 'seo/block-memory.html',
       mobileFile: 'seo/mobile/block-memory.html',
-      expectedTitlePart: 'Block Memory Test',
+      expectedTitlePart: 'Block Memory Test: Spatial Sequence Recall | PULSE',
       expectedHeading: 'Block Memory Test',
-      expectedFragment: 'PULSE'
+      expectedFragment: 'Spatial Working Memory'
     },
     {
       file: 'seo/number-memory.html',
       mobileFile: 'seo/mobile/number-memory.html',
-      expectedTitlePart: 'Number Memory Test',
+      expectedTitlePart: 'Number Memory Test: Forward Digit Recall | PULSE',
       expectedHeading: 'Number Memory Test',
-      expectedFragment: 'PULSE'
+      expectedFragment: 'Digit Span Working Memory'
     }
   ];
 
-  for (const { file, mobileFile, expectedTitlePart, expectedHeading } of routesToVerify) {
+  for (const { file, mobileFile, expectedTitlePart, expectedHeading, expectedFragment } of routesToVerify) {
     it(`generates correct desktop route body and metadata for ${file}`, () => {
       const filePath = path.join(distDir, file);
       expect(fs.existsSync(filePath)).toBe(true);
@@ -90,9 +90,21 @@ describe('SEO Shell Generator Output Verification', () => {
       expect(content).toContain('link rel="canonical" href="https://pulse-lab.in');
       expect(content).not.toContain('link rel="canonical" href="https://www.pulse-lab.in');
 
-      // 6. JSON-LD structured data exists and uses apex
+      // 6. JSON-LD structured data exists, uses apex, and omits sameAs
       expect(content).toContain('id="pulse-seo-jsonld" type="application/ld+json"');
       expect(content).not.toContain('https://www.pulse-lab.in');
+      expect(content).not.toContain('"sameAs"');
+
+      // 7. Route contains expected fragment/heading
+      if (expectedFragment) {
+        expect(content).toContain(expectedFragment);
+      }
+
+      // 8. If assessment route, contains semantic article with real links
+      if (file.includes('reaction-test') || file.includes('direction-test') || file.includes('colour-recognition') || file.includes('block-memory') || file.includes('number-memory')) {
+        expect(content).toContain('<article id="assessment-seo-article"');
+        expect(content).toMatch(/<a\s+href=["']\/(reaction-test|direction-test|colour-recognition|block-memory|number-memory|improve|assessments|leaderboard)["']/);
+      }
     });
 
     it(`generates correct mobile route body and metadata for ${mobileFile}`, () => {
@@ -117,9 +129,16 @@ describe('SEO Shell Generator Output Verification', () => {
       expect(content).not.toContain('link rel="canonical" href="https://www.pulse-lab.in');
       expect(content).not.toContain('link rel="canonical" href="https://pulse-lab.in/mobile/');
 
-      // 5. JSON-LD structured data exists and uses apex
+      // 5. JSON-LD structured data exists, uses apex, and omits sameAs
       expect(content).toContain('id="pulse-seo-jsonld" type="application/ld+json"');
       expect(content).not.toContain('https://www.pulse-lab.in');
+      expect(content).not.toContain('"sameAs"');
+
+      // 6. If assessment route, contains semantic article with real links
+      if (mobileFile.includes('reaction-test') || mobileFile.includes('direction-test') || mobileFile.includes('colour-recognition') || mobileFile.includes('block-memory') || mobileFile.includes('number-memory')) {
+        expect(content).toContain('<article id="assessment-seo-article"');
+        expect(content).toMatch(/<a\s+href=["']\/(reaction-test|direction-test|colour-recognition|block-memory|number-memory|improve|assessments|leaderboard)["']/);
+      }
     });
   }
 
