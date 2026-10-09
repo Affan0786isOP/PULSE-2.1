@@ -4,11 +4,6 @@ import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { SEO } from './SEO';
 import { 
-  Zap, 
-  Compass, 
-  Palette, 
-  Grid, 
-  Hash, 
   ShieldCheck, 
   Clock, 
   CheckCircle2, 
@@ -18,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APP_VERSION } from '../lib/version';
+import { AssessmentIcon } from './brand/AssessmentIcon';
 
 const ABOUT_SCHEMA = {
   "@context": "https://schema.org",
@@ -40,35 +36,30 @@ const PROTOCOLS = [
     id: 'reaction-test',
     title: 'Visual Reaction',
     description: 'Measures simple visual reaction time with high-resolution frame-aligned timestamps and display latency offset calibration.',
-    icon: Zap,
     metric: 'Latency (ms)'
   },
   {
     id: 'direction-test',
     title: 'Directional Choice',
     description: 'Evaluates choice reaction time and directional discrimination under rapid stimulus presentation.',
-    icon: Compass,
     metric: 'Choice Speed (ms)'
   },
   {
     id: 'colour-recognition',
     title: 'Colour Recognition',
     description: 'Tests selective attention, cognitive flexibility, and conflict processing using chromatic stimulus tasks.',
-    icon: Palette,
     metric: 'Latency (ms)'
   },
   {
     id: 'block-memory',
     title: 'Block Memory',
     description: 'Assesses visuospatial working memory sequence capacity using calibrated sequential block intervals.',
-    icon: Grid,
     metric: 'Spatial Span'
   },
   {
     id: 'number-memory',
     title: 'Number Memory',
     description: 'Benchmarks short-term phonological and working memory capacity with incrementally expanding digit sequences.',
-    icon: Hash,
     metric: 'Digit Span'
   }
 ];
@@ -130,7 +121,6 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {PROTOCOLS.map((proto) => {
-              const Icon = proto.icon;
               return (
                 <div 
                   key={proto.id}
@@ -138,8 +128,8 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                        <Icon size={16} />
+                      <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center p-1.5">
+                        <AssessmentIcon protocol={proto.id} size={20} />
                       </div>
                       <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider bg-[var(--surface-2)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
                         {proto.metric}

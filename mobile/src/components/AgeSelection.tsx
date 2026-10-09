@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { VALID_AGE_GROUPS, AgeGroup } from '../lib/firestore';
-import { ArrowLeft, User, Check, Activity, Sparkles, Compass, Zap, Target, Layers, ShieldCheck, Award, ArrowRight, Info } from 'lucide-react';
+import { ArrowLeft, User, Check, Sparkles, Compass, Zap, Target, Layers, ShieldCheck, Award, ArrowRight, Info } from 'lucide-react';
 import { motion } from 'motion/react';
 import { triggerHaptic } from '../lib/settingsStore';
 import { AssessmentInfoPanel } from './AssessmentInfoPanel';
+import { PulseLogo } from './brand';
 
 const AGE_METADATA: Record<AgeGroup, { label: string; range: string; icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }> }> = {
   'Children (8–12)': { label: 'Children', range: '8–12 yrs', icon: Sparkles },
@@ -84,8 +85,8 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
             title="PULSE Home"
             aria-label="PULSE Home"
           >
-            <div className="w-8 h-8 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-              <Activity size={16} />
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
+              <PulseLogo variant="mark" size={16} color="var(--accent)" />
             </div>
           </button>
         </div>

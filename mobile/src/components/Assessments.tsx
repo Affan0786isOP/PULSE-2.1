@@ -12,7 +12,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Wait for the visual signal, then respond as quickly as possible. Measures basic reaction time.',
       type: 'REACTION TIME',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/reaction.png'
+      logo: '/brand/assessments/visual-reaction.svg'
     },
     {
       id: 'direction-test',
@@ -20,7 +20,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Tap the arrow that matches the direction on screen. Measures how fast you process and react to new information.',
       type: 'CHOICE SPEED',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/direction.png'
+      logo: '/brand/assessments/directional-choice.svg'
     },
     {
       id: 'colour-recognition',
@@ -28,7 +28,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Identify the color of the text when the word and its color do not match. Tests attention and cognitive flexibility.',
       type: 'ATTENTION',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/color.png'
+      logo: '/brand/assessments/colour-recognition.svg'
     },
     {
       id: 'block-memory',
@@ -36,7 +36,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Remember and repeat increasingly long sequences of highlighted blocks. Tests spatial memory.',
       type: 'SPATIAL MEMORY',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/block.png'
+      logo: '/brand/assessments/block-memory.svg'
     },
     {
       id: 'number-memory',
@@ -44,7 +44,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Remember increasingly long sequences of numbers. Tests short-term working memory.',
       type: 'WORKING MEMORY',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/number.png'
+      logo: '/brand/assessments/number-memory.svg'
     }
   ];
 
@@ -59,106 +59,92 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 16 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.35 } }
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } }
   };
 
   return (
-    <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans">
+    <div className="bg-[var(--bg-base)] text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans relative selection:bg-[var(--accent-subtle)] pb-20">
       <SEO 
         title="Assessments | PULSE"
         description="Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory."
       />
-      <Navbar 
-        currentView="assessments" 
-        onNavigate={onNavigate} 
-        title="Assessments"
-      />
       
-      <main 
-        className="flex-1 flex flex-col items-center p-4 bg-transparent relative overflow-y-auto pb-safe px-safe"
-        style={{
-          paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))',
-          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
-          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))'
-        }}
-      >
-        <div className="w-full max-w-sm z-10 flex flex-col pb-8">
-          <div className="mb-4 pt-1">
-            <p className="text-[var(--text-secondary)] text-xs">
-              Five tasks measuring reaction time, attention, and memory.
-            </p>
+      <Navbar currentView="assessments" onNavigate={onNavigate} />
+
+      <main className="flex-1 w-full max-w-md mx-auto px-4 py-4 flex flex-col gap-3">
+        <header className="mb-2">
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+            <span className="font-mono text-[10px] text-[var(--accent)] tracking-widest uppercase font-semibold">
+              TEST BATTERY
+            </span>
           </div>
-          
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-1 gap-3"
-          >
-            {assessments.map((assessment) => (
-              <motion.button 
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+            Assessments
+          </h1>
+          <p className="text-[var(--text-secondary)] text-xs mt-0.5">
+            Select a benchmark to begin telemetry capture.
+          </p>
+        </header>
+
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="flex flex-col gap-2.5"
+        >
+          {assessments.map((assessment, index) => {
+            const isAvail = assessment.status === 'AVAILABLE';
+            return (
+              <motion.button
                 key={assessment.id}
-                type="button"
-                disabled={assessment.status !== 'AVAILABLE'}
                 variants={itemVariants}
-                whileTap={assessment.status === 'AVAILABLE' ? { scale: 0.98 } : undefined}
+                disabled={!isAvail}
+                whileTap={isAvail ? { scale: 0.98 } : undefined}
                 onClick={() => {
-                  if (assessment.status === 'AVAILABLE') {
+                  if (isAvail) {
                     triggerHaptic('tap');
                     onNavigate(assessment.id);
                   }
                 }}
-                className={`border rounded-xl flex flex-col text-left w-full overflow-hidden transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                  assessment.status === 'AVAILABLE' 
-                    ? 'bg-[var(--surface-1)] border-[var(--border-subtle)] hover:border-[var(--border-default)] cursor-pointer shadow-sm active:scale-[0.99] group' 
-                    : 'bg-[var(--surface-1)] border-[var(--border-subtle)] opacity-50 cursor-not-allowed'
+                className={`w-full text-left p-3.5 rounded-xl border flex items-center gap-3.5 transition-all relative overflow-hidden ${
+                  isAvail 
+                    ? 'bg-[var(--surface-1)] border-[var(--border-subtle)] active:bg-[var(--surface-2)] active:border-[var(--border-default)]' 
+                    : 'bg-[var(--surface-1)]/50 border-[var(--border-subtle)]/40 opacity-50 cursor-not-allowed'
                 }`}
               >
-                <div className="relative w-full h-32 bg-[#08080A] border-b border-[var(--border-subtle)] flex items-center justify-center overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-1)] to-transparent z-10 pointer-events-none" />
+                {/* Protocol Mark Icon */}
+                <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 p-2">
                   <img 
                     src={assessment.logo} 
                     alt={assessment.title}
-                    className="w-20 h-20 object-contain relative z-0 drop-shadow-[0_0_15px_rgba(0,240,255,0.25)] group-active:scale-110 transition-transform duration-300 ease-out"
+                    className="w-full h-full object-contain"
                   />
-                  <div className="absolute top-3 right-3 z-20">
-                     <span className="text-[10px] font-mono text-[var(--accent)] bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/10 uppercase tracking-widest">
-                       {assessment.status}
-                     </span>
-                  </div>
                 </div>
 
-                <div className="p-4 flex flex-col flex-1 bg-[var(--surface-1)]/50">
-                  <div className="mb-2">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[var(--surface-2)] text-[var(--text-secondary)] border border-[var(--border-subtle)] inline-block">
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1 mb-0.5">
+                    <span className="font-mono text-[9px] text-[var(--accent)] font-semibold tracking-wider">
+                      PROTOCOL 0{index + 1}
+                    </span>
+                    <span className="font-mono text-[8.5px] text-[var(--text-muted)] uppercase tracking-wider">
                       {assessment.type}
                     </span>
                   </div>
-                  
-                  <h3 className="text-base font-semibold text-[var(--text-primary)] mb-1 font-heading group-active:text-[var(--accent)] transition-colors">{assessment.title}</h3>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">{assessment.description}</p>
-                  
-                  {assessment.status === 'AVAILABLE' && (
-                    <div className="mt-auto pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-medium text-[var(--text-secondary)] group-active:text-[var(--accent)] transition-colors">
-                      <span>Start assessment</span>
-                      <span className="group-active:translate-x-1 transition-transform">→</span>
-                    </div>
-                  )}
+                  <h2 className="font-heading text-sm font-bold text-[var(--text-primary)] tracking-tight truncate">
+                    {assessment.title}
+                  </h2>
+                  <p className="text-[11px] text-[var(--text-secondary)] line-clamp-1 mt-0.5">
+                    {assessment.description}
+                  </p>
                 </div>
               </motion.button>
-            ))}
-          </motion.div>
-        </div>
+            );
+          })}
+        </motion.div>
       </main>
-
-      <footer className="h-10 border-t border-[var(--border-subtle)] flex items-center justify-between px-4 shrink-0 bg-[var(--surface-0)]">
-        <div className="flex gap-4 overflow-hidden">
-          <span className="text-xs text-[var(--text-muted)] font-mono">
-            Available: {assessments.length}
-          </span>
-        </div>
-      </footer>
     </div>
   );
 }

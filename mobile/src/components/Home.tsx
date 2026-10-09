@@ -72,7 +72,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Visual Reaction',
     description: 'Wait for the visual signal, then respond as quickly as possible. Measures basic reaction time.',
     targetRoute: '/reaction-test',
-    logo: '/brand/assessments/reaction.png',
+    logo: '/brand/assessments/visual-reaction.svg',
   },
   {
     id: 'direction',
@@ -81,7 +81,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Directional Choice',
     description: 'Tap the arrow that matches the direction on screen. Measures how fast you process and react to new information.',
     targetRoute: '/direction-test',
-    logo: '/brand/assessments/direction.png',
+    logo: '/brand/assessments/directional-choice.svg',
   },
   {
     id: 'color',
@@ -90,7 +90,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Colour Recognition',
     description: 'Identify the color of the text when the word and its color do not match. Tests attention and cognitive flexibility.',
     targetRoute: '/colour-recognition',
-    logo: '/brand/assessments/color.png',
+    logo: '/brand/assessments/colour-recognition.svg',
   },
   {
     id: 'block',
@@ -99,7 +99,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Block Memory',
     description: 'Remember and repeat increasingly long sequences of highlighted blocks. Tests spatial memory.',
     targetRoute: '/block-memory',
-    logo: '/brand/assessments/block.png',
+    logo: '/brand/assessments/block-memory.svg',
   },
   {
     id: 'number',
@@ -108,7 +108,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'Number Memory',
     description: 'Remember increasingly long sequences of numbers. Tests short-term working memory.',
     targetRoute: '/number-memory',
-    logo: '/brand/assessments/number.png',
+    logo: '/brand/assessments/number-memory.svg',
   },
 ];
 

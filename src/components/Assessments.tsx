@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { SEO } from './SEO';
-import { Zap, Compass, Palette, Grid, Hash, ArrowRight, ShieldCheck, Activity } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export function Assessments({ onNavigate }: { onNavigate: (view: string) => void }) {
   const assessments = [
@@ -14,7 +14,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Wait for the visual signal, then respond as quickly as possible. Measures basic reaction time.',
       type: 'REACTION TIME',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/reaction.png',
+      logo: '/brand/assessments/visual-reaction.svg',
       badge: 'Latency'
     },
     {
@@ -24,7 +24,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Press the arrow key that matches the direction on screen. Measures how fast you process and react to new information.',
       type: 'CHOICE SPEED',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/direction.png',
+      logo: '/brand/assessments/directional-choice.svg',
       badge: 'Choice Reaction'
     },
     {
@@ -34,7 +34,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Identify the color of the text when the word and its color do not match. Tests attention and cognitive flexibility.',
       type: 'ATTENTION',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/color.png',
+      logo: '/brand/assessments/colour-recognition.svg',
       badge: 'Stroop Effect'
     },
     {
@@ -44,7 +44,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Remember and repeat increasingly long sequences of highlighted blocks. Tests spatial memory.',
       type: 'SPATIAL MEMORY',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/block.png',
+      logo: '/brand/assessments/block-memory.svg',
       badge: 'Corsi Blocks'
     },
     {
@@ -54,7 +54,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Remember increasingly long sequences of numbers. Tests short-term working memory.',
       type: 'WORKING MEMORY',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/number.png',
+      logo: '/brand/assessments/number-memory.svg',
       badge: 'Digit Span'
     }
   ];

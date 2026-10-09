@@ -3,105 +3,129 @@ import path from 'path';
 import zlib from 'zlib';
 import jpeg from 'jpeg-js';
 
-function renderPulseBuffer(size, isMaskable = false) {
-  // Pulse wave points normalized to 256x256:
-  const basePoints = [
-    { x: 36, y: 128 },
-    { x: 80, y: 128 },
-    { x: 105, y: 56 },
-    { x: 150, y: 200 },
-    { x: 175, y: 128 },
-    { x: 220, y: 128 }
-  ];
+// PULSE Official Brand Mark (P-Symbol) Analytical Rasterizer
+function isInsidePSymbol(u, v) {
+  // S1: Upper Loop / Arch
+  if (u >= 12 && u <= 61 && v >= 8 && v <= 25) return true;
+  if (u >= 46 && u <= 61 && v >= 45 && v <= 62) return true;
+  if (u > 61) {
+    const r = Math.hypot(u - 61, v - 35);
+    if (r >= 10 && r <= 27 && v >= 8 && v <= 62) return true;
+  }
 
-  const scale = (isMaskable ? 0.72 : 0.88) * (size / 256);
+  // S2: Lower Slanted Stem Parallelogram (M 12 55 L 36 38 L 36 75 L 12 92 Z)
+  if (u >= 12 && u <= 36) {
+    const slope = -17 / 24;
+    const vTop = 55 + slope * (u - 12);
+    const vBottom = 92 + slope * (u - 12);
+    if (v >= vTop && v <= vBottom) return true;
+  }
+
+  return false;
+}
+
+function renderPulseBuffer(size, isMaskable = false, isTransparent = false) {
+  const buffer = Buffer.alloc(size * size * 4);
   const cx = size / 2;
   const cy = size / 2;
 
-  const points = basePoints.map(p => ({
-    x: cx + (p.x - 128) * scale,
-    y: cy + (p.y - 128) * scale
-  }));
+  // Scale & offset to center the 100x100 P-symbol
+  const symbolScale = (isMaskable ? 0.60 : 0.72) * (size / 100);
+  const offsetX = cx - 50 * symbolScale;
+  const offsetY = cy - 50 * symbolScale;
 
-  function distToSegment(px, py, x1, y1, x2, y2) {
-    const l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
-    if (l2 === 0) return Math.hypot(px - x1, py - y1);
-    let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
-    t = Math.max(0, Math.min(1, t));
-    return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
-  }
+  const cornerRadius = isMaskable ? 0 : size * 0.2246;
+  const samples = 4; // 4x4 = 16 sub-samples per pixel for anti-aliasing
 
-  function minDistanceToPolyline(px, py) {
-    let minDist = 999999;
-    for (let i = 0; i < points.length - 1; i++) {
-      const d = distToSegment(px, py, points[i].x, points[i].y, points[i+1].x, points[i+1].y);
-      if (d < minDist) minDist = d;
-    }
-    return minDist;
-  }
-
-  const strokeWidth = Math.max(2, Math.round(18 * scale));
-  const glowWidth = strokeWidth * 2.8;
-  const cornerRadius = isMaskable ? 0 : size * 0.22;
-
-  const buffer = Buffer.alloc(size * size * 4);
+  const bgR = 8;
+  const bgG = 8;
+  const bgB = 10;
+  const symbolR = 0;
+  const symbolG = 240;
+  const symbolB = 255;
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const px = (y * size + x) * 4;
-      
-      let inCard = true;
-      if (!isMaskable) {
-        const dx = Math.abs(x - cx) - (cx - cornerRadius);
-        const dy = Math.abs(y - cy) - (cy - cornerRadius);
-        if (dx > 0 && dy > 0) {
-          if (Math.hypot(dx, dy) > cornerRadius) {
-            inCard = false;
+
+      let subSamplesInsideSquircle = 0;
+      let subSamplesInsideSymbol = 0;
+      let subSamplesOnBorder = 0;
+
+      for (let sy = 0; sy < samples; sy++) {
+        const py = y + (sy + 0.5) / samples;
+        for (let sx = 0; sx < samples; sx++) {
+          const pxSub = x + (sx + 0.5) / samples;
+
+          // Squircle containment check
+          let inSquircle = true;
+          if (!isMaskable && !isTransparent) {
+            const dx = Math.abs(pxSub - cx) - (cx - cornerRadius);
+            const dy = Math.abs(py - cy) - (cy - cornerRadius);
+            if (dx > 0 && dy > 0) {
+              if (Math.hypot(dx, dy) > cornerRadius) {
+                inSquircle = false;
+              }
+            }
+          }
+
+          if (inSquircle) {
+            subSamplesInsideSquircle++;
+
+            // Check subtle squircle border
+            if (!isMaskable && !isTransparent && cornerRadius > 0) {
+              const borderDistX = Math.min(pxSub, size - pxSub);
+              const borderDistY = Math.min(py, size - py);
+              const edgeDist = Math.min(borderDistX, borderDistY);
+              if (edgeDist < Math.max(1, size * 0.005)) {
+                subSamplesOnBorder++;
+              }
+            }
+
+            // P-Symbol check
+            const u = (pxSub - offsetX) / symbolScale;
+            const v = (py - offsetY) / symbolScale;
+            if (isInsidePSymbol(u, v)) {
+              subSamplesInsideSymbol++;
+            }
           }
         }
       }
 
-      if (!inCard) {
-        buffer[px] = 0; buffer[px+1] = 0; buffer[px+2] = 0; buffer[px+3] = 0;
+      const totalSub = samples * samples;
+      const squircleAlpha = subSamplesInsideSquircle / totalSub;
+      const symbolAlpha = subSamplesInsideSymbol / totalSub;
+
+      if (squircleAlpha === 0 && !isMaskable) {
+        buffer[px] = 0;
+        buffer[px + 1] = 0;
+        buffer[px + 2] = 0;
+        buffer[px + 3] = 0;
         continue;
       }
 
-      const bgR = 3;
-      const bgG = 6;
-      const bgB = 12;
+      let r = bgR;
+      let g = bgG;
+      let b = bgB;
+      let a = Math.round(255 * squircleAlpha);
 
-      const d = minDistanceToPolyline(x, y);
-
-      if (d <= strokeWidth / 2) {
-        const alpha = Math.min(1, (strokeWidth / 2 - d + 1));
-        buffer[px] = Math.round(0 * alpha + bgR * (1 - alpha));
-        buffer[px+1] = Math.round(240 * alpha + bgG * (1 - alpha));
-        buffer[px+2] = Math.round(255 * alpha + bgB * (1 - alpha));
-        buffer[px+3] = 255;
-      } else if (d <= glowWidth) {
-        const glowFactor = Math.pow(1 - (d - strokeWidth / 2) / (glowWidth - strokeWidth / 2), 2) * 0.45;
-        buffer[px] = Math.round(0 * glowFactor + bgR * (1 - glowFactor));
-        buffer[px+1] = Math.round(240 * glowFactor + bgG * (1 - glowFactor));
-        buffer[px+2] = Math.round(255 * glowFactor + bgB * (1 - glowFactor));
-        buffer[px+3] = 255;
-      } else {
-        if (!isMaskable) {
-          const edgeDistX = Math.min(x, size - x);
-          const edgeDistY = Math.min(y, size - y);
-          const edgeDist = Math.min(edgeDistX, edgeDistY);
-          if (edgeDist < size * 0.04) {
-            buffer[px] = 0;
-            buffer[px+1] = Math.round(240 * 0.25);
-            buffer[px+2] = Math.round(255 * 0.25);
-            buffer[px+3] = 255;
-            continue;
-          }
-        }
-        buffer[px] = bgR;
-        buffer[px+1] = bgG;
-        buffer[px+2] = bgB;
-        buffer[px+3] = 255;
+      if (subSamplesOnBorder > 0) {
+        const borderAlpha = (subSamplesOnBorder / totalSub) * 0.08;
+        r = Math.round(r * (1 - borderAlpha) + 255 * borderAlpha);
+        g = Math.round(g * (1 - borderAlpha) + 255 * borderAlpha);
+        b = Math.round(b * (1 - borderAlpha) + 255 * borderAlpha);
       }
+
+      if (symbolAlpha > 0) {
+        r = Math.round(r * (1 - symbolAlpha) + symbolR * symbolAlpha);
+        g = Math.round(g * (1 - symbolAlpha) + symbolG * symbolAlpha);
+        b = Math.round(b * (1 - symbolAlpha) + symbolB * symbolAlpha);
+      }
+
+      buffer[px] = r;
+      buffer[px + 1] = g;
+      buffer[px + 2] = b;
+      buffer[px + 3] = a;
     }
   }
 
@@ -115,23 +139,16 @@ function createPulsePNG(size, isMaskable = false) {
   for (let n = 0; n < 256; n++) {
     let c = n;
     for (let k = 0; k < 8; k++) {
-      if (c & 1) {
-        c = 0xEDB88320 ^ (c >>> 1);
-      } else {
-        c = c >>> 1;
-      }
+      if (c & 1) c = 0xEDB88320 ^ (c >>> 1);
+      else c = c >>> 1;
     }
     crcTable[n] = c;
   }
 
   function crc32(buf) {
-    if (typeof zlib.crc32 === 'function') {
-      return zlib.crc32(buf);
-    }
+    if (typeof zlib.crc32 === 'function') return zlib.crc32(buf);
     let crc = 0xFFFFFFFF;
-    for (let i = 0; i < buf.length; i++) {
-      crc = crcTable[(crc ^ buf[i]) & 0xFF] ^ (crc >>> 8);
-    }
+    for (let i = 0; i < buf.length; i++) crc = crcTable[(crc ^ buf[i]) & 0xFF] ^ (crc >>> 8);
     return (crc ^ 0xFFFFFFFF) >>> 0;
   }
 
@@ -177,7 +194,7 @@ function createPulsePNG(size, isMaskable = false) {
 }
 
 function createPulseJPG(size) {
-  const rawBuffer = renderPulseBuffer(size, true); // Solid background for JPG
+  const rawBuffer = renderPulseBuffer(size, true); // Solid obsidian background
   const jpegData = jpeg.encode({
     data: rawBuffer,
     width: size,
@@ -189,86 +206,80 @@ function createPulseJPG(size) {
 function renderPulseOGBuffer(width = 1200, height = 630) {
   const buffer = Buffer.alloc(width * height * 4);
   const cx = width / 2;
-  const cy = height / 2;
+  const cy = height / 2 - 20;
 
-  // Normalized pulse waveform across wide card
-  const basePoints = [
-    { x: 200, y: 315 },
-    { x: 440, y: 315 },
-    { x: 520, y: 150 },
-    { x: 620, y: 480 },
-    { x: 700, y: 315 },
-    { x: 1000, y: 315 }
-  ];
+  // Render centered 220px P-Symbol in OG card
+  const symbolScale = 2.4;
+  const offsetX = cx - 50 * symbolScale;
+  const offsetY = cy - 50 * symbolScale;
 
-  function distToSegment(px, py, x1, y1, x2, y2) {
-    const l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
-    if (l2 === 0) return Math.hypot(px - x1, py - y1);
-    let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
-    t = Math.max(0, Math.min(1, t));
-    return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
-  }
-
-  function minDistanceToPolyline(px, py) {
-    let minDist = 999999;
-    for (let i = 0; i < basePoints.length - 1; i++) {
-      const d = distToSegment(px, py, basePoints[i].x, basePoints[i].y, basePoints[i+1].x, basePoints[i+1].y);
-      if (d < minDist) minDist = d;
-    }
-    return minDist;
-  }
-
-  const strokeWidth = 12;
-  const glowWidth = 36;
+  const samples = 2;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const px = (y * width + x) * 4;
 
-      // Base dark surface #0B0D10
-      let bgR = 11;
-      let bgG = 13;
-      let bgB = 16;
+      // Obsidian base background #08080A
+      let bgR = 8;
+      let bgG = 8;
+      let bgB = 10;
 
-      // Subtle technical grid line check (every 60px)
-      const isGridX = (x % 60 === 0);
-      const isGridY = (y % 60 === 0);
-      if (isGridX || isGridY) {
-        bgR += 10;
-        bgG += 12;
-        bgB += 15;
+      // Subtle engineering grid pattern
+      if (x % 48 === 0 || y % 48 === 0) {
+        bgR += 5;
+        bgG += 6;
+        bgB += 8;
       }
 
-      // Outer border frame (32px padding border)
+      // Cyan radial glow around center logo
+      const distFromCenter = Math.hypot(x - cx, y - cy);
+      if (distFromCenter < 380) {
+        const glow = Math.pow(1 - distFromCenter / 380, 2) * 0.18;
+        bgR = Math.round(bgR * (1 - glow) + 0 * glow);
+        bgG = Math.round(bgG * (1 - glow) + 240 * glow);
+        bgB = Math.round(bgB * (1 - glow) + 255 * glow);
+      }
+
+      // Outer border frame (32px inset)
       if (
         (x >= 32 && x <= width - 32 && (y === 32 || y === height - 32)) ||
         (y >= 32 && y <= height - 32 && (x === 32 || x === width - 32))
       ) {
-        bgR = 41;
-        bgG = 49;
-        bgB = 58;
+        bgR = 34;
+        bgG = 42;
+        bgB = 53;
       }
 
-      const d = minDistanceToPolyline(x, y);
-
-      if (d <= strokeWidth / 2) {
-        const alpha = Math.min(1, (strokeWidth / 2 - d + 1));
-        buffer[px] = Math.round(34 * alpha + bgR * (1 - alpha));
-        buffer[px+1] = Math.round(199 * alpha + bgG * (1 - alpha));
-        buffer[px+2] = Math.round(214 * alpha + bgB * (1 - alpha));
-        buffer[px+3] = 255;
-      } else if (d <= glowWidth) {
-        const glowFactor = Math.pow(1 - (d - strokeWidth / 2) / (glowWidth - strokeWidth / 2), 2) * 0.40;
-        buffer[px] = Math.round(34 * glowFactor + bgR * (1 - glowFactor));
-        buffer[px+1] = Math.round(199 * glowFactor + bgG * (1 - glowFactor));
-        buffer[px+2] = Math.round(214 * glowFactor + bgB * (1 - glowFactor));
-        buffer[px+3] = 255;
-      } else {
-        buffer[px] = bgR;
-        buffer[px+1] = bgG;
-        buffer[px+2] = bgB;
-        buffer[px+3] = 255;
+      let subSamplesInsideSymbol = 0;
+      for (let sy = 0; sy < samples; sy++) {
+        const py = y + (sy + 0.5) / samples;
+        for (let sx = 0; sx < samples; sx++) {
+          const pxSub = x + (sx + 0.5) / samples;
+          const u = (pxSub - offsetX) / symbolScale;
+          const v = (py - offsetY) / symbolScale;
+          if (isInsidePSymbol(u, v)) {
+            subSamplesInsideSymbol++;
+          }
+        }
       }
+
+      const totalSub = samples * samples;
+      const symbolAlpha = subSamplesInsideSymbol / totalSub;
+
+      let r = bgR;
+      let g = bgG;
+      let b = bgB;
+
+      if (symbolAlpha > 0) {
+        r = Math.round(r * (1 - symbolAlpha) + 0 * symbolAlpha);
+        g = Math.round(g * (1 - symbolAlpha) + 240 * symbolAlpha);
+        b = Math.round(b * (1 - symbolAlpha) + 255 * symbolAlpha);
+      }
+
+      buffer[px] = r;
+      buffer[px + 1] = g;
+      buffer[px + 2] = b;
+      buffer[px + 3] = 255;
     }
   }
 
@@ -353,12 +364,56 @@ function createPulseOGJPG(width = 1200, height = 630) {
   return jpegData.data;
 }
 
+// Generate an ICO file containing 16x16, 32x32, 48x48 PNG frames
+function createPulseICO() {
+  const sizes = [16, 32, 48];
+  const pngBuffers = sizes.map(sz => createPulsePNG(sz, false));
+
+  // ICO header: 6 bytes
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // icon type (1 = icon)
+  header.writeUInt16LE(sizes.length, 4); // count
+
+  let offset = 6 + sizes.length * 16;
+  const entries = [];
+
+  for (let i = 0; i < sizes.length; i++) {
+    const sz = sizes[i];
+    const png = pngBuffers[i];
+    const entry = Buffer.alloc(16);
+    entry.writeUInt8(sz >= 256 ? 0 : sz, 0); // width
+    entry.writeUInt8(sz >= 256 ? 0 : sz, 1); // height
+    entry.writeUInt8(0, 2); // color count
+    entry.writeUInt8(0, 3); // reserved
+    entry.writeUInt16LE(1, 4); // planes
+    entry.writeUInt16LE(32, 6); // bpp
+    entry.writeUInt32LE(png.length, 8); // size of image data
+    entry.writeUInt32LE(offset, 12); // offset
+    entries.push(entry);
+    offset += png.length;
+  }
+
+  return Buffer.concat([header, ...entries, ...pngBuffers]);
+}
+
 const targets = [
   // Wide 1200x630 OG social cards
   { path: 'public/og-image.png', width: 1200, height: 630, format: 'og-png' },
   { path: 'public/og-image.jpg', width: 1200, height: 630, format: 'og-jpg' },
   { path: 'mobile/public/og-image.png', width: 1200, height: 630, format: 'og-png' },
   { path: 'mobile/public/og-image.jpg', width: 1200, height: 630, format: 'og-jpg' },
+
+  // Favicons
+  { path: 'public/favicon-16x16.png', size: 16, format: 'png', maskable: false },
+  { path: 'public/favicon-32x32.png', size: 32, format: 'png', maskable: false },
+  { path: 'public/favicon-192x192.png', size: 192, format: 'png', maskable: false },
+  { path: 'public/favicon.ico', format: 'ico' },
+
+  { path: 'mobile/public/favicon-16x16.png', size: 16, format: 'png', maskable: false },
+  { path: 'mobile/public/favicon-32x32.png', size: 32, format: 'png', maskable: false },
+  { path: 'mobile/public/favicon-192x192.png', size: 192, format: 'png', maskable: false },
+  { path: 'mobile/public/favicon.ico', format: 'ico' },
 
   // PNG files
   { path: 'public/logo.png', size: 512, format: 'png', maskable: false },
@@ -439,6 +494,8 @@ for (const t of targets) {
     buf = createPulseOGPNG(t.width, t.height);
   } else if (t.format === 'og-jpg') {
     buf = createPulseOGJPG(t.width, t.height);
+  } else if (t.format === 'ico') {
+    buf = createPulseICO();
   } else if (t.format === 'jpg') {
     buf = createPulseJPG(t.size);
   } else {
@@ -451,8 +508,8 @@ for (const t of targets) {
   } else if (t.format === 'jpg' || t.format === 'og-jpg') {
     jpeg.decode(buf);
   }
-  const dimStr = t.width ? `${t.width}x${t.height}` : `${t.size}x${t.size}`;
+  const dimStr = t.width ? `${t.width}x${t.height}` : (t.size ? `${t.size}x${t.size}` : 'multi-size');
   console.log(`Generated & validated ${t.path} (${dimStr})`);
 }
 
-console.log('All logo and icon image files (PNG & JPG) generated and validated successfully.');
+console.log('All official brand logo and icon image files (PNG, JPG, ICO) generated and validated successfully.');

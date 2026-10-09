@@ -7,16 +7,17 @@ import { DatasetHeader } from './dataset/DatasetHeader';
 import { DatasetFilterBar } from './dataset/DatasetFilterBar';
 import { DatasetContentSlot } from './dataset/DatasetContentSlot';
 import { SkeletonTable } from './ui/Skeleton';
-import { AlertCircle, RefreshCw, Database, Play, ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Table, RotateCcw } from 'lucide-react';
+import { AlertCircle, RefreshCw, Database, Play, ChevronLeft, ChevronRight, Table, RotateCcw } from 'lucide-react';
 import { AssessmentId } from '../lib/dataset/types';
 import { normalizeProtocolType } from '../lib/dataset/normalization';
+import { AssessmentIcon } from './brand/AssessmentIcon';
 
-const PROTOCOLS: { id: AssessmentId; name: string; icon: React.ElementType; unit: string }[] = [
-  { id: 'visual-reaction', name: 'VISUAL REACTION', icon: Zap, unit: 'ms' },
-  { id: 'direction', name: 'DIRECTION', icon: Compass, unit: 'ms' },
-  { id: 'colour-recognition', name: 'COLOUR RECOGNITION', icon: Palette, unit: 'ms' },
-  { id: 'block-memory', name: 'BLOCK MEMORY', icon: Grid, unit: 'Blocks' },
-  { id: 'number-memory', name: 'NUMBER MEMORY', icon: Hash, unit: 'Digits' },
+const PROTOCOLS: { id: AssessmentId; name: string; unit: string }[] = [
+  { id: 'visual-reaction', name: 'VISUAL REACTION', unit: 'ms' },
+  { id: 'direction', name: 'DIRECTION', unit: 'ms' },
+  { id: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms' },
+  { id: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks' },
+  { id: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits' },
 ];
 
 interface DatasetProps {
@@ -136,7 +137,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
               </button>
 
               {PROTOCOLS.map((p) => {
-                const Icon = p.icon;
                 const isActive = datasetMode === 'assessment' && p.id === activeAssessment;
                 return (
                   <button
@@ -157,7 +157,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)]'
                     }`}
                   >
-                    <Icon size={13} className={isActive ? 'text-slate-950' : 'text-[var(--accent)]'} />
+                    <AssessmentIcon protocol={p.id} size={14} primaryColor={isActive ? '#020617' : '#00F0FF'} secondaryColor={isActive ? '#0f172a' : '#F8FAFC'} />
                     <span>{p.name}</span>
                   </button>
                 );

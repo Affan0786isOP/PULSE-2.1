@@ -16,7 +16,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'VISUAL REACTION',
     description: 'Measures pure somatic visual response latency with sub-millisecond precision.',
     targetRoute: '/reaction-test',
-    logo: '/brand/assessments/reaction.png',
+    logo: '/brand/assessments/visual-reaction.svg',
   },
   {
     id: 'direction',
@@ -25,7 +25,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'DIRECTIONAL CHOICE',
     description: 'Evaluates cognitive bifurcation speed and motor execution under choice conditions.',
     targetRoute: '/direction-test',
-    logo: '/brand/assessments/direction.png',
+    logo: '/brand/assessments/directional-choice.svg',
   },
   {
     id: 'color',
@@ -34,7 +34,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'COLOR RECOGNITION',
     description: 'Assesses semantic inhibitory control and selective attention thresholds.',
     targetRoute: '/colour-recognition',
-    logo: '/brand/assessments/color.png',
+    logo: '/brand/assessments/colour-recognition.svg',
   },
   {
     id: 'block',
@@ -43,7 +43,7 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'BLOCK MEMORY',
     description: 'Benchmarks visuospatial memory span through progressive serial recall.',
     targetRoute: '/block-memory',
-    logo: '/brand/assessments/block.png',
+    logo: '/brand/assessments/block-memory.svg',
   },
   {
     id: 'number',
@@ -52,6 +52,6 @@ export const HERO_ASSESSMENTS: HeroAssessment[] = [
     title: 'NUMBER MEMORY',
     description: 'Tests phonological working memory limit with adaptive digit length scaling.',
     targetRoute: '/number-memory',
-    logo: '/brand/assessments/number.png',
+    logo: '/brand/assessments/number-memory.svg',
   },
 ];

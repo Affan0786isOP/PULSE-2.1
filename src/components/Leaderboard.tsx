@@ -3,16 +3,17 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { getLeaderboardResults, LeaderboardEntry, AssessmentType, isOptedInLeaderboardUser } from '../lib/firestore';
-import { Trophy, Award, Zap, Compass, Palette, Grid, Hash, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
+import { Trophy, Award, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
 import { SkeletonTable } from './ui/Skeleton';
 import { SEO } from './SEO';
+import { AssessmentIcon } from './brand/AssessmentIcon';
 
-const PROTOCOLS: { id: AssessmentType; route: string; name: string; icon: React.ElementType; unit: string }[] = [
-  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', icon: Zap, unit: 'ms' },
-  { id: 'direction', route: 'direction-test', name: 'DIRECTION', icon: Compass, unit: 'ms' },
-  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', icon: Palette, unit: 'ms' },
-  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', icon: Grid, unit: 'Blocks' },
-  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', icon: Hash, unit: 'Digits' },
+const PROTOCOLS: { id: AssessmentType; route: string; name: string; unit: string }[] = [
+  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', unit: 'ms' },
+  { id: 'direction', route: 'direction-test', name: 'DIRECTION', unit: 'ms' },
+  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms' },
+  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks' },
+  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits' },
 ];
 
 function formatLeaderboardScore(score: number, unit: string): string {
@@ -64,7 +65,6 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
   const currentIndex = PROTOCOLS.findIndex(p => p.id === selectedProtocol);
   const currentProto = PROTOCOLS[currentIndex] || PROTOCOLS[0];
-  const CurrentIcon = currentProto.icon;
   const displayedEntries = useMemo(() => entries.filter(e => isOptedInLeaderboardUser(e?.displayName)), [entries]);
 
   const handlePrevProtocol = () => {
@@ -145,7 +145,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 transition={{ duration: 0.15 }}
                 className="flex items-center gap-2 sm:gap-2.5"
               >
-                <CurrentIcon size={18} className="text-[var(--accent)] shrink-0" />
+                <AssessmentIcon protocol={currentProto.id} size={20} className="shrink-0" />
                 <span className="font-heading font-bold text-sm sm:text-base text-[var(--text-primary)] tracking-wide uppercase truncate">
                   {currentProto.name}
                 </span>

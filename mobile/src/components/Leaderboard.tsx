@@ -2,17 +2,18 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from './Navbar';
 import { getLeaderboardResults, LeaderboardEntry, AssessmentType, isOptedInLeaderboardUser } from '../lib/firestore';
-import { Award, Zap, Compass, Palette, Grid, Hash, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
+import { Award, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SkeletonTable } from './ui/Skeleton';
 import { SEO } from './SEO';
+import { AssessmentIcon } from './brand/AssessmentIcon';
 
-const PROTOCOLS: { id: AssessmentType; route: string; name: string; shortName: string; icon: React.ElementType; unit: string }[] = [
-  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', shortName: 'Reaction', icon: Zap, unit: 'ms' },
-  { id: 'direction', route: 'direction-test', name: 'DIRECTION', shortName: 'Direction', icon: Compass, unit: 'ms' },
-  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', shortName: 'Colour', icon: Palette, unit: 'ms' },
-  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', shortName: 'Block Mem', icon: Grid, unit: 'Blocks' },
-  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', shortName: 'Number Mem', icon: Hash, unit: 'Digits' },
+const PROTOCOLS: { id: AssessmentType; route: string; name: string; shortName: string; unit: string }[] = [
+  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', shortName: 'Reaction', unit: 'ms' },
+  { id: 'direction', route: 'direction-test', name: 'DIRECTION', shortName: 'Direction', unit: 'ms' },
+  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', shortName: 'Colour', unit: 'ms' },
+  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', shortName: 'Block Mem', unit: 'Blocks' },
+  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', shortName: 'Number Mem', unit: 'Digits' },
 ];
 
 function formatLeaderboardScore(score: number, unit: string, allScores: number[]): string {
@@ -66,7 +67,6 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
   const currentIndex = PROTOCOLS.findIndex(p => p.id === selectedProtocol);
   const currentProto = PROTOCOLS[currentIndex] || PROTOCOLS[0];
-  const CurrentIcon = currentProto.icon;
   const displayedEntries = useMemo(() => entries.filter(e => isOptedInLeaderboardUser(e?.displayName)), [entries]);
   const allScores = useMemo(() => displayedEntries.map(e => e.scoreMetric), [displayedEntries]);
 
@@ -138,7 +138,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 transition={{ duration: 0.15 }}
                 className="flex items-center gap-2"
               >
-                <CurrentIcon size={15} className="text-[var(--cyan-primary)] shrink-0" />
+                <AssessmentIcon protocol={currentProto.id} size={16} className="shrink-0" />
                 <span className="font-heading font-black text-xs sm:text-sm text-[var(--cyan-primary)] uppercase tracking-wider truncate">
                   {currentProto.name}
                 </span>

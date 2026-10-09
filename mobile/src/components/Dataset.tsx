@@ -5,16 +5,17 @@ import { useDatasetPipeline } from '../../../src/lib/dataset';
 import { DatasetHeader } from '../../../src/components/dataset/DatasetHeader';
 import { DatasetFilterBar } from '../../../src/components/dataset/DatasetFilterBar';
 import { DatasetContentSlot } from '../../../src/components/dataset/DatasetContentSlot';
-import { AlertCircle, RefreshCw, Database, ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash } from 'lucide-react';
+import { AlertCircle, RefreshCw, Database, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AssessmentId } from '../../../src/lib/dataset/types';
 import { normalizeProtocolType } from '../../../src/lib/dataset/normalization';
+import { AssessmentIcon } from './brand/AssessmentIcon';
 
-const PROTOCOLS: { id: AssessmentId; name: string; icon: React.ElementType; unit: string }[] = [
-  { id: 'visual-reaction', name: 'VISUAL REACTION', icon: Zap, unit: 'ms' },
-  { id: 'direction', name: 'DIRECTION', icon: Compass, unit: 'ms' },
-  { id: 'colour-recognition', name: 'COLOUR RECOGNITION', icon: Palette, unit: 'ms' },
-  { id: 'block-memory', name: 'BLOCK MEMORY', icon: Grid, unit: 'Blocks' },
-  { id: 'number-memory', name: 'NUMBER MEMORY', icon: Hash, unit: 'Digits' },
+const PROTOCOLS: { id: AssessmentId; name: string; unit: string }[] = [
+  { id: 'visual-reaction', name: 'VISUAL REACTION', unit: 'ms' },
+  { id: 'direction', name: 'DIRECTION', unit: 'ms' },
+  { id: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms' },
+  { id: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks' },
+  { id: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits' },
 ];
 
 interface DatasetProps {
@@ -155,7 +156,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
               <div className="flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 scrollbar-none flex-1 justify-center">
                 {PROTOCOLS.map((p) => {
-                  const Icon = p.icon;
                   const isSelected = activeAssessment === p.id;
                   return (
                     <button
@@ -173,7 +173,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                           : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-primary)] active:text-[var(--text-primary)]'
                       }`}
                     >
-                      <Icon size={12} />
+                      <AssessmentIcon protocol={p.id} size={12} primaryColor={isSelected ? 'var(--accent)' : 'currentColor'} />
                       <span>{p.name.split(' ')[0]}</span>
                     </button>
                   );
