@@ -104,3 +104,47 @@ describe('AssessmentInfoPanel Dialog Component', () => {
     expect(onClose).toHaveBeenCalled();
   });
 });
+
+
+  it('traps Tab focus inside the dialog and restores focus to the opener on close', () => {
+    const opener = document.createElement('button');
+    opener.type = 'button';
+    opener.textContent = 'Open info';
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const { rerender, container, unmount } = render(
+      <AssessmentInfoPanel route="/reaction-test" isOpen={false} onClose={vi.fn()} />
+    );
+
+    rerender(
+      <AssessmentInfoPanel route="/reaction-test" isOpen={true} onClose={vi.fn()} />
+    );
+
+    const dialog = container.querySelector('#assessment-info-panel') as HTMLElement;
+    const focusables = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    expect(focusables.length).toBeGreaterThan(1);
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+
+    last.focus();
+    fireEvent.keyDown(window, { key: 'Tab' });
+    expect(document.activeElement).toBe(first);
+
+    first.focus();
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(last);
+
+    rerender(
+      <AssessmentInfoPanel route="/reaction-test" isOpen={false} onClose={vi.fn()} />
+    );
+    expect(document.activeElement).toBe(opener);
+
+    unmount();
+    opener.remove();
+  });
