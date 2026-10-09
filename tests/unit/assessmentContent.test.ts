@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import assessmentContent from '../../shared/content/assessmentContent.json';
 import { AssessmentContentMap } from '../../shared/types/assessmentContent';
 import metadata from '../../shared/seoMetadata.json';
+import { ROUTE_REGISTRY } from '../../shared/registries/routeRegistry';
 
 describe('Assessment Content Model & Data Integrity', () => {
   const content = assessmentContent as AssessmentContentMap;
@@ -34,13 +35,15 @@ describe('Assessment Content Model & Data Integrity', () => {
   });
 
   it('enforces link invariant: every article contains at least one real same-site <a href> link to another valid PULSE route', () => {
-    const validRoutes = Object.keys(metadata.routes);
+    const validRoutes = new Set(
+      ROUTE_REGISTRY.filter(route => route.seoBehavior.index && !route.isAdministrative).map(route => route.path)
+    );
     for (const route of canonicalRoutes) {
       const article = content[route];
       expect(article.relatedLinks.length).toBeGreaterThan(0);
       
       const hasValidInternalLink = article.relatedLinks.some(link => 
-        link.path.startsWith('/') && validRoutes.includes(link.path) && link.path !== route
+        link.path.startsWith('/') && validRoutes.has(link.path) && link.path !== route
       );
       expect(hasValidInternalLink).toBe(true);
     }
