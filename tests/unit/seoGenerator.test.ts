@@ -1,15 +1,29 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { execSync } from 'node:child_process';
 import metadata from '../../shared/seoMetadata.json';
 
-const distDir = path.resolve(process.cwd(), 'dist');
+let distDir: string;
+let tempDistDir: string;
 
 describe('SEO Shell Generator Output Verification', () => {
   beforeAll(() => {
-    // Run the generator to produce the output files for testing
-    execSync('node scripts/generate-seo-pages.mjs', { stdio: 'pipe' });
+    tempDistDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pulse-seo-generator-'));
+    fs.mkdirSync(path.join(tempDistDir, 'mobile'), { recursive: true });
+    fs.copyFileSync(path.resolve(process.cwd(), 'index.html'), path.join(tempDistDir, 'index.html'));
+    fs.copyFileSync(path.resolve(process.cwd(), 'mobile/index.html'), path.join(tempDistDir, 'mobile/index.html'));
+    distDir = tempDistDir;
+
+    execSync('node scripts/generate-seo-pages.mjs', {
+      stdio: 'pipe',
+      env: { ...process.env, PULSE_SEO_DIST_DIR: tempDistDir }
+    });
+  });
+
+  afterAll(() => {
+    fs.rmSync(tempDistDir, { recursive: true, force: true });
   });
 
   const routesToVerify = [
