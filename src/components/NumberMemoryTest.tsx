@@ -654,6 +654,22 @@ return (
           </div>
         )}
 
+        {engineState === 'REPORT' && (
+          <div className="w-full max-w-[800px] flex justify-end px-4 mb-4 z-30">
+            <button
+              type="button"
+              onClick={() => setIsInfoOpen(true)}
+              aria-label="About this assessment and methodology"
+              aria-expanded={isInfoOpen}
+              aria-controls="assessment-info-panel"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] text-xs text-cyan-400 hover:text-cyan-300 hover:border-cyan-500/50 bg-[var(--surface-1)] cursor-pointer"
+            >
+              <Info size={14} />
+              <span>About</span>
+            </button>
+          </div>
+        )}
+
         {engineState === 'REPORT' && reportStats ? (
           <div className="w-full max-w-lg z-10">
             <AssessmentResultReward
