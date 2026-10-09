@@ -1,9 +1,8 @@
 # PULSE
 
-> PULSE (Precision User Latency & Stimulus Evaluator) is an open-source, browser-based cognitive benchmarking suite for measuring human response and working-memory performance.
+> PULSE (Precision User Latency & Stimulus Evaluator) is a browser-based cognitive benchmarking suite for measuring human response and working-memory performance.
 
 Canonical website: https://pulse-lab.in
-Repository: https://github.com/Affan0786isOP/PULSE-2.1
 
 ## Public pages
 
