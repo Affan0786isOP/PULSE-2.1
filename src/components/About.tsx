@@ -14,7 +14,6 @@ import {
   CheckCircle2, 
   Users, 
   FileText, 
-  ExternalLink,
   ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -93,13 +92,13 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
         <header className="border-b border-[var(--border-subtle)] pb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-xs font-mono mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-            <span>PULSE {APP_VERSION} &bull; Open Scientific Benchmarking</span>
+            <span>PULSE {APP_VERSION} &bull; Scientific Benchmarking</span>
           </div>
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[var(--text-primary)] mb-4">
             About Pulse Evaluator
           </h1>
           <p className="text-[var(--text-secondary)] text-base sm:text-lg leading-relaxed max-w-3xl">
-            PULSE (Precision User Latency &amp; Stimulus Evaluator) is an open-source, browser-based cognitive benchmarking suite designed to measure human sensory reaction time, choice processing, and working memory with millisecond precision.
+            PULSE (Precision User Latency &amp; Stimulus Evaluator) is a browser-based cognitive benchmarking suite designed to measure human sensory reaction time, choice processing, and working memory with millisecond-resolution timing.
           </p>
         </header>
 
@@ -224,32 +223,30 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
           </div>
         </section>
 
-        {/* Section 5: Contact & Open Source */}
+        {/* Section 5: Methodology & Scientific Inquiries */}
         <section aria-labelledby="contact-inquiries" className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <FileText size={18} className="text-[var(--accent)]" />
             <h2 id="contact-inquiries" className="font-heading text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
-              Contact &amp; Scientific Inquiries
+              Methodology &amp; Scientific Inquiries
             </h2>
           </div>
           <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm text-[var(--text-secondary)]">
             <div>
               <p className="font-medium text-[var(--text-primary)] mb-1">
-                Open-Source Project Repository &amp; Issue Tracker
+                Methodology &amp; Data Information
               </p>
               <p className="text-xs text-[var(--text-muted)]">
-                For questions regarding data ethics, issue reports, or methodological feedback, open an inquiry on GitHub.
+                For methodology, data handling, and privacy information, review the Research Ethics &amp; Privacy Policy.
               </p>
             </div>
-            <a
-              href="https://github.com/Affan0786isOP/PULSE-2.1/issues"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/privacy"
               className="px-4 py-2 rounded-xl bg-[var(--surface-2)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] hover:border-[var(--accent)] text-xs font-mono text-[var(--text-primary)] inline-flex items-center gap-2 shrink-0 transition-colors"
             >
-              <span>GitHub Issues</span>
-              <ExternalLink size={13} />
-            </a>
+              <span>Research Ethics &amp; Privacy</span>
+              <ArrowRight size={13} />
+            </Link>
           </div>
         </section>
       </main>
