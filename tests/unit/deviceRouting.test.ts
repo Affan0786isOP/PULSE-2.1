@@ -90,7 +90,8 @@ describe('server mobile-path normalization', () => {
 
     const redirects: Array<{ status: number; location: string }> = [];
     const req = {
-      headers: { host: 'pulse-lab.in', 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      method: 'GET',
+      headers: { host: 'pulse-lab.in', accept: 'text/html', 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
       url: '/mobile?force_mobile=1&campaign=keep',
       path: '/mobile',
       secure: true,
@@ -106,5 +107,35 @@ describe('server mobile-path normalization', () => {
     });
 
     expect(redirects).toEqual([{ status: 301, location: '/mobile/?force_mobile=1&campaign=keep' }]);
+  });
+
+  it('does not redirect mobile asset requests into the mobile page route', () => {
+    const middleware: Array<(req: any, res: any, next: () => void) => unknown> = [];
+    const mockApp = { use: (handler: (req: any, res: any, next: () => void) => unknown) => middleware.push(handler) } as any;
+    applyDeviceRoutingMiddleware(mockApp);
+
+    let nextCalled = false;
+    const redirects: Array<{ status: number; location: string }> = [];
+    const req = {
+      method: 'GET',
+      headers: {
+        host: 'pulse-lab.in',
+        accept: 'image/avif,image/webp,image/*,*/*;q=0.8',
+        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
+      },
+      url: '/images/banner.webp',
+      path: '/images/banner.webp',
+      secure: true,
+    };
+    const res = {
+      setHeader: () => undefined,
+      redirect: (status: number, location: string) => redirects.push({ status, location }),
+      send: () => undefined,
+    } as any;
+
+    middleware[1](req, res, () => { nextCalled = true; });
+
+    expect(nextCalled).toBe(true);
+    expect(redirects).toEqual([]);
   });
 });
