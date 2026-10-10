@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { cleanup, render, screen, fireEvent } from '@testing-library/react';
+import { cleanup, render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { MobileHero } from '../../mobile/src/components/hero/MobileHero';
 import { CANONICAL_ASSESSMENT_IDS } from '../../shared/contracts/common';
@@ -57,7 +57,8 @@ describe('MobileHero', () => {
     for (const feature of featureRoutes) {
       cleanup();
       renderHero();
-      fireEvent.click(screen.getByRole('button', { name: feature.label }));
+      const hero = within(screen.getByRole('region', { name: 'PULSE Mobile Hero' }));
+      fireEvent.click(hero.getByRole('button', { name: feature.label }));
       expect(screen.getByTestId('current-path').textContent).toBe(feature.path);
     }
   });
