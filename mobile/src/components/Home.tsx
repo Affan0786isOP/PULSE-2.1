@@ -73,6 +73,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         pwaInstallable={pwa.isInstallable}
         onPromptInstall={() => pwa.promptInstall()}
         onExploreTests={() => navigate('/assessments')}
+      />
 
       {/* Existing mobile directory content below the redesigned hero */}
       <main className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 px-5 pt-8 pb-8">
