@@ -48,7 +48,7 @@ describe('MobileHero', () => {
 
   it('renders all four feature shortcuts and navigates to their actual routes', () => {
     const featureRoutes = [
-      { label: /^Leaderboard$/i, path: '/leaderboard' }
+      { label: /^Leaderboard$/i, path: '/leaderboard' },
       { label: /^Dataset$/i, path: '/dataset' },
       { label: /^Analytics$/i, path: '/analytics' },
       { label: /^About Us$/i, path: '/about' },
