@@ -6,14 +6,13 @@ import { getLeaderboardResults, LeaderboardEntry, AssessmentType, isOptedInLeade
 import { Trophy, Award, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
 import { SkeletonTable } from './ui/Skeleton';
 import { SEO } from './SEO';
-import { AssessmentIcon } from './brand/AssessmentIcon';
 
-const PROTOCOLS: { id: AssessmentType; route: string; name: string; unit: string }[] = [
-  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', unit: 'ms' },
-  { id: 'direction', route: 'direction-test', name: 'DIRECTION', unit: 'ms' },
-  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms' },
-  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks' },
-  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits' },
+const PROTOCOLS: { id: AssessmentType; route: string; name: string; unit: string; logo: string }[] = [
+  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', unit: 'ms', logo: '/brand/assessments/visual-reaction.svg' },
+  { id: 'direction', route: 'direction-test', name: 'DIRECTION', unit: 'ms', logo: '/brand/assessments/directional-choice.svg' },
+  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms', logo: '/brand/assessments/colour-recognition.svg' },
+  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks', logo: '/brand/assessments/block-memory.svg' },
+  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits', logo: '/brand/assessments/number-memory.svg' },
 ];
 
 function formatLeaderboardScore(score: number, unit: string): string {
@@ -145,7 +144,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 transition={{ duration: 0.15 }}
                 className="flex items-center gap-2 sm:gap-2.5"
               >
-                <AssessmentIcon protocol={currentProto.id} size={20} className="shrink-0" />
+                <img src={currentProto.logo} alt={currentProto.name} className="w-5 h-5 object-contain shrink-0" />
                 <span className="font-heading font-bold text-sm sm:text-base text-[var(--text-primary)] tracking-wide uppercase truncate">
                   {currentProto.name}
                 </span>

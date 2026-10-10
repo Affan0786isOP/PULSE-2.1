@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APP_VERSION } from '../lib/version';
-import { AssessmentIcon } from './brand/AssessmentIcon';
 
 const ABOUT_SCHEMA = {
   "@context": "https://schema.org",
@@ -36,31 +35,36 @@ const PROTOCOLS = [
     id: 'reaction-test',
     title: 'Visual Reaction',
     description: 'Measures simple visual reaction time with high-resolution frame-aligned timestamps and display latency offset calibration.',
-    metric: 'Latency (ms)'
+    metric: 'Latency (ms)',
+    logo: '/brand/assessments/visual-reaction.svg'
   },
   {
     id: 'direction-test',
     title: 'Directional Choice',
     description: 'Evaluates choice reaction time and directional discrimination under rapid stimulus presentation.',
-    metric: 'Choice Speed (ms)'
+    metric: 'Choice Speed (ms)',
+    logo: '/brand/assessments/directional-choice.svg'
   },
   {
     id: 'colour-recognition',
     title: 'Colour Recognition',
     description: 'Tests selective attention, cognitive flexibility, and conflict processing using chromatic stimulus tasks.',
-    metric: 'Latency (ms)'
+    metric: 'Latency (ms)',
+    logo: '/brand/assessments/colour-recognition.svg'
   },
   {
     id: 'block-memory',
     title: 'Block Memory',
     description: 'Assesses visuospatial working memory sequence capacity using calibrated sequential block intervals.',
-    metric: 'Spatial Span'
+    metric: 'Spatial Span',
+    logo: '/brand/assessments/block-memory.svg'
   },
   {
     id: 'number-memory',
     title: 'Number Memory',
     description: 'Benchmarks short-term phonological and working memory capacity with incrementally expanding digit sequences.',
-    metric: 'Digit Span'
+    metric: 'Digit Span',
+    logo: '/brand/assessments/number-memory.svg'
   }
 ];
 
@@ -129,7 +133,7 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center p-1.5">
-                        <AssessmentIcon protocol={proto.id} size={20} />
+                        <img src={proto.logo} alt={proto.title} className="w-5 h-5 object-contain" />
                       </div>
                       <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider bg-[var(--surface-2)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
                         {proto.metric}
