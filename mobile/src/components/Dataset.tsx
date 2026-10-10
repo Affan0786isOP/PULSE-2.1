@@ -8,13 +8,12 @@ import { DatasetContentSlot } from '../../../src/components/dataset/DatasetConte
 import { AlertCircle, RefreshCw, Database, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AssessmentId } from '../../../src/lib/dataset/types';
 import { normalizeProtocolType } from '../../../src/lib/dataset/normalization';
-
 const PROTOCOLS: { id: AssessmentId; name: string; unit: string; logo: string }[] = [
-  { id: 'visual-reaction', name: 'VISUAL REACTION', unit: 'ms', logo: '/brand/assessments/visual-reaction.svg' },
-  { id: 'direction', name: 'DIRECTION', unit: 'ms', logo: '/brand/assessments/directional-choice.svg' },
-  { id: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms', logo: '/brand/assessments/colour-recognition.svg' },
-  { id: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks', logo: '/brand/assessments/block-memory.svg' },
-  { id: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits', logo: '/brand/assessments/number-memory.svg' },
+  { id: 'visual-reaction', name: 'VISUAL REACTION', unit: 'ms', logo: '/brand/assessments/visual-reaction.png' },
+  { id: 'direction', name: 'DIRECTION', unit: 'ms', logo: '/brand/assessments/directional-choice.png' },
+  { id: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms', logo: '/brand/assessments/colour-recognition.png' },
+  { id: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks', logo: '/brand/assessments/block-memory.png' },
+  { id: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits', logo: '/brand/assessments/number-memory.png' },
 ];
 
 interface DatasetProps {

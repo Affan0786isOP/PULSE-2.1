@@ -6,13 +6,12 @@ import { getLeaderboardResults, LeaderboardEntry, AssessmentType, isOptedInLeade
 import { Trophy, Award, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
 import { SkeletonTable } from './ui/Skeleton';
 import { SEO } from './SEO';
-
 const PROTOCOLS: { id: AssessmentType; route: string; name: string; unit: string; logo: string }[] = [
-  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', unit: 'ms', logo: '/brand/assessments/visual-reaction.svg' },
-  { id: 'direction', route: 'direction-test', name: 'DIRECTION', unit: 'ms', logo: '/brand/assessments/directional-choice.svg' },
-  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms', logo: '/brand/assessments/colour-recognition.svg' },
-  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks', logo: '/brand/assessments/block-memory.svg' },
-  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits', logo: '/brand/assessments/number-memory.svg' },
+  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', unit: 'ms', logo: '/brand/assessments/visual-reaction.png' },
+  { id: 'direction', route: 'direction-test', name: 'DIRECTION', unit: 'ms', logo: '/brand/assessments/directional-choice.png' },
+  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms', logo: '/brand/assessments/colour-recognition.png' },
+  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks', logo: '/brand/assessments/block-memory.png' },
+  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits', logo: '/brand/assessments/number-memory.png' },
 ];
 
 function formatLeaderboardScore(score: number, unit: string): string {

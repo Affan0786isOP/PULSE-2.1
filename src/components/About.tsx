@@ -36,35 +36,35 @@ const PROTOCOLS = [
     title: 'Visual Reaction',
     description: 'Measures simple visual reaction time with high-resolution frame-aligned timestamps and display latency offset calibration.',
     metric: 'Latency (ms)',
-    logo: '/brand/assessments/visual-reaction.svg'
+    logo: '/brand/assessments/visual-reaction.png'
   },
   {
     id: 'direction-test',
     title: 'Directional Choice',
     description: 'Evaluates choice reaction time and directional discrimination under rapid stimulus presentation.',
     metric: 'Choice Speed (ms)',
-    logo: '/brand/assessments/directional-choice.svg'
+    logo: '/brand/assessments/directional-choice.png'
   },
   {
     id: 'colour-recognition',
     title: 'Colour Recognition',
     description: 'Tests selective attention, cognitive flexibility, and conflict processing using chromatic stimulus tasks.',
     metric: 'Latency (ms)',
-    logo: '/brand/assessments/colour-recognition.svg'
+    logo: '/brand/assessments/colour-recognition.png'
   },
   {
     id: 'block-memory',
     title: 'Block Memory',
     description: 'Assesses visuospatial working memory sequence capacity using calibrated sequential block intervals.',
     metric: 'Spatial Span',
-    logo: '/brand/assessments/block-memory.svg'
+    logo: '/brand/assessments/block-memory.png'
   },
   {
     id: 'number-memory',
     title: 'Number Memory',
     description: 'Benchmarks short-term phonological and working memory capacity with incrementally expanding digit sequences.',
     metric: 'Digit Span',
-    logo: '/brand/assessments/number-memory.svg'
+    logo: '/brand/assessments/number-memory.png'
   }
 ];
 

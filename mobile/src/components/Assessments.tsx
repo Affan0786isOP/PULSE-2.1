@@ -12,7 +12,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Wait for the visual signal, then respond as quickly as possible. Measures basic reaction time.',
       type: 'REACTION TIME',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/visual-reaction.svg'
+      logo: '/brand/assessments/visual-reaction.png'
     },
     {
       id: 'direction-test',
@@ -20,7 +20,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Tap the arrow that matches the direction on screen. Measures how fast you process and react to new information.',
       type: 'CHOICE SPEED',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/directional-choice.svg'
+      logo: '/brand/assessments/directional-choice.png'
     },
     {
       id: 'colour-recognition',
@@ -28,7 +28,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Identify the color of the text when the word and its color do not match. Tests attention and cognitive flexibility.',
       type: 'ATTENTION',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/colour-recognition.svg'
+      logo: '/brand/assessments/colour-recognition.png'
     },
     {
       id: 'block-memory',
@@ -36,7 +36,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Remember and repeat increasingly long sequences of highlighted blocks. Tests spatial memory.',
       type: 'SPATIAL MEMORY',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/block-memory.svg'
+      logo: '/brand/assessments/block-memory.png'
     },
     {
       id: 'number-memory',
@@ -44,7 +44,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       description: 'Remember increasingly long sequences of numbers. Tests short-term working memory.',
       type: 'WORKING MEMORY',
       status: 'AVAILABLE',
-      logo: '/brand/assessments/number-memory.svg'
+      logo: '/brand/assessments/number-memory.png'
     }
   ];
 
