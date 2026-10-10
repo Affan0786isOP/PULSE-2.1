@@ -126,7 +126,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
 
         {/* Subtitle */}
         <p className="text-[#475569] text-[14.5px] leading-[1.52] max-w-[330px] font-normal mb-7">
-          Cognitive testing, research data, performance insights and the people behind PULSE.
+          Reaction time, memory, attention and more — tested with precision, in your browser.
         </p>
 
         {/* 4 Quick Navigation Shortcuts */}
