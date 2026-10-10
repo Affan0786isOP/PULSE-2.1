@@ -148,6 +148,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           {/* Dataset */}
           <button 
             onClick={() => handleFeatureClick('/dataset')}
+            aria-label="Open Dataset"
             className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
           >
             <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
@@ -161,6 +162,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           {/* Analytics */}
           <button 
             onClick={() => handleFeatureClick('/analytics')}
+            aria-label="Open Analytics"
             className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
           >
             <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
@@ -174,6 +176,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           {/* About Us */}
           <button 
             onClick={() => handleFeatureClick('/about')}
+            aria-label="Open About Us"
             className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
           >
             <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
@@ -199,6 +202,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           {/* Col 1: Canonical Tests */}
           <button 
             onClick={() => { triggerHaptic(); navigate('/assessments'); }}
+            aria-label={`View ${testsCount} available tests`}
             className="flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-lg active:opacity-75 transition-opacity"
             title={`${testsCount} available assessment batteries`}
           >
@@ -232,6 +236,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           {/* Col 3: Leaderboard */}
           <button 
             onClick={() => { triggerHaptic(); navigate('/leaderboard'); }}
+            aria-label="View public leaderboard rankings"
             className="flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-lg active:opacity-75 transition-opacity"
             title="Public Leaderboard Rankings"
           >

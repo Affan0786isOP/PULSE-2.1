@@ -48,18 +48,17 @@ describe('MobileHero', () => {
 
   it('renders all four feature shortcuts and navigates to their actual routes', () => {
     const featureRoutes = [
-      { label: /^Leaderboard$/i, path: '/leaderboard' },
-      { label: /^Dataset$/i, path: '/dataset' },
-      { label: /^Analytics$/i, path: '/analytics' },
-      { label: /^About Us$/i, path: '/about' },
+      { accessibleName: 'Open Leaderboard', path: '/leaderboard' },
+      { accessibleName: 'Open Dataset', path: '/dataset' },
+      { accessibleName: 'Open Analytics', path: '/analytics' },
+      { accessibleName: 'Open About Us', path: '/about' },
     ];
 
     for (const feature of featureRoutes) {
       cleanup();
       renderHero();
       const hero = within(screen.getByRole('region', { name: 'PULSE Mobile Hero' }));
-      const accessibleName = feature.path === '/leaderboard' ? 'Open Leaderboard' : feature.label;
-      fireEvent.click(hero.getByRole('button', { name: accessibleName }));
+      fireEvent.click(hero.getByRole('button', { name: feature.accessibleName }));
       expect(screen.getByTestId('current-path').textContent).toBe(feature.path);
     }
   });

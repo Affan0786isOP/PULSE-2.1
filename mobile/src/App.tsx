@@ -115,10 +115,12 @@ function App() {
     }
   };
 
+  const isHomeRoute = location.pathname === '/' || location.pathname === '' || location.pathname === '/mobile' || location.pathname === '/mobile/';
+
   return (
     <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'user'}>
       <AuthProvider>
-        <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans flex flex-col selection:bg-cyan-500/30">
+        <div className={`min-h-[100dvh] ${isHomeRoute ? 'bg-white' : 'bg-[var(--bg-base)]'} text-[var(--text-main)] relative font-sans flex flex-col selection:bg-cyan-500/30`}>
           {/* Global Consistent Animated Canvas Background */}
           <AnimatedBackground />
 

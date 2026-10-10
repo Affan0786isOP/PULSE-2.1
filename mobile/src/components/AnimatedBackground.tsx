@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { isReducedMotionActive } from '../lib/settingsStore';
 
 const READING_ROUTES = [
+  '/',
+  '/mobile',
   '/privacy',
   '/research-privacy',
   '/privacy-policy',
@@ -19,7 +21,11 @@ const READING_ROUTES = [
 
 export function AnimatedBackground() {
   const location = useLocation();
-  const isReadingRoute = READING_ROUTES.some(p => location.pathname.startsWith(p));
+  const isReadingRoute = READING_ROUTES.some(p => 
+    p === '/' ? location.pathname === '/' || location.pathname === '' :
+    p === '/mobile' ? location.pathname === '/mobile' || location.pathname === '/mobile/' :
+    location.pathname.startsWith(p)
+  );
   const isReducedMotion = isReducedMotionActive();
 
   return (
