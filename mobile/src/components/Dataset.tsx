@@ -171,7 +171,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                           : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-primary)] active:text-[var(--text-primary)]'
                       }`}
                     >
-                      <img src={p.logo} alt={p.name} className="w-3 h-3 object-contain" />
+                      <img src={p.logo} alt={p.name} className="w-3.5 h-3.5 object-contain" />
                       <span>{p.name.split(' ')[0]}</span>
                     </button>
                   );

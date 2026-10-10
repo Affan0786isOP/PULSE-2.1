@@ -136,7 +136,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 transition={{ duration: 0.15 }}
                 className="flex items-center gap-2"
               >
-                <img src={currentProto.logo} alt={currentProto.name} className="w-4 h-4 object-contain shrink-0" />
+                <img src={currentProto.logo} alt={currentProto.name} className="w-5 h-5 object-contain shrink-0" />
                 <span className="font-heading font-black text-xs sm:text-sm text-[var(--cyan-primary)] uppercase tracking-wider truncate">
                   {currentProto.name}
                 </span>

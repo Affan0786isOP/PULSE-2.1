@@ -142,7 +142,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                   <img 
                     src={assessment.logo} 
                     alt={assessment.title}
-                    className="w-20 h-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300"
+                    className="w-24 h-24 sm:w-26 sm:h-26 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute top-3.5 right-3.5 z-20">
                      <span className="font-mono text-[10px] text-[var(--text-primary)] bg-[var(--surface-1)]/90 backdrop-blur-md px-2.5 py-1 rounded-md border border-[var(--border-subtle)] uppercase tracking-wider font-medium">

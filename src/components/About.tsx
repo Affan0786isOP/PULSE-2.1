@@ -132,8 +132,8 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center p-1.5">
-                        <img src={proto.logo} alt={proto.title} className="w-5 h-5 object-contain" />
+                      <div className="w-10 h-10 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center p-1.5">
+                        <img src={proto.logo} alt={proto.title} className="w-7 h-7 object-contain" />
                       </div>
                       <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider bg-[var(--surface-2)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
                         {proto.metric}

@@ -115,7 +115,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                 }`}
               >
                 {/* Protocol Mark Icon */}
-                <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 p-2">
+                <div className="w-13 h-13 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 p-1">
                   <img 
                     src={assessment.logo} 
                     alt={assessment.title}
