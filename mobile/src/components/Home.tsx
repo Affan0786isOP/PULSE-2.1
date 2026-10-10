@@ -6,7 +6,6 @@ import { isMobileWelcomeSeen } from '../lib/welcomeStore';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SEO } from './SEO';
 import { MobileHero } from './hero/MobileHero';
-import { WhatIsPulseScene } from '../../../src/components/home/WhatIsPulseScene';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -67,7 +66,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       schema={HOME_SCHEMA}
     />
 
-      {/* Reference-Driven Mobile Hero Section */}
+      {/* Current mobile hero */}
       <MobileHero 
         onOpenMenu={() => setIsSettingsOpen(true)}
         pwaInstallable={pwa.isInstallable}
@@ -75,7 +74,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         onExploreTests={() => navigate('/assessments')}
       />
 
-      {/* Existing mobile directory content below the redesigned hero */}
+      {/* Mobile navigation directory */}
       <main className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 px-5 pt-8 pb-8">
 
 
@@ -110,7 +109,6 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         </div>
       </main>
 
-      <WhatIsPulseScene />
 
       {/* Modals Container */}
       <Suspense fallback={null}>
