@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { evaluateDeviceRouting as evaluateDesktopRouting } from '../../src/lib/deviceRouting';
 import { evaluateDeviceRouting as evaluateMobileRouting } from '../../mobile/src/lib/deviceRouting';
 
@@ -9,11 +9,16 @@ const DESKTOP_UA_WITH_BROWSER_BRAND =
 const MOBILE_UA =
   'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Mobile Safari/537.36';
 
+beforeEach(() => {
+  window.sessionStorage.clear();
+});
+
 describe.each([
   ['desktop routing helper', evaluateDesktopRouting],
   ['mobile routing helper', evaluateMobileRouting],
 ])('%s', (_name, evaluateDeviceRouting) => {
-  it('does not let a persisted mobile cookie redirect a desktop browser to mobile', () => {
+  it('does not let a persisted mobile preference redirect a desktop browser to mobile', () => {
+    window.sessionStorage.setItem('pulse_force_mobile', 'true');
     const decision = evaluateDeviceRouting('', 'pulse_force_mobile=true', DESKTOP_UA);
 
     expect(decision.isMobileDevice).toBe(false);
