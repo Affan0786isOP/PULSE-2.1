@@ -11,6 +11,7 @@ import { isMobileWelcomeSeen } from '../lib/welcomeStore';
 import { triggerHaptic } from '../lib/settingsStore';
 import { PulseLogo } from './brand';
 import { SEO } from './SEO';
+import { MobileHero } from './hero/MobileHero';
 import { WhatIsPulseScene } from '../../../src/components/home/WhatIsPulseScene';
 
 const HOME_SCHEMA = {
@@ -170,52 +171,24 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       schema={HOME_SCHEMA}
     />
 
-      {/* Header */}
-      <header className="w-full max-w-md mx-auto flex items-center justify-between px-5 py-5 z-40 shrink-0">
-        <div className="flex items-center gap-2 text-white">
-          <PulseLogo variant="mark" size={24} color="#00F0FF" />
-          <span className="font-heading font-semibold text-lg tracking-wide text-white">Pulse</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {pwa.isInstallable && (
-            <button onClick={() => { triggerHaptic(); pwa.promptInstall(); }} className="p-2 text-[#8A94A6] hover:text-white rounded-full active:scale-95 transition-all" aria-label="Install App">
-              <Download size={20} />
-            </button>
-          )}
-          <button onClick={toggleFullscreen} className="p-2 text-[#8A94A6] hover:text-white rounded-full active:scale-95 transition-all" aria-label="Toggle Fullscreen">
-            {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-          </button>
-          <button 
-            onClick={() => { triggerHaptic(); setIsSettingsOpen(true); }} 
-            className="flex items-center gap-2 px-3 py-1.5 ml-1 rounded-full border border-white/10 text-white/80 hover:text-white hover:bg-white/5 active:scale-95 transition-all text-sm font-medium bg-[#10141B]"
-          >
-            Menu
-            <Menu size={16} />
-          </button>
-        </div>
-      </header>
+      {/* Reference-Driven Mobile Hero Section */}
+      <MobileHero 
+        onOpenMenu={() => setIsSettingsOpen(true)}
+        pwaInstallable={pwa.isInstallable}
+        onPromptInstall={() => pwa.promptInstall()}
+        onExploreTests={() => {
+          const el = document.getElementById('explore-tests-target');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            navigate('/assessments');
+          }
+        }}
+      />
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 px-5 pt-2 pb-8">
-        
-        {/* Top Text Section */}
-        <div className="mb-8">
-          <div className="inline-flex items-center rounded-full bg-white/5 border border-white/10 px-3 py-1 mb-6">
-            <span className="text-[10px] font-mono font-medium tracking-wide text-[#8A94A6] uppercase flex items-center gap-2">
-              SYSTEM BENCHMARK v2.4 
-              <span className="w-1 h-1 rounded-full bg-[#8A94A6] opacity-50"></span> 
-              PRODUCTION READY
-            </span>
-          </div>
-          
-          <h1 className="font-heading font-bold text-[2.5rem] leading-[1.05] tracking-tight text-white mb-4">
-            Precision cognitive benchmarking.
-          </h1>
-          
-          <p className="text-[#8A94A6] text-base leading-relaxed pr-4">
-            Open-source telemetry measuring reaction latency, choice speed, and working memory.
-          </p>
-        </div>
+      {/* Main Below-the-Hero Content (Explore Target) */}
+      <main id="explore-tests-target" className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 px-5 pt-8 pb-8">
+
 
         {/* Carousel Section */}
         <div className="relative w-full h-[280px] flex items-center justify-center mb-8">
