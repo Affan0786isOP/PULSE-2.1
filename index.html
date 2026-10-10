@@ -99,7 +99,7 @@
             storedMobile = false;
           }
 
-          var isExplicitForceMobile = hasMobileParam || (!hasDesktopParam && (storedMobile || cookieMobile));
+          var isExplicitForceMobile = hasMobileParam || (!hasDesktopParam && !storedDesktop && !cookieDesktop && (storedMobile || cookieMobile));
           var isExplicitForceDesktop = !isExplicitForceMobile && (hasDesktopParam || storedDesktop || cookieDesktop);
 
           var pathname = window.location.pathname || '';
