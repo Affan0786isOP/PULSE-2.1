@@ -134,6 +134,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           {/* Leaderboard */}
           <button 
             onClick={() => handleFeatureClick('/leaderboard')}
+            aria-label="Open Leaderboard"
             className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
           >
             <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
