@@ -49,7 +49,7 @@ export function detectIsMobileDevice(uaString?: string): boolean {
   }
 
   const ua = uaString || (typeof navigator !== 'undefined' ? navigator.userAgent : '') || '';
-  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone|SamsungBrowser|MiuiBrowser|UCBrowser/i.test(ua);
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone/i.test(ua);
   if (isMobileUA) return true;
 
   if (typeof window !== 'undefined') {
@@ -100,10 +100,14 @@ export function evaluateDeviceRouting(searchString?: string, cookieHeader?: stri
     storedMobile = false;
   }
 
-  const isExplicitForceMobile = hasForceMobileParam || (!hasForceDesktopParam && (storedMobile || cookieMobile));
-  const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || storedDesktop || cookieDesktop);
-
   const isMobileDevice = detectIsMobileDevice(uaString);
+
+  // A stale persisted mobile choice must not override desktop-device detection.
+  // Explicit URL flags still take precedence, while actual mobile devices remain on mobile.
+  const hasPersistedMobilePreference = storedMobile || cookieMobile;
+  const isExplicitForceMobile = hasForceMobileParam ||
+    (!hasForceDesktopParam && isMobileDevice && hasPersistedMobilePreference);
+  const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || storedDesktop || cookieDesktop);
   const shouldUseMobile = isExplicitForceMobile ? true : isExplicitForceDesktop ? false : isMobileDevice;
 
   return {
