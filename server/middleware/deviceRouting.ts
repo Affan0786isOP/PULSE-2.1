@@ -69,7 +69,7 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
     const url = req.url || '';
     const pathname = req.path || '';
 
-    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const queryParams = new URLSearchParams(url.includes('?') ? url.slice(url.indexOf('?') + 1) : '');
     const cleanParams = new URLSearchParams(queryParams);
     let hasRoutingParams = false;
     ['force_mobile', 'mobile', 'force_desktop', 'desktop'].forEach(k => {
@@ -80,9 +80,11 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
     });
     const cleanQueryString = cleanParams.toString() ? '?' + cleanParams.toString() : '';
 
-    // Direct /mobile without trailing slash to /mobile/
+    // Normalize /mobile without dropping explicit routing flags. The mobile entry
+    // script must still see force_mobile/force_desktop so it can honor the choice.
     if (pathname === '/mobile') {
-      return res.redirect(301, `/mobile/${cleanQueryString}`);
+      const originalQuery = url.includes('?') ? url.slice(url.indexOf('?')) : '';
+      return res.redirect(301, `/mobile/${originalQuery}`);
     }
 
     // Ignore API, mobile assets, or static asset requests
