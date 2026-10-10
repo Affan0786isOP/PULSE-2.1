@@ -126,7 +126,7 @@ function App() {
 
     switch (view) {
       case 'home': navigate('/'); break;
-      case 'mobile': window.location.href = '/mobile/'; break;
+      case 'mobile': window.location.href = '/mobile/?force_mobile=1'; break;
       case 'about': navigate('/about'); break;
       case 'assessments': navigate('/assessments'); break;
       case 'leaderboard': navigate('/leaderboard'); break;
