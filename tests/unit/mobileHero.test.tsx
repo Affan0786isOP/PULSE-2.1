@@ -43,12 +43,12 @@ describe('MobileHero', () => {
     expect(screen.getByText('COGNITIVE BENCHMARKING')).toBeDefined();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Measure.*your/);
     expect(screen.getByText('mind.')).toBeDefined();
-    expect(screen.getByText(/tested with precision, in your browser/i)).toBeDefined();
+    expect(screen.getByText(/research data, performance insights and the people behind PULSE/i)).toBeDefined();
   });
 
   it('renders all four feature shortcuts and navigates to their actual routes', () => {
     const featureRoutes = [
-      { label: /Reaction\s*Time/i, path: '/reaction-test' },
+      { label: /^Leaderboard$/i, path: '/leaderboard' }
       { label: /^Dataset$/i, path: '/dataset' },
       { label: /^Analytics$/i, path: '/analytics' },
       { label: /^About Us$/i, path: '/about' },
