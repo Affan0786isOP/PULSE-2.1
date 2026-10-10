@@ -58,7 +58,8 @@ describe('MobileHero', () => {
       cleanup();
       renderHero();
       const hero = within(screen.getByRole('region', { name: 'PULSE Mobile Hero' }));
-      fireEvent.click(hero.getByRole('button', { name: feature.label }));
+      const accessibleName = feature.path === '/leaderboard' ? 'Open Leaderboard' : feature.label;
+      fireEvent.click(hero.getByRole('button', { name: accessibleName }));
       expect(screen.getByTestId('current-path').textContent).toBe(feature.path);
     }
   });
