@@ -97,7 +97,7 @@
             storedMobile = false;
           }
 
-          var isExplicitForceMobile = hasMobileParam || (!hasDesktopParam && (storedMobile || cookieMobile));
+          var isExplicitForceMobile = hasMobileParam || (!hasDesktopParam && !storedDesktop && !cookieDesktop && (storedMobile || cookieMobile));
           var isExplicitForceDesktop = !isExplicitForceMobile && (hasDesktopParam || storedDesktop || cookieDesktop);
 
           var inIframe = false;
@@ -118,16 +118,22 @@
           var isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
           var isMobileDevice = isMobileUA || isTouchMac || ((hasTouch || isCoarse) && isSmallPhysicalScreen);
 
-          // A saved mobile choice must not pin desktop browsers to the mobile app.
-          if (!hasMobileParam && !isMobileDevice && (storedMobile || cookieMobile)) {
-            isExplicitForceMobile = false;
-          }
+          // On /mobile/*, a saved mobile preference represents an explicit choice
+          // of experience. The desktop entry script separately ignores stale mobile
+          // preferences when deciding whether to redirect ordinary desktop routes.
           isExplicitForceDesktop = !isExplicitForceMobile && (hasDesktopParam || storedDesktop || cookieDesktop);
+
+          var cleanParams = new URLSearchParams(search);
+          ['force_mobile', 'mobile', 'force_desktop', 'desktop'].forEach(function(key) {
+            cleanParams.delete(key);
+          });
+          var cleanSearchString = cleanParams.toString();
+          var cleanSearch = cleanSearchString ? ('?' + cleanSearchString) : '';
 
           if (!inIframe && (isExplicitForceDesktop || (!isExplicitForceMobile && !isMobileDevice))) {
             var pathname = window.location.pathname || '';
             var cleanPath = pathname.replace(/^\/mobile\/?/, '/');
-            var targetPath = (cleanPath === '' ? '/' : cleanPath) + search + (window.location.hash || '');
+            var targetPath = (cleanPath === '' ? '/' : cleanPath) + cleanSearch + (window.location.hash || '');
             
             var loopGuardRaw = sessionStorage.getItem('pulse_redirect_loop_guard');
             var loopData = loopGuardRaw ? JSON.parse(loopGuardRaw) : null;
