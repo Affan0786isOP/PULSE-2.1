@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Zap, 
-  Brain, 
-  Target, 
+  Trophy, 
+  Database, 
   BarChart2, 
+  Info, 
   ArrowRight, 
   Globe, 
   ChevronDown, 
@@ -126,53 +126,53 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
 
         {/* Subtitle */}
         <p className="text-[#475569] text-[14.5px] leading-[1.52] max-w-[330px] font-normal mb-7">
-          Reaction time, memory, attention and more — tested with precision, in your browser.
+          Cognitive testing, research data, performance insights and the people behind PULSE.
         </p>
 
-        {/* 4 Feature Indicator Pills */}
+        {/* 4 Quick Navigation Shortcuts */}
         <div className="grid grid-cols-4 gap-2.5 mb-7">
-          {/* Reaction Time */}
+          {/* Leaderboard */}
           <button 
-            onClick={() => handleFeatureClick('/reaction-test')}
+            onClick={() => handleFeatureClick('/leaderboard')}
             className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
           >
             <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
-              <Zap size={22} strokeWidth={2.2} />
+              <Trophy size={22} strokeWidth={2.2} />
             </div>
             <span className="text-[11px] font-medium text-[#334155] leading-[1.2] mt-2 whitespace-pre-line">
               Reaction{'\n'}Time
             </span>
           </button>
 
-          {/* Memory */}
+          {/* Dataset */}
           <button 
-            onClick={() => handleFeatureClick('/block-memory')}
+            onClick={() => handleFeatureClick('/dataset')}
             className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
           >
             <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
-              <Brain size={22} strokeWidth={2.2} />
+              <Database size={22} strokeWidth={2.2} />
             </div>
             <span className="text-[11px] font-medium text-[#334155] leading-[1.2] mt-2">
               Memory
             </span>
           </button>
 
-          {/* Attention */}
+          {/* Analytics */}
           <button 
-            onClick={() => handleFeatureClick('/colour-recognition')}
+            onClick={() => handleFeatureClick('/analytics')}
             className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
           >
             <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
-              <Target size={22} strokeWidth={2.2} />
+              <Info size={22} strokeWidth={2.2} />
             </div>
             <span className="text-[11px] font-medium text-[#334155] leading-[1.2] mt-2">
               Attention
             </span>
           </button>
 
-          {/* Cognition */}
+          {/* About Us */}
           <button 
-            onClick={() => handleFeatureClick('/direction-test')}
+            onClick={() => handleFeatureClick('/about')}
             className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
           >
             <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
