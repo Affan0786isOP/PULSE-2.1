@@ -105,7 +105,7 @@ export function evaluateDeviceRouting(searchString?: string, cookieHeader?: stri
   // Explicit URL flags still take precedence, while actual mobile devices remain on mobile.
   const hasPersistedMobilePreference = storedMobile || cookieMobile;
   const isExplicitForceMobile = hasForceMobileParam ||
-    (!hasForceDesktopParam && isMobileDevice && hasPersistedMobilePreference);
+    (!hasForceDesktopParam && !storedDesktop && !cookieDesktop && isMobileDevice && hasPersistedMobilePreference);
   const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || storedDesktop || cookieDesktop);
   const shouldUseMobile = isExplicitForceMobile ? true : isExplicitForceDesktop ? false : isMobileDevice;
 
@@ -230,6 +230,16 @@ export function resolveDeviceRedirect(
   const decision = evaluateDeviceRouting(search);
   const isMobilePath = pathname.startsWith('/mobile');
 
+  // A persisted mobile preference should keep an already-selected /mobile route
+  // usable on desktop, but must never redirect a desktop route into mobile by itself.
+  let storedMobilePreference = false;
+  try {
+    storedMobilePreference = sessionStorage.getItem('pulse_force_mobile') === 'true';
+  } catch {}
+  const hasPersistedMobilePreference = storedMobilePreference ||
+    isTruthyRoutingFlag(parseCookies()['pulse_force_mobile']);
+  const keepMobileMode = isMobilePath && hasPersistedMobilePreference && !decision.isExplicitForceDesktop;
+
   // Do not automatically redirect if inside an iframe without explicit force flags
   if (inIframe && !decision.isExplicitForceMobile && !decision.isExplicitForceDesktop) {
     return { shouldRedirect: false };
@@ -251,7 +261,7 @@ export function resolveDeviceRedirect(
     };
   }
 
-  if (!decision.shouldUseMobile && isMobilePath && (decision.isExplicitForceDesktop || !decision.isMobileDevice)) {
+  if (!decision.shouldUseMobile && isMobilePath && (decision.isExplicitForceDesktop || !decision.isMobileDevice) && !keepMobileMode) {
     const targetPath = pathname.replace(/^\/mobile\/?/, '/') || '/';
     const targetUrl = `${targetPath}${cleanSearch}${hash}`;
     if (checkAndSetRedirectLoopGuard(targetUrl)) {

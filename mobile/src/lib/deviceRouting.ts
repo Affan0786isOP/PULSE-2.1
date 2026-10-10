@@ -35,6 +35,28 @@ export function isTruthyRoutingFlag(val: string | null | undefined): boolean {
   return v === '1' || v === 'true' || v === 'yes';
 }
 
+export const ROUTING_PARAMS = ['force_mobile', 'mobile', 'force_desktop', 'desktop'] as const;
+
+export function stripRoutingParams(search: string): { cleanSearch: string; hasRoutingParams: boolean } {
+  if (!search) return { cleanSearch: '', hasRoutingParams: false };
+  const rawSearch = search.startsWith('?') ? search.slice(1) : search;
+  if (!rawSearch) return { cleanSearch: '', hasRoutingParams: false };
+
+  const params = new URLSearchParams(rawSearch);
+  let hasRoutingParams = false;
+  for (const key of ROUTING_PARAMS) {
+    if (params.has(key)) {
+      params.delete(key);
+      hasRoutingParams = true;
+    }
+  }
+  const resultStr = params.toString();
+  return {
+    cleanSearch: resultStr ? `?${resultStr}` : '',
+    hasRoutingParams
+  };
+}
+
 export function detectIsMobileDevice(uaString?: string): boolean {
   if (typeof window === 'undefined' && !uaString) return false;
 
@@ -106,7 +128,7 @@ export function evaluateDeviceRouting(searchString?: string, cookieHeader?: stri
   // Explicit URL flags still take precedence, while actual mobile devices remain on mobile.
   const hasPersistedMobilePreference = storedMobile || cookieMobile;
   const isExplicitForceMobile = hasForceMobileParam ||
-    (!hasForceDesktopParam && isMobileDevice && hasPersistedMobilePreference);
+    (!hasForceDesktopParam && !storedDesktop && !cookieDesktop && isMobileDevice && hasPersistedMobilePreference);
   const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || storedDesktop || cookieDesktop);
   const shouldUseMobile = isExplicitForceMobile ? true : isExplicitForceDesktop ? false : isMobileDevice;
 
@@ -122,17 +144,9 @@ export function cleanConsumedRoutingParams(): void {
   if (typeof window === 'undefined') return;
   try {
     const url = new URL(window.location.href);
-    let mutated = false;
-    const routingKeys = ['force_mobile', 'mobile', 'force_desktop', 'desktop'];
-    for (const key of routingKeys) {
-      if (url.searchParams.has(key)) {
-        url.searchParams.delete(key);
-        mutated = true;
-      }
-    }
-    if (mutated) {
-      const searchStr = url.searchParams.toString();
-      const newRelativePathQuery = url.pathname + (searchStr ? '?' + searchStr : '') + url.hash;
+    const { cleanSearch, hasRoutingParams } = stripRoutingParams(url.search);
+    if (hasRoutingParams) {
+      const newRelativePathQuery = url.pathname + cleanSearch + url.hash;
       window.history.replaceState(window.history.state, '', newRelativePathQuery);
     }
   } catch {}
@@ -217,34 +231,52 @@ export function resolveDeviceRedirect(
   const decision = evaluateDeviceRouting(search);
   const isMobilePath = pathname.startsWith('/mobile');
 
+  // A persisted mobile preference should keep an already-selected /mobile route
+  // usable on desktop, but must never redirect a desktop route into mobile by itself.
+  let storedMobilePreference = false;
+  try {
+    storedMobilePreference = sessionStorage.getItem('pulse_force_mobile') === 'true';
+  } catch {}
+  const hasPersistedMobilePreference = storedMobilePreference ||
+    isTruthyRoutingFlag(parseCookies()['pulse_force_mobile']);
+  const keepMobileMode = isMobilePath && hasPersistedMobilePreference && !decision.isExplicitForceDesktop;
+
   // Do not automatically redirect if inside an iframe without explicit force flags
   if (inIframe && !decision.isExplicitForceMobile && !decision.isExplicitForceDesktop) {
     return { shouldRedirect: false };
   }
 
+  const { cleanSearch, hasRoutingParams } = stripRoutingParams(search);
+
   if (decision.shouldUseMobile && !isMobilePath) {
     const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') ? '/' : pathname;
     const targetPath = cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`;
-    const targetUrl = `${targetPath}${search}${hash}`;
+    const targetUrl = `${targetPath}${cleanSearch}${hash}`;
     if (checkAndSetRedirectLoopGuard(targetUrl)) {
       return { shouldRedirect: false };
     }
+    syncDeviceRoutingStorage(decision, hasRoutingParams);
     return {
       shouldRedirect: true,
       targetUrl,
     };
   }
 
-  if (!decision.shouldUseMobile && isMobilePath && (decision.isExplicitForceDesktop || !decision.isMobileDevice)) {
+  if (!decision.shouldUseMobile && isMobilePath && (decision.isExplicitForceDesktop || !decision.isMobileDevice) && !keepMobileMode) {
     const targetPath = pathname.replace(/^\/mobile\/?/, '/') || '/';
-    const targetUrl = `${targetPath}${search}${hash}`;
+    const targetUrl = `${targetPath}${cleanSearch}${hash}`;
     if (checkAndSetRedirectLoopGuard(targetUrl)) {
       return { shouldRedirect: false };
     }
+    syncDeviceRoutingStorage(decision, hasRoutingParams);
     return {
       shouldRedirect: true,
       targetUrl,
     };
+  }
+
+  if (hasRoutingParams) {
+    syncDeviceRoutingStorage(decision, true);
   }
 
   return { shouldRedirect: false };
