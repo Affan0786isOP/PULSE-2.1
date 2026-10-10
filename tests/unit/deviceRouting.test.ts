@@ -50,10 +50,12 @@ describe.each([
     expect(decision.shouldUseMobile).toBe(true);
   });
 
-  it('lets an explicit force-desktop URL flag win on mobile', () => {
-    const decision = evaluateDeviceRouting('?force_desktop=1', '', MOBILE_UA);
+  it('prefers a saved desktop choice over a conflicting saved mobile cookie', () => {
+    window.sessionStorage.setItem('pulse_force_desktop', 'true');
+    const decision = evaluateDeviceRouting('', 'pulse_force_desktop=true; pulse_force_mobile=true', MOBILE_UA);
 
     expect(decision.isExplicitForceDesktop).toBe(true);
+    expect(decision.isExplicitForceMobile).toBe(false);
     expect(decision.shouldUseMobile).toBe(false);
   });
 });
