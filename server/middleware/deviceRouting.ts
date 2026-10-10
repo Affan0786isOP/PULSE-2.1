@@ -103,7 +103,6 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
 
     const cookies = parseCookies(req.headers.cookie);
     const cookieDesktop = isTruthyRoutingFlag(cookies['pulse_force_desktop']);
-    const cookieMobile = isTruthyRoutingFlag(cookies['pulse_force_mobile']);
 
     const secureFlag = (req.secure || req.headers['x-forwarded-proto'] === 'https' || process.env.NODE_ENV === 'production') ? '; Secure' : '';
 
