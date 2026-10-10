@@ -128,7 +128,7 @@ export function evaluateDeviceRouting(searchString?: string, cookieHeader?: stri
   // Explicit URL flags still take precedence, while actual mobile devices remain on mobile.
   const hasPersistedMobilePreference = storedMobile || cookieMobile;
   const isExplicitForceMobile = hasForceMobileParam ||
-    (!hasForceDesktopParam && isMobileDevice && hasPersistedMobilePreference);
+    (!hasForceDesktopParam && !storedDesktop && !cookieDesktop && isMobileDevice && hasPersistedMobilePreference);
   const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || storedDesktop || cookieDesktop);
   const shouldUseMobile = isExplicitForceMobile ? true : isExplicitForceDesktop ? false : isMobileDevice;
 
