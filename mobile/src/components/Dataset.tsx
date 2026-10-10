@@ -8,14 +8,13 @@ import { DatasetContentSlot } from '../../../src/components/dataset/DatasetConte
 import { AlertCircle, RefreshCw, Database, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AssessmentId } from '../../../src/lib/dataset/types';
 import { normalizeProtocolType } from '../../../src/lib/dataset/normalization';
-import { AssessmentIcon } from './brand/AssessmentIcon';
 
-const PROTOCOLS: { id: AssessmentId; name: string; unit: string }[] = [
-  { id: 'visual-reaction', name: 'VISUAL REACTION', unit: 'ms' },
-  { id: 'direction', name: 'DIRECTION', unit: 'ms' },
-  { id: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms' },
-  { id: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks' },
-  { id: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits' },
+const PROTOCOLS: { id: AssessmentId; name: string; unit: string; logo: string }[] = [
+  { id: 'visual-reaction', name: 'VISUAL REACTION', unit: 'ms', logo: '/brand/assessments/visual-reaction.svg' },
+  { id: 'direction', name: 'DIRECTION', unit: 'ms', logo: '/brand/assessments/directional-choice.svg' },
+  { id: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms', logo: '/brand/assessments/colour-recognition.svg' },
+  { id: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks', logo: '/brand/assessments/block-memory.svg' },
+  { id: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits', logo: '/brand/assessments/number-memory.svg' },
 ];
 
 interface DatasetProps {
@@ -173,7 +172,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                           : 'bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-primary)] active:text-[var(--text-primary)]'
                       }`}
                     >
-                      <AssessmentIcon protocol={p.id} size={12} primaryColor={isSelected ? 'var(--accent)' : 'currentColor'} />
+                      <img src={p.logo} alt={p.name} className="w-3 h-3 object-contain" />
                       <span>{p.name.split(' ')[0]}</span>
                     </button>
                   );

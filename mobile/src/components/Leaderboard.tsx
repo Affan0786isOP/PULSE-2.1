@@ -6,14 +6,13 @@ import { Award, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox }
 import { triggerHaptic } from '../lib/settingsStore';
 import { SkeletonTable } from './ui/Skeleton';
 import { SEO } from './SEO';
-import { AssessmentIcon } from './brand/AssessmentIcon';
 
-const PROTOCOLS: { id: AssessmentType; route: string; name: string; shortName: string; unit: string }[] = [
-  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', shortName: 'Reaction', unit: 'ms' },
-  { id: 'direction', route: 'direction-test', name: 'DIRECTION', shortName: 'Direction', unit: 'ms' },
-  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', shortName: 'Colour', unit: 'ms' },
-  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', shortName: 'Block Mem', unit: 'Blocks' },
-  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', shortName: 'Number Mem', unit: 'Digits' },
+const PROTOCOLS: { id: AssessmentType; route: string; name: string; shortName: string; unit: string; logo: string }[] = [
+  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', shortName: 'Reaction', unit: 'ms', logo: '/brand/assessments/visual-reaction.svg' },
+  { id: 'direction', route: 'direction-test', name: 'DIRECTION', shortName: 'Direction', unit: 'ms', logo: '/brand/assessments/directional-choice.svg' },
+  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', shortName: 'Colour', unit: 'ms', logo: '/brand/assessments/colour-recognition.svg' },
+  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', shortName: 'Block Mem', unit: 'Blocks', logo: '/brand/assessments/block-memory.svg' },
+  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', shortName: 'Number Mem', unit: 'Digits', logo: '/brand/assessments/number-memory.svg' },
 ];
 
 function formatLeaderboardScore(score: number, unit: string, allScores: number[]): string {
@@ -138,7 +137,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 transition={{ duration: 0.15 }}
                 className="flex items-center gap-2"
               >
-                <AssessmentIcon protocol={currentProto.id} size={16} className="shrink-0" />
+                <img src={currentProto.logo} alt={currentProto.name} className="w-4 h-4 object-contain shrink-0" />
                 <span className="font-heading font-black text-xs sm:text-sm text-[var(--cyan-primary)] uppercase tracking-wider truncate">
                   {currentProto.name}
                 </span>
