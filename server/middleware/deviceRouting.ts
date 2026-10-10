@@ -69,6 +69,12 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
     const url = req.url || '';
     const pathname = req.path || '';
 
+    // Device redirects are for document navigation only, never for fetched assets,
+    // API calls, or other non-HTML requests.
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    const acceptHeader = req.headers.accept;
+    if (acceptHeader && !/text\/html/i.test(acceptHeader)) return next();
+
     const queryParams = new URLSearchParams(url.includes('?') ? url.slice(url.indexOf('?') + 1) : '');
     const cleanParams = new URLSearchParams(queryParams);
     let hasRoutingParams = false;
