@@ -34,7 +34,7 @@ export function isMobileUserAgent(req: express.Request): boolean {
   if (secChMobile === '?1') return true;
   const ua = (req.headers['user-agent'] as string) || '';
   if (!ua) return false;
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone|SamsungBrowser|MiuiBrowser|UCBrowser/i.test(ua);
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk|Kindle|KFAPWI|Fennec|Windows Phone/i.test(ua);
 }
 
 /** Staging robots/noindex handling + desktop/mobile auto-redirection (see ADR-002). */
@@ -119,7 +119,9 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
       ]);
     }
 
-    const isExplicitForceMobile = hasForceMobileParam || (!hasForceDesktopParam && cookieMobile);
+    // A saved mobile preference must not override a desktop User-Agent. Real mobile
+    // requests are routed by isMobileUserAgent below; URL force flags remain explicit.
+    const isExplicitForceMobile = hasForceMobileParam;
     const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || cookieDesktop);
 
     function sanitizeRedirectPath(p: string): string {
