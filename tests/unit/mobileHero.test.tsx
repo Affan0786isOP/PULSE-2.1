@@ -1,95 +1,112 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { cleanup, render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { MobileHero } from '../../mobile/src/components/hero/MobileHero';
 import { CANONICAL_ASSESSMENT_IDS } from '../../shared/contracts/common';
 
+const mockStats = vi.hoisted(() => ({
+  testsCount: 5,
+  resultsCount: 90 as number | null,
+  isLoadingResults: false,
+}));
+
+vi.mock('../../mobile/src/lib/useAuthoritativeStats', () => ({
+  useAuthoritativeStats: () => mockStats,
+}));
+
+function CurrentPath() {
+  const location = useLocation();
+  return <output data-testid="current-path">{location.pathname}</output>;
+}
+
+function renderHero(onOpenMenu = vi.fn(), onExploreTests?: () => void) {
+  render(
+    <MemoryRouter initialEntries={['/']}>
+      <MobileHero onOpenMenu={onOpenMenu} onExploreTests={onExploreTests} />
+      <CurrentPath />
+    </MemoryRouter>
+  );
+  return onOpenMenu;
+}
+
 afterEach(() => {
   cleanup();
+  mockStats.testsCount = CANONICAL_ASSESSMENT_IDS.length;
+  mockStats.resultsCount = 90;
+  mockStats.isLoadingResults = false;
+  vi.clearAllMocks();
 });
 
-describe('MobileHero Component', () => {
-  it('renders reference-driven headline and eyebrow badge', () => {
-    const handleOpenMenu = vi.fn();
-    render(
-      <MemoryRouter>
-        <MobileHero onOpenMenu={handleOpenMenu} />
-      </MemoryRouter>
-    );
-
+describe('MobileHero', () => {
+  it('renders the reference-driven heading and descriptor', () => {
+    renderHero();
     expect(screen.getByText('COGNITIVE BENCHMARKING')).toBeDefined();
-    expect(screen.getByRole('heading', { level: 1 })).toBeDefined();
-    expect(screen.getByText(/Measure/i)).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Measure.*your/);
     expect(screen.getByText('mind.')).toBeDefined();
     expect(screen.getByText(/tested with precision, in your browser/i)).toBeDefined();
   });
 
-  it('renders all four canonical feature indicators with correct titles', () => {
-    const handleOpenMenu = vi.fn();
-    render(
-      <MemoryRouter>
-        <MobileHero onOpenMenu={handleOpenMenu} />
-      </MemoryRouter>
-    );
+  it('renders all four feature shortcuts and navigates to their actual routes', () => {
+    const featureRoutes = [
+      { label: /Reaction\s*Time/i, path: '/reaction-test' },
+      { label: /^Memory$/i, path: '/block-memory' },
+      { label: /^Attention$/i, path: '/colour-recognition' },
+      { label: /^Cognition$/i, path: '/direction-test' },
+    ];
 
-    expect(screen.getAllByText(/Reaction\s*Time/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Memory/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Attention/i).length).toBeGreaterThan(0);
-    expect(screen.getByText('Cognition')).toBeDefined();
+    for (const feature of featureRoutes) {
+      cleanup();
+      renderHero();
+      fireEvent.click(screen.getByRole('button', { name: feature.label }));
+      expect(screen.getByTestId('current-path').textContent).toBe(feature.path);
+    }
   });
 
-  it('renders Start Testing CTA button and navigates', () => {
-    const handleOpenMenu = vi.fn();
-    render(
-      <MemoryRouter>
-        <MobileHero onOpenMenu={handleOpenMenu} />
-      </MemoryRouter>
-    );
-
-    const cta = screen.getByRole('button', { name: /start testing/i });
-    expect(cta).toBeDefined();
+  it('Start Testing navigates to the assessments route', () => {
+    renderHero();
+    fireEvent.click(screen.getByRole('button', { name: /start testing/i }));
+    expect(screen.getByTestId('current-path').textContent).toBe('/assessments');
   });
 
-  it('displays the verified canonical assessment battery count (5)', () => {
-    const handleOpenMenu = vi.fn();
-    render(
-      <MemoryRouter>
-        <MobileHero onOpenMenu={handleOpenMenu} />
-      </MemoryRouter>
-    );
-
-    // Verified canonical count is exactly 5
+  it('displays the canonical test count and a non-interactive result count', () => {
+    renderHero();
     expect(screen.getByText(String(CANONICAL_ASSESSMENT_IDS.length))).toBeDefined();
     expect(screen.getByText('Tests')).toBeDefined();
+    expect(screen.getByText('90')).toBeDefined();
     expect(screen.getByText('Results')).toBeDefined();
-    expect(screen.getByText('Leaderboard')).toBeDefined();
+    expect(screen.queryByRole('button', { name: /results/i })).toBeNull();
   });
 
-  it('renders EXPLORE TESTS cue and triggers callback', () => {
-    const handleOpenMenu = vi.fn();
-    const handleExplore = vi.fn();
-    render(
-      <MemoryRouter>
-        <MobileHero onOpenMenu={handleOpenMenu} onExploreTests={handleExplore} />
-      </MemoryRouter>
-    );
-
-    const exploreBtn = screen.getByRole('button', { name: /explore tests/i });
-    expect(exploreBtn).toBeDefined();
-    fireEvent.click(exploreBtn);
-    expect(handleExplore).toHaveBeenCalledTimes(1);
+  it('rounds abbreviated result counts down so the label never overstates the total', () => {
+    mockStats.resultsCount = 1999;
+    renderHero();
+    expect(screen.getByText('1K+')).toBeDefined();
+    expect(screen.queryByText('2K+')).toBeNull();
   });
 
-  it('opens menu when hamburger button is clicked', () => {
-    const handleOpenMenu = vi.fn();
-    render(
-      <MemoryRouter>
-        <MobileHero onOpenMenu={handleOpenMenu} />
-      </MemoryRouter>
-    );
+  it('shows a neutral unavailable marker when the result count cannot be verified', () => {
+    mockStats.resultsCount = null;
+    renderHero();
+    expect(screen.getByText('—')).toBeDefined();
+  });
 
-    const menuBtn = screen.getByRole('button', { name: /open mobile navigation menu/i });
-    fireEvent.click(menuBtn);
-    expect(handleOpenMenu).toHaveBeenCalledTimes(1);
+  it('marks the result count as loading while Firestore is queried', () => {
+    mockStats.isLoadingResults = true;
+    renderHero();
+    expect(screen.getByRole('status', { name: /loading result count/i })).toBeDefined();
+  });
+
+  it('opens settings through the correctly labelled menu control', () => {
+    const openSettings = vi.fn();
+    renderHero(openSettings);
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    expect(openSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires the Explore Tests callback', () => {
+    const onExploreTests = vi.fn();
+    renderHero(vi.fn(), onExploreTests);
+    fireEvent.click(screen.getByRole('button', { name: /explore tests/i }));
+    expect(onExploreTests).toHaveBeenCalledTimes(1);
   });
 });

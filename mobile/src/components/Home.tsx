@@ -1,15 +1,9 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Zap, Menu, ChevronLeft, ChevronRight, 
-  Trophy, BarChart2, Folder, Shield, Download, Maximize2, Minimize2
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useAuth } from '../AuthContext';
+import { Trophy, BarChart2, Folder, Shield } from 'lucide-react';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { isMobileWelcomeSeen } from '../lib/welcomeStore';
 import { triggerHaptic } from '../lib/settingsStore';
-import { PulseLogo } from './brand';
 import { SEO } from './SEO';
 import { MobileHero } from './hero/MobileHero';
 import { WhatIsPulseScene } from '../../../src/components/home/WhatIsPulseScene';
@@ -55,113 +49,15 @@ const HOME_SCHEMA = {
   ]
 };
 
-export interface HeroAssessment {
-  id: string;
-  protocolNumber: string;
-  category: string;
-  title: string;
-  description: string;
-  targetRoute: string;
-  logo: string;
-}
-
-export const HERO_ASSESSMENTS: HeroAssessment[] = [
-  {
-    id: 'reaction',
-    protocolNumber: 'TEST 01',
-    category: 'LATENCY',
-    title: 'Visual Reaction',
-    description: 'Wait for the visual signal, then respond as quickly as possible. Measures basic reaction time.',
-    targetRoute: '/reaction-test',
-    logo: '/brand/assessments/visual-reaction.svg',
-  },
-  {
-    id: 'direction',
-    protocolNumber: 'TEST 02',
-    category: 'CHOICE REACTION',
-    title: 'Directional Choice',
-    description: 'Tap the arrow that matches the direction on screen. Measures how fast you process and react to new information.',
-    targetRoute: '/direction-test',
-    logo: '/brand/assessments/directional-choice.svg',
-  },
-  {
-    id: 'color',
-    protocolNumber: 'TEST 03',
-    category: 'STROOP EFFECT',
-    title: 'Colour Recognition',
-    description: 'Identify the color of the text when the word and its color do not match. Tests attention and cognitive flexibility.',
-    targetRoute: '/colour-recognition',
-    logo: '/brand/assessments/colour-recognition.svg',
-  },
-  {
-    id: 'block',
-    protocolNumber: 'TEST 04',
-    category: 'CORSI BLOCKS',
-    title: 'Block Memory',
-    description: 'Remember and repeat increasingly long sequences of highlighted blocks. Tests spatial memory.',
-    targetRoute: '/block-memory',
-    logo: '/brand/assessments/block-memory.svg',
-  },
-  {
-    id: 'number',
-    protocolNumber: 'TEST 05',
-    category: 'DIGIT SPAN',
-    title: 'Number Memory',
-    description: 'Remember increasingly long sequences of numbers. Tests short-term working memory.',
-    targetRoute: '/number-memory',
-    logo: '/brand/assessments/number-memory.svg',
-  },
-];
-
 const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
 const AddToHomeScreenModal = React.lazy(() => import('./AddToHomeScreenModal').then(m => ({ default: m.AddToHomeScreenModal })));
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const navigate = useNavigate();
-  const { isConnecting, authError, retryAuth } = useAuth();
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState<boolean>(() => !isMobileWelcomeSeen());
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  useEffect(() => {
-    const updateFs = () => {
-      const doc = document as any;
-      setIsFullscreen(Boolean(doc.fullscreenElement || doc.webkitFullscreenElement));
-    };
-    document.addEventListener('fullscreenchange', updateFs);
-    document.addEventListener('webkitfullscreenchange', updateFs);
-    return () => {
-      document.removeEventListener('fullscreenchange', updateFs);
-      document.removeEventListener('webkitfullscreenchange', updateFs);
-    };
-  }, []);
-
-  const toggleFullscreen = () => {
-    triggerHaptic();
-    const doc = document as any;
-    if (!isFullscreen) {
-      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-      else if (doc.documentElement.webkitRequestFullscreen) doc.documentElement.webkitRequestFullscreen();
-    } else {
-      if (document.exitFullscreen) document.exitFullscreen();
-      else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
-    }
-  };
-
-  // Carousel State
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const handleNext = () => {
-    triggerHaptic();
-    setActiveIndex((prev) => (prev + 1) % HERO_ASSESSMENTS.length);
-  };
-
-  const handlePrev = () => {
-    triggerHaptic();
-    setActiveIndex((prev) => (prev - 1 + HERO_ASSESSMENTS.length) % HERO_ASSESSMENTS.length);
-  };
 
   return (
     <div className="bg-[#0B0B0E] text-[#F8FAFC] min-h-[100dvh] w-full flex flex-col font-sans overflow-x-hidden relative selection:bg-white/30 pb-safe">
@@ -176,118 +72,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         onOpenMenu={() => setIsSettingsOpen(true)}
         pwaInstallable={pwa.isInstallable}
         onPromptInstall={() => pwa.promptInstall()}
-        onExploreTests={() => {
-          const el = document.getElementById('explore-tests-target');
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-          } else {
-            navigate('/assessments');
-          }
-        }}
-      />
+        onExploreTests={() => navigate('/assessments')}
 
-      {/* Main Below-the-Hero Content (Explore Target) */}
-      <main id="explore-tests-target" className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 px-5 pt-8 pb-8">
+      {/* Existing mobile directory content below the redesigned hero */}
+      <main className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 px-5 pt-8 pb-8">
 
-
-        {/* Carousel Section */}
-        <div className="relative w-full h-[280px] flex items-center justify-center mb-8">
-          {/* Side Arrows */}
-          <button 
-            onClick={handlePrev} 
-            className="absolute left-0 z-30 p-2 text-white/60 hover:text-white active:scale-90 transition-transform -translate-x-2"
-          >
-            <ChevronLeft size={32} strokeWidth={2} />
-          </button>
-          
-          <button 
-            onClick={handleNext} 
-            className="absolute right-0 z-30 p-2 text-white/60 hover:text-white active:scale-90 transition-transform translate-x-2"
-          >
-            <ChevronRight size={32} strokeWidth={2} />
-          </button>
-
-          {/* Cards */}
-          <div className="relative w-full max-w-[280px] h-full flex items-center justify-center pointer-events-none">
-            <AnimatePresence initial={false} mode="popLayout">
-              {HERO_ASSESSMENTS.map((assessment, index) => {
-                const isActive = index === activeIndex;
-                const isPrev = index === (activeIndex - 1 + HERO_ASSESSMENTS.length) % HERO_ASSESSMENTS.length;
-                const isNext = index === (activeIndex + 1) % HERO_ASSESSMENTS.length;
-                
-                if (!isActive && !isPrev && !isNext) return null;
-
-                let x = 0;
-                let scale = 1;
-                let opacity = 1;
-                let zIndex = 20;
-
-                if (isPrev) { x = -80; scale = 0.85; opacity = 0.4; zIndex = 10; }
-                if (isNext) { x = 80; scale = 0.85; opacity = 0.4; zIndex = 10; }
-
-                return (
-                  <motion.div
-                    key={assessment.id}
-                    initial={{ x: isNext ? 100 : -100, scale: 0.8, opacity: 0 }}
-                    animate={{ x, scale, opacity, zIndex }}
-                    exit={{ x: isPrev ? -100 : 100, scale: 0.8, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="absolute w-full h-full rounded-2xl bg-[#12141A] border border-white/10 flex flex-col justify-end p-6 overflow-hidden pointer-events-auto shadow-2xl"
-                    style={{
-                      boxShadow: isActive ? '0 20px 60px -10px rgba(255,255,255,0.25), 0 0 40px rgba(255,255,255,0.1)' : 'none'
-                    }}
-                    onClick={() => {
-                      if (isActive) {
-                        triggerHaptic();
-                        navigate(assessment.targetRoute);
-                      } else if (isNext) {
-                        handleNext();
-                      } else if (isPrev) {
-                        handlePrev();
-                      }
-                    }}
-                  >
-                    {/* Assessment Visual Graphic */}
-                    <div className="absolute top-4 right-4 z-10">
-                      <img 
-                        src={assessment.logo} 
-                        alt={assessment.title} 
-                        className="w-16 h-16 object-contain rounded-lg drop-shadow-[0_0_12px_rgba(0,240,255,0.25)] border border-white/10"
-                      />
-                    </div>
-
-                    {/* Dark gradient overlay for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
-                    
-                    <div className="relative z-10 flex flex-col items-start text-left">
-                      <div className="text-[10px] font-mono text-[#00F0FF] uppercase tracking-wider mb-1">
-                        {assessment.protocolNumber}
-                      </div>
-                      <h2 className="font-heading text-xl font-bold text-white mb-1.5">{assessment.title}</h2>
-                      <p className="text-[#8A94A6] text-[13px] leading-relaxed mb-3.5 pr-2">{assessment.description}</p>
-                      
-                      <div className="bg-[#052e16] border border-[#166534] px-2.5 py-1 rounded-md">
-                        <span className="text-[10px] font-bold tracking-widest text-[#4ade80] uppercase">ACTIVE</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Pagination Dots */}
-        <div className="flex items-center justify-center gap-2 mb-10">
-          {HERO_ASSESSMENTS.map((_, idx) => (
-            <div 
-              key={idx}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                idx === activeIndex ? 'w-1.5 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'w-1.5 bg-white/20'
-              }`}
-            />
-          ))}
-        </div>
 
         {/* Directory Section */}
         <div className="mb-8">
