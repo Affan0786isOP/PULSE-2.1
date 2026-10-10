@@ -49,9 +49,9 @@ describe('MobileHero', () => {
   it('renders all four feature shortcuts and navigates to their actual routes', () => {
     const featureRoutes = [
       { label: /Reaction\s*Time/i, path: '/reaction-test' },
-      { label: /^Memory$/i, path: '/block-memory' },
-      { label: /^Attention$/i, path: '/colour-recognition' },
-      { label: /^Cognition$/i, path: '/direction-test' },
+      { label: /^Dataset$/i, path: '/dataset' },
+      { label: /^Analytics$/i, path: '/analytics' },
+      { label: /^About Us$/i, path: '/about' },
     ];
 
     for (const feature of featureRoutes) {
