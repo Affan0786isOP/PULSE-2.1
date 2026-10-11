@@ -47,7 +47,9 @@ async function run() {
         localStorage.setItem('pulse_welcome_dismissed', 'true');
       });
       await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'networkidle' });
-      await page.waitForTimeout(1000);
+      // Hover over the carousel region to pause autoplay and wait for motion to settle
+      await page.hover('[role="region"][aria-label="Assessment Protocols 3D Carousel"]');
+      await page.waitForTimeout(600);
 
       // Verify active card size
       const cardDimensions = await page.evaluate(() => {
@@ -76,7 +78,8 @@ async function run() {
       localStorage.setItem('pulse_welcome_dismissed', 'true');
     });
     await resizePage.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'networkidle' });
-    await resizePage.waitForTimeout(800);
+    await resizePage.hover('[role="region"][aria-label="Assessment Protocols 3D Carousel"]');
+    await resizePage.waitForTimeout(600);
 
     const dimsAt2560_Initial = await resizePage.evaluate(() => {
       const activeCard = document.querySelector('[role="region"][aria-label="Assessment Protocols 3D Carousel"] [role="button"][aria-current="true"]');
@@ -85,7 +88,7 @@ async function run() {
 
     // Shrink across boundary to 2559
     await resizePage.setViewportSize({ width: 2559, height: 1440 });
-    await resizePage.waitForTimeout(800);
+    await resizePage.waitForTimeout(600);
     const dimsAt2559 = await resizePage.evaluate(() => {
       const activeCard = document.querySelector('[role="region"][aria-label="Assessment Protocols 3D Carousel"] [role="button"][aria-current="true"]');
       return activeCard ? { width: Math.round(activeCard.getBoundingClientRect().width), height: Math.round(activeCard.getBoundingClientRect().height) } : null;
@@ -93,7 +96,7 @@ async function run() {
 
     // Expand back across boundary to 2560
     await resizePage.setViewportSize({ width: 2560, height: 1440 });
-    await resizePage.waitForTimeout(800);
+    await resizePage.waitForTimeout(600);
     const dimsAt2560_Restored = await resizePage.evaluate(() => {
       const activeCard = document.querySelector('[role="region"][aria-label="Assessment Protocols 3D Carousel"] [role="button"][aria-current="true"]');
       return activeCard ? { width: Math.round(activeCard.getBoundingClientRect().width), height: Math.round(activeCard.getBoundingClientRect().height) } : null;
