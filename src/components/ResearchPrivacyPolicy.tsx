@@ -9,7 +9,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
     <div className="bg-transparent text-[var(--text-main)] font-sans min-h-[100dvh] w-full flex flex-col">
       <SEO 
         title="Research Data Ethics & Privacy Policy | PULSE"
-        description="Our commitment to transparent research standards, strict data anonymization, telemetry consent guidelines, and open scientific integrity."
+        description="How PULSE handles local preferences, anonymous participant records, public research data, and browser-based timing estimates."
         canonicalUrl="https://pulse-lab.in/privacy"
       />
       <Navbar currentView="privacy" onNavigate={onNavigate} />
@@ -33,7 +33,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
               Research Privacy Policy
             </h1>
             <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed max-w-[65ch]">
-              This policy explains how PULSE (Precision User Latency &amp; Stimulus Evaluator) handles data. It covers what we store locally, what we save to the cloud, and how we keep participants anonymous.
+              This page describes the data flows and safeguards implemented in PULSE (Precision User Latency &amp; Stimulus Evaluator). Public records omit direct participant identifiers, but de-identification cannot guarantee zero re-identification risk. This page is not a legal compliance certification.
             </p>
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-[var(--text-muted)] pt-1">
               <span>Last updated: September 2026</span>
@@ -74,7 +74,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
                       <td className="py-3 pr-4 font-mono font-medium text-emerald-400">2. Cloud Research Records</td>
                       <td className="py-3 px-4">Firestore (<code className="text-xs bg-[var(--cyan-badge-bg)] px-1 py-0.5 rounded">publicDataset</code>)</td>
                       <td className="py-3 px-4">Assessment trials, response latencies, accuracy, display delay corrections, coarsened cohort (<code className="text-xs bg-[var(--cyan-badge-bg)] px-1 py-0.5 rounded">YYYY-MM</code>)</td>
-                      <td className="py-3 pl-4 text-xs">Fully anonymized; no PII, IP addresses, or persistent user IDs</td>
+                      <td className="py-3 pl-4 text-xs">Direct identifiers are omitted from this collection; residual re-identification risk is not guaranteed to be zero</td>
                     </tr>
                     <tr>
                       <td className="py-3 pr-4 font-mono font-medium text-amber-400">3. Public Leaderboards</td>
@@ -102,14 +102,14 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
             </div>
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                To ensure the assessments are accurate across different devices, PULSE records test scores alongside device and display settings:
+                To help interpret browser-based measurements across different devices, PULSE records test scores alongside selected device and display characteristics. These data do not guarantee identical physical measurement accuracy across hardware:
               </p>
               <ul className="text-sm text-[var(--text-secondary)] list-disc pl-5 space-y-2">
                 <li>
                   <strong className="text-[var(--text-primary)]">Cognitive Assessment Metrics:</strong> Reaction times (raw latency in milliseconds), foreperiod delay categories (e.g. short vs. long randomized preparatory intervals), directional discrimination choices, colour recognition accuracy, spatial sequence spans, and number memory spans.
                 </li>
                 <li>
-                  <strong className="text-[var(--text-primary)]">Display Calibration &amp; Timing Correction:</strong> Measured or estimated display refresh rate (Hz), frame intervals, and calibrated display delay offsets (<code className="text-xs bg-[var(--cyan-badge-bg)] px-1 py-0.5 rounded">displayDelayOffsetMs</code>) to account for visual delay on different screens.
+                  <strong className="text-[var(--text-primary)]">Display Calibration &amp; Timing Correction:</strong> Estimated browser frame cadence and derived display-delay offsets (<code className="text-xs bg-[var(--cyan-badge-bg)] px-1 py-0.5 rounded">displayDelayOffsetMs</code>) to approximate one component of visual presentation delay; the offset is model-derived and is not a direct hardware measurement.
                 </li>
                 <li>
                   <strong className="text-[var(--text-primary)]">Device &amp; Input Environment:</strong> Viewport dimensions, input modality (pointer coarse vs. fine, touch capability), and general operating system family. We do not inspect device serial numbers, MAC addresses, or persistent advertising identifiers.
@@ -129,14 +129,14 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
             </div>
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                PULSE separates database authentication from the research dataset to keep participants anonymous:
+                PULSE separates participant authentication from the published research dataset to reduce direct identity exposure:
               </p>
               <ul className="text-sm text-[var(--text-secondary)] list-disc pl-5 space-y-2">
                 <li>
                   <strong className="text-[var(--text-primary)]">No Personally Identifiable Information (PII):</strong> We never collect names, email addresses, phone numbers, location coordinates, or payment details.
                 </li>
                 <li>
-                  <strong className="text-[var(--text-primary)]">Anonymous Authentication:</strong> Firebase generates a temporary token so the app can write to the database. This token is used only for security rules and is never saved with the research data.
+                  <strong className="text-[var(--text-primary)]">Anonymous Authentication:</strong> Firebase generates a temporary token so the app can write to the database. The anonymous UID is used to authorize private participant-scoped records. The published `publicDataset` omits that UID, while private `assessmentTrials` and `assessmentResults` may be linked to it.
                 </li>
                 <li>
                   <strong className="text-[var(--text-primary)]">Coarsened Temporal Boundaries:</strong> Public records only show the month and year of the test (<code className="text-xs bg-[var(--cyan-badge-bg)] px-1 py-0.5 rounded">YYYY-MM</code>), preventing anyone from tracking participants by the exact time they played.
@@ -156,7 +156,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
             </div>
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                We collect age in brackets (e.g., "18–25", "26–35") rather than exact birth dates.
+                We collect age in broad brackets (for example, "18–25" or "26–40") rather than exact birth dates.
               </p>
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
                 <h3 className="text-sm font-bold text-amber-500 mb-2">Safeguards for Minors</h3>
@@ -175,7 +175,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
             </div>
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                Assessment results and leaderboard entries are saved in a cloud database (Firestore). Because the research data is anonymous, past entries cannot be linked back to you or retrieved if you ask.
+                Assessment results are stored through the server in Firestore and private participant-scoped records may be associated with an anonymous UID. Published `publicDataset` records omit the UID and session identifiers. The current repository does not establish a complete, verified participant-erasure workflow; do not assume an individual published row can be found or deleted by identity.
               </p>
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-[var(--text-primary)]">Local Storage &amp; Cache Clearing</h3>
