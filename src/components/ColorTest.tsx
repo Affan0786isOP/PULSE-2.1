@@ -477,12 +477,12 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   let timerClass = "font-mono font-bold tracking-[-1px] leading-none mb-[15px] transition-colors duration-100 ease-out text-3xl md:text-5xl text-[var(--text-muted)]";
   
   if (engineState === 'STARTING') {
-    apparatusClass += " !border-white/10 !bg-black/50 justify-center items-center cursor-pointer";
+    apparatusClass += " !border-[var(--border-subtle)] !bg-[var(--surface-2)] justify-center items-center cursor-pointer";
   } else if (engineState === 'STIMULUS_ACTIVE' || engineState === 'FEEDBACK') {
-    apparatusClass += " !border-white/5";
-    timerClass += " !text-white";
+    apparatusClass += " !border-[var(--border-subtle)]";
+    timerClass += " !text-[var(--text-primary)]";
   } else {
-    apparatusClass += " !border-white/10 hover:!border-white/20 !bg-black/50 hover:!bg-black/40 justify-center items-center cursor-pointer";
+    apparatusClass += " !border-[var(--border-subtle)] hover:!border-[var(--border-default)] !bg-[var(--surface-2)] hover:!bg-[var(--surface-3)] justify-center items-center cursor-pointer";
   }
 
   const speedData = useMemo(() => {
@@ -658,7 +658,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-colors shadow-sm ${
               engineState !== 'READY' && engineState !== 'REPORT'
                 ? 'border-[var(--border-subtle)] text-[var(--text-muted)] opacity-40 cursor-not-allowed'
-                : 'border-white/15 bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-cyan-300 cursor-pointer active:scale-95'
+                : 'border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--accent)] hover:text-[var(--accent-hover)] cursor-pointer active:scale-95'
             }`}
           >
             <Info size={14} />
