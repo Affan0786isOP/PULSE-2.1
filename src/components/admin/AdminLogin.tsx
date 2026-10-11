@@ -102,7 +102,7 @@ export function AdminLogin({ onNavigate }: { onNavigate?: (view: string) => void
               </span>
             </div>
             <div className="relative">
-              <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={15} />
+              <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
               <input
                 type={showPassword ? "text" : "password"}
                 required
@@ -110,12 +110,12 @@ export function AdminLogin({ onNavigate }: { onNavigate?: (view: string) => void
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password..."
-                className="w-full pl-10 pr-10 py-3 rounded-xl bg-[#090d16] border border-white/10 text-sm text-[var(--text-main)] placeholder-white/30 focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-1 focus-visible:border-cyan-500/50 transition-colors font-mono tracking-widest"
+                className="w-full pl-10 pr-10 py-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-1 focus-visible:border-[var(--accent)]/50 transition-colors font-mono tracking-widest"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -134,7 +134,7 @@ export function AdminLogin({ onNavigate }: { onNavigate?: (view: string) => void
         </form>
 
         {/* SECURITY FOOTNOTE */}
-        <div className="mt-6 pt-5 border-t border-white/10 text-center">
+        <div className="mt-6 pt-5 border-t border-[var(--border-subtle)] text-center">
           <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)]">
             <Shield size={12} className="text-cyan-400" />
             <span>Encrypted Session Gatekeeper</span>
