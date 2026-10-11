@@ -8,6 +8,7 @@ These rules govern all AI coding agents working within the PULSE repository. The
 1. **Inspect Before Acting:** Always examine actual source code, configuration files, and types before proposing or making changes. Never guess architecture or file paths.
 2. **Evidence Over Assumptions:** Only document or code against verifiable system behavior. If a behavior or requirement cannot be verified, flag it as `UNKNOWN / TO BE VERIFIED`.
 3. **Validate Commands:** Verify all scripts against `package.json` and tool configurations before suggesting or executing them.
+4. **Visual Verification Loop for UI Changes:** Any visual change to UI components, heroes, modals, navigation, or responsive layouts MUST follow the screenshot-driven feedback loop (`screenshot-driven-ui`). The agent must capture actual screenshots using headless browser automation, inspect the images directly via `view_file`, and iterate (code -> build -> capture -> inspect) until visual quality, contrast, and responsive layout are proven. Never claim UI success without inspected screenshots.
 
 ---
 
@@ -38,6 +39,9 @@ These rules govern all AI coding agents working within the PULSE repository. The
 2. **Active States & Tactility:** Every interactive element must have defined `:active` and `:focus-visible` styles.
 3. **Reduced Motion:** Always respect `prefers-reduced-motion` and the `reducedMotionEnabled` setting via `<MotionConfig>`.
 4. **Dual-Surface Compatibility:** Changes to shared logic must maintain parity between the desktop application (`/src`) and mobile PWA (`/mobile/src`).
+5. **Theme Surface Cohesion (No Accidental Dual-Tone):** When building or styling multi-card layouts, carousels, or stacked components, maintain consistent surface coloring across all card states (active and inactive). Do not mix dark cards and light cards within the same carousel or stack unless specifically instructed.
+6. **Mobile Brand Mark Integrity:** Always use the official `<PulseLogo>` component for branding lockups on mobile pages and headers. Never replace the logo mark with plain text (`<span>PULSE</span>`) or unvetted approximations. Ensure `<PulseLogo>` accepts and applies the correct `textColor` matching the current theme surface.
+7. **Localized Contrast for Neon / Glowing Marks on Light Themes:** When rendering glowing cyan, neon, or white line-art logos on light surfaces, increase legibility by applying a high-contrast dark aperture/disc **strictly and only directly behind the logo graphic**. Do not darken the parent card or surrounding layout to achieve contrast.
 
 ---
 
