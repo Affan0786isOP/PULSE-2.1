@@ -189,10 +189,10 @@ export function AdminOverview() {
   return (
     <div className="space-y-8" id="admin-overview">
       {/* HEADER BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-[var(--accent)]/30">
               Administrative Telemetry
             </span>
             <span className="text-xs font-mono text-[var(--text-muted)]">
@@ -208,7 +208,7 @@ export function AdminOverview() {
           <button type="button"
             onClick={loadData}
             disabled={isRefreshing}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:bg-[var(--bg-panel-active)] active:scale-[0.98] border border-white/10 hover:border-cyan-500/40 text-xs font-mono text-[var(--text-main)] transition-[background-color,border-color,transform] cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:bg-[var(--bg-panel-active)] active:scale-[0.98] border border-[var(--border-subtle)] hover:border-cyan-500/40 text-xs font-mono text-[var(--text-main)] transition-[background-color,border-color,transform] cursor-pointer disabled:opacity-50"
           >
             <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-cyan-400' : ''} />
             <span>{isRefreshing ? 'Syncing...' : 'Refresh Metrics'}</span>
@@ -219,7 +219,7 @@ export function AdminOverview() {
       {/* 4 CORE KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: publicDataset docs */}
-        <div className="bg-[var(--bg-surface)] border border-white/10 hover:border-cyan-500/30 transition-colors rounded-2xl p-5 relative overflow-hidden">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-[var(--accent)]/30 transition-colors rounded-2xl p-5 relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)]">
               publicDataset Docs
@@ -241,7 +241,7 @@ export function AdminOverview() {
         </div>
 
         {/* KPI 2: trialObservations docs */}
-        <div className="bg-[var(--bg-surface)] border border-white/10 hover:border-indigo-500/30 transition-colors rounded-2xl p-5 relative overflow-hidden">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-indigo-400/50 transition-colors rounded-2xl p-5 relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)]">
               trialObservations Docs
@@ -263,7 +263,7 @@ export function AdminOverview() {
         </div>
 
         {/* KPI 3: leaderboardResults docs */}
-        <div className="bg-[var(--bg-surface)] border border-white/10 hover:border-amber-500/30 transition-colors rounded-2xl p-5 relative overflow-hidden">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-amber-500/30 transition-colors rounded-2xl p-5 relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)]">
               leaderboardResults Docs
@@ -285,7 +285,7 @@ export function AdminOverview() {
         </div>
 
         {/* KPI 4: Distinct Participants */}
-        <div className="bg-[var(--bg-surface)] border border-white/10 hover:border-emerald-500/30 transition-colors rounded-2xl p-5 relative overflow-hidden">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-emerald-500/30 transition-colors rounded-2xl p-5 relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)]">
               Distinct Participants
@@ -308,7 +308,7 @@ export function AdminOverview() {
       </div>
 
       {/* 30-DAY ACTIVITY TIMELINE CHART */}
-      <div className="bg-[var(--bg-surface)] border border-white/10 rounded-2xl p-6">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
             <h3 className="font-heading text-lg font-bold text-[var(--text-main)] flex items-center gap-2">
@@ -377,7 +377,7 @@ export function AdminOverview() {
       {/* BREAKDOWN GRIDS: BY ASSESSMENT TYPE & BY AGE GROUP */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* CHART 1: Sessions by Assessment Type */}
-        <div className="bg-[var(--bg-surface)] border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6 flex flex-col justify-between">
           <div className="mb-4">
             <h3 className="font-heading text-base font-bold text-[var(--text-main)] flex items-center gap-2">
               <Layers size={16} className="text-cyan-400" />
@@ -413,7 +413,7 @@ export function AdminOverview() {
         </div>
 
         {/* CHART 2: Sessions by Age Group */}
-        <div className="bg-[var(--bg-surface)] border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6 flex flex-col justify-between">
           <div className="mb-4">
             <h3 className="font-heading text-base font-bold text-[var(--text-main)] flex items-center gap-2">
               <Users size={16} className="text-sky-400" />
