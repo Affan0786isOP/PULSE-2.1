@@ -16,6 +16,12 @@ PULSE is a high-precision cognitive assessment platform, empirical research engi
 
 ---
 
+## 2. Global Visual Direction
+
+The supported application design is light-first across desktop and mobile: white and pale-blue surfaces (`#FFFFFF`, `#F4F9FF`, `#EAF3FD`), deep ink text (`#090D1A`), and blue primary actions (`#0066FF`). Theme bootstrapping, settings stores, CSS tokens, logo defaults, status-bar colors, admin routes, settings/dialog surfaces, and assessment interfaces must be aligned. High-contrast stimulus states are allowed where required by an assessment protocol; they must remain transition-free while a reaction is being measured. The application does not expose a dark-theme mode.
+
+---
+
 ## 2. Target Users & Cohorts
 PULSE normalizes performance metrics across 7 standard age cohorts:
 - `Children (8–12)`
