@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export type ThemeMode = 'dark';
+export type ThemeMode = 'light';
 
 export interface UserSettings {
   soundEnabled: boolean;
@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   soundEnabled: true,
   hapticsEnabled: true,
   fullscreenPromptEnabled: true,
-  themeMode: 'dark',
+  themeMode: 'light',
   exhibitionModeEnabled: false,
   reducedMotionEnabled: getDefaultReducedMotion(),
   fontScale: 1.0,
@@ -54,8 +54,8 @@ function sanitizeSettings(raw: unknown, fallback: UserSettings = DEFAULT_SETTING
   if (typeof obj.fullscreenPromptEnabled === 'boolean') {
     result.fullscreenPromptEnabled = obj.fullscreenPromptEnabled;
   }
-  // Dark-only architecture: themeMode is always 'dark'
-  result.themeMode = 'dark';
+  // The new light design is the single supported global theme.
+  result.themeMode = 'light';
 
   if (typeof obj.exhibitionModeEnabled === 'boolean') {
     result.exhibitionModeEnabled = obj.exhibitionModeEnabled;
@@ -95,7 +95,7 @@ export function getSettings(): UserSettings {
   if (!cachedSettings) {
     cachedSettings = loadSettings();
   }
-  return { ...cachedSettings, themeMode: 'dark' };
+  return { ...cachedSettings, themeMode: 'light' };
 }
 
 export function isReducedMotionActive(): boolean {
@@ -109,15 +109,15 @@ export function isHapticsSupported(): boolean {
 export function applyDOMSettings(settings: UserSettings = getSettings()) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-  // 1. Truthful Theme: ALWAYS Dark Mode
-  document.documentElement.setAttribute('data-theme', 'dark');
-  document.documentElement.style.colorScheme = 'dark';
-  document.documentElement.classList.add('dark');
-  document.documentElement.classList.remove('light');
+  // 1. Canonical PULSE theme: light mode across the full application.
+  document.documentElement.setAttribute('data-theme', 'light');
+  document.documentElement.style.colorScheme = 'light';
+  document.documentElement.classList.add('light');
+  document.documentElement.classList.remove('dark');
 
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.setAttribute('content', '#0B0D10');
+    meta.setAttribute('content', '#F4F9FF');
   }
 
   // 2. Authoritative Reduced Motion
