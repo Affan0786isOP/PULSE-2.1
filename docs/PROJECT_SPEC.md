@@ -6,13 +6,13 @@
 ---
 
 ## 1. Product Overview & Purpose
-PULSE is a high-precision cognitive assessment platform, empirical research engine, and cryptographic latency benchmark suite. Designed for both desktop workstations and mobile touchscreen devices, it delivers sub-millisecond visual reaction timing, executive function evaluation, attentional conflict measurement, and working memory analysis across normalized demographic age cohorts.
+PULSE is a high-precision cognitive assessment platform, empirical research engine, and cryptographic latency benchmark suite. Designed for desktop workstations and mobile touchscreen devices, it captures high-resolution browser timing for reaction-time tasks and evaluates executive function, attentional conflict, and working memory across normalized demographic age cohorts. End-to-end timing accuracy varies by browser, display, and input hardware; display-delay values are estimates rather than direct physical measurements.
 
 ### Core Objectives
 1. **Precision Cognitive Baselining:** Provide laboratory-grade measurement of motor response speed, flanker interference, Stroop inhibition, and spatial/verbal memory span.
 2. **Open Empirical Science:** Aggregate anonymized assessment outcomes into a publicly queryable, downloadable dataset categorized by age cohort.
 3. **Cryptographic Integrity:** Guarantee data provenance and prevent synthetic score manipulation using server-side HMAC-SHA256 attestation.
-4. **Privacy-Preserving Architecture:** Collect zero email addresses, zero passwords, and zero direct PII, ensuring compliance with global privacy regulations (GDPR, FTC Health Breach Notification, Washington My Health My Data Act).
+4. **Privacy-Oriented Architecture:** Avoid direct identity collection in participant flows and sanitize public research records. These design choices are privacy safeguards, not a certification of compliance with GDPR, the FTC Health Breach Notification Rule, Washington My Health My Data Act, or other laws; legal and operational compliance requires separate review.
 
 ---
 
@@ -36,7 +36,7 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
       ├─► Desktop Browser ──► Route: /
       └─► Mobile Browser  ──► Auto-Redirect: /mobile/
       │
-[Cohort Selection] (Age bracket selection saved in localStorage)
+[Cohort Selection] (Age bracket is selected for the assessment session; do not assume it is persisted as a user setting)
       │
 [Assessment Execution]
       ├── Visual Reaction (/reaction-test)
@@ -64,7 +64,7 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 - **Status:** `IMPLEMENTED`
 - **Scientific Foundation:** Simple Visual Reaction Time test with variable foreperiod preparation.
 - **Protocol Parameters:**
-  - Standard Trials: 5 sequential attempts.
+  - Standard Trials: 10 sequential trial numbers are required by the current server calculator; invalid/false-start attempts may affect how many attempts are needed to obtain 10 valid responses.
   - Foreperiod: Randomized delay between $100\text{ms}$ and $3000\text{ms}$ (categorized as `SHORT` $\le 500\text{ms}$ vs `LONG` $> 500\text{ms}$).
   - Stimulus: Reticle state transitions from standby (`Awaiting`) to active signal (`Stimulus Active`).
   - Physiological Floor: $80\text{ms}$. Clicks before stimulus onset trigger `FALSE_START_PRE_STIMULUS`. Responses $< 80\text{ms}$ trigger `ANTICIPATORY_TOO_FAST`. Timeout threshold is $3000\text{ms}$.
@@ -128,11 +128,11 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 | :--- | :--- | :--- | :--- |
 | **Desktop Home & Hero** | `/` | `IMPLEMENTED` | Awwwards-tier animated canvas background, 3D assessment carousel, interactive live reticle, quick-start CTAs. |
 | **Mobile PWA Sub-App** | `/mobile/` | `IMPLEMENTED` | Dedicated mobile entry point, touch-optimized layouts, service worker caching, standalone PWA install prompt. |
-| **Device Auto-Routing** | Middleware & Client | `IMPLEMENTED` | Screen width ($<768\text{px}$) & User-Agent detection redirects mobile visitors to `/mobile/` and desktop to `/`. |
-| **Hardware Calibrator** | Background Hook | `IMPLEMENTED` | RAF sampling detects screen refresh rate (60Hz–240Hz) and display latency offset. |
-| **Research Dataset Explorer** | `/dataset`, `/analytics` | `IMPLEMENTED` | Real-time multi-filter distribution curves (Visx/Recharts), cohort slicing, and CSV/JSON export. |
+| **Device Auto-Routing** | Middleware & Client | `IMPLEMENTED` | Server routing uses mobile User-Agent/client-hint detection; client routing additionally considers viewport width (currently $\le 768\text{px}$), touch/pointer signals, and explicit override flags. |
+| **Hardware Calibrator** | Background Hook | `IMPLEMENTED (ESTIMATE)` | RAF sampling estimates browser frame cadence and derives a frame-midpoint display-delay offset; it is not a direct physical display-latency measurement. |
+| **Research Dataset Explorer UI** | `/dataset`, `/analytics` | `BACKEND IMPLEMENTED / UI COMING SOON` | The routes currently render `DatasetComingSoon`; server-side dataset retrieval/summary APIs exist, but the described interactive explorer and its exports are not available on these routes. |
 | **Global Leaderboard** | `/leaderboard` | `IMPLEMENTED` | Top 100 rankings per assessment type, verified server HMAC tokens, strict opt-in alias validation. |
-| **Leaderboard Opt-In** | Modal UI | `IMPLEMENTED` | Self-selected public alias modal with profanity filter; guest/anonymous submissions excluded from public rank. |
+| **Leaderboard Opt-In** | Modal UI | `IMPLEMENTED` | The participant uses Firebase Anonymous Authentication; public submission eligibility is separate from auth anonymity and is governed by explicit opt-in, score validation, and display-alias rules. |
 | **Cognitive Guidance** | `/improve` | `IMPLEMENTED` | Sleep, circadian timing, caffeine, and reaction training educational cards backed by scientific literature. |
 | **Admin Console** | `/admin/*` | `IMPLEMENTED` | Passcode-protected overview, live leaderboard moderation (hide/delete with reason notes), and audit trail viewer. |
 | **Privacy Policy & Terms** | `/privacy` | `IMPLEMENTED` | Comprehensive disclosure of zero-PII data handling, statutory compliance, and data subject rights. |
@@ -142,6 +142,14 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 ---
 
 ## 6. Technical Constraints & Invariants
-1. **Timing Accuracy:** Timing must use `window.performance.now()`. Browser timers (`setTimeout`, `setInterval`) are strictly prohibited for reaction latency measurement.
-2. **Database Write Authority:** Direct client writes to Firestore are blocked by security rules (`allow write: if false`). All writes are signed and executed server-side via `server.ts`.
-3. **Storage Fallback:** If offline or Firestore is unavailable, local session history is stored in-memory and in `localStorage` without blocking the user.
+1. **Timing Accuracy:** Use `performance.now()` for measured latency. Browser timers may schedule a foreperiod or timeout, but must not calculate reaction latency. RAF frame timestamps are browser-frame estimates, not direct physical stimulus-onset measurements; never transition/animate stimulus elements while timing is active.
+2. **Database Write Authority:** Direct client writes to canonical Firestore collections are blocked by security rules. Canonical mutations are performed through the Express backend; applicable research/leaderboard payloads receive server-side provenance signing.
+3. **Storage Boundaries:** UI preferences/cache and in-progress trial state may use browser storage. Public dataset and leaderboard reads must use their authoritative API/Firestore paths, and canonical result persistence requires the server/Firestore path; do not describe browser storage as a canonical result or leaderboard fallback.
+
+
+## 7. Verification and Claim Boundaries
+
+- **Dataset status:** `/dataset` and `/analytics` currently render a Coming Soon page even though backend research dataset endpoints exist. Update this entry only after the user-facing explorer is implemented and verified.
+- **Retention status:** The retention periods in `security/retention.md` are policy targets until deployed TTL/purge configuration is verified. The checked-in source did not establish automatic deletion or a participant-erasure workflow.
+- **Measurement claims:** High-resolution timestamps do not prove sub-millisecond end-to-end accuracy on every browser/display/input configuration. Describe the display-delay offset as an estimate unless independent hardware validation supports a stronger claim.
+- **Legal claims:** Privacy safeguards in source code do not alone establish statutory compliance; avoid compliance guarantees without legal and operational review.
