@@ -12,7 +12,7 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
   variant = 'horizontal',
   size,
   className = '',
-  color = 'var(--accent, #22C7D6)',
+  color = 'var(--accent, #0066FF)',
   textColor,
 }) => {
   // Standalone P-Symbol Path Elements
@@ -61,11 +61,11 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
         {/* Wordmark */}
         <span 
           className="font-bold text-2xl tracking-[0.28em] font-sans mt-3 pl-[0.28em]"
-          style={{ color: textColor ?? '#F8FAFC' }}
+          style={{ color: textColor ?? 'var(--text-primary, #090D1A)' }}
         >
           PULSE
         </span>
-        <span className="font-mono text-[9px] tracking-[0.18em] text-[#7E808C] uppercase mt-1">
+        <span className="font-mono text-[9px] tracking-[0.18em] text-[#64748B] uppercase mt-1">
           COGNITIVE BENCHMARK &amp; LATENCY ENGINE
         </span>
       </div>
@@ -86,7 +86,7 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
       </svg>
       <span 
         className="font-bold text-lg tracking-[0.26em] font-sans leading-none pl-[0.26em]"
-        style={{ color: textColor ?? '#F8FAFC' }}
+        style={{ color: textColor ?? 'var(--text-primary, #090D1A)' }}
       >
         PULSE
       </span>
