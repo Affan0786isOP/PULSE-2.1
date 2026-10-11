@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { Activity, Menu, X, ArrowLeft, Settings, Info, RefreshCw } from 'lucide-react';
+import { Menu, X, ArrowLeft, Settings, Info, RefreshCw, Download } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { GooeyNav } from './ui/gooey-nav';
 import { PulseLogo } from './brand';
-
+import { usePwaInstall } from '../lib/usePwaInstall';
 import { resolveActiveNavId } from '../lib/navigation';
 export { resolveActiveNavId };
 
@@ -50,6 +49,7 @@ export function Navbar({
   const wasMobileMenuOpen = useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const pwa = usePwaInstall();
   const isHome = currentView === 'home' || location.pathname === '/' || location.pathname === '/index.html';
 
   const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
@@ -160,17 +160,14 @@ export function Navbar({
   }, [isMobileMenuOpen]);
 
   const navItems = [
-    { id: 'home', label: 'Home', to: '/' },
     { id: 'assessments', label: 'Assessments', to: '/assessments' },
     { id: 'leaderboard', label: 'Leaderboard', to: '/leaderboard' },
     { id: 'dataset', label: 'Dataset', to: '/dataset' },
-    { id: 'improve', label: 'Improve', to: '/improve' },
-    { id: 'privacy', label: 'Privacy', to: '/privacy' },
+    { id: 'analytics', label: 'Analytics', to: '/analytics' },
     { id: 'about', label: 'About', to: '/about' }
   ];
 
   const activeId = resolveActiveNavId(currentView, location.pathname);
-  const activeIndex = navItems.findIndex(i => i.id === activeId);
 
   const handleBack = () => {
     if (onBack) {
@@ -188,22 +185,25 @@ export function Navbar({
   };
 
   return (
-    <nav 
+    <header 
       ref={navRef}
+      role="banner"
       aria-label="Global Navigation"
-      className="min-h-[3.75rem] border-b border-[var(--border-subtle)] bg-[var(--surface-0)]/95 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-4 sm:px-8 md:px-12 w-full shrink-0 transition-colors duration-200"
+      className="relative z-30 w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-14 h-16 sm:h-20 flex items-center justify-between shrink-0 border-b border-transparent transition-colors duration-200"
       style={{ 
         paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))', 
-        paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))', 
-        paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))' 
+        paddingLeft: 'max(1.5rem, env(safe-area-inset-left, 0px))', 
+        paddingRight: 'max(1.5rem, env(safe-area-inset-right, 0px))' 
       }}
     >
+      {/* Brand Lockup & Subpage Back Navigation */}
       <div className="flex items-center gap-3">
         {!isHome && (
-          <button type="button" 
+          <button 
+            type="button" 
             onClick={handleBack}
             aria-label="Go Back"
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] transition-[color,background-color,border-color,transform] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[var(--accent)] shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <ArrowLeft size={16} aria-hidden="true" />
           </button>
@@ -211,22 +211,15 @@ export function Navbar({
         
         <Link 
           to="/"
+          className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg"
           aria-label="PULSE Home"
-          className="flex items-center gap-2.5 group cursor-pointer active:scale-[0.98] transition-transform rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
-          <div className="w-7 h-7 rounded-md bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] transition-colors">
-            <PulseLogo variant="mark" size={17} color="var(--accent)" />
-          </div>
-          <div className="flex flex-col text-left">
-            <span className="font-heading font-bold text-sm tracking-wider text-[var(--text-primary)] leading-none">
-              PULSE
-            </span>
-          </div>
+          <PulseLogo variant="horizontal" size={30} color="var(--accent)" textColor="var(--text-primary)" />
         </Link>
 
         {title && (
           <>
-            <div className="h-4 w-px bg-[var(--border-default)] hidden sm:block mx-2" aria-hidden="true"></div>
+            <div className="h-4 w-px bg-slate-300 hidden sm:block mx-2" aria-hidden="true" />
             <span className="text-xs text-[var(--text-secondary)] font-medium hidden sm:block">
               {title}
             </span>
@@ -234,65 +227,91 @@ export function Navbar({
         )}
       </div>
 
-      {/* Central Desktop Navigation - lg:flex avoids collisions on tablet/small-desktop viewports */}
-      <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center h-full">
-        <GooeyNav
-          items={navItems.map(item => ({ label: item.label, to: item.to }))}
-          value={activeIndex >= 0 ? activeIndex : -1}
-          onChange={(index) => {
-            const item = navItems[index];
-            if (onNavigate) {
-              onNavigate(item.id);
-            } else {
-              navigate(item.to);
-            }
-          }}
-          activeColor="var(--accent)"
-        />
-      </div>
+      {/* Center Main Links */}
+      <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8">
+        {navItems.map(item => (
+          <Link
+            key={item.id}
+            to={item.to}
+            aria-current={activeId === item.id ? 'page' : undefined}
+            onClick={() => {
+              if (onNavigate) onNavigate(item.id);
+            }}
+            className={`text-[13.5px] lg:text-[14.5px] font-medium transition-colors ${
+              activeId === item.id 
+                ? 'text-[var(--accent)] font-semibold' 
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
 
-      <div className="flex items-center gap-2">
+      {/* Right Info, Settings & Install Actions */}
+      <div className="flex items-center gap-2 sm:gap-2.5">
         {rightContent && (
           <div className="hidden sm:block">
             {rightContent}
           </div>
         )}
 
-        {/* Global Controls preserved alongside rightContent */}
-        <div className="hidden lg:flex items-center gap-2">
-          <button type="button"
-            id="navbar-settings-btn"
-            aria-label="Settings"
-            disabled={isAssessmentActive}
-            aria-disabled={isAssessmentActive}
-            title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings & Calibration"}
+        {pwa.isInstallable && (
+          <button
+            type="button"
+            id="desktop-install-app-btn"
             onClick={() => {
-              if (!isAssessmentActive) setIsSettingsOpen(true);
+              if (pwa.hasNativePrompt) {
+                pwa.promptInstall();
+              } else {
+                pwa.openInstallGuide();
+              }
             }}
-            className={`w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[color,background-color,border-color,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${
-              isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
-            }`}
+            aria-label="Install App"
+            className="flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-sky-200/90 bg-sky-50/70 hover:bg-sky-100/90 text-[var(--accent)] text-xs sm:text-[13px] font-medium shadow-[0_2px_6px_rgba(0,102,255,0.06)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0"
           >
-            <Settings size={16} aria-hidden="true" />
+            <Download size={14} strokeWidth={2.4} className="text-[var(--accent)] shrink-0" />
+            <span className="hidden sm:inline">Install App</span>
           </button>
-          <button type="button"
-            id="navbar-info-btn"
-            aria-label="App Info"
-            title="Welcome & Info"
-            onClick={() => setIsWelcomeOpen(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[color,background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-          >
-            <Info size={16} aria-hidden="true" />
-          </button>
-        </div>
+        )}
 
-        {/* Hamburger Menu Toggle for screens < lg (tablets & phones) */}
-        <button type="button" 
+        <button
+          type="button"
+          id="navbar-info-btn"
+          onClick={() => setIsWelcomeOpen(true)}
+          aria-label="Platform Information"
+          title="Welcome & Info"
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[var(--accent)] flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+        >
+          <Info size={17} strokeWidth={2.2} />
+        </button>
+
+        <button
+          type="button"
+          id="navbar-settings-btn"
+          onClick={() => {
+            if (!isAssessmentActive) setIsSettingsOpen(true);
+          }}
+          disabled={isAssessmentActive}
+          aria-disabled={isAssessmentActive}
+          aria-label="Settings"
+          title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings & Calibration"}
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[var(--text-primary)] text-xs sm:text-[13px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+            isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+          }`}
+        >
+          <Settings size={15} strokeWidth={2.2} />
+          <span className="hidden sm:inline">Settings</span>
+        </button>
+
+        {/* Hamburger Menu Toggle for mobile / tablets (< md) */}
+        <button 
+          type="button" 
           ref={mobileMenuTriggerRef}
           aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={isMobileMenuOpen}
           aria-controls="navbar-mobile-drawer"
-          className="w-9 h-9 lg:hidden flex items-center justify-center rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-[0.97] border border-[var(--border-subtle)] text-[var(--text-secondary)] transition-[color,background-color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          className="w-9 h-9 sm:w-10 sm:h-10 md:hidden flex items-center justify-center rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[var(--accent)] active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
@@ -302,9 +321,9 @@ export function Navbar({
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            {/* Backdrop click dismiss seamlessly covering behind safe-area */}
+            {/* Backdrop click dismiss */}
             <div 
-              className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden"
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 md:hidden"
               aria-hidden="true"
               onClick={() => setIsMobileMenuOpen(false)}
             />
@@ -318,7 +337,7 @@ export function Navbar({
               animate={{ opacity: 1, y: 0, scaleY: 1 }}
               exit={{ opacity: 0, y: -6, scaleY: 0.96 }}
               transition={{ duration: 0.16, ease: "easeOut" }}
-              className="absolute top-full left-0 w-full bg-[var(--surface-1)] border-b border-[var(--border-subtle)] shadow-2xl flex flex-col p-4 gap-1 lg:hidden z-50 origin-top"
+              className="absolute top-full left-0 w-full bg-[var(--surface-1)] border-b border-[var(--border-subtle)] shadow-2xl flex flex-col p-4 gap-1 md:hidden z-50 origin-top"
             >
               {navItems.map(item => (
                 <Link
@@ -327,6 +346,7 @@ export function Navbar({
                   aria-current={activeId === item.id ? 'page' : undefined}
                   onClick={() => {
                     setIsMobileMenuOpen(false);
+                    if (onNavigate) onNavigate(item.id);
                   }}
                   className={`p-2.5 rounded-md flex items-center text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                     activeId === item.id
@@ -338,7 +358,8 @@ export function Navbar({
                 </Link>
               ))}
               <div className="pt-3 border-t border-[var(--border-subtle)] mt-2 flex items-center justify-between gap-2">
-                <button type="button"
+                <button 
+                  type="button"
                   id="mobile-menu-settings-btn"
                   aria-label="Settings"
                   disabled={isAssessmentActive}
@@ -358,7 +379,8 @@ export function Navbar({
                   <Settings size={14} aria-hidden="true" />
                   <span>Settings</span>
                 </button>
-                <button type="button"
+                <button 
+                  type="button"
                   id="mobile-menu-info-btn"
                   aria-label="Info"
                   onClick={() => {
@@ -397,6 +419,6 @@ export function Navbar({
           />
         </Suspense>
       )}
-    </nav>
+    </header>
   );
 }
