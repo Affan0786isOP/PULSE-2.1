@@ -4,6 +4,15 @@ This file records verified architectural and engineering decisions established i
 
 ---
 
+### Decision: Light-First Shared Visual Identity
+- **Status:** Accepted
+- **Context:** The updated PULSE home experience establishes a clear, accessible light visual language. Supporting a dark-only global theme now conflicts with the chosen product direction and creates inconsistent page styling.
+- **Decision:** Apply the light-first design across desktop and mobile: `#FFFFFF`/`#F4F9FF`/`#EAF3FD` surfaces, `#090D1A` primary text, and `#0066FF` primary accent. Theme initialization, application settings, semantic tokens, PWA browser chrome, logo defaults, and all screen-specific styling must agree. Do not keep a dark theme toggle unless product requirements explicitly change.
+- **Consequences:** CSS and component updates must cover both `src/` and `mobile/src/`. Assessment stimulus states can use deliberate contrast for measurement, but ordinary page and admin surfaces remain light. Run visual checks on representative desktop and mobile routes.
+- **Evidence:** [`src/lib/settingsStore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/settingsStore.ts), [`mobile/src/lib/settingsStore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/mobile/src/lib/settingsStore.ts), [`docs/DESIGN_SYSTEM.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/DESIGN_SYSTEM.md).
+
+---
+
 ### Decision: Server-Authoritative Cryptographic Provenance
 - **Status:** Accepted
 - **Context:** Cognitive assessment benchmarks and public research datasets are vulnerable to fabricated results and metric injection when clients write directly to the database.
