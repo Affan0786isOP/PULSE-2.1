@@ -68,4 +68,7 @@ Before submitting code changes, complete this checklist:
 - [ ] No PII fields (name, email, IP) are included in `publicDataset` payloads.
 - [ ] Reduced-motion mode disables CSS transitions/animations and suppresses non-essential Motion animations on both desktop and mobile.
 - [ ] Mobile responsive layout has been verified at $375\text{px}$, $768\text{px}$, and $1280\text{px}$ viewports.
+- [ ] Representative desktop and mobile pages (`/`, `/assessments`, one assessment, settings/modal, leaderboard, admin) use light surfaces, deep ink text, and the canonical blue accent without unintended dark cards or unreadable white text.
+- [ ] Both first-paint HTML bootstraps and both settings stores set `data-theme="light"`; legacy saved `themeMode: "dark"` cannot re-enable dark styling.
+- [ ] PWA manifest colors and browser theme-color metadata match the light palette.
 - [ ] For reaction-test UI changes, inspect desktop and mobile screenshots and verify computed transition behavior is `none` while `STIMULUS_ACTIVE`.
