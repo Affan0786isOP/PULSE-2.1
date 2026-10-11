@@ -31,19 +31,19 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#0B0D10] text-[#e2e8f0] flex flex-col items-center justify-center p-6 font-sans select-none">
-          <div className="w-full max-w-md bg-[#0b101b] border border-[#1e293b] rounded-xl p-6 text-center flex flex-col items-center">
+        <div className="min-h-screen bg-[var(--surface-0)] text-[var(--text-primary)] flex flex-col items-center justify-center p-6 font-sans select-none">
+          <div className="w-full max-w-md bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-6 text-center flex flex-col items-center">
             <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-4">
               <AlertCircle size={24} />
             </div>
-            <h2 className="text-lg font-bold tracking-tight text-white mb-2">
+            <h2 className="text-lg font-bold tracking-tight text-[var(--text-primary)] mb-2">
               Something went wrong
             </h2>
             <p className="text-xs text-slate-400 mb-5 leading-relaxed">
               PULSE encountered an error. Reload the page to continue.
             </p>
             {this.state.error?.message && (
-              <div className="w-full bg-[#0B0D10] border border-[#1e293b] rounded p-3 mb-5 text-left text-xs font-mono text-red-300 overflow-x-auto max-h-28">
+              <div className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded p-3 mb-5 text-left text-xs font-mono text-red-300 overflow-x-auto max-h-28">
                 {this.state.error.message}
               </div>
             )}
