@@ -15,8 +15,13 @@ import {
   Check,
   Download,
   Sliders,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  Moon,
+  Activity,
+  Timer
 } from 'lucide-react';
+import { PulseLogo } from './brand';
 import { useRefreshRate } from '../lib/useRefreshRate';
 import { detectRefreshRate, resetRefreshRateCache, cancelRefreshRateDetection } from '../lib/refreshRateDetector';
 import { resetPendingSyncQueue } from '../lib/trialStore';
@@ -30,7 +35,6 @@ import {
 } from '../lib/settingsStore';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { AddToHomeScreenModal } from './AddToHomeScreenModal';
-import { acquireScrollLock } from '../lib/modalScrollLock';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 
 interface SettingsModalProps {
@@ -115,7 +119,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   }, [isOpen]);
 
-  // Safe reference-counted modal scroll-lock
+  // Safe reference-counted modal scroll-lock & accessibility
   const { zIndex } = useModalAccessibility({
     isOpen,
     onClose,
@@ -343,16 +347,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       {createPortal(
         <AnimatePresence>
           {isOpen && (
-            <motion.div
-              key="settings-modal-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+            <div 
               style={{ zIndex }}
-              className="fixed inset-0 flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+              className="fixed inset-0 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
             >
-              {/* Backdrop */}
+              {/* Soft blurred dark backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -361,10 +360,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 onClick={(e) => {
                   if (e.target === e.currentTarget) onClose();
                 }}
-                className="fixed inset-0 bg-black/75 backdrop-blur-md cursor-pointer"
+                className="fixed inset-0 bg-[#090D1A]/50 backdrop-blur-sm cursor-pointer"
+                aria-hidden="true"
               />
 
-              {/* Modal Card */}
+              {/* Modal Container */}
               <motion.div
                 ref={dialogRef}
                 role="dialog"
@@ -372,159 +372,158 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 aria-labelledby="settings-modal-heading"
                 tabIndex={-1}
                 onClick={(e) => e.stopPropagation()}
-                initial={{ opacity: 0, scale: 0.95, y: 12 }}
+                initial={{ opacity: 0, scale: 0.96, y: 14 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 12 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl overflow-hidden flex flex-col z-10 my-auto max-h-[calc(100dvh-2rem)] sm:max-h-[85dvh] focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] outline-none"
+                exit={{ opacity: 0, scale: 0.96, y: 14 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="relative z-10 w-full max-w-[550px] max-h-[min(690px,calc(100dvh-2rem))] bg-gradient-to-b from-[#FFFFFF] via-[#F9FBFF] to-[#F1F6FD] border border-sky-100 rounded-[28px] sm:rounded-[32px] p-5 sm:p-7 flex flex-col font-sans text-[#090D1A] my-auto shadow-[0_24px_64px_rgba(0,102,255,0.14),0_8px_24px_rgba(0,0,0,0.05)] focus-visible:ring-2 focus-visible:ring-[#0066FF] outline-none overflow-hidden"
               >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-md bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                  <Settings size={15} />
-                </div>
-                <div>
-                  <h2 id="settings-modal-heading" className="text-xs font-bold tracking-wider uppercase text-[var(--text-primary)] font-mono">
-                    System Configuration
-                  </h2>
-                  <p className="text-[10px] text-[var(--text-muted)] font-mono">
-                    Preferences &amp; Display Timing
-                  </p>
-                </div>
-              </div>
-
-              <button 
-                ref={closeButtonRef}
-                type="button"
-                id="close-settings-modal-btn"
-                onClick={onClose}
-                aria-label="Close Settings"
-                className="w-7 h-7 rounded-md flex items-center justify-center bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] active:scale-[0.96] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[background-color,color,border-color,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-              >
-                <X size={15} />
-              </button>
-            </div>
-
-            {/* Segmented Navigation Tabs */}
-            <div className="px-5 pt-3 pb-2 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] shrink-0">
-              <div className="grid grid-cols-3 gap-1 p-1 bg-[var(--surface-2)] rounded-lg border border-[var(--border-subtle)] text-xs font-mono">
-                <button type="button"
-                  onClick={() => { playAudioCue('click'); setActiveTab('general'); }}
-                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                    activeTab === 'general'
-                      ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'
-                  }`}
-                >
-                  <Sliders size={13} />
-                  <span>General</span>
-                </button>
-
-                <button type="button"
-                  onClick={() => { playAudioCue('click'); setActiveTab('feedback'); }}
-                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                    activeTab === 'feedback'
-                      ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'
-                  }`}
-                >
-                  <Volume2 size={13} />
-                  <span>Feedback</span>
-                </button>
-
-                <button type="button"
-                  onClick={() => { playAudioCue('click'); setActiveTab('calibration'); }}
-                  className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                    activeTab === 'calibration'
-                      ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'
-                  }`}
-                >
-                  <Monitor size={13} />
-                  <span>System</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Body content */}
-            <div className="p-5 overflow-y-auto text-xs space-y-4 flex-1 min-h-[260px]">
-              
-              {/* TAB 1: GENERAL */}
-              {activeTab === 'general' && (
-                <motion.div 
-                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.12 }}
-                  className="space-y-3.5"
-                >
-                  {/* Font Scale / Text Density Segment */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--text-primary)]">
-                        Accessibility Text Scale
-                      </span>
-                      <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase">
-                        {Math.round((settings.fontScale || 1.0) * 100)}% ({
-                          (settings.fontScale || 1.0) <= 0.9 ? 'Compact' :
-                          (settings.fontScale || 1.0) <= 1.0 ? 'Default' :
-                          (settings.fontScale || 1.0) <= 1.15 ? 'Large' : 'Extra Large'
-                        })
-                      </span>
+                {/* Header: Title, Subtitle, and Close Control */}
+                <div className="flex items-center justify-between gap-3 mb-4 shrink-0">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 rounded-[14px] bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0 shadow-xs">
+                      <Settings size={22} strokeWidth={2.2} />
                     </div>
-
-                    <div className="grid grid-cols-4 gap-1 p-1 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
-                      {[
-                        { label: '90%', scale: 0.9, title: 'Compact' },
-                        /* deliberate-ignore round-stat */
-                        { label: '100%', scale: 1.0, title: 'Default' },
-                        { label: '115%', scale: 1.15, title: 'Large' },
-                        { label: '130%', scale: 1.3, title: 'Max' }
-                      ].map(opt => {
-                        const isSelected = Math.abs((settings.fontScale || 1.0) - opt.scale) < 0.05;
-                        return (
-                          <button
-                            type="button"
-                            key={`font-scale-${opt.scale}`}
-                            id={`font-scale-${opt.label.replace('%', '')}-btn`}
-                            onClick={() => {
-                              playAudioCue('click');
-                              updateSettingsState({ fontScale: opt.scale });
-                            }}
-                            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-md font-mono text-xs transition-colors cursor-pointer border ${
-                              isSelected
-                                ? 'bg-[var(--surface-1)] border-[var(--border-default)] text-[var(--accent)] font-semibold shadow-xs'
-                                : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                            }`}
-                            title={`${opt.title} text density (${opt.label})`}
-                          >
-                            <span className="text-[11px]">{opt.label}</span>
-                            <span className="text-[9px] text-[var(--text-muted)]">{opt.title}</span>
-                          </button>
-                        );
-                      })}
+                    <div className="flex flex-col min-w-0">
+                      <h2 id="settings-modal-heading" className="font-heading font-extrabold text-[15px] sm:text-[16px] tracking-wide text-[#090D1A] uppercase leading-tight">
+                        SYSTEM CONFIGURATION
+                      </h2>
+                      <p className="text-[11.5px] sm:text-[12px] text-[#64748B] font-medium tracking-tight">
+                        Preferences &amp; Display Timing
+                      </p>
                     </div>
                   </div>
 
-                  {/* Clean Setting Rows container */}
-                  <div className="rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)] overflow-hidden">
-                    {/* Fullscreen Atmospheric Mode */}
-                    <div className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                  <button 
+                    ref={closeButtonRef}
+                    type="button"
+                    id="close-settings-modal-btn"
+                    onClick={onClose}
+                    aria-label="Close Settings"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                  >
+                    <X size={18} strokeWidth={2.2} />
+                  </button>
+                </div>
+
+                {/* Segmented Pill Navigation Tabs */}
+                <div className="mb-4 shrink-0">
+                  <div className="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-[#F0F5FA]/80 border border-slate-100 text-xs">
+                    <button 
+                      type="button"
+                      onClick={() => { playAudioCue('click'); setActiveTab('general'); }}
+                      className={`py-2 px-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                        activeTab === 'general'
+                          ? 'bg-white text-[#0066FF] shadow-[0_2px_8px_rgba(0,102,255,0.08)] border border-sky-100/60'
+                          : 'text-[#64748B] hover:text-[#090D1A] border border-transparent'
+                      }`}
+                    >
+                      <Sliders size={14} strokeWidth={2.2} />
+                      <span>General</span>
+                    </button>
+
+                    <button 
+                      type="button"
+                      onClick={() => { playAudioCue('click'); setActiveTab('feedback'); }}
+                      className={`py-2 px-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                        activeTab === 'feedback'
+                          ? 'bg-white text-[#0066FF] shadow-[0_2px_8px_rgba(0,102,255,0.08)] border border-sky-100/60'
+                          : 'text-[#64748B] hover:text-[#090D1A] border border-transparent'
+                      }`}
+                    >
+                      <Volume2 size={14} strokeWidth={2.2} />
+                      <span>Feedback</span>
+                    </button>
+
+                    <button 
+                      type="button"
+                      onClick={() => { playAudioCue('click'); setActiveTab('calibration'); }}
+                      className={`py-2 px-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                        activeTab === 'calibration'
+                          ? 'bg-white text-[#0066FF] shadow-[0_2px_8px_rgba(0,102,255,0.08)] border border-sky-100/60'
+                          : 'text-[#64748B] hover:text-[#090D1A] border border-transparent'
+                      }`}
+                    >
+                      <Monitor size={14} strokeWidth={2.2} />
+                      <span>System</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tab Content Body */}
+                <div className="flex-1 space-y-3 min-h-0 overflow-y-auto pr-1 -mr-1 custom-scrollbar">
+                  {/* TAB 1: GENERAL */}
+                  {activeTab === 'general' && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-3"
+                    >
+                      {/* Font Scale Card */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#090D1A]">
+                            Accessibility Text Scale
+                          </span>
+                          <span className="font-mono text-[11px] text-[#64748B] font-medium uppercase">
+                            {Math.round((settings.fontScale || 1.0) * 100)}% ({
+                              (settings.fontScale || 1.0) <= 0.9 ? 'Compact' :
+                              (settings.fontScale || 1.0) <= 1.0 ? 'Default' :
+                              (settings.fontScale || 1.0) <= 1.15 ? 'Large' : 'Max'
+                            })
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-[#F0F5FA]/80 border border-slate-100">
+                          {[
+                            { label: '90%', scale: 0.9, title: 'Compact' },
+                            { label: '100%', scale: 1.0, title: 'Default' },
+                            { label: '115%', scale: 1.15, title: 'Large' },
+                            { label: '130%', scale: 1.3, title: 'Max' }
+                          ].map(opt => {
+                            const isSelected = Math.abs((settings.fontScale || 1.0) - opt.scale) < 0.05;
+                            return (
+                              <button
+                                type="button"
+                                key={`font-scale-${opt.scale}`}
+                                id={`font-scale-${opt.label.replace('%', '')}-btn`}
+                                onClick={() => {
+                                  playAudioCue('click');
+                                  updateSettingsState({ fontScale: opt.scale });
+                                }}
+                                className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg font-mono text-xs transition-all cursor-pointer border ${
+                                  isSelected
+                                    ? 'bg-white border-sky-200 text-[#0066FF] font-bold shadow-xs'
+                                    : 'border-transparent text-[#64748B] hover:text-[#090D1A]'
+                                }`}
+                                title={`${opt.title} text scale (${opt.label})`}
+                              >
+                                <span className="text-[11.5px] font-bold">{opt.label}</span>
+                                <span className="text-[9.5px] text-[#94A3B8]">{opt.title}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Fullscreen Card */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                            {isFullscreen ? <Minimize2 size={18} strokeWidth={2.2} /> : <Maximize2 size={18} strokeWidth={2.2} />}
                           </div>
                           <div>
-                            <div className="text-xs font-semibold text-[var(--text-primary)]">Fullscreen Focus</div>
-                            <div className="text-[10px] text-[var(--text-muted)]">Run tests without browser distractions</div>
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Fullscreen Focus</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B]">Run tests without browser distractions</div>
                           </div>
                         </div>
 
-                        <button type="button"
+                        <button 
+                          type="button"
                           id="toggle-fullscreen-btn"
                           onClick={handleToggleFullscreen}
-                          className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                          className="px-3.5 py-1.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-[#0066FF] font-semibold text-xs cursor-pointer transition-colors shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
                         >
                           {isFullscreen ? 'Exit' : 'Enter'}
                         </button>
@@ -534,327 +533,392 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div 
                           role="status"
                           aria-live="polite"
-                          className="mt-2.5 p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-mono flex items-center justify-between gap-1.5"
+                          className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-mono flex items-center justify-between gap-2"
                         >
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <AlertCircle size={12} className="shrink-0 text-rose-400" />
+                          <div className="flex items-center gap-2 min-w-0">
+                            <AlertCircle size={14} className="shrink-0 text-rose-500" />
                             <span className="truncate">{fullscreenNotice}</span>
                           </div>
                           <button
                             type="button"
                             onClick={() => setFullscreenNotice(null)}
-                            className="text-rose-400 hover:text-rose-200 cursor-pointer p-0.5 shrink-0"
+                            className="text-rose-500 hover:text-rose-700 cursor-pointer p-0.5 shrink-0"
                             aria-label="Dismiss message"
                           >
-                            <X size={10} />
+                            <X size={12} />
                           </button>
                         </div>
                       )}
-                    </div>
 
-                    {/* PWA / App Launcher */}
-                    <div className="p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                          <Smartphone size={14} />
-                        </div>
-                        <div>
-                          <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
-                            <span>Mobile Web App</span>
-                            {pwa.isInstalled && (
-                              <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[9px] font-bold">
-                                Active
-                              </span>
-                            )}
+                      {/* Mobile Web App (PWA) Card */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                            <Smartphone size={18} strokeWidth={2.2} />
                           </div>
-                          <div className="text-[10px] text-[var(--text-muted)]">
-                            {pwa.isInstalled ? 'Running as a standalone app' : 'Add to home screen to launch quickly'}
+                          <div>
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] flex items-center gap-1.5">
+                              <span>Mobile Web App</span>
+                              {pwa.isInstalled && (
+                                <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200 font-mono text-[9.5px] font-bold">
+                                  Active
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                              {pwa.isInstalled ? 'Running as a standalone app' : 'Add to home screen to launch quickly'}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <button type="button"
-                        id="open-a2hs-guide-btn"
-                        onClick={async () => {
-                          playAudioCue('click');
-                          if (pwa.isInstalled) {
-                            pwa.openInstallGuide();
-                          } else {
-                            await pwa.promptInstall();
-                          }
-                        }}
-                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                      >
-                        <Download size={12} />
-                        <span>{pwa.isInstalled ? 'Details' : 'Install'}</span>
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* TAB 2: SENSORY & FEEDBACK */}
-              {activeTab === 'feedback' && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.12 }}
-                  className="space-y-3.5"
-                >
-                  <div className="rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)] overflow-hidden">
-                    {/* Sound FX Toggle */}
-                    <div className="p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                          {settings.soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-                        </div>
-                        <div>
-                          <div className="text-xs font-semibold text-[var(--text-primary)]">Audio Feedback</div>
-                          <div className="text-[10px] text-[var(--text-muted)]">Audio beeps and click feedback</div>
-                        </div>
+                        <button 
+                          type="button"
+                          id="open-a2hs-guide-btn"
+                          onClick={async () => {
+                            playAudioCue('click');
+                            if (pwa.isInstalled) {
+                              pwa.openInstallGuide();
+                            } else {
+                              await pwa.promptInstall();
+                            }
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-[#0066FF] font-semibold text-xs cursor-pointer transition-colors flex items-center gap-1.5 shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                        >
+                          <Download size={13} strokeWidth={2.2} />
+                          <span>{pwa.isInstalled ? 'Details' : 'Install'}</span>
+                        </button>
                       </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {settings.soundEnabled && (
-                          <button type="button"
-                            onClick={handleTestSound}
-                            className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    </motion.div>
+                  )}
+
+                  {/* TAB 2: FEEDBACK */}
+                  {activeTab === 'feedback' && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-3"
+                    >
+                      {/* Audio Feedback Card */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                            {settings.soundEnabled ? <Volume2 size={18} strokeWidth={2.2} /> : <VolumeX size={18} strokeWidth={2.2} />}
+                          </div>
+                          <div>
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Audio Feedback</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B]">Auditory beeps and click feedback</div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2.5">
+                          {settings.soundEnabled && (
+                            <button 
+                              type="button"
+                              onClick={handleTestSound}
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#0066FF] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                            >
+                              Test
+                            </button>
+                          )}
+                          <button 
+                            type="button"
+                            id="toggle-sound-btn"
+                            role="switch"
+                            aria-checked={settings.soundEnabled}
+                            aria-label="Toggle Audio Feedback"
+                            onClick={handleToggleSound}
+                            className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                              settings.soundEnabled ? 'bg-[#0066FF]' : 'bg-slate-200 border border-slate-300'
+                            }`}
                           >
-                            Test
+                            <span 
+                              className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
+                                settings.soundEnabled ? 'translate-x-5 text-[#0066FF]' : 'translate-x-0'
+                              }`} 
+                            >
+                              {settings.soundEnabled ? '✓' : ''}
+                            </span>
                           </button>
+                        </div>
+                      </div>
+
+                      {/* Haptic Vibration Card */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                            <Smartphone size={18} strokeWidth={2.2} />
+                          </div>
+                          <div>
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Haptic Vibration</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                              {!hapticsAvailable ? 'Not supported on this device/browser' : 'Vibrate on button press'}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2.5">
+                          {settings.hapticsEnabled && hapticsAvailable && (
+                            <button 
+                              type="button"
+                              onClick={handleTestHaptic}
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#0066FF] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                            >
+                              Test
+                            </button>
+                          )}
+                          <button 
+                            type="button"
+                            id="toggle-haptics-btn"
+                            role="switch"
+                            aria-checked={settings.hapticsEnabled && hapticsAvailable}
+                            aria-label="Toggle Haptic Vibration"
+                            disabled={!hapticsAvailable}
+                            onClick={handleToggleHaptics}
+                            className={`w-12 h-7 rounded-full transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                              !hapticsAvailable
+                                ? 'opacity-40 cursor-not-allowed bg-slate-200 border border-slate-300'
+                                : settings.hapticsEnabled ? 'bg-[#0066FF] cursor-pointer' : 'bg-slate-200 border border-slate-300 cursor-pointer'
+                            }`}
+                          >
+                            <span 
+                              className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
+                                settings.hapticsEnabled && hapticsAvailable ? 'translate-x-5 text-[#0066FF]' : 'translate-x-0'
+                              }`} 
+                            >
+                              {settings.hapticsEnabled && hapticsAvailable ? '✓' : ''}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* TAB 3: SYSTEM (Matches Reference Image Exactly) */}
+                  {activeTab === 'calibration' && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-3"
+                    >
+                      {/* Section Card 1: DISPLAY FRAME TIMING */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                              <Monitor size={17} strokeWidth={2.2} />
+                            </div>
+                            <div>
+                              <div className="font-mono font-bold text-xs sm:text-[13px] uppercase tracking-wider text-[#090D1A]">
+                                DISPLAY FRAME TIMING
+                              </div>
+                              <div className="text-[11px] text-[#64748B]">
+                                Display and timing diagnostics for precise measurement
+                              </div>
+                            </div>
+                          </div>
+
+                          <button 
+                            type="button"
+                            id="recalibrate-display-btn"
+                            onClick={handleRecalibrateDisplay}
+                            disabled={isRecalibrating}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-[#0066FF] text-xs font-semibold cursor-pointer transition-all disabled:opacity-50 shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                          >
+                            <RefreshCw size={12} strokeWidth={2.4} className={isRecalibrating ? 'animate-spin' : ''} />
+                            <span>{isRecalibrating ? 'Calibrating...' : 'Recalibrate'}</span>
+                          </button>
+                        </div>
+
+                        {/* Two Diagnostic Metric Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
+                          {/* Sub-card 1: DISPLAY REFRESH RATE */}
+                          <div className="p-3 rounded-2xl bg-[#F8FAFC]/90 border border-slate-100 flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-2xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                              <Activity size={20} strokeWidth={2.4} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[9.5px] text-[#64748B] font-mono font-bold uppercase tracking-wider">
+                                DISPLAY REFRESH RATE
+                              </div>
+                              <div className="text-xl font-extrabold text-[#0066FF] leading-tight mt-0.5">
+                                {isRecalibrating || refreshInfo.status === 'detecting' ? (
+                                  <span className="text-xs text-[#94A3B8]">Detecting…</span>
+                                ) : (
+                                  `${refreshInfo.hz} Hz`
+                                )}
+                              </div>
+                              <div className="text-[10px] text-[#64748B] font-medium mt-0.5">
+                                {isRecalibrating || refreshInfo.status === 'detecting'
+                                  ? 'Measuring frames…'
+                                  : refreshInfo.source === 'measured'
+                                  ? 'Measured cadence'
+                                  : refreshInfo.source === 'estimated'
+                                  ? 'Calculated cadence'
+                                  : 'Fallback default'}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Sub-card 2: ESTIMATED DISPLAY MIDPOINT */}
+                          <div className="p-3 rounded-2xl bg-[#F8FAFC]/90 border border-slate-100 flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-2xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                              <Timer size={20} strokeWidth={2.4} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[9.5px] text-[#64748B] font-mono font-bold uppercase tracking-wider">
+                                ESTIMATED DISPLAY MIDPOINT
+                              </div>
+                              <div className="text-xl font-extrabold text-[#00C2FF] leading-tight mt-0.5">
+                                {isRecalibrating || refreshInfo.status === 'detecting' ? (
+                                  <span className="text-xs text-[#94A3B8]">Computing…</span>
+                                ) : (
+                                  `~${refreshInfo.displayDelayOffsetMs} ms`
+                                )}
+                              </div>
+                              <div className="text-[10px] text-[#64748B] font-medium mt-0.5">
+                                Theoretical midpoint
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {calibrationError && (
+                          <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-mono">
+                            {calibrationError}
+                          </div>
                         )}
-                        <button type="button"
-                          id="toggle-sound-btn"
+                      </div>
+
+                      {/* Row 1: Reduced Motion */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                            <Moon size={18} strokeWidth={2.2} />
+                          </div>
+                          <div>
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Reduced Motion</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                              Disable animations, background particles, and transitions
+                            </div>
+                          </div>
+                        </div>
+
+                        <button 
+                          type="button"
+                          id="toggle-reduced-motion-btn"
                           role="switch"
-                          aria-checked={settings.soundEnabled}
-                          aria-label="Toggle Audio Feedback"
-                          onClick={handleToggleSound}
-                          className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                            settings.soundEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
+                          aria-checked={settings.reducedMotionEnabled}
+                          aria-label="Toggle Reduced Motion"
+                          onClick={handleToggleReducedMotion}
+                          className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                            settings.reducedMotionEnabled ? 'bg-[#0066FF]' : 'bg-slate-200 border border-slate-300'
                           }`}
                         >
                           <span 
-                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
-                              settings.soundEnabled ? 'translate-x-4' : 'translate-x-0'
+                            className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
+                              settings.reducedMotionEnabled ? 'translate-x-5 text-[#0066FF]' : 'translate-x-0'
                             }`} 
                           >
-                            {settings.soundEnabled ? '✓' : ''}
+                            {settings.reducedMotionEnabled ? '✓' : ''}
                           </span>
                         </button>
                       </div>
-                    </div>
 
-                    {/* Haptic Vibration Toggle */}
-                    <div className="p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                          <Smartphone size={14} />
-                        </div>
-                        <div>
-                          <div className="text-xs font-semibold text-[var(--text-primary)]">Haptic Vibration</div>
-                          <div className="text-[10px] text-[var(--text-muted)]">
-                            {!hapticsAvailable ? 'Not supported on this device/browser' : 'Vibrate on button press'}
+                      {/* Row 2: Exhibition Kiosk Mode */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                            <Monitor size={18} strokeWidth={2.2} />
+                          </div>
+                          <div>
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Exhibition Kiosk Mode</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                              Lock navigation for public terminals
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {settings.hapticsEnabled && hapticsAvailable && (
-                          <button type="button"
-                            onClick={handleTestHaptic}
-                            className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                          >
-                            Test
-                          </button>
-                        )}
-                        <button type="button"
-                          id="toggle-haptics-btn"
+
+                        <button 
+                          type="button"
+                          id="toggle-exhibition-btn"
                           role="switch"
-                          aria-checked={settings.hapticsEnabled && hapticsAvailable}
-                          aria-label="Toggle Haptic Vibration"
-                          disabled={!hapticsAvailable}
-                          onClick={handleToggleHaptics}
-                          className={`w-9 h-5 rounded-full transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                            !hapticsAvailable
-                              ? 'opacity-40 cursor-not-allowed bg-[var(--surface-3)] border border-[var(--border-subtle)]'
-                              : settings.hapticsEnabled ? 'bg-[var(--accent)] cursor-pointer' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)] cursor-pointer'
+                          aria-checked={settings.exhibitionModeEnabled}
+                          aria-label="Toggle Exhibition Kiosk Mode"
+                          onClick={handleToggleExhibition}
+                          className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                            settings.exhibitionModeEnabled ? 'bg-[#0066FF]' : 'bg-slate-200 border border-slate-300'
                           }`}
                         >
                           <span 
-                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
-                              settings.hapticsEnabled && hapticsAvailable ? 'translate-x-4' : 'translate-x-0'
+                            className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
+                              settings.exhibitionModeEnabled ? 'translate-x-5 text-[#0066FF]' : 'translate-x-0'
                             }`} 
                           >
-                            {settings.hapticsEnabled && hapticsAvailable ? '✓' : ''}
+                            {settings.exhibitionModeEnabled ? '✓' : ''}
                           </span>
                         </button>
                       </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
 
-              {/* TAB 3: CALIBRATION & SYSTEM */}
-              {activeTab === 'calibration' && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.12 }}
-                  className="space-y-3.5"
-                >
-                  {/* Display Hardware Calibration Card */}
-                  <div className="p-3.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Monitor size={14} className="text-[var(--accent)]" />
-                        <span className="font-mono font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]">
-                          Display Frame Timing
-                        </span>
-                      </div>
-                      <button type="button"
-                        id="recalibrate-display-btn"
-                        onClick={handleRecalibrateDisplay}
-                        disabled={isRecalibrating}
-                        className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                      >
-                        <RefreshCw size={11} className={isRecalibrating ? 'animate-spin' : ''} />
-                        <span>{isRecalibrating ? 'Calibrating...' : 'Recalibrate'}</span>
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 pt-0.5">
-                      <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
-                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Display Refresh Rate</div>
-                        <div className="text-base font-mono font-bold text-[var(--accent)] mt-0.5">
-                          {isRecalibrating || refreshInfo.status === 'detecting' ? (
-                            <span className="text-xs text-[var(--text-muted)] ">Detecting…</span>
-                          ) : (
-                            `${refreshInfo.hz} Hz`
-                          )}
+                      {/* Row 3: Clear Local Cache */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#FEE2E2] text-[#EF4444] flex items-center justify-center shrink-0">
+                            <Trash2 size={18} strokeWidth={2.2} />
+                          </div>
+                          <div>
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Clear Local Cache</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                              Reset stored preferences and unsynced data
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">
-                          {isRecalibrating || refreshInfo.status === 'detecting'
-                            ? 'Measuring frames…'
-                            : refreshInfo.source === 'measured'
-                            ? 'Measured cadence'
-                            : refreshInfo.source === 'estimated'
-                            ? 'Calculated cadence'
-                            : 'Fallback default'}
-                        </div>
-                      </div>
-                      <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
-                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Display Midpoint</div>
-                        <div className="text-base font-mono font-bold text-emerald-400 mt-0.5">
-                          {isRecalibrating || refreshInfo.status === 'detecting' ? (
-                            <span className="text-xs text-[var(--text-muted)] ">Computing…</span>
-                          ) : (
-                            `~${refreshInfo.displayDelayOffsetMs} ms`
-                          )}
-                        </div>
-                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">Theoretical midpoint</div>
-                      </div>
-                    </div>
 
-                    {calibrationError && (
-                      <div className="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-mono">
-                        {calibrationError}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* System Toggles */}
-                  <div className="rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)] overflow-hidden">
-                    {/* Reduced Motion */}
-                    <div className="p-3 flex items-center justify-between">
-                      <div>
-                        <div className="text-xs font-semibold text-[var(--text-primary)]">Reduced Motion</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Disable animations, background particles, and transitions</div>
-                      </div>
-                      <button type="button"
-                        id="toggle-reduced-motion-btn"
-                        role="switch"
-                        aria-checked={settings.reducedMotionEnabled}
-                        aria-label="Toggle Reduced Motion"
-                        onClick={handleToggleReducedMotion}
-                        className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                          settings.reducedMotionEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
-                        }`}
-                      >
-                        <span 
-                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
-                            settings.reducedMotionEnabled ? 'translate-x-4' : 'translate-x-0'
-                          }`} 
+                        <button 
+                          type="button"
+                          id="clear-session-cache-btn"
+                          onClick={handleClearCache}
+                          className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition-colors shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
                         >
-                          {settings.reducedMotionEnabled ? '✓' : ''}
-                        </span>
-                      </button>
-                    </div>
-
-                    {/* Exhibition Mode */}
-                    <div className="p-3 flex items-center justify-between">
-                      <div>
-                        <div className="text-xs font-semibold text-[var(--text-primary)]">Exhibition Kiosk Mode</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Lock navigation for public terminals</div>
+                          {clearedNotice ? (
+                            <>
+                              <Check size={13} strokeWidth={2.6} className="text-emerald-600" />
+                              <span className="text-emerald-600">Done</span>
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 size={13} strokeWidth={2.2} />
+                              <span>Reset</span>
+                            </>
+                          )}
+                        </button>
                       </div>
-                      <button type="button"
-                        id="toggle-exhibition-btn"
-                        role="switch"
-                        aria-checked={settings.exhibitionModeEnabled}
-                        aria-label="Toggle Exhibition Kiosk Mode"
-                        onClick={handleToggleExhibition}
-                        className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                          settings.exhibitionModeEnabled ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)] border border-[var(--border-subtle)]'
-                        }`}
-                      >
-                        <span 
-                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
-                            settings.exhibitionModeEnabled ? 'translate-x-4' : 'translate-x-0'
-                          }`} 
-                        >
-                          {settings.exhibitionModeEnabled ? '✓' : ''}
-                        </span>
-                      </button>
-                    </div>
+                    </motion.div>
+                  )}
+                </div>
 
-                    {/* Reset Cache */}
-                    <div className="p-3 flex items-center justify-between">
-                      <div>
-                        <div className="text-xs font-semibold text-[var(--text-primary)]">Clear Local Cache</div>
-                        <div className="text-[10px] text-[var(--text-muted)]">Reset stored preferences and unsynced data</div>
-                      </div>
-                      <button type="button"
-                        id="clear-session-cache-btn"
-                        onClick={handleClearCache}
-                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-rose-500/10 border border-[var(--border-subtle)] hover:border-rose-500/30 text-[var(--text-secondary)] hover:text-rose-500 font-mono text-xs transition-colors cursor-pointer flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                      >
-                        {clearedNotice ? (
-                          <>
-                            <Check size={12} className="text-emerald-400" />
-                            <span className="text-emerald-400">Done</span>
-                          </>
-                        ) : (
-                          <>
-                            <Trash2 size={12} />
-                            <span>Reset</span>
-                          </>
-                        )}
-                      </button>
+                {/* Footer: PULSE Latency Engine + Precision Calibration */}
+                <div className="flex items-center justify-between pt-4 mt-3 border-t border-slate-100 text-xs shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-md bg-[#090D1A] flex items-center justify-center text-[#00D2FF]">
+                      <PulseLogo variant="mark" size={12} color="#00D2FF" />
                     </div>
+                    <span className="font-heading font-extrabold text-[12px] text-[#090D1A] tracking-wider">
+                      PULSE
+                    </span>
+                    <span className="text-[11px] font-mono text-[#64748B]">
+                      Latency Engine
+                    </span>
                   </div>
-                </motion.div>
-              )}
 
+                  <span className="text-[11px] font-mono font-semibold text-[#0066FF] tracking-wider">
+                    Precision Calibration
+                  </span>
+                </div>
+              </motion.div>
             </div>
-
-            {/* Footer */}
-            <div className="px-5 py-2.5 border-t border-[var(--border-subtle)] bg-[var(--surface-1)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)] shrink-0">
-              <span>PULSE Latency Engine</span>
-              <span className="text-[var(--accent)]">Precision Calibration</span>
-            </div>
-
-          </motion.div>
-        </motion.div>
-      )}
+          )}
         </AnimatePresence>,
         document.body
       )}
