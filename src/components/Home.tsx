@@ -129,7 +129,7 @@ export function Home() {
       />
 
       {/* Top Navigation Bar */}
-      <header className="relative z-30 w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-14 h-16 sm:h-20 flex items-center justify-between shrink-0">
+      <header className="relative z-30 w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto px-6 sm:px-10 lg:px-14 min-[2560px]:px-20 h-16 sm:h-20 min-[2560px]:h-24 flex items-center justify-between shrink-0">
         {/* Brand Lockup */}
         <Link 
           to="/"
@@ -140,34 +140,34 @@ export function Home() {
         </Link>
 
         {/* Center Main Links */}
-        <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8">
+        <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8 min-[2560px]:gap-10">
           <Link 
             to="/assessments" 
-            className="text-[13.5px] lg:text-[14.5px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             Assessments
           </Link>
           <Link 
             to="/leaderboard" 
-            className="text-[13.5px] lg:text-[14.5px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             Leaderboard
           </Link>
           <Link 
             to="/dataset" 
-            className="text-[13.5px] lg:text-[14.5px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             Dataset
           </Link>
           <Link 
             to="/analytics" 
-            className="text-[13.5px] lg:text-[14.5px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             Analytics
           </Link>
           <Link 
             to="/about" 
-            className="text-[13.5px] lg:text-[14.5px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             About
           </Link>
@@ -187,7 +187,7 @@ export function Home() {
                 }
               }}
               aria-label="Install App"
-              className="flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-sky-200/90 bg-sky-50/70 hover:bg-sky-100/90 text-[#0066FF] text-xs sm:text-[13px] font-medium shadow-[0_2px_6px_rgba(0,102,255,0.06)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] shrink-0"
+              className="flex items-center gap-2 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-sky-200/90 bg-sky-50/70 hover:bg-sky-100/90 text-[#0066FF] text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,102,255,0.06)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] shrink-0"
             >
               <Download size={14} strokeWidth={2.4} className="text-[#0066FF] shrink-0" />
               <span className="hidden sm:inline">Install App</span>
@@ -198,7 +198,7 @@ export function Home() {
             type="button"
             onClick={() => setIsWelcomeOpen(true)}
             aria-label="Platform Information"
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+            className="w-9 h-9 sm:w-10 sm:h-10 min-[2560px]:w-11 min-[2560px]:h-11 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           >
             <Info size={17} strokeWidth={2.2} />
           </button>
@@ -206,7 +206,7 @@ export function Home() {
             type="button"
             onClick={() => setIsSettingsOpen(true)}
             aria-label="Settings"
-            className="flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] text-xs sm:text-[13px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+            className="flex items-center gap-2 px-3.5 sm:px-4 min-[2560px]:px-5 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] text-xs sm:text-[13px] min-[2560px]:text-[14.5px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           >
             <Settings size={15} strokeWidth={2.2} />
             <span>Settings</span>
@@ -218,14 +218,14 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1440px] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-12 items-center px-6 sm:px-8 xl:px-14 relative z-10 focus-visible:outline-none pb-4 sm:pb-8"
+        className="w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-12 min-[2560px]:gap-20 items-center px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 relative z-10 focus-visible:outline-none pb-4 sm:pb-8"
       >
         {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
-        <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px]">
+        <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[2560px]:max-w-[580px]">
           {/* Eyebrow Badge */}
           <div className={`mb-2.5 sm:mb-3 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
             <div className="inline-flex items-center rounded-full bg-[#E0F2FE]/90 border border-[#BAE6FD]/90 px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.06)]">
-              <span className="text-[10px] sm:text-[10.5px] font-mono font-bold tracking-[0.18em] text-[#0369A1] uppercase">
+              <span className="text-[10px] sm:text-[10.5px] min-[2560px]:text-[11.5px] font-mono font-bold tracking-[0.18em] text-[#0369A1] uppercase">
                 COGNITIVE BENCHMARKING
               </span>
             </div>
@@ -234,28 +234,28 @@ export function Home() {
           {/* Headline */}
           <h1 
             id="hero-heading"
-            className={`font-heading text-3xl sm:text-4xl lg:text-[50px] font-extrabold tracking-tight leading-[1.08] mb-2 sm:mb-3 text-[#090D1A] text-balance ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-2'}`}
+            className={`font-heading text-3xl sm:text-4xl lg:text-[50px] min-[2560px]:text-[64px] font-extrabold tracking-tight leading-[1.08] min-[2560px]:leading-[1.05] mb-2 sm:mb-3 text-[#090D1A] text-balance ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-2'}`}
           >
             Measure<br />
             your <span className="text-[#0066FF]">mind.</span>
           </h1>
 
           {/* Subtitle */}
-          <p className={`text-[#475569] text-xs sm:text-[13.5px] lg:text-[14px] leading-relaxed mb-6 sm:mb-7 max-w-[420px] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
+          <p className={`text-[#475569] text-xs sm:text-[13.5px] lg:text-[14px] min-[2560px]:text-[16.5px] leading-relaxed mb-6 sm:mb-7 max-w-[420px] min-[2560px]:max-w-[520px] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
             Test your reaction speed, memory and attention — right in your browser, with no account required.
           </p>
 
           {/* Primary CTA: Start Testing */}
           <Link 
             to="/assessments"
-            className="w-full max-w-[340px] sm:max-w-[360px] h-[50px] sm:h-[54px] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white font-semibold text-[15px] sm:text-[16px] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.4),0_4px_10px_-2px_rgba(0,102,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 focus-visible:ring-offset-2 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group mb-6 sm:mb-7"
+            className="w-full max-w-[340px] sm:max-w-[360px] min-[2560px]:max-w-[420px] h-[50px] sm:h-[54px] min-[2560px]:h-[62px] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white font-semibold text-[15px] sm:text-[16px] min-[2560px]:text-[18px] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.4),0_4px_10px_-2px_rgba(0,102,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 focus-visible:ring-offset-2 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group mb-6 sm:mb-7"
           >
             <span>Start Testing</span>
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </Link>
 
           {/* Metrics Row (3 Distinct Stats: Tests, Results, No Sign-up Required) */}
-          <div className="w-full max-w-[340px] sm:max-w-[360px] grid grid-cols-3 items-center py-1.5 relative">
+          <div className="w-full max-w-[340px] sm:max-w-[360px] min-[2560px]:max-w-[420px] grid grid-cols-3 items-center py-1.5 relative">
             {/* Col 1: Canonical Tests */}
             <Link 
               to="/assessments"
@@ -263,10 +263,10 @@ export function Home() {
               className="flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] rounded-lg active:opacity-75 transition-opacity"
               title={`${testsCount} available assessment batteries`}
             >
-              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] leading-tight text-[#090D1A] tracking-tight">
+              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight">
                 {testsCount}
               </span>
-              <span className="text-[11px] font-semibold text-[#334155] mt-0.5">
+              <span className="text-[11px] min-[2560px]:text-[12.5px] font-semibold text-[#334155] mt-0.5">
                 Tests
               </span>
             </Link>
@@ -279,10 +279,10 @@ export function Home() {
               className="flex flex-col items-center text-center"
               title="Count of public research result records in Firestore"
             >
-              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
+              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
                 {displayResults}
               </span>
-              <span className="text-[11px] font-semibold text-[#334155] mt-0.5">
+              <span className="text-[11px] min-[2560px]:text-[12.5px] font-semibold text-[#334155] mt-0.5">
                 Results
               </span>
             </div>
@@ -295,12 +295,12 @@ export function Home() {
               className="flex flex-col items-center text-center"
               title="No sign-up or account required to run assessments"
             >
-              <div className="h-[24px] sm:h-[26px] flex items-center justify-center">
-                <span className="font-heading font-extrabold text-[17px] sm:text-[19px] leading-tight text-[#090D1A] tracking-tight">
+              <div className="h-[24px] sm:h-[26px] min-[2560px]:h-[30px] flex items-center justify-center">
+                <span className="font-heading font-extrabold text-[17px] sm:text-[19px] min-[2560px]:text-[22px] leading-tight text-[#090D1A] tracking-tight">
                   No Sign-up
                 </span>
               </div>
-              <span className="text-[11px] font-semibold text-[#334155] mt-0.5 leading-tight">
+              <span className="text-[11px] min-[2560px]:text-[12.5px] font-semibold text-[#334155] mt-0.5 leading-tight">
                 Required
               </span>
             </div>

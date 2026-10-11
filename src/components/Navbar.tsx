@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { Menu, X, ArrowLeft, Settings, Info, RefreshCw, Download } from 'lucide-react';
+import { Menu, X, Settings, Info, RefreshCw, Download } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { PulseLogo } from './brand';
@@ -196,19 +196,8 @@ export function Navbar({
         paddingRight: 'max(1.5rem, env(safe-area-inset-right, 0px))' 
       }}
     >
-      {/* Brand Lockup & Subpage Back Navigation */}
+      {/* Brand Lockup */}
       <div className="flex items-center gap-3">
-        {!isHome && (
-          <button 
-            type="button" 
-            onClick={handleBack}
-            aria-label="Go Back"
-            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95 transition-all shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          >
-            <ArrowLeft size={16} aria-hidden="true" />
-          </button>
-        )}
-        
         <Link 
           to="/"
           className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg"

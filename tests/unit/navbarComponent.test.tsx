@@ -21,7 +21,7 @@ describe('Navbar Component', () => {
       </MemoryRouter>
     );
     const brandLink = screen.getByLabelText(/PULSE Home/i);
-    expect(brandLink).toBeInTheDocument();
+    expect(brandLink).toBeDefined();
     expect(brandLink.getAttribute('href')).toBe('/');
   });
 
@@ -31,11 +31,11 @@ describe('Navbar Component', () => {
         <Navbar currentView="home" />
       </MemoryRouter>
     );
-    expect(screen.getByRole('link', { name: /^assessments$/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^leaderboard$/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^dataset$/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^analytics$/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^about$/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^assessments$/i })).toBeDefined();
+    expect(screen.getByRole('link', { name: /^leaderboard$/i })).toBeDefined();
+    expect(screen.getByRole('link', { name: /^dataset$/i })).toBeDefined();
+    expect(screen.getByRole('link', { name: /^analytics$/i })).toBeDefined();
+    expect(screen.getByRole('link', { name: /^about$/i })).toBeDefined();
   });
 
   it('renders Settings and Info action buttons', () => {
@@ -44,20 +44,18 @@ describe('Navbar Component', () => {
         <Navbar currentView="home" />
       </MemoryRouter>
     );
-    expect(screen.getByRole('button', { name: /settings/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /platform information|app info|info/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /settings/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /platform information|app info|info/i })).toBeDefined();
   });
 
-  it('renders back button when on sub-routes', () => {
+  it('does not render back button on sub-routes', () => {
     const handleBack = vi.fn();
     render(
       <MemoryRouter initialEntries={['/assessments']}>
         <Navbar currentView="assessments" onBack={handleBack} />
       </MemoryRouter>
     );
-    const backBtn = screen.getByRole('button', { name: /go back/i });
-    expect(backBtn).toBeInTheDocument();
-    fireEvent.click(backBtn);
-    expect(handleBack).toHaveBeenCalledTimes(1);
+    const backBtn = screen.queryByRole('button', { name: /go back/i });
+    expect(backBtn).toBeNull();
   });
 });
