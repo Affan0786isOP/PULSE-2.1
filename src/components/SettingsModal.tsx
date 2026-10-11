@@ -361,7 +361,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 onClick={(e) => {
                   if (e.target === e.currentTarget) onClose();
                 }}
-                className="fixed inset-0 bg-black/75 backdrop-blur-md cursor-pointer"
+                className="fixed inset-0 bg-slate-950/25 backdrop-blur-sm cursor-pointer"
               />
 
               {/* Modal Card */}
@@ -376,7 +376,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 12 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full max-w-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl overflow-hidden flex flex-col z-10 my-auto max-h-[calc(100dvh-2rem)] sm:max-h-[85dvh] focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] outline-none"
+                className="pulse-light-modal relative w-full max-w-lg bg-[var(--surface-1)] text-[var(--text-main)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden flex flex-col z-10 my-auto max-h-[calc(100dvh-2rem)] sm:max-h-[85dvh] shadow-[0_24px_80px_rgba(9,13,26,0.16)] focus-visible:ring-1 focus-visible:ring-[var(--focus-ring)] outline-none"
               >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] shrink-0">
@@ -534,16 +534,16 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div 
                           role="status"
                           aria-live="polite"
-                          className="mt-2.5 p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-mono flex items-center justify-between gap-1.5"
+                          className="mt-2.5 p-2 rounded bg-red-50 border border-red-200 text-red-700 text-[10px] font-mono flex items-center justify-between gap-1.5"
                         >
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <AlertCircle size={12} className="shrink-0 text-rose-400" />
+                            <AlertCircle size={12} className="shrink-0 text-red-700" />
                             <span className="truncate">{fullscreenNotice}</span>
                           </div>
                           <button
                             type="button"
                             onClick={() => setFullscreenNotice(null)}
-                            className="text-rose-400 hover:text-rose-200 cursor-pointer p-0.5 shrink-0"
+                            className="text-red-700 hover:text-red-800 cursor-pointer p-0.5 shrink-0"
                             aria-label="Dismiss message"
                           >
                             <X size={10} />
@@ -562,7 +562,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                             <span>Mobile Web App</span>
                             {pwa.isInstalled && (
-                              <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[9px] font-bold">
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 font-mono text-[9px] font-bold">
                                 Active
                               </span>
                             )}
@@ -634,7 +634,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           }`}
                         >
                           <span 
-                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
+                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white border border-slate-200 transition-transform flex items-center justify-center text-[8px] font-bold ${
                               settings.soundEnabled ? 'translate-x-4' : 'translate-x-0'
                             }`} 
                           >
@@ -681,7 +681,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           }`}
                         >
                           <span 
-                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
+                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white border border-slate-200 transition-transform flex items-center justify-center text-[8px] font-bold ${
                               settings.hapticsEnabled && hapticsAvailable ? 'translate-x-4' : 'translate-x-0'
                             }`} 
                           >
@@ -744,7 +744,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
                       <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
                         <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Display Midpoint</div>
-                        <div className="text-base font-mono font-bold text-emerald-400 mt-0.5">
+                        <div className="text-base font-mono font-bold text-emerald-700 mt-0.5">
                           {isRecalibrating || refreshInfo.status === 'detecting' ? (
                             <span className="text-xs text-[var(--text-muted)] ">Computing…</span>
                           ) : (
@@ -756,7 +756,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </div>
 
                     {calibrationError && (
-                      <div className="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-mono">
+                      <div className="p-2 rounded bg-red-50 border border-red-200 text-red-700 text-[10px] font-mono">
                         {calibrationError}
                       </div>
                     )}
@@ -781,7 +781,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         }`}
                       >
                         <span 
-                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white border border-slate-200 transition-transform flex items-center justify-center text-[8px] font-bold ${
                             settings.reducedMotionEnabled ? 'translate-x-4' : 'translate-x-0'
                           }`} 
                         >
@@ -807,7 +807,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         }`}
                       >
                         <span 
-                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white dark:bg-black transition-transform flex items-center justify-center text-[8px] font-bold ${
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white border border-slate-200 transition-transform flex items-center justify-center text-[8px] font-bold ${
                             settings.exhibitionModeEnabled ? 'translate-x-4' : 'translate-x-0'
                           }`} 
                         >
@@ -825,12 +825,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       <button type="button"
                         id="clear-session-cache-btn"
                         onClick={handleClearCache}
-                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-rose-500/10 border border-[var(--border-subtle)] hover:border-rose-500/30 text-[var(--text-secondary)] hover:text-rose-500 font-mono text-xs transition-colors cursor-pointer flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                        className="px-2.5 py-1 rounded-md bg-[var(--surface-1)] hover:bg-red-50 border border-[var(--border-subtle)] hover:border-red-300 text-[var(--text-secondary)] hover:text-red-700 font-mono text-xs transition-colors cursor-pointer flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {clearedNotice ? (
                           <>
-                            <Check size={12} className="text-emerald-400" />
-                            <span className="text-emerald-400">Done</span>
+                            <Check size={12} className="text-emerald-700" />
+                            <span className="text-emerald-700">Done</span>
                           </>
                         ) : (
                           <>

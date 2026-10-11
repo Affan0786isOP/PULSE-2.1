@@ -473,3 +473,48 @@ a {
   --color-chart-scale-pattern-color: var(----chart-scale-pattern-color);
 }
 
+
+
+/* Light surface for dialogs tied to the desktop homepage's white-and-blue visual theme.
+   Scoped to the dialog so the measurement UI can retain its dark application canvas. */
+.pulse-light-modal {
+  color-scheme: light;
+
+  --surface-0: #F8FAFC;
+  --surface-1: #FFFFFF;
+  --surface-2: #F5F7FB;
+  --surface-3: #E9EEF5;
+
+  --border-subtle: #E5EAF1;
+  --border-default: #CDD6E2;
+  --border-strong: #9AA9BC;
+
+  --text-primary: #090D1A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-main: var(--text-primary);
+  --foreground: var(--text-primary);
+  --text-subtle: var(--text-muted);
+
+  --accent: #0066FF;
+  --accent-hover: #0052CC;
+  --accent-subtle: rgba(0, 102, 255, 0.08);
+  --cyan-primary: var(--accent);
+  --cyan-glow: var(--accent-subtle);
+
+  --success: #15803D;
+  --warning: #B45309;
+  --danger: #B91C1C;
+  --focus-ring: #0066FF;
+
+  --bg-base: var(--surface-0);
+  --bg-surface: var(--surface-1);
+  --bg-surface-solid: var(--surface-1);
+  --bg-card: var(--surface-1);
+  --bg-card-hover: var(--surface-2);
+  --bg-panel: var(--surface-2);
+  --bg-panel-hover: var(--surface-3);
+  --border: var(--border-default);
+  --glass-border: var(--border-subtle);
+  --stat-box-bg: var(--surface-2);
+}
