@@ -337,18 +337,18 @@
   *,
   *::before,
   *::after {
-    animation-duration: 0.1s !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.1s !important;
+    animation: none !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 }
 
+[data-reduced-motion="true"],
 [data-reduced-motion="true"] *,
+.reduced-motion,
 .reduced-motion * {
-  animation-duration: 0.1s !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.1s !important;
+  animation: none !important;
+  transition: none !important;
   scroll-behavior: auto !important;
 }
 
