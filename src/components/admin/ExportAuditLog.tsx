@@ -56,8 +56,8 @@ export function ExportAuditLog() {
   return (
     <div className="space-y-10" id="export-audit-log">
       {/* SECTION 2: IMMUTABLE ADMINISTRATIVE AUDIT LOG */}
-      <section className="bg-[var(--bg-surface)] border border-white/10 rounded-2xl p-6 md:p-8 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
+      <section className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6 md:p-8 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
@@ -79,20 +79,20 @@ export function ExportAuditLog() {
 
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={14} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={14} />
               <input
                 type="text"
                 placeholder="Search audit trail..."
                 value={searchLogQuery}
                 onChange={(e) => setSearchLogQuery(e.target.value)}
-                className="pl-9 pr-3 py-1.5 rounded-lg bg-[#111] border border-white/10 text-xs text-[var(--text-main)] placeholder-white/30 focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-1 focus-visible:border-cyan-500/50 w-44 md:w-56 font-mono"
+                className="pl-9 pr-3 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-1 focus-visible:border-cyan-500/50 w-44 md:w-56 font-mono"
               />
             </div>
 
             <button type="button"
               onClick={loadSessionsAndLogs}
               disabled={isLoadingLogs}
-              className="p-2 rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:scale-95 border border-white/10 text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
+              className="p-2 rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:scale-95 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
               title="Refresh audit logs"
             >
               <RefreshCw size={14} className={isLoadingLogs ? 'animate-spin text-cyan-400' : ''} />
@@ -101,9 +101,9 @@ export function ExportAuditLog() {
         </div>
 
         {/* AUDIT LOG TABLE */}
-        <div className="overflow-x-auto rounded-xl border border-white/5 max-h-96">
+        <div className="overflow-x-auto rounded-xl border border-[var(--border-subtle)] max-h-96">
           <table className="w-full text-left font-mono text-xs border-collapse">
-            <thead className="bg-[#090d16] text-[var(--text-muted)] sticky top-0 z-10 border-b border-white/10 text-[11px] uppercase tracking-wider">
+            <thead className="bg-[var(--surface-2)] text-[var(--text-muted)] sticky top-0 z-10 border-b border-[var(--border-subtle)] text-[11px] uppercase tracking-wider">
               <tr>
                 <th className="p-3">Actor / Admin</th>
                 <th className="p-3">Action</th>
@@ -115,7 +115,7 @@ export function ExportAuditLog() {
             <tbody className="divide-y divide-white/5">
               {filteredLogs.length > 0 ? (
                 filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
+                  <tr key={log.id} className="hover:bg-[var(--surface-2)] transition-colors">
                     <td className="p-3 font-semibold text-cyan-300">
                       {log.actor}
                     </td>
@@ -133,7 +133,7 @@ export function ExportAuditLog() {
                     </td>
 
                     <td className="p-3 text-[var(--text-main)]">
-                      <code className="text-xs text-white/90 bg-white/5 px-1.5 py-0.5 rounded">
+                      <code className="text-xs text-[var(--text-secondary)] bg-[var(--surface-2)] px-1.5 py-0.5 rounded">
                         {log.target}
                       </code>
                     </td>
