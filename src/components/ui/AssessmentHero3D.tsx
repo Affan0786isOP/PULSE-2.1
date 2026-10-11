@@ -272,11 +272,11 @@ export function AssessmentHero3D() {
                         </p>
                       </div>
 
-                      {/* CTA: Try Test Button */}
+                      {/* Secondary Action: Try Protocol Outline Button */}
                       <div className="mt-3">
-                        <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white text-xs sm:text-[13px] font-semibold shadow-[0_4px_12px_rgba(0,102,255,0.35)] hover:shadow-[0_6px_16px_rgba(0,102,255,0.45)] active:scale-95 transition-shadow">
-                          <span>Try Test</span>
-                          <ArrowRight size={14} strokeWidth={2.4} />
+                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-sky-300/80 bg-white/80 hover:bg-sky-50/80 text-[#0066FF] hover:text-[#0052CC] text-xs sm:text-[12.5px] font-semibold shadow-sm hover:shadow active:scale-95 transition-all">
+                          <span>Try {assessment.title}</span>
+                          <ArrowRight size={13} strokeWidth={2.2} />
                         </div>
                       </div>
                     </div>
