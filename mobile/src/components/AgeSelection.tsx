@@ -99,7 +99,7 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
               aria-label="About this assessment and methodology"
               aria-expanded={isInfoOpen}
               aria-controls="assessment-info-panel"
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--accent)] hover:bg-[var(--surface-2)] cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--accent)] hover:bg-[var(--surface-2)] active:scale-[0.98] transition-[transform,background-color] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
               title="Assessment methodology & details"
             >
               <Info size={16} />
