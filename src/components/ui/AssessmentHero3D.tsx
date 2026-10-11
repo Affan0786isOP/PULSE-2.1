@@ -137,248 +137,243 @@ export function AssessmentHero3D() {
       role="region"
       aria-label="Assessment Protocols 3D Carousel"
     >
-      {/* 3D Perspective Stage */}
-      <div 
-        className="relative w-full max-w-[680px] h-[300px] flex items-center justify-center"
-        style={{ perspective: 1200 }}
-      >
+      {/* 3D Perspective Stage Container */}
+      <div className="relative flex items-center justify-center">
         {/* Previous Button */}
         <button 
           type="button"
           onClick={handlePrev}
-          className="absolute -left-3 sm:-left-4 lg:-left-5 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+          className="mr-3 z-40 w-11 h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] shrink-0"
           aria-label="Previous assessment protocol"
         >
           <ChevronLeft size={21} strokeWidth={2.4} />
         </button>
 
-        {/* 3D Card Stack Container */}
-        <div className="relative w-full h-[300px] transform-style-3d">
-          {HERO_ASSESSMENTS.map((assessment, index) => {
-            const offset = (index - activeIndex + HERO_ASSESSMENTS.length) % HERO_ASSESSMENTS.length;
-            const isActive = offset === 0;
-            const style = getCardStyle(offset);
+        {/* 3D Perspective Stage */}
+        <div 
+          className="relative w-[680px] h-[300px] flex items-center justify-center"
+          style={{ perspective: 1200 }}
+        >
+          {/* 3D Card Stack Container */}
+          <div className="relative w-full h-[300px] transform-style-3d">
+            {HERO_ASSESSMENTS.map((assessment, index) => {
+              const offset = (index - activeIndex + HERO_ASSESSMENTS.length) % HERO_ASSESSMENTS.length;
+              const isActive = offset === 0;
+              const style = getCardStyle(offset);
 
-            return (
-              <motion.div
-                key={assessment.id}
-                role="button"
-                tabIndex={Math.abs(offset) <= 1 ? 0 : -1}
-                aria-label={isActive ? `Launch ${assessment.title}` : `Select ${assessment.title}`}
-                aria-current={isActive ? 'true' : 'false'}
-                initial={false}
-                animate={{
-                  x: style.x,
-                  width: style.width,
-                  height: style.height,
-                  rotateY: style.rotateY,
-                  z: style.z,
-                  scale: style.scale,
-                  opacity: style.opacity,
-                  zIndex: style.zIndex,
-                }}
-                transition={{
-                  duration: shouldReduceMotion ? 0.05 : 0.42,
-                  ease: springEase,
-                }}
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  y: '-50%',
-                  left: 0,
-                  transformOrigin: 'left center',
-                  zIndex: style.zIndex,
-                  pointerEvents: 'auto',
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
+              return (
+                <motion.div
+                  key={assessment.id}
+                  role="button"
+                  tabIndex={Math.abs(offset) <= 1 ? 0 : -1}
+                  aria-label={isActive ? `Launch ${assessment.title}` : `Select ${assessment.title}`}
+                  aria-current={isActive ? 'true' : 'false'}
+                  initial={false}
+                  animate={{
+                    x: style.x,
+                    width: style.width,
+                    height: style.height,
+                    rotateY: style.rotateY,
+                    z: style.z,
+                    scale: style.scale,
+                    opacity: style.opacity,
+                    zIndex: style.zIndex,
+                  }}
+                  transition={{
+                    duration: shouldReduceMotion ? 0.05 : 0.42,
+                    ease: springEase,
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    y: '-50%',
+                    left: 0,
+                    transformOrigin: 'left center',
+                    zIndex: style.zIndex,
+                    pointerEvents: 'auto',
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (isActive) {
+                        navigate(assessment.targetRoute);
+                      } else {
+                        handleSelect(index);
+                      }
+                    }
+                  }}
+                  onClick={() => {
                     if (isActive) {
                       navigate(assessment.targetRoute);
                     } else {
                       handleSelect(index);
                     }
-                  }
-                }}
-                onClick={() => {
-                  if (isActive) {
-                    navigate(assessment.targetRoute);
-                  } else {
-                    handleSelect(index);
-                  }
-                }}
-                className="rounded-[28px] overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
-              >
-                {/* Background Layer 1: Active Card Light Gradient & Shadow */}
-                <div 
-                  className={`absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/98 via-[#F9FBFF]/96 to-[#EAF3FD]/92 border border-white/90 shadow-[0_20px_50px_rgba(0,102,255,0.13),0_4px_16px_rgba(0,0,0,0.04)] text-[#090D1A] transition-opacity duration-300 pointer-events-none ${
-                    isActive ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  aria-hidden="true"
-                />
-
-                {/* Background Layer 2: Inactive Card Light Theme Surface */}
-                <div 
-                  className={`absolute inset-0 rounded-[24px] bg-gradient-to-b from-white/95 via-[#F1F6FD]/95 to-[#E4F0FC]/95 border border-sky-200/90 shadow-[0_8px_22px_rgba(0,102,255,0.08),0_2px_6px_rgba(0,0,0,0.03)] hover:border-[#0066FF]/40 hover:shadow-[0_12px_28px_rgba(0,102,255,0.12)] text-[#090D1A] transition-all duration-300 pointer-events-none ${
-                    isActive ? 'opacity-0' : 'opacity-100'
-                  }`}
-                  aria-hidden="true"
-                />
-
-                {/* Content Layer 1: Active Card Full Layout (Fixed 440px width prevents any text squishing) */}
-                <div 
-                  className={`absolute inset-0 w-[440px] h-[280px] p-6 sm:p-7 flex flex-row items-center justify-between gap-4 transition-opacity duration-300 ${
-                    isActive ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-                  }`}
+                  }}
+                  className="rounded-[28px] overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
                 >
-                  {/* Soft Blue Atmospheric Wash on Right Half of Card */}
+                  {/* Background Layer 1: Active Card Light Gradient & Shadow */}
                   <div 
-                    className="absolute right-0 top-0 bottom-0 w-[55%] bg-gradient-to-l from-[#C0DEFA]/85 via-[#DBECFC]/50 to-transparent pointer-events-none rounded-r-[28px]" 
+                    className={`absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/98 via-[#F9FBFF]/96 to-[#EAF3FD]/92 border border-white/90 shadow-[0_20px_50px_rgba(0,102,255,0.13),0_4px_16px_rgba(0,0,0,0.04)] text-[#090D1A] transition-opacity duration-300 pointer-events-none ${
+                      isActive ? 'opacity-100' : 'opacity-0'
+                    }`}
                     aria-hidden="true"
                   />
 
-                  {/* Left: Metadata & Actions */}
-                  <div className="flex flex-col justify-between h-full z-10 flex-1 min-w-0">
-                    <div>
-                      {/* Protocol Counter & Progress Dashes */}
-                      <div className="flex items-center gap-2.5 mb-2.5">
-                        <span className="font-mono text-[11.5px] font-bold text-slate-800 tracking-wider">
-                          {String(index + 1).padStart(2, '0')} <span className="text-slate-400 font-normal">/ 05</span>
-                        </span>
-                        <div className="flex items-center gap-1.5" aria-hidden="true">
-                          {[0, 1, 2, 3, 4].map((step) => (
-                            <div 
-                              key={step} 
-                              className={`h-[3.5px] rounded-full transition-all duration-300 ${
-                                step === activeIndex 
-                                  ? 'w-4 bg-[#0066FF]' 
-                                  : 'w-2.5 bg-slate-200'
-                              }`} 
-                            />
-                          ))}
+                  {/* Background Layer 2: Inactive Card Light Theme Surface */}
+                  <div 
+                    className={`absolute inset-0 rounded-[24px] bg-gradient-to-b from-white/95 via-[#F1F6FD]/95 to-[#E4F0FC]/95 border border-sky-200/90 shadow-[0_8px_22px_rgba(0,102,255,0.08),0_2px_6px_rgba(0,0,0,0.03)] hover:border-[#0066FF]/40 hover:shadow-[0_12px_28px_rgba(0,102,255,0.12)] text-[#090D1A] transition-all duration-300 pointer-events-none ${
+                      isActive ? 'opacity-0' : 'opacity-100'
+                    }`}
+                    aria-hidden="true"
+                  />
+
+                  {/* Content Layer 1: Active Card Full Layout (Fixed 440px width prevents any text squishing) */}
+                  <div 
+                    className={`absolute inset-0 w-[440px] h-[280px] p-6 sm:p-7 flex flex-row items-center justify-between gap-4 transition-opacity duration-300 ${
+                      isActive ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    {/* Soft Blue Atmospheric Wash on Right Half of Card */}
+                    <div 
+                      className="absolute right-0 top-0 bottom-0 w-[55%] bg-gradient-to-l from-[#C0DEFA]/85 via-[#DBECFC]/50 to-transparent pointer-events-none rounded-r-[28px]" 
+                      aria-hidden="true"
+                    />
+
+                    {/* Left: Metadata & Actions */}
+                    <div className="flex flex-col justify-between h-full z-10 flex-1 min-w-0">
+                      <div>
+                        {/* Protocol Counter & Single Combined Progress Indicator */}
+                        <div className="flex items-center gap-2.5 mb-2.5">
+                          <span className="font-mono text-[12px] font-bold text-[#090D1A] tracking-wider">
+                            {String(index + 1).padStart(2, '0')} <span className="text-slate-500 font-medium">/ 05</span>
+                          </span>
+                          <div className="flex items-center gap-1.5" aria-hidden="true">
+                            {HERO_ASSESSMENTS.map((_, step) => (
+                              <div 
+                                key={step} 
+                                className={`h-[4px] rounded-full transition-all duration-300 ${
+                                  step === activeIndex 
+                                    ? 'w-4.5 bg-[#0066FF] shadow-sm' 
+                                    : 'w-2 bg-slate-300'
+                                }`} 
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Assessment Title */}
+                        <h3 className="font-heading font-extrabold text-2xl text-[#090D1A] tracking-tight leading-tight mb-2 whitespace-nowrap">
+                          {assessment.title}
+                        </h3>
+
+                        {/* Assessment Subtext */}
+                        <p className="text-xs sm:text-[13px] text-[#334155] font-normal leading-relaxed max-w-[210px] line-clamp-2">
+                          {assessment.description}
+                        </p>
+                      </div>
+
+                      {/* CTA: Try Test Button */}
+                      <div className="mt-3">
+                        <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white text-xs sm:text-[13px] font-semibold shadow-[0_4px_12px_rgba(0,102,255,0.35)] hover:shadow-[0_6px_16px_rgba(0,102,255,0.45)] active:scale-95 transition-shadow">
+                          <span>Try Test</span>
+                          <ArrowRight size={14} strokeWidth={2.4} />
                         </div>
                       </div>
-
-                      {/* Assessment Title */}
-                      <h3 className="font-heading font-extrabold text-2xl text-[#090D1A] tracking-tight leading-tight mb-2 whitespace-nowrap">
-                        {assessment.title}
-                      </h3>
-
-                      {/* Assessment Subtext */}
-                      <p className="text-xs sm:text-[13px] text-[#475569] leading-relaxed max-w-[200px] line-clamp-2">
-                        {assessment.description}
-                      </p>
                     </div>
 
-                    {/* CTA: Try Test Button */}
-                    <div className="mt-3">
-                      <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white text-xs sm:text-[13px] font-semibold shadow-[0_4px_12px_rgba(0,102,255,0.35)] hover:shadow-[0_6px_16px_rgba(0,102,255,0.45)] active:scale-95 transition-shadow">
-                        <span>Try Test</span>
-                        <ArrowRight size={14} strokeWidth={2.4} />
-                      </div>
+                    {/* Right: High-Contrast Glowing Protocol Art Container */}
+                    <div className="relative w-36 h-36 flex items-center justify-center shrink-0 z-10">
+                      {/* Outer Ambient Atmospheric Halo */}
+                      <div 
+                        className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.22)_0%,rgba(56,189,248,0.12)_45%,transparent_70%)] pointer-events-none" 
+                        aria-hidden="true"
+                      />
+
+                      {/* Dark High-Contrast Background Disc for Crisp Logo Legibility */}
+                      <div 
+                        className="absolute inset-0 rounded-full bg-gradient-to-b from-[#1E293B] via-[#0F172A] to-[#080E1C] border border-sky-400/35 shadow-[0_12px_28px_rgba(0,102,255,0.22),inset_0_0_20px_rgba(0,210,255,0.15)] pointer-events-none" 
+                        aria-hidden="true"
+                      />
+
+                      {/* Inner Calibration Rings */}
+                      <div 
+                        className="absolute inset-2.5 rounded-full border border-sky-400/25 pointer-events-none shadow-[inset_0_0_12px_rgba(0,102,255,0.2)]" 
+                        aria-hidden="true"
+                      />
+                      <div 
+                        className="absolute inset-5 rounded-full border border-sky-300/15 pointer-events-none" 
+                        aria-hidden="true"
+                      />
+
+                      {/* Protocol Logo Asset */}
+                      <motion.img 
+                        src={assessment.logo} 
+                        alt={assessment.title}
+                        className="w-26 h-26 sm:w-28 sm:h-28 object-contain relative z-10 drop-shadow-[0_0_14px_rgba(0,240,255,0.85)] drop-shadow-[0_4px_12px_rgba(0,102,255,0.5)] filter contrast-125 brightness-110"
+                        animate={isActive ? { scale: [1, 1.03, 1] } : {}}
+                        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                      />
                     </div>
                   </div>
 
-                  {/* Right: High-Contrast Glowing Protocol Art Container */}
-                  <div className="relative w-36 h-36 flex items-center justify-center shrink-0 z-10">
-                    {/* Outer Ambient Atmospheric Halo */}
-                    <div 
-                      className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.22)_0%,rgba(56,189,248,0.12)_45%,transparent_70%)] pointer-events-none" 
-                      aria-hidden="true"
-                    />
-
-                    {/* Dark High-Contrast Background Disc for Crisp Logo Legibility */}
-                    <div 
-                      className="absolute inset-0 rounded-full bg-gradient-to-b from-[#1E293B] via-[#0F172A] to-[#080E1C] border border-sky-400/35 shadow-[0_12px_28px_rgba(0,102,255,0.22),inset_0_0_20px_rgba(0,210,255,0.15)] pointer-events-none" 
-                      aria-hidden="true"
-                    />
-
-                    {/* Inner Calibration Rings */}
-                    <div 
-                      className="absolute inset-2.5 rounded-full border border-sky-400/25 pointer-events-none shadow-[inset_0_0_12px_rgba(0,102,255,0.2)]" 
-                      aria-hidden="true"
-                    />
-                    <div 
-                      className="absolute inset-5 rounded-full border border-sky-300/15 pointer-events-none" 
-                      aria-hidden="true"
-                    />
-
-                    {/* Protocol Logo Asset */}
-                    <motion.img 
-                      src={assessment.logo} 
-                      alt={assessment.title}
-                      className="w-26 h-26 sm:w-28 sm:h-28 object-contain relative z-10 drop-shadow-[0_0_14px_rgba(0,240,255,0.85)] drop-shadow-[0_4px_12px_rgba(0,102,255,0.5)] filter contrast-125 brightness-110"
-                      animate={isActive ? { scale: [1, 1.03, 1] } : {}}
-                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  </div>
-                </div>
-
-                {/* Content Layer 2: Inactive Card Exposed Logo Art */}
-                <div 
-                  className={`w-full h-full relative flex items-center overflow-hidden transition-opacity duration-300 ${
-                    isActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
-                  }`}
-                >
-                  {/* Ambient inner soft cyan glow */}
+                  {/* Content Layer 2: Inactive Card Identifiable Art & Label */}
                   <div 
-                    className="absolute inset-0 bg-[radial-gradient(circle_at_right,rgba(56,189,248,0.22)_0%,rgba(0,102,255,0.08)_50%,transparent_75%)] pointer-events-none" 
-                    aria-hidden="true" 
-                  />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                    {/* Dark High-Contrast Badge Halo Behind Inactive Icon */}
+                    className={`w-full h-full relative flex flex-col items-center justify-between py-4 overflow-hidden transition-opacity duration-300 ${
+                      isActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
+                    }`}
+                  >
+                    {/* Ambient inner soft cyan glow */}
                     <div 
-                      className={`absolute rounded-full bg-gradient-to-b from-[#1E293B] via-[#111C2E] to-[#09111F] border border-sky-400/40 shadow-[0_3px_10px_rgba(0,0,0,0.25),inset_0_0_8px_rgba(0,210,255,0.18)] pointer-events-none ${
-                        offset === 1 ? 'w-12 h-12' :
-                        offset === 2 ? 'w-11 h-11' :
-                        offset === 3 ? 'w-10 h-10' : 'w-9 h-9'
-                      }`}
-                      aria-hidden="true"
+                      className="absolute inset-0 bg-[radial-gradient(circle_at_right,rgba(56,189,248,0.22)_0%,rgba(0,102,255,0.08)_50%,transparent_75%)] pointer-events-none" 
+                      aria-hidden="true" 
                     />
-                    <img 
-                      src={assessment.logo} 
-                      alt={assessment.title}
-                      className={`object-contain relative z-10 drop-shadow-[0_0_8px_rgba(0,220,255,0.85)] filter contrast-125 brightness-110 ${
-                        offset === 1 ? 'w-8 h-8' :
-                        offset === 2 ? 'w-7.5 h-7.5' :
-                        offset === 3 ? 'w-7 h-7' : 'w-6.5 h-6.5'
-                      }`}
-                    />
+                    
+                    {/* Top Protocol Number Badge */}
+                    <div className="z-10 font-mono text-[10px] font-bold text-slate-700 bg-white/95 px-1.5 py-0.5 rounded shadow-sm border border-slate-300/80">
+                      0{index + 1}
+                    </div>
+
+                    {/* Identifiable High-Contrast Logo Badge */}
+                    <div className="relative flex items-center justify-center my-auto">
+                      <div 
+                        className={`absolute rounded-full bg-gradient-to-b from-[#1E293B] via-[#111C2E] to-[#09111F] border border-sky-400/40 shadow-[0_3px_10px_rgba(0,0,0,0.25),inset_0_0_8px_rgba(0,210,255,0.18)] pointer-events-none ${
+                          offset === 1 ? 'w-11 h-11' :
+                          offset === 2 ? 'w-10 h-10' :
+                          offset === 3 ? 'w-9 h-9' : 'w-8 h-8'
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <img 
+                        src={assessment.logo} 
+                        alt={assessment.title}
+                        className={`object-contain relative z-10 drop-shadow-[0_0_8px_rgba(0,220,255,0.85)] filter contrast-125 brightness-110 ${
+                          offset === 1 ? 'w-7.5 h-7.5' :
+                          offset === 2 ? 'w-7 h-7' :
+                          offset === 3 ? 'w-6 h-6' : 'w-5.5 h-5.5'
+                        }`}
+                      />
+                    </div>
+
+                    {/* Vertical Readable Title Label for Inactive Cards */}
+                    <div className="z-10 text-[10.5px] font-bold text-[#1E293B] tracking-wider uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 opacity-90 mt-1">
+                      {assessment.title}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Next Button */}
         <button 
           type="button"
           onClick={handleNext}
-          className="absolute -right-3 sm:-right-4 lg:-right-5 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+          className="ml-3 z-40 w-11 h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] shrink-0"
           aria-label="Next assessment protocol"
         >
           <ChevronRight size={21} strokeWidth={2.4} />
         </button>
-      </div>
-
-      {/* Pagination Pill Dots */}
-      <div className="flex items-center gap-2.5 mt-3 z-20 shrink-0" role="tablist" aria-label="Assessment protocols">
-        {HERO_ASSESSMENTS.map((assessment, idx) => (
-          <button
-            key={assessment.id}
-            type="button"
-            role="tab"
-            aria-selected={idx === activeIndex}
-            onClick={() => handleSelect(idx)}
-            className={`transition-all duration-300 rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
-              idx === activeIndex 
-                ? 'w-2.5 h-2.5 bg-[#0066FF] ring-4 ring-[#0066FF]/20' 
-                : 'w-2 h-2 bg-slate-300 hover:bg-slate-400'
-            }`}
-            aria-label={`Select protocol ${idx + 1}: ${assessment.title}`}
-          />
-        ))}
       </div>
     </div>
   );

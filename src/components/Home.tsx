@@ -247,7 +247,7 @@ export function Home() {
         <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[2560px]:max-w-[580px]">
           {/* Eyebrow Badge */}
           <div className={`mb-2.5 sm:mb-3 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
-            <div className="inline-flex items-center rounded-full bg-[#E0F2FE]/90 border border-[#BAE6FD]/90 px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.06)]">
+            <div className="inline-flex items-center rounded-full bg-[#E0F2FE] border border-[#7DD3FC] px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.08)]">
               <span className="text-[10px] sm:text-[10.5px] min-[2560px]:text-[11.5px] font-mono font-bold tracking-[0.18em] text-[#0369A1] uppercase">
                 COGNITIVE BENCHMARKING
               </span>
@@ -264,7 +264,7 @@ export function Home() {
           </h1>
 
           {/* Subtitle */}
-          <p className={`text-[#475569] text-xs sm:text-[13.5px] lg:text-[14px] min-[2560px]:text-[16.5px] leading-relaxed mb-6 sm:mb-7 max-w-[420px] min-[2560px]:max-w-[520px] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
+          <p className={`text-[#334155] text-xs sm:text-[13.5px] lg:text-[14px] min-[2560px]:text-[16.5px] font-medium leading-relaxed mb-6 sm:mb-7 max-w-[420px] min-[2560px]:max-w-[520px] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
             Test your reaction speed, memory and attention — right in your browser, with no account required.
           </p>
 
@@ -289,13 +289,13 @@ export function Home() {
               <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight">
                 {testsCount}
               </span>
-              <span className="text-[11px] min-[2560px]:text-[12.5px] font-semibold text-[#334155] mt-0.5">
+              <span className="text-[11.5px] min-[2560px]:text-[13px] font-semibold text-[#1E293B] mt-0.5">
                 Tests
               </span>
             </Link>
 
             {/* Divider */}
-            <div className="absolute left-[33.33%] top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#CFE4F7]" aria-hidden="true" />
+            <div className="absolute left-[33.33%] top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#BFDBFE]" aria-hidden="true" />
 
             {/* Col 2: Authoritative Dynamic Results Count */}
             <div
@@ -305,13 +305,13 @@ export function Home() {
               <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
                 {displayResults}
               </span>
-              <span className="text-[11px] min-[2560px]:text-[12.5px] font-semibold text-[#334155] mt-0.5">
+              <span className="text-[11.5px] min-[2560px]:text-[13px] font-semibold text-[#1E293B] mt-0.5">
                 Results
               </span>
             </div>
 
             {/* Divider */}
-            <div className="absolute left-[66.66%] top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#CFE4F7]" aria-hidden="true" />
+            <div className="absolute left-[66.66%] top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#BFDBFE]" aria-hidden="true" />
 
             {/* Col 3: Available 24/7 */}
             <div
@@ -321,7 +321,7 @@ export function Home() {
               <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
                 24/7
               </span>
-              <span className="text-[11px] min-[2560px]:text-[12.5px] font-semibold text-[#334155] mt-0.5 leading-tight">
+              <span className="text-[11.5px] min-[2560px]:text-[13px] font-semibold text-[#1E293B] mt-0.5 leading-tight">
                 Available
               </span>
             </div>

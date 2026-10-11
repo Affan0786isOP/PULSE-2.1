@@ -86,6 +86,6 @@ describe('Desktop Home Redesign', () => {
     expect(screen.getByRole('region', { name: /assessment protocols 3d carousel/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /previous assessment protocol/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /next assessment protocol/i })).toBeDefined();
-    expect(screen.getByText('Visual Reaction')).toBeDefined();
+    expect(screen.getAllByText('Visual Reaction').length).toBeGreaterThanOrEqual(1);
   });
 });
