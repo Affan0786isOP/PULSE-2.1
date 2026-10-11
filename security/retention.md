@@ -7,20 +7,20 @@
 ---
 
 ## 1. Purpose & Governance
-This document defines the statutory retention schedules, automated purge triggers, and data subject deletion protocols for the PULSE platform in compliance with GDPR (Art. 5(1)(e) & Art. 17), the FTC Health Breach Notification Rule (16 CFR 318), and State Consumer Health Data Privacy laws (RCW 19.373).
+This document records proposed retention targets and lifecycle expectations for PULSE. It does not itself configure Firestore TTL, a scheduled purge job, backups deletion, or an erasure workflow, and it is not a legal determination of compliance with GDPR, the FTC Health Breach Notification Rule, Washington My Health My Data Act, or other laws. Verify deployed controls and obtain appropriate legal review before promising a statutory deletion timeline.
 
 ---
 
 ## 2. Retention Schedule by Data Tier
 
-| Data Tier / Collection | Classification | Retention Period | Deletion / Purge Trigger |
+| Data Tier / Collection | Classification | Policy Target (not proof of enforcement) | Required enforcement / verification |
 | :--- | :--- | :--- | :--- |
-| **`experimentSessions`** | Ephemeral session tokens & PRNG seeds | **90 days** | Automated TTL expiration or one-time consumption upon submission completion. |
-| **`assessmentTrials`** | Granular millisecond reaction telemetry | **5 years** | Scientific replication retention; purged upon verified participant erasure request. |
-| **`assessmentResults`** | Longitudinal assessment score summaries | **5 years** | Longitudinal cognitive cohort baselining; purged upon verified participant erasure request. |
-| **`publicDataset`** | Anonymized open research benchmark data | **Indefinite** | Anonymized scientific open archive (contains zero UIDs, zero IPs, zero device identifiers). |
-| **`leaderboardResults`** | Voluntary opted-in public rank records | **2 years** | Competition cycle refresh or user-requested removal/moderation action. |
-| **`adminAuditLogs`** | Immutable moderation & administrative trail | **7 years** | Statutory security and compliance audit logging requirements. |
+| **`experimentSessions`** | Ephemeral session tokens & PRNG seeds | **90 days policy target** | Application expiry is currently 15 minutes; no checked-in automated document purge/TTL configuration was found. Verify deployed cleanup before calling this automatic. |
+| **`assessmentTrials`** | Granular millisecond reaction telemetry | **5-year policy target** | No checked-in scheduled purge or complete participant-erasure workflow was verified in the audited source. |
+| **`assessmentResults`** | Longitudinal assessment score summaries | **5-year policy target** | No checked-in scheduled purge or complete participant-erasure workflow was verified in the audited source. |
+| **`publicDataset`** | Sanitized open research benchmark data | **Indefinite policy target** | No age-out process is intended by this target; verify field sanitization and re-identification risk periodically. |
+| **`leaderboardResults`** | Voluntary opted-in public rank records | **2-year policy target** | Moderation hide/delete endpoints exist; automatic 2-year purge and an authenticated participant-removal workflow were not verified. |
+| **`adminAuditLogs`** | Administrative moderation trail | **7-year policy target** | No automatic seven-year purge was verified; avoid claiming a statutory requirement without legal review. |
 
 ---
 
@@ -31,6 +31,11 @@ This document defines the statutory retention schedules, automated purge trigger
 
 ---
 
-## 4. Participant Deletion Procedures (Right to Erasure)
-- **Execution Window:** In accordance with GDPR Art. 17 and RCW 19.373, verified erasure requests are executed across active databases and backup systems within **45 calendar days**.
-- **Mechanism:** Since participants possess anonymous UIDs (`request.auth.uid`), an authenticated erasure request deletes linked `assessmentTrials` and `assessmentResults` matching that UID, and flags any corresponding `leaderboardResults` doc for immediate purge.
+## 4. Participant Deletion Workflow — Not Yet Verified
+
+No dedicated participant data-erasure endpoint or complete workflow across active collections and backups was identified in the audited repository. The process below is therefore a required operational design, not a claim about current functionality:
+
+- Provide a verified way for a participant or authorized operator to identify the anonymous UID and linked records.
+- Delete or appropriately de-identify matching `assessmentTrials` and `assessmentResults`; handle public dataset records and leaderboard entries according to the approved policy; document any exception for immutable audit events.
+- Track deletion outcomes and backups/replicas, and verify the operation through tests and operational evidence.
+- Treat **45 calendar days** as an unverified internal target only until the applicable legal requirements are reviewed and the full workflow is implemented and tested.
