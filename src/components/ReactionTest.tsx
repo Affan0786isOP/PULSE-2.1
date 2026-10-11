@@ -635,6 +635,11 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     apparatusClass += " !border-[var(--warning)]/40";
     statusClass += " !text-[var(--warning)]";
   } else if (engineState === 'STIMULUS_ACTIVE') {
+    // Stimulus, timer, and status must change without a CSS transition.
+    // The recorded rAF timestamp is a browser-frame estimate, not photodiode onset.
+    apparatusClass += " !transition-none";
+    timerClass += " !transition-none";
+    statusClass += " !transition-none";
     apparatusClass += " !bg-[var(--text-primary)] !border-[var(--text-primary)]";
     timerClass += " !text-[var(--surface-0)]";
     statusClass += " !text-[var(--surface-0)] !font-bold";
