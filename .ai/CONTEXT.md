@@ -1,12 +1,12 @@
 # PULSE AI System Context Snapshot
 
 > **Quick Navigation:**  
-> - Specification: [`docs/PROJECT_SPEC.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/PROJECT_SPEC.md)  
-> - Architecture: [`docs/ARCHITECTURE.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/ARCHITECTURE.md)  
-> - Data Model: [`docs/DATA_MODEL.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DATA_MODEL.md)  
-> - Security Model: [`docs/SECURITY.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/SECURITY.md)  
-> - Design System: [`docs/DESIGN_SYSTEM.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DESIGN_SYSTEM.md)  
-> - Development Guide: [`docs/DEVELOPMENT.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DEVELOPMENT.md)
+> - Specification: [`docs/PROJECT_SPEC.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/PROJECT_SPEC.md)  
+> - Architecture: [`docs/ARCHITECTURE.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/ARCHITECTURE.md)  
+> - Data Model: [`docs/DATA_MODEL.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/DATA_MODEL.md)  
+> - Security Model: [`docs/SECURITY.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/SECURITY.md)  
+> - Design System: [`docs/DESIGN_SYSTEM.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/DESIGN_SYSTEM.md)  
+> - Development Guide: [`docs/DEVELOPMENT.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/DEVELOPMENT.md)
 
 ---
 
@@ -16,11 +16,11 @@
 ---
 
 ## 2. Technology Stack
-- **Frontend Core:** React 19.0.1, TypeScript 5.8.2, Vite 6.2.3, React Router DOM 7.18.2.
-- **Styling & Motion:** Tailwind CSS 4.1.14 (with `@tailwindcss/vite`), `motion/react` 12.23.24, Lucide React icons.
-- **Data Visualization:** Recharts 3.10.1, Visx 4.0.1-alpha, D3 modules (`d3-array`, `d3-scale`, `d3-shape`, `d3-sankey`).
+- **Frontend Core:** React 19.x, TypeScript 5.8.x, Vite 6.x, React Router DOM 7.x (see `package.json` for declared ranges and `package-lock.json` for resolved versions).
+- **Styling & Motion:** Tailwind CSS 4.x (with `@tailwindcss/vite`), `motion/react` 12.x, Lucide React icons (see package manifest/lockfile for exact versions).
+- **Data Visualization:** Recharts 3.x, Visx 4.x alpha modules, and D3 modules (`d3-array`, `d3-scale`, `d3-shape`, `d3-sankey`).
 - **Backend / API:** Express 4.21.2 on Node.js (via `tsx` in dev, `esbuild` bundled in prod), `express-rate-limit`.
-- **Database & Auth:** Firebase Web SDK 12.17.1 (client, anonymous auth + read-only Firestore), Firebase Admin SDK 14.3.0 (server-authoritative writes and HMAC verification).
+- **Database & Auth:** Firebase Web SDK 12.x (client reads + anonymous auth), Firebase Admin SDK 14.x (server-authoritative writes and HMAC verification); consult the lockfile for resolved versions.
 - **Target Surfaces:** Dual-surface application architecture:
   - Desktop SPA: `src/` (root Vite instance on port 3000)
   - Mobile PWA: `mobile/` (sub-Vite instance with dedicated manifest and touch-optimized components)
@@ -43,12 +43,14 @@
        │ 3. Sign Payload with HMAC-SHA256 (PULSE_PROVENANCE_SECRET)
        ▼
 [Firebase Firestore] (Admin SDK)
-       ├── assessmentTrials (5-yr retention, pseudonymous UID-scoped)
-       ├── assessmentResults (5-yr retention, derived metrics)
-       ├── publicDataset (Indefinite, fully anonymized, open research)
-       ├── leaderboardResults (2-yr retention, voluntary alias)
-       └── adminAuditLogs (7-yr retention, immutable moderation log)
+       ├── assessmentTrials (5-year policy target; pseudonymous UID-scoped)
+       ├── assessmentResults (5-year policy target; derived metrics)
+       ├── publicDataset (indefinite policy target; sanitized research records)
+       ├── leaderboardResults (2-year policy target; voluntary alias)
+       └── adminAuditLogs (7-year policy target; moderation log)
 ```
+
+**Retention enforcement caveat:** `security/retention.md` records policy targets, not proof of automatic enforcement. At the audited source revision, `firebase.json` only configures Firestore rules and indexes; no checked-in TTL configuration or purge scheduler was found. The session service enforces an application-level expiry but does not itself delete expired records. Deployed cloud configuration has not been verified; do not claim automatic deletion or legal compliance until it is checked.
 
 ---
 
@@ -65,7 +67,8 @@
 │   └── styles/               # CSS variables & aesthetic rules
 ├── mobile/                   # Mobile PWA Subproject (Dedicated Vite config)
 │   └── src/                  # Mobile-tailored screens and touch layouts
-├── security/                 # Retention policies, data maps, processor inventories
+├── security/                 # Retention policy targets, data map, processor inventories
+├── shared/                   # Cross-surface contracts, registries, and domain logic
 ├── docs/                     # Full project documentation suite
 │   ├── specs/                # Deep technical specifications
 │   └── decisions/            # Architecture Decision Records (ADRs)
@@ -84,7 +87,8 @@
 ---
 
 ## 6. Important Files Before Editing
-- **Timing & Validation:** [`src/lib/protocolValidators.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/protocolValidators.ts)
-- **Client Firestore API:** [`src/lib/firestore.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/firestore.ts)
-- **Server API & Provenance:** [`server.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/server.ts)
-- **Design Tokens:** [`src/DESIGN_SYSTEM.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/DESIGN_SYSTEM.md) and [`src/styles/pulse-aesthetic.css`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/styles/pulse-aesthetic.css)
+- **Timing & Validation:** [`src/lib/protocolValidators.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/protocolValidators.ts)
+- **Client Firestore API:** [`src/lib/firestore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/firestore.ts)
+- **Server API & Provenance:** [`server.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/server.ts)
+- **Design Tokens:** [`docs/DESIGN_SYSTEM.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/DESIGN_SYSTEM.md), [`src/brand/tokens.css`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/brand/tokens.css), and [`src/styles/pulse-aesthetic.css`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/styles/pulse-aesthetic.css); verify the actual CSS cascade before changing tokens.
+- **Shared Contracts:** `shared/contracts/`, `shared/registries/`, and `shared/domain/` define cross-surface types and registries; inspect them before duplicating or changing protocol/route definitions.
