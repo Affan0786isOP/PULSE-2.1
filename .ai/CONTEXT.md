@@ -15,6 +15,10 @@
 
 ---
 
+### Current Design Direction
+
+PULSE is moving to a single light-first design across desktop and mobile, based on the updated home experience: white/light-blue surfaces (`#FFFFFF`, `#F4F9FF`, `#EAF3FD`), deep ink (`#090D1A`), and blue primary accent (`#0066FF`). Global theme initialization now forces `data-theme="light"`; old saved settings must not restore dark mode. Assessment stimulus colors may use deliberate high-contrast states, but ordinary pages, cards, navigation, admin views, and modals must follow the light palette. Treat `docs/DESIGN_SYSTEM.md` as the design contract and verify both builds because desktop and mobile currently define common semantic tokens in separate stylesheet files.
+
 ## 2. Technology Stack
 - **Frontend Core:** React 19.x, TypeScript 5.8.x, Vite 6.x, React Router DOM 7.x (see `package.json` for declared ranges and `package-lock.json` for resolved versions).
 - **Styling & Motion:** Tailwind CSS 4.x (with `@tailwindcss/vite`), `motion/react` 12.x, Lucide React icons (see package manifest/lockfile for exact versions).
