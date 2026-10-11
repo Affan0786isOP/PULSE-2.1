@@ -24,7 +24,7 @@ graph TD
 
 ## 2. Dual-Surface Frontend Architecture
 
-PULSE separates desktop and mobile web experiences into distinct build pipelines while sharing protocol validation logic and data models.
+PULSE separates desktop and mobile web experiences into distinct build pipelines. Cross-surface contracts and registries live under `shared/`, and should be checked before duplicating route, assessment, API, or data-type definitions.
 
 ```
 /
@@ -40,9 +40,19 @@ PULSE separates desktop and mobile web experiences into distinct build pipelines
     └── src/                  # Mobile touch assessment views & PWA lifecycle
 ```
 
+### Shared Contracts and Registries
+
+`shared/` is a first-class architecture layer consumed by both surfaces. It currently contains:
+
+- `shared/contracts/` — API, assessment, common, dataset, and leaderboard contracts.
+- `shared/domain/leaderboardEligibility.ts` — shared leaderboard eligibility rules.
+- `shared/registries/` — assessment and route registries.
+
+Both Vite/TypeScript configurations define `@shared` aliases. Before changing canonical assessment IDs, API request/response shapes, route metadata, or leaderboard eligibility, inspect the corresponding shared contract/registry and verify both builds.
+
 ### Device Auto-Routing
-- [`src/lib/deviceRouting.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/deviceRouting.ts) inspects User-Agent signatures and screen width breakpoints (`< 768px`).
-- Express server middleware handles edge redirects between `/` and `/mobile/`.
+- [`src/lib/deviceRouting.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/deviceRouting.ts) checks User-Agent, viewport width (`<= 768px`), touch/pointer signals, and explicit override flags.
+- Express server middleware uses mobile User-Agent/client-hint detection for document-navigation redirects; it cannot reliably inspect the browser viewport width.
 - Cross-surface navigation allows manual override if a user explicitly requests the desktop or mobile interface.
 
 ---
@@ -76,12 +86,16 @@ sequenceDiagram
 
 ---
 
+## Retention Enforcement Caveat
+
+`security/retention.md` describes policy targets. No checked-in Firestore TTL configuration or scheduled purge job was found at the audited source revision; `firebase.json` configures rules and indexes only. The session service rejects expired sessions but does not delete expired documents. Deployed cloud configuration must be verified before claiming automatic retention enforcement.
+
 ## 4. State Management Architecture
 
 State is partitioned across four clear tiers:
-1. **In-Memory Volatile State:** [`src/lib/inMemorySessionStore.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/inMemorySessionStore.ts) holds active session trial arrays during assessment runs to prevent unnecessary I/O during timing loops.
-2. **Local Client Storage:** [`src/lib/settingsStore.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/settingsStore.ts) manages user preferences (selected age cohort, reduced motion, sound effects, system dark/light theme) in `localStorage`.
-3. **PWA Offline Store:** [`src/lib/pwaStore.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/pwaStore.ts) tracks install prompt readiness and service worker updates.
+1. **In-Memory Volatile State:** [`src/lib/inMemorySessionStore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/inMemorySessionStore.ts) holds active session trial arrays during assessment runs to prevent unnecessary I/O during timing loops.
+2. **Local Client Settings:** [`src/lib/settingsStore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/settingsStore.ts) manages sound/haptics/fullscreen/reduced-motion/font-scale preferences in `localStorage`. The current settings store forces `themeMode` to `dark` and does not own an age-cohort setting.
+3. **PWA Offline Store:** [`src/lib/pwaStore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/pwaStore.ts) tracks install prompt readiness and service worker updates.
 4. **Cloud Database:** Google Cloud Firestore holds persistent assessment trials, results, public datasets, leaderboards, and admin audit logs.
 
 ---
@@ -163,7 +177,7 @@ The `engines/` layer can be unit-tested without HTTP wrappers (see `tests/unit/s
 
 ## 6. Firestore Security & Trust Boundaries
 
-The Firestore database enforces strict role isolation via [`firestore.rules`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/firestore.rules):
+The Firestore database enforces strict role isolation via [`firestore.rules`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/firestore.rules):
 
 | Collection | Client Read | Client Write | Server Backend (Admin SDK) |
 | :--- | :--- | :--- | :--- |
