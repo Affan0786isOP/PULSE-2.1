@@ -337,7 +337,7 @@ export function LeaderboardModeration() {
           <span>{toastMessage.text}</span>
           <button type="button" 
             onClick={() => setToastMessage(null)} 
-            className={`ml-2 hover:text-white ${toastMessage.isError ? 'text-rose-400' : 'text-emerald-400'}`}
+            className={`ml-2 hover:text-[var(--text-primary)] ${toastMessage.isError ? 'text-rose-400' : 'text-emerald-400'}`}
           >
             <X size={14} />
           </button>
@@ -345,7 +345,7 @@ export function LeaderboardModeration() {
       )}
 
       {/* HEADER & ACTIONS */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-white/10">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
@@ -375,7 +375,7 @@ export function LeaderboardModeration() {
           <button type="button"
             onClick={fetchAllLeaderboardEntries}
             disabled={isLoading}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:scale-95 border border-white/10 text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:scale-95 border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer disabled:opacity-50"
           >
             <RefreshCw size={14} className={isLoading ? 'animate-spin text-cyan-400' : ''} />
             <span>Reload Entries</span>
@@ -384,17 +384,17 @@ export function LeaderboardModeration() {
       </div>
 
       {/* FILTER & SEARCH TOOLBAR */}
-      <div className="bg-[var(--bg-surface)] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-4">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-4 sm:p-5 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* SEARCH INPUT */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={14} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={14} />
             <input
               type="text"
               placeholder="Search display name or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#090d16] border border-white/10 text-xs text-[var(--text-main)] placeholder-white/30 focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-1 focus-visible:border-cyan-500/50 font-mono"
+              className="w-full pl-9 pr-3 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-1 focus-visible:border-cyan-500/50 font-mono"
             />
           </div>
 
@@ -403,7 +403,7 @@ export function LeaderboardModeration() {
             <select
               value={filterAssessment}
               onChange={(e) => setFilterAssessment(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-[#090d16] border border-white/10 text-xs text-[var(--text-main)] focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-1 focus-visible:border-cyan-500/50 font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-main)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-1 focus-visible:border-cyan-500/50 font-mono"
             >
               {ASSESSMENT_OPTIONS.map(opt => (
                 <option key={opt.id} value={opt.id}>{opt.label}</option>
@@ -416,7 +416,7 @@ export function LeaderboardModeration() {
             <select
               value={filterAgeGroup}
               onChange={(e) => setFilterAgeGroup(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-[#090d16] border border-white/10 text-xs text-[var(--text-main)] focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-1 focus-visible:border-cyan-500/50 font-mono"
+              className="w-full px-3 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-main)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-1 focus-visible:border-cyan-500/50 font-mono"
             >
               <option value="All">All Age Cohorts</option>
               {VALID_AGE_GROUPS.map(ag => (
@@ -432,7 +432,7 @@ export function LeaderboardModeration() {
               className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-mono transition-colors active:scale-95 cursor-pointer ${
                 filterFlaggedOnly 
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold' 
-                  : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:text-white border border-white/5'
+                  : 'bg-[var(--bg-panel)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
               }`}
             >
               <Flag size={13} className={filterFlaggedOnly ? 'text-amber-400' : 'text-white/40'} />
@@ -442,7 +442,7 @@ export function LeaderboardModeration() {
         </div>
 
         {/* STATS SUMMARY STRIP */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-white/5 text-xs font-mono text-[var(--text-muted)]">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[var(--border-subtle)] text-xs font-mono text-[var(--text-muted)]">
           <div className="flex items-center gap-4">
             <span>Showing {filteredEntries.length} of {entries.length} records</span>
             <span className="text-amber-400">
@@ -456,10 +456,10 @@ export function LeaderboardModeration() {
       </div>
 
       {/* SORTABLE / FILTERABLE DATA TABLE */}
-      <div className="bg-[var(--bg-surface)] border border-white/10 rounded-2xl overflow-hidden">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
         <div className="overflow-x-auto max-h-[600px]">
           <table className="w-full text-left font-mono text-xs border-collapse">
-            <thead className="bg-[#090d16] text-[var(--text-muted)] sticky top-0 z-10 border-b border-white/10 text-[11px] uppercase tracking-wider">
+            <thead className="bg-[var(--surface-2)] text-[var(--text-muted)] sticky top-0 z-10 border-b border-[var(--border-subtle)] text-[11px] uppercase tracking-wider">
               <tr>
                 <th className="p-3 w-10 text-center">
                   <button type="button" 
@@ -482,7 +482,7 @@ export function LeaderboardModeration() {
                     if (sortField === 'displayName') setSortAsc(!sortAsc);
                     else { setSortField('displayName'); setSortAsc(true); }
                   }}
-                  className="p-3 cursor-pointer hover:text-white"
+                  className="p-3 cursor-pointer hover:text-[var(--text-primary)]"
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Display Name</span>
@@ -495,7 +495,7 @@ export function LeaderboardModeration() {
                     if (sortField === 'score') setSortAsc(!sortAsc);
                     else { setSortField('score'); setSortAsc(true); }
                   }}
-                  className="p-3 cursor-pointer hover:text-white"
+                  className="p-3 cursor-pointer hover:text-[var(--text-primary)]"
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Score Metric</span>
@@ -509,7 +509,7 @@ export function LeaderboardModeration() {
                     if (sortField === 'createdAt') setSortAsc(!sortAsc);
                     else { setSortField('createdAt'); setSortAsc(false); }
                   }}
-                  className="p-3 cursor-pointer hover:text-white"
+                  className="p-3 cursor-pointer hover:text-[var(--text-primary)]"
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Timestamp</span>
@@ -528,7 +528,7 @@ export function LeaderboardModeration() {
                   return (
                     <tr 
                       key={entry.id} 
-                      className={`hover:bg-white/[0.02] transition-colors ${isSelected ? 'bg-cyan-500/[0.04]' : ''}`}
+                      className={`hover:bg-[var(--surface-2)] transition-colors ${isSelected ? 'bg-cyan-500/[0.04]' : ''}`}
                     >
                       <td className="p-3 text-center">
                         <button type="button" 
@@ -628,20 +628,20 @@ export function LeaderboardModeration() {
       {moderatingEntry && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-md bg-[var(--bg-surface)] border border-rose-500/30 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-2 text-rose-400 font-heading font-bold text-sm">
                 <ShieldAlert size={18} />
                 Moderate Leaderboard Submission
               </div>
               <button type="button" 
                 onClick={() => setModeratingEntry(null)}
-                className="text-[var(--text-muted)] hover:text-white"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#090d16] border border-white/5 space-y-1 font-mono text-xs">
+            <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] space-y-1 font-mono text-xs">
               <div className="flex justify-between">
                 <span className="text-[var(--text-muted)]">Display Name:</span>
                 <span className="font-bold text-[var(--text-main)]">{moderatingEntry.displayName}</span>
@@ -663,7 +663,7 @@ export function LeaderboardModeration() {
               <select
                 value={modReason}
                 onChange={(e) => setModReason(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#090d16] border border-white/10 text-xs text-[var(--text-main)] font-mono focus-visible:ring-2 focus-visible:ring-rose-500/50 focus-visible:ring-offset-1 focus-visible:border-rose-500/50"
+                className="w-full px-3 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-main)] font-mono focus-visible:ring-2 focus-visible:ring-rose-500/50 focus-visible:ring-offset-1 focus-visible:border-rose-500/50"
               >
                 <option value="Profanity / Inappropriate Name">Profanity / Inappropriate Name</option>
                 <option value="Statistically Infeasible Score (> 2.5 SD)">Statistically Infeasible Score (&gt; 2.5 SD)</option>
@@ -677,7 +677,7 @@ export function LeaderboardModeration() {
               This triggers a soft-delete and logs an immutable record with administrator ID into the audit log.
             </div>
 
-            <div className="flex items-center justify-between gap-3 pt-3 border-t border-white/10">
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-[var(--border-subtle)]">
               <button
                 type="button"
                 onClick={handleExecutePermanentDelete}
@@ -692,7 +692,7 @@ export function LeaderboardModeration() {
                 <button
                   type="button"
                   onClick={() => setModeratingEntry(null)}
-                  className="px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:scale-95 border border-white/10 text-xs font-mono text-[var(--text-secondary)] hover:text-white cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:scale-95 border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -714,14 +714,14 @@ export function LeaderboardModeration() {
       {isBulkModerating && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-md bg-[var(--bg-surface)] border border-rose-500/30 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-2 text-rose-400 font-heading font-bold text-sm">
                 <Trash2 size={18} />
                 Bulk Hide Selected Entries ({selectedIds.size})
               </div>
               <button type="button" 
                 onClick={() => setIsBulkModerating(false)}
-                className="text-[var(--text-muted)] hover:text-white"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
                 <X size={16} />
               </button>
@@ -738,7 +738,7 @@ export function LeaderboardModeration() {
               <select
                 value={modReason}
                 onChange={(e) => setModReason(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#090d16] border border-white/10 text-xs text-[var(--text-main)] font-mono focus-visible:ring-2 focus-visible:ring-rose-500/50 focus-visible:ring-offset-1 focus-visible:border-rose-500/50"
+                className="w-full px-3 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs text-[var(--text-main)] font-mono focus-visible:ring-2 focus-visible:ring-rose-500/50 focus-visible:ring-offset-1 focus-visible:border-rose-500/50"
               >
                 <option value="Batch Anomaly Scrub">Batch Anomaly Scrub</option>
                 <option value="Profanity & Abusive Display Names">Profanity & Abusive Display Names</option>
@@ -747,11 +747,11 @@ export function LeaderboardModeration() {
               </select>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border-subtle)]">
               <button
                 type="button"
                 onClick={() => setIsBulkModerating(false)}
-                className="px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:scale-95 border border-white/10 text-xs font-mono text-[var(--text-secondary)] hover:text-white cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:scale-95 border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
               >
                 Cancel
               </button>
