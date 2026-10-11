@@ -162,8 +162,8 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
             {/* Header: Branded Mark and Close Button */}
             <div className="flex items-center justify-between gap-3 mb-4 relative z-10">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-[14px] bg-[#090D1A] flex items-center justify-center text-[#00D2FF] shrink-0 shadow-sm">
-                  <PulseLogo variant="mark" size={24} color="#00D2FF" />
+                <div className="w-11 h-11 rounded-[14px] bg-[var(--accent-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0 shadow-sm">
+                  <PulseLogo variant="mark" size={24} color="#0066FF" />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="font-heading font-extrabold text-[15px] tracking-wide text-[#090D1A] leading-tight">
