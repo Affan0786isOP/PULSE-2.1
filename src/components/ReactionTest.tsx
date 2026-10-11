@@ -802,7 +802,7 @@ return (
           transition={{ duration: 0.5 }}
           className="w-full h-full flex flex-col items-center justify-center relative flex-1"
         >
-          <div className="absolute top-0 left-0 w-full h-[4px] bg-white/5 overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[4px] bg-[var(--surface-2)] overflow-hidden">
           <div 
             className="w-full h-full bg-[var(--cyan-primary)] origin-left transition-transform duration-300 ease-out" 
             style={{ transform: `scaleX(${Math.min(1, currentTrial / TOTAL_TRIALS)})` }}
@@ -815,7 +815,7 @@ return (
               {isSessionLoading ? 'STARTING SESSION...' : inputPrompt}
             </div>
             <div className="w-full flex justify-between items-center font-mono text-[0.85rem] text-[var(--text-muted)] animate-[fadeIn_0.5s_ease-out]">
-              <div className="tracking-[1px]">TRIAL: <span className="text-white">{currentTrial}</span> / {TOTAL_TRIALS}</div>
+              <div className="tracking-[1px]">TRIAL: <span className="text-[var(--text-primary)]">{currentTrial}</span> / {TOTAL_TRIALS}</div>
               <button
                 type="button"
                 onClick={() => setIsInfoOpen(true)}
