@@ -46,7 +46,7 @@ describe('Desktop Home Redesign', () => {
     expect(screen.getByText('COGNITIVE BENCHMARKING')).toBeDefined();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Measure.*your/);
     expect(screen.getByText('mind.')).toBeDefined();
-    expect(screen.getByText(/Reaction time, memory, attention and more/i)).toBeDefined();
+    expect(screen.getByText(/Test your reaction speed, memory and attention/i)).toBeDefined();
   });
 
   it('renders the top navigation bar with brand, routes, Info, and Settings controls', () => {
@@ -61,14 +61,6 @@ describe('Desktop Home Redesign', () => {
     expect(screen.getByRole('button', { name: /settings/i })).toBeDefined();
   });
 
-  it('renders all four feature shortcuts with correct routes', () => {
-    renderHome();
-    expect(screen.getByRole('link', { name: 'Open Leaderboard' }).getAttribute('href')).toBe('/leaderboard');
-    expect(screen.getByRole('link', { name: 'Open Dataset' }).getAttribute('href')).toBe('/dataset');
-    expect(screen.getByRole('link', { name: 'Open Analytics' }).getAttribute('href')).toBe('/analytics');
-    expect(screen.getByRole('link', { name: 'Open About Us' }).getAttribute('href')).toBe('/about');
-  });
-
   it('renders the primary Start Testing CTA button navigating to /assessments', () => {
     renderHome();
     const startTestingBtn = screen.getByRole('link', { name: /start testing/i });
@@ -76,7 +68,7 @@ describe('Desktop Home Redesign', () => {
     expect(startTestingBtn.getAttribute('href')).toBe('/assessments');
   });
 
-  it('replaces duplicate Leaderboard item in metrics row with 24/7 Web Access', () => {
+  it('renders the metrics row with Tests, live Results, and No Sign-up Required', () => {
     renderHome();
     // 5 Tests
     expect(screen.getByText('5')).toBeDefined();
@@ -84,9 +76,9 @@ describe('Desktop Home Redesign', () => {
     // Live results count
     expect(screen.getByText('90')).toBeDefined();
     expect(screen.getByText('Results')).toBeDefined();
-    // 24/7 Web Access
-    expect(screen.getByText('24/7')).toBeDefined();
-    expect(screen.getByText('Web Access')).toBeDefined();
+    // No Sign-up Required
+    expect(screen.getByText('No Sign-up')).toBeDefined();
+    expect(screen.getByText('Required')).toBeDefined();
   });
 
   it('renders the 3D Assessment Carousel with all 5 protocols', () => {

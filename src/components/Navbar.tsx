@@ -203,7 +203,7 @@ export function Navbar({
             type="button" 
             onClick={handleBack}
             aria-label="Go Back"
-            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[var(--accent)] shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95 transition-all shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <ArrowLeft size={16} aria-hidden="true" />
           </button>
@@ -219,7 +219,7 @@ export function Navbar({
 
         {title && (
           <>
-            <div className="h-4 w-px bg-slate-300 hidden sm:block mx-2" aria-hidden="true" />
+            <div className="h-4 w-px bg-[var(--border-subtle)] hidden sm:block mx-2" aria-hidden="true" />
             <span className="text-xs text-[var(--text-secondary)] font-medium hidden sm:block">
               {title}
             </span>
@@ -268,7 +268,7 @@ export function Navbar({
               }
             }}
             aria-label="Install App"
-            className="flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-sky-200/90 bg-sky-50/70 hover:bg-sky-100/90 text-[var(--accent)] text-xs sm:text-[13px] font-medium shadow-[0_2px_6px_rgba(0,102,255,0.06)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0"
+            className="flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-[var(--border-subtle)] bg-[var(--accent-subtle)] hover:bg-[var(--accent)]/15 text-[var(--accent)] text-xs sm:text-[13px] font-medium active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0"
           >
             <Download size={14} strokeWidth={2.4} className="text-[var(--accent)] shrink-0" />
             <span className="hidden sm:inline">Install App</span>
@@ -281,7 +281,7 @@ export function Navbar({
           onClick={() => setIsWelcomeOpen(true)}
           aria-label="Platform Information"
           title="Welcome & Info"
-          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[var(--accent)] flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] flex items-center justify-center active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
           <Info size={17} strokeWidth={2.2} />
         </button>
@@ -296,7 +296,7 @@ export function Navbar({
           aria-disabled={isAssessmentActive}
           aria-label="Settings"
           title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings & Calibration"}
-          className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[var(--text-primary)] text-xs sm:text-[13px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs sm:text-[13px] font-medium active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
             isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
           }`}
         >
@@ -311,7 +311,7 @@ export function Navbar({
           aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={isMobileMenuOpen}
           aria-controls="navbar-mobile-drawer"
-          className="w-9 h-9 sm:w-10 sm:h-10 md:hidden flex items-center justify-center rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[var(--accent)] active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          className="w-9 h-9 sm:w-10 sm:h-10 md:hidden flex items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}

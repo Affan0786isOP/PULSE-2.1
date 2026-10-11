@@ -146,7 +146,7 @@ export function AssessmentHero3D() {
         <button 
           type="button"
           onClick={handlePrev}
-          className="absolute -left-3 sm:-left-4 lg:-left-5 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+          className="absolute -left-4 sm:-left-5 lg:-left-6 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           aria-label="Previous assessment protocol"
         >
           <ChevronLeft size={21} strokeWidth={2.4} />
@@ -240,23 +240,11 @@ export function AssessmentHero3D() {
                   {/* Left: Metadata & Actions */}
                   <div className="flex flex-col justify-between h-full z-10 flex-1 min-w-0">
                     <div>
-                      {/* Protocol Counter & Progress Dashes */}
-                      <div className="flex items-center gap-2.5 mb-2.5">
+                      {/* Protocol Counter */}
+                      <div className="flex items-center gap-2 mb-2.5">
                         <span className="font-mono text-[11.5px] font-bold text-slate-800 tracking-wider">
                           {String(index + 1).padStart(2, '0')} <span className="text-slate-400 font-normal">/ 05</span>
                         </span>
-                        <div className="flex items-center gap-1.5" aria-hidden="true">
-                          {[0, 1, 2, 3, 4].map((step) => (
-                            <div 
-                              key={step} 
-                              className={`h-[3.5px] rounded-full transition-all duration-300 ${
-                                step === activeIndex 
-                                  ? 'w-4 bg-[#0066FF]' 
-                                  : 'w-2.5 bg-slate-200'
-                              }`} 
-                            />
-                          ))}
-                        </div>
                       </div>
 
                       {/* Assessment Title */}
@@ -355,7 +343,7 @@ export function AssessmentHero3D() {
         <button 
           type="button"
           onClick={handleNext}
-          className="absolute -right-3 sm:-right-4 lg:-right-5 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+          className="absolute -right-4 sm:-right-5 lg:-right-6 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           aria-label="Next assessment protocol"
         >
           <ChevronRight size={21} strokeWidth={2.4} />
@@ -374,7 +362,7 @@ export function AssessmentHero3D() {
             className={`transition-all duration-300 rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
               idx === activeIndex 
                 ? 'w-2.5 h-2.5 bg-[#0066FF] ring-4 ring-[#0066FF]/20' 
-                : 'w-2 h-2 bg-slate-300 hover:bg-slate-400'
+                : 'w-2 h-2 bg-[#64748B] hover:bg-[#475569]'
             }`}
             aria-label={`Select protocol ${idx + 1}: ${assessment.title}`}
           />

@@ -1,13 +1,9 @@
 import React, { useState, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Trophy, 
-  Database, 
-  BarChart2, 
   Info, 
   Settings, 
   ArrowRight, 
-  Globe, 
   RefreshCw,
   Download
 } from 'lucide-react';
@@ -108,7 +104,7 @@ export function Home() {
   );
 
   return (
-    <div className="min-h-[100dvh] h-[100dvh] w-full bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] font-sans selection:bg-[#0066FF]/20 overflow-hidden relative flex flex-col justify-between">
+    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] font-sans selection:bg-[#0066FF]/20 overflow-x-hidden relative flex flex-col justify-between">
       <a 
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:bg-[#0066FF] focus:text-white focus:font-semibold focus:text-xs focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0066FF]/60"
@@ -222,7 +218,7 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1440px] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-12 items-center px-6 sm:px-8 xl:px-14 relative z-10 focus-visible:outline-none overflow-hidden pb-4 sm:pb-8"
+        className="w-full max-w-[1440px] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-12 items-center px-6 sm:px-8 xl:px-14 relative z-10 focus-visible:outline-none pb-4 sm:pb-8"
       >
         {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
         <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px]">
@@ -245,68 +241,9 @@ export function Home() {
           </h1>
 
           {/* Subtitle */}
-          <p className={`text-[#475569] text-xs sm:text-[13.5px] lg:text-[14px] leading-relaxed mb-4 sm:mb-5 max-w-[400px] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
-            Reaction time, memory, attention and more — tested with precision, in your browser.
+          <p className={`text-[#475569] text-xs sm:text-[13.5px] lg:text-[14px] leading-relaxed mb-6 sm:mb-7 max-w-[420px] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
+            Test your reaction speed, memory and attention — right in your browser, with no account required.
           </p>
-
-          {/* 4 Feature Shortcuts */}
-          <div className="grid grid-cols-4 gap-3 max-w-[350px] sm:max-w-[370px] mb-4 sm:mb-5">
-            {/* Leaderboard */}
-            <Link 
-              to="/leaderboard"
-              aria-label="Open Leaderboard"
-              className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] rounded-xl active:scale-95 transition-transform"
-            >
-              <div className="w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.08),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF]/60 group-hover:scale-105 transition-all">
-                <Trophy size={22} strokeWidth={2.3} />
-              </div>
-              <span className="text-[11.5px] font-medium text-[#334155] group-hover:text-[#090D1A] mt-2 transition-colors">
-                Leaderboard
-              </span>
-            </Link>
-
-            {/* Dataset */}
-            <Link 
-              to="/dataset"
-              aria-label="Open Dataset"
-              className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] rounded-xl active:scale-95 transition-transform"
-            >
-              <div className="w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.08),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF]/60 group-hover:scale-105 transition-all">
-                <Database size={22} strokeWidth={2.3} />
-              </div>
-              <span className="text-[11.5px] font-medium text-[#334155] group-hover:text-[#090D1A] mt-2 transition-colors">
-                Dataset
-              </span>
-            </Link>
-
-            {/* Analytics */}
-            <Link 
-              to="/analytics"
-              aria-label="Open Analytics"
-              className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] rounded-xl active:scale-95 transition-transform"
-            >
-              <div className="w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.08),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF]/60 group-hover:scale-105 transition-all">
-                <BarChart2 size={22} strokeWidth={2.3} />
-              </div>
-              <span className="text-[11.5px] font-medium text-[#334155] group-hover:text-[#090D1A] mt-2 transition-colors">
-                Analytics
-              </span>
-            </Link>
-
-            {/* About Us */}
-            <Link 
-              to="/about"
-              aria-label="Open About Us"
-              className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] rounded-xl active:scale-95 transition-transform"
-            >
-              <div className="w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.08),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF]/60 group-hover:scale-105 transition-all">
-                <Info size={22} strokeWidth={2.3} />
-              </div>
-              <span className="text-[11.5px] font-medium text-[#334155] group-hover:text-[#090D1A] mt-2 transition-colors">
-                About Us
-              </span>
-            </Link>
-          </div>
 
           {/* Primary CTA: Start Testing */}
           <Link 
@@ -317,7 +254,7 @@ export function Home() {
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </Link>
 
-          {/* Metrics Row (3 Distinct Stats: Tests, Results, 24/7 Web Access) */}
+          {/* Metrics Row (3 Distinct Stats: Tests, Results, No Sign-up Required) */}
           <div className="w-full max-w-[340px] sm:max-w-[360px] grid grid-cols-3 items-center py-1.5 relative">
             {/* Col 1: Canonical Tests */}
             <Link 
@@ -329,7 +266,7 @@ export function Home() {
               <span className="font-heading font-extrabold text-[22px] sm:text-[24px] leading-tight text-[#090D1A] tracking-tight">
                 {testsCount}
               </span>
-              <span className="text-[11px] font-medium text-[#64748B] mt-0.5">
+              <span className="text-[11px] font-semibold text-[#334155] mt-0.5">
                 Tests
               </span>
             </Link>
@@ -345,7 +282,7 @@ export function Home() {
               <span className="font-heading font-extrabold text-[22px] sm:text-[24px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
                 {displayResults}
               </span>
-              <span className="text-[11px] font-medium text-[#64748B] mt-0.5">
+              <span className="text-[11px] font-semibold text-[#334155] mt-0.5">
                 Results
               </span>
             </div>
@@ -353,19 +290,18 @@ export function Home() {
             {/* Divider */}
             <div className="absolute left-[66.66%] top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#CFE4F7]" aria-hidden="true" />
 
-            {/* Col 3: 24/7 Web Access (Replacing duplicate Leaderboard item) */}
+            {/* Col 3: No Sign-up Required */}
             <div
               className="flex flex-col items-center text-center"
-              title="PULSE is accessible on the web 24/7"
+              title="No sign-up or account required to run assessments"
             >
-              <div className="h-[24px] sm:h-[26px] flex items-center justify-center gap-1.5">
-                <Globe size={18} strokeWidth={2.1} className="text-[#090D1A]" aria-hidden="true" />
-                <span className="font-heading font-extrabold text-[19px] sm:text-[21px] leading-tight text-[#090D1A] tracking-tight">
-                  24/7
+              <div className="h-[24px] sm:h-[26px] flex items-center justify-center">
+                <span className="font-heading font-extrabold text-[17px] sm:text-[19px] leading-tight text-[#090D1A] tracking-tight">
+                  No Sign-up
                 </span>
               </div>
-              <span className="text-[11px] font-medium text-[#64748B] mt-0.5 leading-tight">
-                Web Access
+              <span className="text-[11px] font-semibold text-[#334155] mt-0.5 leading-tight">
+                Required
               </span>
             </div>
           </div>
