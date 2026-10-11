@@ -55,6 +55,8 @@ Both Vite/TypeScript configurations define `@shared` aliases. Before changing ca
 - Express server middleware uses mobile User-Agent/client-hint detection for document-navigation redirects; it cannot reliably inspect the browser viewport width.
 - Cross-surface navigation allows manual override if a user explicitly requests the desktop or mobile interface.
 
+The global settings store currently forces dark mode. The mobile home hero deliberately uses a separately authored light visual surface; do not infer that a general light-theme switch is implemented from that one route.
+
 ---
 
 ## 3. Assessment Execution & Timing Pipeline
