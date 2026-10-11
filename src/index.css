@@ -114,37 +114,37 @@
     color-scheme: light;
     caret-color: var(--accent);
     /* Semantic Surfaces */
-    --surface-0: #F8FAFC;
+    --surface-0: #FFFFFF;
     --surface-1: #FFFFFF;
-    --surface-2: #F1F5F9;
-    --surface-3: #E2E8F0;
+    --surface-2: #F4F9FF;
+    --surface-3: #EAF3FD;
 
     /* Semantic Borders */
-    --border-subtle: #E2E8F0;
+    --border-subtle: #D9E6F5;
     --border-default: #CBD5E1;
-    --border-strong: #94A3B8;
+    --border-strong: #B8CDE6;
 
     /* Semantic Text */
-    --text-primary: #0F172A;
+    --text-primary: #090D1A;
     --text-secondary: #475569;
-    --text-muted: #546479;
+    --text-muted: #64748B;
 
     /* Semantic Accent */
-    --accent: #0284C7;
-    --accent-hover: #0369A1;
-    --accent-subtle: rgba(2, 132, 199, 0.10);
+    --accent: #0066FF;
+    --accent-hover: #0052CC;
+    --accent-subtle: rgba(0, 102, 255, 0.10);
 
     /* Semantic Status */
-    --success: #16A34A;
+    --success: #059669;
     --warning: #D97706;
     --danger: #DC2626;
 
-    --focus-ring: #0284C7;
+    --focus-ring: #0066FF;
 
     /* Technical Background Grid Pattern */
-    --bg-grid-line: rgba(0, 0, 0, 0.035);
-    --bg-grid-cross: rgba(2, 132, 199, 0.22);
-    --bg-grid-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cpath d='M0 48h96M48 0v96M0 0h96v96H0' stroke='rgba(0,0,0,0.035)' stroke-width='1' fill='none'/%3E%3Cpath d='M0 3v-6M3 0h-6M96 99v-6M99 96h-6M0 99v-6M3 96h-6M96 3v-6M99 0h-6' stroke='rgba(2,132,199,0.22)' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+    --bg-grid-line: rgba(0, 102, 255, 0.04);
+    --bg-grid-cross: rgba(0, 102, 255, 0.22);
+    --bg-grid-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cpath d='M0 48h96M48 0v96M0 0h96v96H0' stroke='rgba(0,0,0,0.035)' stroke-width='1' fill='none'/%3E%3Cpath d='M0 3v-6M3 0h-6M96 99v-6M99 96h-6M0 99v-6M3 96h-6M96 3v-6M99 0h-6' stroke='rgba(0,102,255,0.22)' stroke-width='1' fill='none'/%3E%3C/svg%3E");
 
     /* Legacy Token Aliases for Stability */
     --bg-base: var(--surface-0);
@@ -153,8 +153,8 @@
     --bg-card: var(--surface-1);
     --bg-card-hover: var(--surface-2);
     --bg-panel: var(--surface-2);
-    --bg-panel-hover: #E2E8F0;
-    --bg-panel-active: #CBD5E1;
+    --bg-panel-hover: #EAF3FD;
+    --bg-panel-active: #D6E7FA;
 
     --border: var(--border-default);
     --glass-border: var(--border-subtle);
@@ -167,7 +167,7 @@
 
     --foreground: var(--text-primary);
     --text-main: var(--text-primary);
-    --text-subtle: #94A3B8;
+    --text-subtle: #64748B;
 
     --nav-bg: #FFFFFF;
     --nav-menu-bg: #FFFFFF;
@@ -185,7 +185,7 @@
     --chart-2: var(--success);
     --chart-3: var(--warning);
     --chart-4: var(--danger);
-    --chart-5: #4F46E5;
+    --chart-5: #60A5FA;
     --chart-background: var(--surface-1);
     --chart-foreground: var(--text-primary);
     --chart-foreground-muted: var(--text-muted);
