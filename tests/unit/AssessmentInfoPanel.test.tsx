@@ -18,6 +18,7 @@ describe('AssessmentInfoPanel Dialog Component', () => {
     expect(dialog.getAttribute('aria-modal')).toBe('true');
     expect(dialog.getAttribute('aria-labelledby')).toBe('assessment-info-title');
     expect(dialog.getAttribute('id')).toBe('assessment-info-panel');
+    expect(dialog.classList.contains('pulse-light-modal')).toBe(true);
   });
 
   it('has inert and aria-hidden="true" when closed', () => {
