@@ -6,36 +6,36 @@
 ---
 
 ## 1. Design Philosophy & Aesthetic Core
-PULSE's visual language is that of a **precision scientific telemetry platform**. It rejects generic SaaS tropes, blurry drop shadows, and arbitrary purple gradients in favor of high-contrast observatory dark grounds, crisp tabular typography, and tactical stimulus feedback signals.
+PULSE's visual language is a **light-first precision scientific telemetry platform**. Use clean white and pale-blue surfaces, deep ink typography, a confident electric-blue primary accent, precise borders, and restrained shadows. Avoid dark panels in ordinary application surfaces, arbitrary purple gradients, and decorative motion that compromises assessment clarity.
 
 ---
 
 ## 2. Surfaces & Elevation Tokens
 
-| Token | Effective Dark Mode Value (desktop and mobile) | Light Mode Status | Usage |
-| :--- | :--- | :--- | :--- |
-| `--surface-0` (Base) | `#08080A` | Inactive — global settings force dark mode | Global viewport ground |
-| `--surface-1` (Panels) | `#12171F` | Inactive — global settings force dark mode | Cards, test apparatus, navigation bars |
-| `--surface-2` (Inputs) | `#1A212B` | Inactive — global settings force dark mode | Secondary controls, metric trays, active cards |
-| `--surface-3` (Elevated)| `#222B38` | Inactive — global settings force dark mode | Popovers, tooltips, modal dialogs |
+| Token | Canonical Light Value | Usage |
+| :--- | :--- | :--- |
+| `--surface-0` (Base) | `#FFFFFF` | Global viewport ground |
+| `--surface-1` (Panels) | `#FFFFFF` | Cards, test apparatus, navigation bars |
+| `--surface-2` (Soft) | `#F4F9FF` | Secondary controls, metric trays, soft panels |
+| `--surface-3` (Elevated) | `#EAF3FD` | Selected cards, popovers, elevated states |
 
 ### Border Strategy
-- Effective dark-mode borders: `--border-subtle` is `rgba(255, 255, 255, 0.08)`, `--border-default` is `#1F2732`, and `--border-strong` is `#2A3442`. These values are set by `src/styles/pulse-aesthetic.css`, loaded after `src/index.css`.
+- Use quiet light-mode borders: `--border-subtle` is `#D9E6F5`, `--border-default` is `#CBD5E1`, and `--border-strong` is `#B8CDE6`. Surface contrast should come from subtle tonal differences rather than heavy shadows.
 - Contrast is created through stepped tonal backgrounds rather than heavy drop shadows.
 
 ---
 
 ## 3. Palette & Semantic Color Signals
 
-| Signal Role | Dark Mode Value | Light Mode Value | Semantic Meaning |
-| :--- | :--- | :--- | :--- |
-| **Signal Cyan (Primary Accent)** | `#00F0FF` | Inactive — theme is dark-only | Primary instrument indicators, interactive highlights |
-| **Accent Hover** | `#33F3FF` | Inactive — theme is dark-only | Hover feedback |
-| **Accent Subtle** | `rgba(0, 240, 255, 0.12)` | Inactive — theme is dark-only | Tag fills and telemetry backgrounds |
-| **Provenance Green (Validated)**| `#10B981` | Inactive — theme is dark-only | Validated response; HMAC-signed record; pass |
-| **Awaiting / Standby** | `#F59E0B` | Inactive — theme is dark-only | Test preparation; countdown; waiting state |
-| **Stimulus Active** | `#FFFFFF` against a dark surrounding surface | Inactive — theme is dark-only | Active stimulus onset requiring instantaneous response |
-| **Fault / False Start** | `#EF4444` | Inactive — theme is dark-only | Anticipatory trigger ($<80\text{ms}$); premature click |
+| Signal Role | Canonical Light Value | Semantic Meaning |
+| :--- | :--- | :--- |
+| **Primary Accent / Signal Blue** | `#0066FF` | Primary actions, interactive highlights, focus rings |
+| **Accent Hover** | `#0052CC` | Hover feedback |
+| **Accent Subtle** | `rgba(0, 102, 255, 0.10)` | Soft tag fills, selected-state backgrounds |
+| **Provenance Green (Validated)** | `#059669` | Validated response, success and positive status |
+| **Awaiting / Standby** | `#D97706` | Test preparation, countdown and waiting state |
+| **Stimulus Active** | Protocol-specific high-contrast signal | The active cue must be immediately distinguishable against its apparatus |
+| **Fault / False Start** | `#DC2626` | Anticipatory trigger ($<80\text{ms}$), error and failure states |
 
 ---
 
@@ -59,7 +59,7 @@ The PULSE brand symbol consists of two synchronized geometric vector primitives:
 import { PulseLogo, StimulusReticle } from '@/components/brand';
 
 // Standalone Vector Mark
-<PulseLogo variant="mark" size={24} color="#00F0FF" />
+<PulseLogo variant="mark" size={24} color="#0066FF" />
 
 // Horizontal Lockup
 <PulseLogo variant="horizontal" size={28} />
@@ -78,6 +78,7 @@ import { PulseLogo, StimulusReticle } from '@/components/brand';
 
 ## 7. Canonical Token Source and Measurement Exception
 
-- Runtime token precedence is determined by the actual stylesheet import order: `src/main.tsx` imports `src/index.css` and then `src/styles/pulse-aesthetic.css`; the latter bridges semantic tokens to `src/brand/tokens.css`. Treat the effective values in this document as current runtime values, and verify both desktop and mobile imports before changing them.
-- `src/lib/settingsStore.ts` currently forces `themeMode` to `dark`. Light-mode CSS declarations remain in the stylesheets but are not an active global user-selectable theme; do not build theme-switching behavior based solely on those declarations.
+- The canonical design is light-first and applied globally. Desktop imports `src/index.css` followed by `src/styles/pulse-aesthetic.css`, which bridges semantic variables to `src/brand/tokens.css`. Mobile uses `mobile/src/index.css` with matching semantic values. Keep those token values synchronized, and do not introduce a dark theme toggle without a new product decision.
+- Both settings stores, first-paint HTML bootstrap scripts, logo defaults, status-bar metadata, and PWA manifests must initialize the light palette. The mobile home hero is the visual reference for the palette; other mobile screens and all desktop routes must follow the same system.
 - During an active reaction stimulus, transitions/animations on the stimulus apparatus and changing stimulus/timer/status text are forbidden because they can delay the visible stimulus. Preserve `transition-none` in `STIMULUS_ACTIVE` state in both reaction-test implementations. Browser frame timestamps estimate onset; they are not direct physical display measurements.
+- High-contrast stimulus states, colored success/error feedback, and dark translucent backdrops may remain when they serve a distinct interaction or protocol purpose. They are not permission to leave whole cards, navigation, admin panels, or ordinary screens in the old dark theme.
