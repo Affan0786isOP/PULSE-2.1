@@ -129,7 +129,7 @@ export function Home() {
       />
 
       {/* Top Navigation Bar */}
-      <header className="relative z-30 w-full max-w-[1440px] min-[1920px]:max-w-[clamp(1440px,calc(1080px+18.75vw),1800px)] mx-auto px-6 sm:px-10 lg:px-14 min-[1920px]:px-[clamp(56px,calc(32px+1.25vw),80px)] h-16 sm:h-20 min-[1920px]:h-[clamp(80px,calc(64px+0.833333333vw),96px)] flex items-center justify-between shrink-0">
+      <header className="relative z-30 w-full max-w-[1360px] min-[1280px]:max-w-[clamp(1360px,calc(672px+53.75vw),4800px)] mx-auto px-6 sm:px-10 lg:px-14 min-[1280px]:px-[clamp(40px,calc(16px+1.875vw),160px)] h-16 sm:h-20 min-[1280px]:h-[clamp(80px,calc(52px+2.1875vw),220px)] flex items-center justify-between shrink-0">
         {/* Brand Lockup */}
         <Link 
           to="/"
@@ -140,41 +140,41 @@ export function Home() {
         </Link>
 
         {/* Center Main Links */}
-        <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8 min-[1920px]:gap-10">
+        <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8 min-[1280px]:gap-[clamp(28px,calc(18px+0.78125vw),70px)]">
           <Link 
             to="/assessments" 
-            className="text-[13.5px] lg:text-[14.5px] min-[1920px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[1280px]:text-[clamp(14px,calc(9.8px+0.328125vw),32px)] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             Assessments
           </Link>
           <Link 
             to="/leaderboard" 
-            className="text-[13.5px] lg:text-[14.5px] min-[1920px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[1280px]:text-[clamp(14px,calc(9.8px+0.328125vw),32px)] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             Leaderboard
           </Link>
           <Link 
             to="/dataset" 
-            className="text-[13.5px] lg:text-[14.5px] min-[1920px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[1280px]:text-[clamp(14px,calc(9.8px+0.328125vw),32px)] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             Dataset
           </Link>
           <Link 
             to="/analytics" 
-            className="text-[13.5px] lg:text-[14.5px] min-[1920px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[1280px]:text-[clamp(14px,calc(9.8px+0.328125vw),32px)] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             Analytics
           </Link>
           <Link 
             to="/about" 
-            className="text-[13.5px] lg:text-[14.5px] min-[1920px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
+            className="text-[13.5px] lg:text-[14.5px] min-[1280px]:text-[clamp(14px,calc(9.8px+0.328125vw),32px)] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
           >
             About
           </Link>
         </nav>
 
         {/* Right Info, Settings & Install Actions */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-[1280px]:gap-[clamp(10px,calc(6px+0.3125vw),30px)]">
           {pwa.isInstallable && (
             <button
               type="button"
@@ -187,7 +187,7 @@ export function Home() {
                 }
               }}
               aria-label="Install App"
-              className="flex items-center gap-2 px-3 sm:px-3.5 min-[1920px]:px-4 py-1.5 sm:py-2 min-[1920px]:py-2.5 rounded-full border border-sky-200/90 bg-sky-50/70 hover:bg-sky-100/90 text-[#0066FF] text-xs sm:text-[13px] min-[1920px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,102,255,0.06)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] shrink-0"
+              className="flex items-center gap-2 px-3 sm:px-3.5 min-[1280px]:px-[clamp(14px,calc(9px+0.390625vw),36px)] py-1.5 sm:py-2 min-[1280px]:py-[clamp(8px,calc(5px+0.234375vw),22px)] rounded-full border border-sky-200/90 bg-sky-50/70 hover:bg-sky-100/90 text-[#0066FF] text-xs sm:text-[13px] min-[1280px]:text-[clamp(13px,calc(9px+0.3125vw),30px)] font-medium shadow-[0_2px_6px_rgba(0,102,255,0.06)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] shrink-0"
             >
               <Download size={14} strokeWidth={2.4} className="text-[#0066FF] shrink-0" />
               <span className="hidden sm:inline">Install App</span>
@@ -198,7 +198,7 @@ export function Home() {
             type="button"
             onClick={() => setIsWelcomeOpen(true)}
             aria-label="Platform Information"
-            className="w-9 h-9 sm:w-10 sm:h-10 min-[1920px]:w-11 min-[1920px]:h-11 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+            className="w-9 h-9 sm:w-10 sm:h-10 min-[1280px]:w-[clamp(40px,calc(26px+1.09375vw),100px)] min-[1280px]:h-[clamp(40px,calc(26px+1.09375vw),100px)] rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           >
             <Info size={17} strokeWidth={2.2} />
           </button>
@@ -206,7 +206,7 @@ export function Home() {
             type="button"
             onClick={() => setIsSettingsOpen(true)}
             aria-label="Settings"
-            className="flex items-center gap-2 px-3.5 sm:px-4 min-[1920px]:px-5 py-1.5 sm:py-2 min-[1920px]:py-2.5 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] text-xs sm:text-[13px] min-[1920px]:text-[14.5px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+            className="flex items-center gap-2 px-3.5 sm:px-4 min-[1280px]:px-[clamp(16px,calc(10px+0.46875vw),42px)] py-1.5 sm:py-2 min-[1280px]:py-[clamp(8px,calc(5px+0.234375vw),22px)] rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] text-xs sm:text-[13px] min-[1280px]:text-[clamp(13px,calc(9px+0.3125vw),30px)] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           >
             <Settings size={15} strokeWidth={2.2} />
             <span>Settings</span>
@@ -218,14 +218,14 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1440px] min-[1920px]:max-w-[clamp(1440px,calc(1080px+18.75vw),1800px)] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-12 min-[1920px]:gap-[clamp(48px,calc(16px+1.666666667vw),80px)] items-center px-6 sm:px-8 xl:px-14 min-[1920px]:px-[clamp(56px,calc(32px+1.25vw),80px)] relative z-10 focus-visible:outline-none pb-4 sm:pb-8"
+        className="w-full max-w-[1360px] min-[1280px]:max-w-[clamp(1360px,calc(672px+53.75vw),4800px)] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-12 min-[1280px]:gap-[clamp(48px,calc(25.6px+1.75vw),160px)] items-center px-6 sm:px-8 xl:px-14 min-[1280px]:px-[clamp(40px,calc(16px+1.875vw),160px)] relative z-10 focus-visible:outline-none pb-4 sm:pb-8"
       >
         {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
-        <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[1920px]:max-w-[clamp(480px,calc(380px+5.208333333vw),580px)]">
+        <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[1280px]:max-w-[clamp(480px,calc(16px+36.25vw),2800px)]">
           {/* Eyebrow Badge */}
           <div className={`mb-2.5 sm:mb-3 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
             <div className="inline-flex items-center rounded-full bg-[#E0F2FE]/90 border border-[#BAE6FD]/90 px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.06)]">
-              <span className="text-[10px] sm:text-[10.5px] min-[1920px]:text-[clamp(10.5px,calc(9.5px+0.052083333vw),11.5px)] font-mono font-bold tracking-[0.18em] text-[#0369A1] uppercase">
+              <span className="text-[10px] sm:text-[10.5px] min-[1280px]:text-[clamp(10.5px,calc(6px+0.35156vw),30px)] font-mono font-bold tracking-[0.18em] text-[#0369A1] uppercase">
                 COGNITIVE BENCHMARKING
               </span>
             </div>
@@ -234,28 +234,28 @@ export function Home() {
           {/* Headline */}
           <h1 
             id="hero-heading"
-            className={`font-heading text-3xl sm:text-4xl lg:text-[50px] min-[1920px]:text-[clamp(50px,calc(36px+0.729166667vw),64px)] font-extrabold tracking-tight leading-[1.08] min-[1920px]:leading-[1.05] mb-2 sm:mb-3 text-[#090D1A] text-balance ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-2'}`}
+            className={`font-heading text-3xl sm:text-4xl lg:text-[50px] min-[1280px]:text-[clamp(50px,calc(20px+2.34375vw),200px)] font-extrabold tracking-tight leading-[1.08] min-[1280px]:leading-[1.05] mb-2 sm:mb-3 text-[#090D1A] text-balance ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-2'}`}
           >
             Measure<br />
             your <span className="text-[#0066FF]">mind.</span>
           </h1>
 
           {/* Subtitle */}
-          <p className={`text-[#475569] text-xs sm:text-[13.5px] lg:text-[14px] min-[1920px]:text-[clamp(14px,calc(11.5px+0.130208333vw),16.5px)] leading-relaxed mb-6 sm:mb-7 max-w-[420px] min-[1920px]:max-w-[clamp(420px,calc(320px+5.208333333vw),520px)] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
+          <p className={`text-[#475569] text-xs sm:text-[13.5px] lg:text-[14px] min-[1280px]:text-[clamp(14px,calc(7.6px+0.5vw),46px)] leading-relaxed mb-6 sm:mb-7 max-w-[420px] min-[1280px]:max-w-[clamp(420px,calc(144px+21.5625vw),1800px)] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
             Test your reaction speed, memory and attention — right in your browser, with no account required.
           </p>
 
           {/* Primary CTA: Start Testing */}
           <Link 
             to="/assessments"
-            className="w-full max-w-[340px] sm:max-w-[360px] min-[1920px]:max-w-[clamp(360px,calc(300px+3.125vw),420px)] h-[50px] sm:h-[54px] min-[1920px]:h-[clamp(54px,calc(46px+0.416666667vw),62px)] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white font-semibold text-[15px] sm:text-[16px] min-[1920px]:text-[clamp(16px,calc(14px+0.104166667vw),18px)] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.4),0_4px_10px_-2px_rgba(0,102,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 focus-visible:ring-offset-2 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group mb-6 sm:mb-7"
+            className="w-full max-w-[340px] sm:max-w-[360px] min-[1280px]:max-w-[clamp(360px,calc(152px+16.25vw),1400px)] h-[50px] sm:h-[54px] min-[1280px]:h-[clamp(54px,calc(28.8px+1.96875vw),180px)] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white font-semibold text-[15px] sm:text-[16px] min-[1280px]:text-[clamp(16px,calc(8.8px+0.5625vw),52px)] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.4),0_4px_10px_-2px_rgba(0,102,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 focus-visible:ring-offset-2 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group mb-6 sm:mb-7"
           >
             <span>Start Testing</span>
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </Link>
 
           {/* Metrics Row (3 Distinct Stats: Tests, Results, No Sign-up Required) */}
-          <div className="w-full max-w-[340px] sm:max-w-[360px] min-[1920px]:max-w-[clamp(360px,calc(300px+3.125vw),420px)] grid grid-cols-3 items-center py-1.5 relative">
+          <div className="w-full max-w-[340px] sm:max-w-[360px] min-[1280px]:max-w-[clamp(360px,calc(152px+16.25vw),1400px)] grid grid-cols-3 items-center py-1.5 relative">
             {/* Col 1: Canonical Tests */}
             <Link 
               to="/assessments"
@@ -263,10 +263,10 @@ export function Home() {
               className="flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] rounded-lg active:opacity-75 transition-opacity"
               title={`${testsCount} available assessment batteries`}
             >
-              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[1920px]:text-[clamp(24px,calc(20px+0.208333333vw),28px)] leading-tight text-[#090D1A] tracking-tight">
+              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[1280px]:text-[clamp(24px,calc(11.6px+0.96875vw),86px)] leading-tight text-[#090D1A] tracking-tight">
                 {testsCount}
               </span>
-              <span className="text-[11px] min-[1920px]:text-[clamp(11px,calc(9.5px+0.078125vw),12.5px)] font-semibold text-[#334155] mt-0.5">
+              <span className="text-[11px] min-[1280px]:text-[clamp(11px,calc(6px+0.39063vw),36px)] font-semibold text-[#334155] mt-0.5">
                 Tests
               </span>
             </Link>
@@ -279,10 +279,10 @@ export function Home() {
               className="flex flex-col items-center text-center"
               title="Count of public research result records in Firestore"
             >
-              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[1920px]:text-[clamp(24px,calc(20px+0.208333333vw),28px)] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
+              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[1280px]:text-[clamp(24px,calc(11.6px+0.96875vw),86px)] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
                 {displayResults}
               </span>
-              <span className="text-[11px] min-[1920px]:text-[clamp(11px,calc(9.5px+0.078125vw),12.5px)] font-semibold text-[#334155] mt-0.5">
+              <span className="text-[11px] min-[1280px]:text-[clamp(11px,calc(6px+0.39063vw),36px)] font-semibold text-[#334155] mt-0.5">
                 Results
               </span>
             </div>
@@ -295,12 +295,12 @@ export function Home() {
               className="flex flex-col items-center text-center"
               title="No sign-up or account required to run assessments"
             >
-              <div className="h-[24px] sm:h-[26px] min-[1920px]:h-[clamp(26px,calc(22px+0.208333333vw),30px)] flex items-center justify-center">
-                <span className="font-heading font-extrabold text-[17px] sm:text-[19px] min-[1920px]:text-[clamp(19px,calc(16px+0.15625vw),22px)] leading-tight text-[#090D1A] tracking-tight">
+              <div className="h-[24px] sm:h-[26px] min-[1280px]:h-[clamp(26px,calc(12.8px+1.03125vw),92px)] flex items-center justify-center">
+                <span className="font-heading font-extrabold text-[17px] sm:text-[19px] min-[1280px]:text-[clamp(19px,calc(9.2px+0.76563vw),68px)] leading-tight text-[#090D1A] tracking-tight">
                   No Sign-up
                 </span>
               </div>
-              <span className="text-[11px] min-[1920px]:text-[clamp(11px,calc(9.5px+0.078125vw),12.5px)] font-semibold text-[#334155] mt-0.5 leading-tight">
+              <span className="text-[11px] min-[1280px]:text-[clamp(11px,calc(6px+0.39063vw),36px)] font-semibold text-[#334155] mt-0.5 leading-tight">
                 Required
               </span>
             </div>

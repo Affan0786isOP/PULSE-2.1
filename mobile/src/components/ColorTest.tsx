@@ -41,7 +41,7 @@ const COLORS = [
   { name: 'BLUE', value: '#3b82f6' },
   { name: 'GREEN', value: '#10b981' },
   { name: 'YELLOW', value: '#eab308' },
-  { name: 'PURPLE', value: 'var(--cyan-primary)' }
+  { name: 'PURPLE', value: '#8e44ad' }
 ];
 
 

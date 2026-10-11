@@ -12,13 +12,13 @@ export function AssessmentHero3D() {
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Continuous scale factor for carousel geometry (S = 1.0 at <= 1920px, S = 13/11 at >= 3840px)
+  // Continuous scale factor for carousel geometry (S = 1.0 at <= 1280px, S = 3.5 at >= 7680px)
   const getScaleFactor = () => {
     if (typeof window === 'undefined') return 1;
     const w = window.innerWidth;
-    if (w <= 1920) return 1;
-    if (w >= 3840) return 13 / 11;
-    return 1 + (2 / 11) * ((w - 1920) / 1920);
+    if (w <= 1280) return 1;
+    if (w >= 7680) return 3.5;
+    return 1 + 2.5 * ((w - 1280) / (7680 - 1280));
   };
 
   const [carouselScale, setCarouselScale] = useState(getScaleFactor);
@@ -186,7 +186,7 @@ export function AssessmentHero3D() {
           className="absolute z-40 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           aria-label="Previous assessment protocol"
         >
-          <ChevronLeft size={21 * Math.min(carouselScale, 1.15)} strokeWidth={2.4} />
+          <ChevronLeft size={Math.round(21 * carouselScale)} strokeWidth={2.4} />
         </button>
 
         {/* 3D Card Stack Container */}
@@ -267,7 +267,7 @@ export function AssessmentHero3D() {
 
                 {/* Content Layer 1: Active Card Full Layout */}
                 <div 
-                  className={`absolute inset-0 w-full h-full p-6 sm:p-7 min-[1920px]:p-[clamp(28px,calc(20px+0.416666667vw),36px)] flex flex-row items-center justify-between gap-4 transition-opacity duration-300 ${
+                  className={`absolute inset-0 w-full h-full p-6 sm:p-7 min-[1280px]:p-[clamp(28px,calc(16.8px+0.875vw),84px)] flex flex-row items-center justify-between gap-4 transition-opacity duration-300 ${
                     isActive ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                   }`}
                 >
@@ -282,25 +282,25 @@ export function AssessmentHero3D() {
                     <div>
                       {/* Protocol Counter */}
                       <div className="flex items-center gap-2 mb-2.5">
-                        <span className="font-mono text-[11.5px] min-[1920px]:text-[clamp(11.5px,calc(9.5px+0.104166667vw),13.5px)] font-bold text-slate-800 tracking-wider">
+                        <span className="font-mono text-[11.5px] min-[1280px]:text-[clamp(11.5px,calc(7.4px+0.32031vw),32px)] font-bold text-slate-800 tracking-wider">
                           {String(index + 1).padStart(2, '0')} <span className="text-slate-400 font-normal">/ 05</span>
                         </span>
                       </div>
 
                       {/* Assessment Title */}
-                      <h3 className="font-heading font-extrabold text-2xl min-[1920px]:text-[clamp(24px,calc(20px+0.208333333vw),28px)] text-[#090D1A] tracking-tight leading-tight mb-2 whitespace-nowrap">
+                      <h3 className="font-heading font-extrabold text-2xl min-[1280px]:text-[clamp(24px,calc(15.2px+0.6875vw),68px)] text-[#090D1A] tracking-tight leading-tight mb-2 whitespace-nowrap">
                         {assessment.title}
                       </h3>
 
                       {/* Assessment Subtext */}
-                      <p className="text-xs sm:text-[13px] min-[1920px]:text-[clamp(13px,calc(11px+0.104166667vw),15px)] text-[#475569] leading-relaxed max-w-[200px] min-[1920px]:max-w-[clamp(200px,calc(140px+3.125vw),260px)] line-clamp-2">
+                      <p className="text-xs sm:text-[13px] min-[1280px]:text-[clamp(13px,calc(8.4px+0.35938vw),36px)] text-[#475569] leading-relaxed max-w-[200px] min-[1280px]:max-w-[clamp(200px,calc(100px+7.8125vw),600px)] line-clamp-2">
                         {assessment.description}
                       </p>
                     </div>
 
                     {/* CTA: Try Test Button */}
                     <div className="mt-3">
-                      <div className="inline-flex items-center gap-1.5 px-4 min-[1920px]:px-5 py-2 min-[1920px]:py-2.5 rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white text-xs sm:text-[13px] min-[1920px]:text-[clamp(13px,calc(11.5px+0.078125vw),14.5px)] font-semibold shadow-[0_4px_12px_rgba(0,102,255,0.35)] hover:shadow-[0_6px_16px_rgba(0,102,255,0.45)] active:scale-95 transition-shadow">
+                      <div className="inline-flex items-center gap-1.5 px-4 min-[1280px]:px-[clamp(16px,calc(10px+0.46875vw),42px)] py-2 min-[1280px]:py-[clamp(8px,calc(5px+0.234375vw),22px)] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white text-xs sm:text-[13px] min-[1280px]:text-[clamp(13px,calc(8.4px+0.35938vw),36px)] font-semibold shadow-[0_4px_12px_rgba(0,102,255,0.35)] hover:shadow-[0_6px_16px_rgba(0,102,255,0.45)] active:scale-95 transition-shadow">
                         <span>Try Test</span>
                         <ArrowRight size={14} strokeWidth={2.4} />
                       </div>
@@ -401,12 +401,20 @@ export function AssessmentHero3D() {
           className="absolute z-40 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           aria-label="Next assessment protocol"
         >
-          <ChevronRight size={21 * Math.min(carouselScale, 1.15)} strokeWidth={2.4} />
+          <ChevronRight size={Math.round(21 * carouselScale)} strokeWidth={2.4} />
         </button>
       </div>
 
       {/* Pagination Pill Dots */}
-      <div className="flex items-center gap-2.5 mt-3 z-20 shrink-0" role="tablist" aria-label="Assessment protocols">
+      <div 
+        className="flex items-center z-20 shrink-0" 
+        style={{ 
+          gap: `${10 * carouselScale}px`,
+          marginTop: `${12 * carouselScale}px`
+        }}
+        role="tablist" 
+        aria-label="Assessment protocols"
+      >
         {HERO_ASSESSMENTS.map((assessment, idx) => (
           <button
             key={assessment.id}
@@ -414,10 +422,14 @@ export function AssessmentHero3D() {
             role="tab"
             aria-selected={idx === activeIndex}
             onClick={() => handleSelect(idx)}
+            style={{
+              width: idx === activeIndex ? `${10 * carouselScale}px` : `${8 * carouselScale}px`,
+              height: idx === activeIndex ? `${10 * carouselScale}px` : `${8 * carouselScale}px`,
+            }}
             className={`transition-all duration-300 rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
               idx === activeIndex 
-                ? 'w-2.5 h-2.5 bg-[#0066FF] ring-4 ring-[#0066FF]/20' 
-                : 'w-2 h-2 bg-[#64748B] hover:bg-[#475569]'
+                ? 'bg-[#0066FF] ring-4 ring-[#0066FF]/20' 
+                : 'bg-[#64748B] hover:bg-[#475569]'
             }`}
             aria-label={`Select protocol ${idx + 1}: ${assessment.title}`}
           />
