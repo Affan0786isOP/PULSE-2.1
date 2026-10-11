@@ -5,6 +5,7 @@ interface PulseLogoProps {
   size?: number | string;
   className?: string;
   color?: string;
+  textColor?: string;
 }
 
 export const PulseLogo: React.FC<PulseLogoProps> = ({
@@ -12,6 +13,7 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
   size,
   className = '',
   color = 'var(--accent, #22C7D6)',
+  textColor,
 }) => {
   // Standalone P-Symbol Path Elements
   const symbolPaths = (
@@ -57,7 +59,10 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
         </svg>
 
         {/* Wordmark */}
-        <span className="font-bold text-2xl tracking-[0.28em] text-[#F8FAFC] font-sans mt-3 pl-[0.28em]">
+        <span 
+          className="font-bold text-2xl tracking-[0.28em] font-sans mt-3 pl-[0.28em]"
+          style={{ color: textColor ?? '#F8FAFC' }}
+        >
           PULSE
         </span>
         <span className="font-mono text-[9px] tracking-[0.18em] text-[#7E808C] uppercase mt-1">
@@ -79,7 +84,10 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
       >
         {symbolPaths}
       </svg>
-      <span className="font-bold text-lg tracking-[0.26em] text-[#F8FAFC] font-sans leading-none pl-[0.26em]">
+      <span 
+        className="font-bold text-lg tracking-[0.26em] font-sans leading-none pl-[0.26em]"
+        style={{ color: textColor ?? '#F8FAFC' }}
+      >
         PULSE
       </span>
     </div>
