@@ -135,7 +135,7 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 | **Leaderboard Opt-In** | Modal UI | `IMPLEMENTED` | The participant uses Firebase Anonymous Authentication; public submission eligibility is separate from auth anonymity and is governed by explicit opt-in, score validation, and display-alias rules. |
 | **Cognitive Guidance** | `/improve` | `IMPLEMENTED` | Sleep, circadian timing, caffeine, and reaction training educational cards backed by scientific literature. |
 | **Admin Console** | `/admin/*` | `IMPLEMENTED` | Passcode-protected overview, live leaderboard moderation (hide/delete with reason notes), and audit trail viewer. |
-| **Privacy Policy & Terms** | `/privacy` | `IMPLEMENTED` | Comprehensive disclosure of zero-PII data handling, statutory compliance, and data subject rights. |
+| **Research Privacy Disclosure** | `/privacy` | `IMPLEMENTED (DISCLOSURE)` | Describes data flows and safeguards; does not certify legal compliance or guarantee an implemented participant-erasure workflow. Keep claims aligned with verified collection and retention behavior. |
 | **Multiplayer / Live Duels** | — | `PLANNED` | Real-time peer-to-peer cognitive reaction duels (Not implemented in v2.2). |
 | **Native Mobile App (iOS/Android)**| App Stores | `PLANNED` | Capacitor/React Native native wrapper (Web PWA active in v2.2). |
 
