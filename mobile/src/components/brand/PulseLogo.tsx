@@ -12,7 +12,7 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
   variant = 'horizontal',
   size,
   className = '',
-  color = '#00F0FF',
+  color = 'var(--accent, #0066FF)',
   textColor,
 }) => {
   const symbolPaths = (
@@ -57,7 +57,7 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
         </svg>
         <span 
           className="font-bold text-2xl tracking-[0.28em] font-sans mt-3 pl-[0.28em]"
-          style={{ color: textColor ?? '#F8FAFC' }}
+          style={{ color: textColor ?? 'var(--text-primary, #090D1A)' }}
         >
           PULSE
         </span>
@@ -78,7 +78,7 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
       </svg>
       <span 
         className="font-bold text-lg tracking-[0.26em] font-sans leading-none pl-[0.26em]"
-        style={{ color: textColor ?? '#F8FAFC' }}
+        style={{ color: textColor ?? 'var(--text-primary, #090D1A)' }}
       >
         PULSE
       </span>
