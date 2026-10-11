@@ -427,25 +427,25 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
   
 
   if (engineState === 'READY') {
-    apparatusClass += " border-white/10 hover:border-white/20 bg-black/50 hover:bg-black/40";
+    apparatusClass += " border-[var(--border-subtle)] hover:border-[var(--border-default)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)]";
   } else if (engineState === 'STARTING') {
-    apparatusClass += " border-white/10 bg-black/50";
+    apparatusClass += " border-[var(--border-subtle)] bg-[var(--surface-1)]";
     statusClass += " !text-[var(--text-main)]";
   } else if (engineState === 'SHOWING') {
-    apparatusClass += " border-[rgba(255,214,10,0.2)] bg-black/80";
+    apparatusClass += " border-[rgba(217,119,6,0.28)] bg-[var(--surface-2)]";
     statusClass += " !text-[var(--color-idle)]";
   } else if (engineState === 'INPUT') {
-    apparatusClass += " border-[rgba(0,240,255,0.3)] bg-black/80 cursor-default";
+    apparatusClass += " border-[rgba(0,102,255,0.28)] bg-[var(--surface-2)] cursor-default";
     statusClass += " !text-[var(--cyan-primary)]";
     
   } else if (engineState === 'SUCCESS') {
-    apparatusClass += " border-[rgba(0,245,212,0.3)] bg-[rgba(0,245,212,0.05)]";
+    apparatusClass += " border-[rgba(5,150,105,0.30)] bg-[rgba(5,150,105,0.05)]";
     statusClass += " !text-[var(--color-success)]";
   } else if (engineState === 'FAILED') {
-    apparatusClass += " border-[rgba(255,51,102,0.4)] bg-[rgba(255,51,102,0.05)] animate-[hardwareShake_0.4s_cubic-bezier(.36,.07,.19,.97)_both]";
+    apparatusClass += " border-[rgba(220,38,38,0.35)] bg-[rgba(220,38,38,0.05)] animate-[hardwareShake_0.4s_cubic-bezier(.36,.07,.19,.97)_both]";
     statusClass += " !text-[var(--color-error)]";
   } else {
-    apparatusClass += " border-white/10 bg-black/50";
+    apparatusClass += " border-[var(--border-subtle)] bg-[var(--surface-1)]";
   }
 
   const renderKeypad = () => {
@@ -453,12 +453,12 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
     return (
       <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-[260px] sm:max-w-[280px] mx-auto mt-4 mb-4 z-10">
         {keys.map((key) => {
-          let btnClass = "h-12 sm:h-14 rounded-xl border border-white/10 font-['Space_Grotesk'] text-xl text-white flex items-center justify-center transition-[background-color,border-color,color,transform] hover:bg-white/10 active:bg-white/20 active:scale-95 bg-white/5";
+          let btnClass = "h-12 sm:h-14 rounded-xl border border-[var(--border-subtle)] font-['Space_Grotesk'] text-xl text-[var(--text-primary)] flex items-center justify-center transition-[background-color,border-color,color,transform] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] active:scale-95 bg-[var(--surface-1)]";
           
           if (key === 'enter') {
             btnClass += " bg-[var(--cyan-primary)]/20 border-[var(--cyan-primary)]/40 text-[var(--cyan-primary)] hover:bg-[var(--cyan-primary)]/30 active:bg-[var(--cyan-primary)]/40";
           } else if (key === 'del') {
-            btnClass += " text-white/50 hover:text-white/80";
+            btnClass += " text-[var(--text-secondary)] hover:text-[var(--text-primary)]";
           }
           
           const ariaLabel = key === 'del' ? 'Delete digit' : key === 'enter' ? 'Submit sequence' : `Digit ${key}`;
@@ -626,9 +626,9 @@ return (
             <div className="w-full flex justify-between items-center font-mono text-[0.85rem] text-[var(--text-muted)] animate-[fadeIn_0.5s_ease-out]">
               {engineState !== 'READY' ? (
                 <>
-                  <div className="tracking-[1px]">LEVEL: <span className="text-white">{level}</span></div>
+                  <div className="tracking-[1px]">LEVEL: <span className="text-[var(--text-primary)]">{level}</span></div>
                   <div className="tracking-[1px] flex items-center gap-1">LIVES: <span className="text-[var(--color-error)] flex gap-1 ml-1">{Array.from({ length: 3 }).map((_, i) => <Heart key={i} size={14} className={i < lives ? "fill-current" : "opacity-30"} />)}</span></div>
-                  <div className="tracking-[1px]">DIGITS: <span className="text-white">{level + 2}</span></div>
+                  <div className="tracking-[1px]">DIGITS: <span className="text-[var(--text-primary)]">{level + 2}</span></div>
                 </>
               ) : (
                 <div className="tracking-[1px]">DIGIT SPAN • WORKING MEMORY</div>
@@ -722,7 +722,7 @@ return (
 
             <div className="flex flex-col items-center justify-center w-full flex-1 my-4">
               {engineState === 'SHOWING' && (
-                <div className="font-['Space_Grotesk'] text-5xl md:text-7xl text-white tracking-[8px] animate-[fadeIn_0.2s_ease-out]">
+                <div className="font-['Space_Grotesk'] text-5xl md:text-7xl text-[var(--text-primary)] tracking-[8px] animate-[fadeIn_0.2s_ease-out]">
                   {sequence}
                 </div>
               )}
@@ -745,7 +745,7 @@ return (
               {engineState === 'FAILED' && (
                 <div className="flex flex-col items-center gap-2">
                   <div className="text-[var(--text-muted)] text-sm font-mono tracking-widest uppercase mb-1">The number was</div>
-                  <div className="font-['Space_Grotesk'] text-3xl text-white tracking-[4px] mb-4 line-through opacity-50">
+                  <div className="font-['Space_Grotesk'] text-3xl text-[var(--text-primary)] tracking-[4px] mb-4 line-through opacity-50">
                     {sequence}
                   </div>
                 </div>
