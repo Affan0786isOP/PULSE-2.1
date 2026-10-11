@@ -8,12 +8,12 @@ This document defines the data structures, Firestore collections, TypeScript typ
 
 | Collection Name | Purpose | Primary Read Access | Primary Write Access | Retention Policy |
 | :--- | :--- | :--- | :--- | :--- |
-| **`experimentSessions`** | Ephemeral experiment tokens & PRNG seeds | Authenticated Subject (`uid == auth.uid`) | Server Backend Only | **90 days** (or upon consumption) |
-| **`assessmentTrials`** | Granular millisecond-level trial telemetry | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
-| **`assessmentResults`** | Aggregated assessment outcome summaries | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
-| **`publicDataset`** | Anonymized open research benchmark records | Authenticated Users (`auth != null`) | Server Backend Only | **Indefinite** (Open science) |
-| **`leaderboardResults`** | Voluntary opted-in public rank records | Public (`hidden == false`) | Server Backend Only | **2 years** (or user removal) |
-| **`adminAuditLogs`** | Immutable administrator moderation log | Server Admin Only (Client read denied) | Server Backend Only | **7 years** (Statutory audit) |
+| **`experimentSessions`** | Ephemeral experiment tokens & PRNG seeds | Authenticated Subject (`uid == auth.uid`) | Server Backend Only | 90-day policy target; application expiry is 15 minutes, automatic purge not verified |
+| **`assessmentTrials`** | Granular millisecond-level trial telemetry | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | 5-year policy target; automatic purge/erasure not verified |
+| **`assessmentResults`** | Aggregated assessment outcome summaries | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | 5-year policy target; automatic purge/erasure not verified |
+| **`publicDataset`** | Sanitized open research benchmark records | Authenticated Users (`auth != null`) | Server Backend Only | Indefinite policy target |
+| **`leaderboardResults`** | Voluntary opted-in public rank records | Public (`hidden == false`) | Server Backend Only | 2-year policy target; automatic purge not verified |
+| **`adminAuditLogs`** | Administrator moderation log (not guaranteed immutable by retention policy) | Server Admin Only (Client read denied) | Server Backend Only | 7-year policy target; automatic purge not verified |
 
 ---
 
@@ -56,7 +56,7 @@ interface ExperimentSessionDoc {
   assessmentType: AssessmentType;
   ageGroup: AgeGroup;
   createdAt: number;           // Epoch millisecond timestamp
-  expiresAt: number;           // Expiration timestamp (+1 hour)
+  expiresAt: number;           // App-level expiry set to creation time + 15 minutes
   consumed: boolean;           // Replay prevention flag
   derivedMetrics?: Record<string, unknown>;
 }
@@ -171,6 +171,9 @@ interface AdminAuditLogDoc {
   note?: string;               // Moderator justification
 }
 ```
+
+
+**Retention enforcement note:** These are policy targets, not proof of deployed automatic deletion. At the audited source revision, `firebase.json` contains Firestore rules/indexes configuration only; deployed TTL or scheduled purge controls were not inspected. See [`security/retention.md`](../security/retention.md) for the verification gap and the unimplemented participant-erasure workflow.
 
 ---
 
