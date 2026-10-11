@@ -539,25 +539,25 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   
 
   if (engineState === 'AWAITING_STIMULUS' || engineState === 'STARTING') {
-    apparatusClass += " border-[rgba(255,214,10,0.2)] bg-black/40";
+    apparatusClass += " border-[rgba(217,119,6,0.28)] bg-[var(--surface-2)]";
     statusClass += " text-[var(--color-idle)]";
   } else if (engineState === 'STIMULUS_ACTIVE') {
-    apparatusClass += " border-[var(--cyan-primary)] bg-[rgba(0,240,255,0.05)]";
+    apparatusClass += " border-[var(--cyan-primary)] bg-[rgba(0,102,255,0.05)]";
     timerClass += " text-[var(--cyan-primary)]";
     statusClass += " text-[var(--cyan-primary)]";
   } else if (engineState === 'TRIAL_COMPLETE') {
     const isError = statusMessage === 'False start' || statusMessage === 'Incorrect' || statusMessage === 'Too slow';
     if (isError) {
-      apparatusClass += " border-[rgba(255,51,102,0.4)] bg-[rgba(255,51,102,0.05)] animate-[hardwareShake_0.4s_cubic-bezier(.36,.07,.19,.97)_both]";
+      apparatusClass += " border-[rgba(220,38,38,0.35)] bg-[rgba(220,38,38,0.05)] animate-[hardwareShake_0.4s_cubic-bezier(.36,.07,.19,.97)_both]";
       timerClass += " text-[var(--color-error)]";
       statusClass += " text-[var(--color-error)]";
     } else {
-      apparatusClass += " border-[rgba(0,245,212,0.3)] bg-[rgba(0,245,212,0.05)]";
+      apparatusClass += " border-[rgba(5,150,105,0.30)] bg-[rgba(5,150,105,0.05)]";
       timerClass += " text-[var(--color-success)]";
       statusClass += " text-[var(--color-success)]";
     }
   } else {
-    apparatusClass += " border-white/10 hover:border-white/20 bg-black/50 hover:bg-black/40";
+    apparatusClass += " border-[var(--border-subtle)] hover:border-[var(--border-default)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)]";
   }
 
   const speedData = useMemo(() => {
