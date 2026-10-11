@@ -9,7 +9,7 @@
 PULSE is a high-precision cognitive assessment platform, empirical research engine, and cryptographic latency benchmark suite. Designed for desktop workstations and mobile touchscreen devices, it captures high-resolution browser timing for reaction-time tasks and evaluates executive function, attentional conflict, and working memory across normalized demographic age cohorts. End-to-end timing accuracy varies by browser, display, and input hardware; display-delay values are estimates rather than direct physical measurements.
 
 ### Core Objectives
-1. **Precision Cognitive Baselining:** Provide laboratory-grade measurement of motor response speed, flanker interference, Stroop inhibition, and spatial/verbal memory span.
+1. **Precision Cognitive Baselining:** Provide high-resolution browser-based measures of motor response speed, flanker interference, Stroop inhibition, and spatial/verbal memory span. End-to-end measurement accuracy is hardware- and browser-dependent and is not represented as laboratory-grade without independent validation.
 2. **Open Empirical Science:** Aggregate anonymized assessment outcomes into a publicly queryable, downloadable dataset categorized by age cohort.
 3. **Cryptographic Integrity:** Guarantee data provenance and prevent synthetic score manipulation using server-side HMAC-SHA256 attestation.
 4. **Privacy-Oriented Architecture:** Avoid direct identity collection in participant flows and sanitize public research records. These design choices are privacy safeguards, not a certification of compliance with GDPR, the FTC Health Breach Notification Rule, Washington My Health My Data Act, or other laws; legal and operational compliance requires separate review.
