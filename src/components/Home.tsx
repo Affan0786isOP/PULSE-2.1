@@ -8,10 +8,12 @@ import {
   Settings, 
   ArrowRight, 
   Globe, 
-  RefreshCw 
+  RefreshCw,
+  Download
 } from 'lucide-react';
 import { SEO } from './SEO';
 import { useReducedMotionPreference } from '../lib/settingsStore';
+import { usePwaInstall } from '../lib/usePwaInstall';
 import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { DesktopWaveGraphic } from './home/DesktopWaveGraphic';
@@ -78,6 +80,7 @@ const HOME_SCHEMA = {
 
 const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
+const AddToHomeScreenModal = React.lazy(() => import('./AddToHomeScreenModal').then(m => ({ default: m.AddToHomeScreenModal })));
 
 const ModalLoadingFallback = () => (
   <div role="status" aria-live="polite" className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
@@ -90,6 +93,7 @@ const ModalLoadingFallback = () => (
 
 export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
+  const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
@@ -173,8 +177,27 @@ export function Home() {
           </Link>
         </nav>
 
-        {/* Right Info & Settings Actions */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Right Info, Settings & Install Actions */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {pwa.isInstallable && (
+            <button
+              type="button"
+              id="desktop-install-app-btn"
+              onClick={() => {
+                if (pwa.hasNativePrompt) {
+                  pwa.promptInstall();
+                } else {
+                  pwa.openInstallGuide();
+                }
+              }}
+              aria-label="Install App"
+              className="flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-sky-200/90 bg-sky-50/70 hover:bg-sky-100/90 text-[#0066FF] text-xs sm:text-[13px] font-medium shadow-[0_2px_6px_rgba(0,102,255,0.06)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] shrink-0"
+            >
+              <Download size={14} strokeWidth={2.4} className="text-[#0066FF] shrink-0" />
+              <span className="hidden sm:inline">Install App</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setIsWelcomeOpen(true)}
@@ -361,6 +384,24 @@ export function Home() {
       <Suspense fallback={<ModalLoadingFallback />}>
         {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
         {isWelcomeOpen && <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />}
+        {pwa.isGuideOpen && (
+          <AddToHomeScreenModal
+            isOpen={pwa.isGuideOpen}
+            onClose={pwa.closeInstallGuide}
+            isInstalled={pwa.isInstalled}
+            isIos={pwa.isIos}
+            isSafari={pwa.isSafari}
+            isIosSafari={pwa.isIosSafari}
+            isIosChrome={pwa.isIosChrome}
+            isIosOtherBrowser={pwa.isIosOtherBrowser}
+            isInstallable={pwa.isInstallable}
+            hasNativePrompt={pwa.hasNativePrompt}
+            isInstallPromptSupported={pwa.isInstallPromptSupported}
+            isUnsupportedBrowser={pwa.isUnsupportedBrowser}
+            isOffline={pwa.isOffline}
+            onPromptInstall={pwa.promptInstall}
+          />
+        )}
       </Suspense>
     </div>
   );
