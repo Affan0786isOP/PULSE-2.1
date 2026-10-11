@@ -96,7 +96,7 @@ sequenceDiagram
 
 State is partitioned across four clear tiers:
 1. **In-Memory Volatile State:** [`src/lib/inMemorySessionStore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/inMemorySessionStore.ts) holds active session trial arrays during assessment runs to prevent unnecessary I/O during timing loops.
-2. **Local Client Settings:** [`src/lib/settingsStore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/settingsStore.ts) manages sound/haptics/fullscreen/reduced-motion/font-scale preferences in `localStorage`. The current settings store forces `themeMode` to `dark` and does not own an age-cohort setting.
+2. **Local Client Settings:** [`src/lib/settingsStore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/settingsStore.ts) manages sound/haptics/fullscreen/reduced-motion/font-scale preferences in `localStorage`. The current settings store forces `themeMode` to `light` and does not own an age-cohort setting. Theme is applied both by first-paint HTML bootstrap scripts and the desktop/mobile settings stores; keep those paths synchronized.
 3. **PWA Offline Store:** [`src/lib/pwaStore.ts`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/src/lib/pwaStore.ts) tracks install prompt readiness and service worker updates.
 4. **Cloud Database:** Google Cloud Firestore holds persistent assessment trials, results, public datasets, leaderboards, and admin audit logs.
 
