@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { triggerHaptic } from '../../lib/settingsStore';
 import { useAuthoritativeStats } from '../../lib/useAuthoritativeStats';
+import { PulseLogo } from '../brand';
 import { NeuralGraphic } from './NeuralGraphic';
 import { WaveGraphic } from './WaveGraphic';
 
@@ -80,9 +81,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           className="flex items-center text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] group"
           aria-label="PULSE Home"
         >
-          <span className="font-heading font-bold text-[19px] tracking-[0.26em] text-[#090D1A] group-active:opacity-80 transition-opacity">
-            PULSE
-          </span>
+          <PulseLogo variant="horizontal" size={26} color="#0066FF" textColor="#090D1A" />
         </button>
 
         <div className="flex items-center gap-1">

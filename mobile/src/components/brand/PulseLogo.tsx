@@ -5,6 +5,7 @@ interface PulseLogoProps {
   size?: number | string;
   className?: string;
   color?: string;
+  textColor?: string;
 }
 
 export const PulseLogo: React.FC<PulseLogoProps> = ({
@@ -12,6 +13,7 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
   size,
   className = '',
   color = '#00F0FF',
+  textColor,
 }) => {
   const symbolPaths = (
     <>
@@ -53,7 +55,10 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
         >
           {symbolPaths}
         </svg>
-        <span className="font-bold text-2xl tracking-[0.28em] text-[#F8FAFC] font-sans mt-3 pl-[0.28em]">
+        <span 
+          className="font-bold text-2xl tracking-[0.28em] font-sans mt-3 pl-[0.28em]"
+          style={{ color: textColor ?? '#F8FAFC' }}
+        >
           PULSE
         </span>
       </div>
@@ -61,7 +66,7 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
   }
 
   return (
-    <div className={`inline-flex items-center gap-3 select-none ${className}`}>
+    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
       <svg
         viewBox="0 0 100 100"
         fill="none"
@@ -71,7 +76,10 @@ export const PulseLogo: React.FC<PulseLogoProps> = ({
       >
         {symbolPaths}
       </svg>
-      <span className="font-bold text-lg tracking-[0.26em] text-[#F8FAFC] font-sans leading-none pl-[0.26em]">
+      <span 
+        className="font-bold text-lg tracking-[0.26em] font-sans leading-none pl-[0.26em]"
+        style={{ color: textColor ?? '#F8FAFC' }}
+      >
         PULSE
       </span>
     </div>
