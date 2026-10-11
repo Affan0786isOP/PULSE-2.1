@@ -458,25 +458,25 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
   
 
   if (engineState === 'READY') {
-    apparatusClass += " border-white/10 hover:border-white/20 bg-black/50 hover:bg-black/40";
+    apparatusClass += " border-[var(--border-subtle)] hover:border-[var(--border-default)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)]";
   } else if (engineState === 'STARTING') {
-    apparatusClass += " border-white/10 bg-black/50";
+    apparatusClass += " border-[var(--border-subtle)] bg-[var(--surface-1)]";
     statusClass += " !text-[var(--text-main)]";
   } else if (engineState === 'SHOWING') {
-    apparatusClass += " border-[rgba(255,214,10,0.2)] bg-black/80";
+    apparatusClass += " border-[rgba(217,119,6,0.28)] bg-[var(--surface-2)]";
     statusClass += " !text-[var(--color-idle)]";
   } else if (engineState === 'INPUT') {
-    apparatusClass += " border-[rgba(0,240,255,0.3)] bg-black/80";
+    apparatusClass += " border-[rgba(0,102,255,0.28)] bg-[var(--surface-2)]";
     statusClass += " !text-[var(--cyan-primary)]";
     
   } else if (engineState === 'SUCCESS') {
-    apparatusClass += " border-[rgba(0,245,212,0.3)] bg-[rgba(0,245,212,0.05)]";
+    apparatusClass += " border-[rgba(5,150,105,0.30)] bg-[rgba(5,150,105,0.05)]";
     statusClass += " !text-[var(--color-success)]";
   } else if (engineState === 'FAILED') {
-    apparatusClass += " border-[rgba(255,51,102,0.4)] bg-[rgba(255,51,102,0.05)] animate-[hardwareShake_0.4s_cubic-bezier(.36,.07,.19,.97)_both]";
+    apparatusClass += " border-[rgba(220,38,38,0.35)] bg-[rgba(220,38,38,0.05)] animate-[hardwareShake_0.4s_cubic-bezier(.36,.07,.19,.97)_both]";
     statusClass += " !text-[var(--color-error)]";
   } else {
-    apparatusClass += " border-white/10 bg-black/50";
+    apparatusClass += " border-[var(--border-subtle)] bg-[var(--surface-1)]";
   }
 
   useEffect(() => {
@@ -625,7 +625,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
             <div className="w-full flex justify-between items-center font-mono text-[0.85rem] text-[var(--text-muted)] animate-[fadeIn_0.5s_ease-out]">
               {engineState !== 'READY' ? (
                 <>
-                  <div className="tracking-[1px]">Level: <span className="text-white">{level}</span></div>
+                  <div className="tracking-[1px]">Level: <span className="text-[var(--text-primary)]">{level}</span></div>
                   <div className="tracking-[1px] flex items-center gap-1">Lives: <span className="text-[var(--color-error)] flex gap-1 ml-1">{Array.from({ length: 3 }).map((_, i) => <Heart key={i} size={14} className={i < lives ? "fill-current" : "opacity-30"} />)}</span></div>
                 </>
               ) : (
@@ -720,7 +720,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
             {/* Grid */}
             <div className="flex-1 flex flex-col items-center justify-center w-full my-4"><div className="grid grid-cols-3 gap-2 sm:gap-4 p-4 sm:p-8 w-full max-w-[280px] sm:max-w-[320px] aspect-square mx-auto">
               {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => {
-                let blockClass = "block-cell bg-white/5 border border-white/10 rounded-xl cursor-pointer w-full h-full";
+                let blockClass = "block-cell bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl cursor-pointer w-full h-full";
                 if (activeBlock === i) {
                   if (engineState === 'SUCCESS') {
                     blockClass += " success-active";
@@ -730,7 +730,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
                     blockClass += " active";
                   }
                 } else if (engineState === 'INPUT') {
-                  blockClass += " hover:bg-white/15 active:bg-white/25";
+                  blockClass += " hover:bg-[var(--surface-2)] active:bg-[var(--accent-subtle)]";
                 }
 return (
                   <button 
