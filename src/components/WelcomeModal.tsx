@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, X, ListChecks, Zap, BarChart2 } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { X, List, Zap, BarChart2, Database, ChevronRight, ArrowRight, Check } from 'lucide-react';
 import { PulseLogo } from './brand';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 
-const WELCOME_STORAGE_KEY = 'pulse_desktop_welcome_seen';
-const LEGACY_WELCOME_STORAGE_KEY = 'pulse_welcome_seen';
+export const WELCOME_STORAGE_KEY = 'pulse_desktop_welcome_seen';
+export const LEGACY_WELCOME_STORAGE_KEY = 'pulse_welcome_seen';
 
 export function isWelcomeSeen(): boolean {
   if (typeof window === 'undefined') return false;
@@ -18,8 +19,8 @@ export function isWelcomeSeen(): boolean {
   }
 }
 
-export function setWelcomeSeen(seen: boolean): void {
-  if (typeof window === 'undefined') return;
+export function setWelcomeSeen(seen: boolean): boolean {
+  if (typeof window === 'undefined') return false;
   try {
     if (seen) {
       localStorage.setItem(WELCOME_STORAGE_KEY, 'true');
@@ -28,10 +29,13 @@ export function setWelcomeSeen(seen: boolean): void {
       localStorage.removeItem(WELCOME_STORAGE_KEY);
       localStorage.removeItem(LEGACY_WELCOME_STORAGE_KEY);
     }
-  } catch {}
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-// Backward-compatible export redirecting to authoritative persistence
+// Backward-compatible exports redirecting to authoritative persistence
 export function isWelcomeSeenInMemory(): boolean {
   return isWelcomeSeen();
 }
@@ -47,7 +51,8 @@ export interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps) {
-  const [dontShowAgain, setDontShowAgain] = useState<boolean>(isWelcomeSeen);
+  const navigate = useNavigate();
+  const [dontShowAgain, setDontShowAgain] = useState<boolean>(() => isWelcomeSeen());
   const [mounted, setMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -56,34 +61,39 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
     setMounted(true);
   }, []);
 
+  // Synchronize checkbox state when modal opens
   useEffect(() => {
     if (isOpen) {
       setDontShowAgain(isWelcomeSeen());
     }
   }, [isOpen]);
 
+  // Central dismissal handler that ensures preference persistence is always synchronized
+  const handleDismiss = useCallback((targetRoute?: string) => {
+    setWelcomeSeen(dontShowAgain);
+    onClose();
+    if (targetRoute) {
+      if (onNavigate) {
+        onNavigate(targetRoute.replace(/^\//, ''));
+      }
+      navigate(targetRoute);
+    }
+  }, [dontShowAgain, onClose, onNavigate, navigate]);
+
+  // Hook into modal accessibility with handleDismiss so Escape and backdrop behave consistently
   const { zIndex } = useModalAccessibility({
     isOpen,
-    onClose,
+    onClose: handleDismiss,
     dialogRef,
     initialFocusRef: closeButtonRef,
     modalId: 'welcome-modal'
   });
 
-  const handleClose = () => {
-    setWelcomeSeen(dontShowAgain);
-    onClose();
-  };
-
   const handleStartAssessments = () => {
-    setWelcomeSeen(dontShowAgain);
-    onClose();
-    if (onNavigate) {
-      onNavigate('assessments');
-    }
+    handleDismiss('/assessments');
   };
 
-  const handleDontShowAgain = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDontShowAgainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
     setDontShowAgain(isChecked);
     setWelcomeSeen(isChecked);
@@ -95,18 +105,19 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
     <AnimatePresence>
       {isOpen && (
         <div 
-          className="fixed inset-0 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+          className="fixed inset-0 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
           style={{ zIndex }}
         >
-          {/* Opaque dark backdrop */}
+          {/* Soft blurred dark backdrop */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md cursor-pointer"
+            className="fixed inset-0 bg-[#090D1A]/50 backdrop-blur-sm cursor-pointer"
             onClick={(e) => {
-              if (e.target === e.currentTarget) handleClose();
+              if (e.target === e.currentTarget) handleDismiss();
             }}
+            aria-hidden="true"
           />
 
           {/* Modal Container */}
@@ -117,102 +128,278 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
             aria-labelledby="welcome-modal-heading"
             tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            initial={{ opacity: 0, scale: 0.96, y: 14 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 12 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="relative z-10 w-full max-w-[420px] bg-[var(--surface-1)] border border-[var(--border-default)] rounded-xl p-5 sm:p-6 flex flex-col font-sans text-[var(--text-primary)] my-auto focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] outline-none"
+            exit={{ opacity: 0, scale: 0.96, y: 14 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 w-full max-w-[550px] max-h-[min(690px,calc(100dvh-2rem))] bg-gradient-to-b from-[#FFFFFF] via-[#F9FBFF] to-[#F1F6FD] border border-sky-100 rounded-[28px] sm:rounded-[32px] p-6 sm:p-7 flex flex-col font-sans text-[#090D1A] my-auto shadow-[0_24px_64px_rgba(0,102,255,0.14),0_8px_24px_rgba(0,0,0,0.05)] focus-visible:ring-2 focus-visible:ring-[#0066FF] outline-none overflow-y-auto"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between gap-3 mb-3.5">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] shrink-0">
-                  <PulseLogo variant="mark" size={18} color="var(--accent)" />
+            {/* Top Atmospheric Wave Graphic (Decor) */}
+            <svg 
+              className="absolute right-0 top-0 w-52 h-36 pointer-events-none select-none opacity-50 overflow-hidden" 
+              viewBox="0 0 220 140" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path 
+                d="M 40 95 C 80 65, 120 105, 160 55 C 180 30, 205 45, 220 35" 
+                stroke="#00C2FF" 
+                strokeWidth="1.2" 
+                strokeDasharray="2 3"
+                strokeOpacity="0.45"
+              />
+              <path 
+                d="M 70 115 C 110 75, 150 85, 190 35 C 205 25, 215 30, 220 15" 
+                stroke="#0066FF" 
+                strokeWidth="1.2" 
+                strokeOpacity="0.25"
+              />
+              <circle cx="160" cy="55" r="2.5" fill="#0066FF" />
+              <circle cx="110" cy="80" r="2" fill="#00C2FF" />
+            </svg>
+
+            {/* Header: Branded Mark and Close Button */}
+            <div className="flex items-center justify-between gap-3 mb-4 relative z-10">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-[14px] bg-[#090D1A] flex items-center justify-center text-[#00D2FF] shrink-0 shadow-sm">
+                  <PulseLogo variant="mark" size={24} color="#00D2FF" />
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <div className="font-bold text-xs tracking-wide text-[var(--text-primary)] leading-tight">PULSE</div>
-                  <div className="text-[10px] text-[var(--text-muted)] tracking-tight truncate font-mono">Cognitive Benchmarking Suite</div>
+                  <div className="font-heading font-extrabold text-[15px] tracking-wide text-[#090D1A] leading-tight">
+                    PULSE
+                  </div>
+                  <div className="text-[11.5px] sm:text-[12px] text-[#64748B] font-medium tracking-tight truncate">
+                    Cognitive Benchmarking Suite
+                  </div>
                 </div>
               </div>
 
               <button 
                 ref={closeButtonRef}
                 type="button" 
-                onClick={handleClose}
-                className="w-8 h-8 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center justify-center transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                onClick={() => handleDismiss()}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
                 aria-label="Close dialog"
               >
-                <X size={16} />
+                <X size={18} strokeWidth={2.2} />
               </button>
             </div>
 
-            <h2 id="welcome-modal-heading" className="text-base font-bold text-[var(--text-primary)] tracking-tight mb-1">
-              Welcome to PULSE
-            </h2>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">
-              Precision User Latency &amp; Stimulus Evaluator is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
-            </p>
+            {/* Title & Description */}
+            <div className="relative z-10 mb-4">
+              <h2 id="welcome-modal-heading" className="text-2xl sm:text-[29px] font-extrabold text-[#090D1A] tracking-tight leading-tight">
+                Welcome to <span className="bg-gradient-to-r from-[#0066FF] to-[#00C2FF] bg-clip-text text-transparent">PULSE</span>
+              </h2>
+              <p className="text-xs sm:text-[13px] text-[#475569] leading-relaxed mt-1.5 max-w-[480px]">
+                Precision User Latency &amp; Stimulus Evaluator is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
+              </p>
+            </div>
 
-            {/* How it works */}
-            <div className="text-[10.5px] font-mono font-bold text-[var(--accent)] uppercase tracking-wider mb-2">How it works</div>
-            <div className="flex flex-col gap-2.5 mb-3.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg p-3">
-              <div className="flex gap-2.5 items-start">
-                <div className="w-6 h-6 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 mt-0.5">
-                  <ListChecks size={13} className="stroke-[2.2]" />
+            {/* Section Header: HOW IT WORKS */}
+            <div className="flex items-center gap-2.5 mb-3 relative z-10">
+              <span className="text-[10.5px] font-mono font-bold text-[#0066FF] tracking-[0.14em] uppercase">
+                HOW IT WORKS
+              </span>
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-sky-200 to-transparent" aria-hidden="true" />
+            </div>
+
+            {/* Three Steps with Vertical Connecting Dash Line */}
+            <div className="relative flex flex-col gap-2.5 mb-3.5 z-10">
+              {/* Vertical Dashed Line running from step 1 badge to step 3 badge */}
+              <div 
+                className="absolute left-[21px] top-6 bottom-6 w-0 border-l-[1.5px] border-dashed border-[#94A3B8]/60 z-0 pointer-events-none" 
+                aria-hidden="true" 
+              />
+
+              {/* Step 1: Pick a test */}
+              <div 
+                role="button"
+                tabIndex={0}
+                onClick={() => handleDismiss('/assessments')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleDismiss('/assessments');
+                  }
+                }}
+                className="group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.04)] hover:border-sky-200 hover:shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+              >
+                {/* Step Badge */}
+                <div className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center font-bold text-[10.5px] shrink-0 z-10 shadow-xs">
+                  1
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">Pick a test</div>
-                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Visual Reaction, Direction, Colour Recognition, Block Memory, or Number Memory.</div>
+
+                {/* Icon Container */}
+                <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                  <List size={20} strokeWidth={2.4} />
+                </div>
+
+                {/* Step Content */}
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] sm:text-[14px] font-bold text-[#090D1A] leading-tight mb-0.5">
+                    Pick a test
+                  </div>
+                  <div className="text-[11px] sm:text-[12px] text-[#64748B] leading-snug">
+                    Visual Reaction, Direction, Colour Recognition, Block Memory, or Number Memory.
+                  </div>
+                </div>
+
+                {/* Right Arrow Action */}
+                <div className="w-7 h-7 rounded-full bg-[#F1F6FD] text-[#64748B] group-hover:text-[#0066FF] group-hover:bg-[#E1EFFE] flex items-center justify-center transition-colors shrink-0 ml-1">
+                  <ChevronRight size={15} strokeWidth={2.4} />
                 </div>
               </div>
 
-              <div className="flex gap-2.5 items-start">
-                <div className="w-6 h-6 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 mt-0.5">
-                  <Zap size={13} className="stroke-[2.2]" />
+              {/* Step 2: Respond */}
+              <div 
+                role="button"
+                tabIndex={0}
+                onClick={() => handleDismiss('/assessments')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleDismiss('/assessments');
+                  }
+                }}
+                className="group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.04)] hover:border-sky-200 hover:shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+              >
+                {/* Step Badge */}
+                <div className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center font-bold text-[10.5px] shrink-0 z-10 shadow-xs">
+                  2
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">Respond</div>
-                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Watch for the cue and answer as fast and accurately as you can.</div>
+
+                {/* Icon Container */}
+                <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                  <Zap size={20} strokeWidth={2.4} fill="#0066FF" fillOpacity={0.15} />
+                </div>
+
+                {/* Step Content */}
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] sm:text-[14px] font-bold text-[#090D1A] leading-tight mb-0.5">
+                    Respond
+                  </div>
+                  <div className="text-[11px] sm:text-[12px] text-[#64748B] leading-snug">
+                    Watch for the cue and answer as fast and accurately as you can.
+                  </div>
+                </div>
+
+                {/* Right Arrow Action */}
+                <div className="w-7 h-7 rounded-full bg-[#F1F6FD] text-[#64748B] group-hover:text-[#0066FF] group-hover:bg-[#E1EFFE] flex items-center justify-center transition-colors shrink-0 ml-1">
+                  <ChevronRight size={15} strokeWidth={2.4} />
                 </div>
               </div>
 
-              <div className="flex gap-2.5 items-start">
-                <div className="w-6 h-6 rounded-md bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 mt-0.5">
-                  <BarChart2 size={13} className="stroke-[2.2]" />
+              {/* Step 3: Review */}
+              <div 
+                role="button"
+                tabIndex={0}
+                onClick={() => handleDismiss('/leaderboard')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleDismiss('/leaderboard');
+                  }
+                }}
+                className="group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.04)] hover:border-sky-200 hover:shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+              >
+                {/* Step Badge */}
+                <div className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center font-bold text-[10.5px] shrink-0 z-10 shadow-xs">
+                  3
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold text-[var(--text-primary)] mb-0.5">Review</div>
-                  <div className="text-[11px] text-[var(--text-secondary)] leading-snug">Get your score instantly and compare it against reference benchmarks.</div>
+
+                {/* Icon Container */}
+                <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                  <BarChart2 size={20} strokeWidth={2.4} />
+                </div>
+
+                {/* Step Content */}
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] sm:text-[14px] font-bold text-[#090D1A] leading-tight mb-0.5">
+                    Review
+                  </div>
+                  <div className="text-[11px] sm:text-[12px] text-[#64748B] leading-snug">
+                    Get your score instantly and compare it against reference benchmarks.
+                  </div>
+                </div>
+
+                {/* Right Arrow Action */}
+                <div className="w-7 h-7 rounded-full bg-[#F1F6FD] text-[#64748B] group-hover:text-[#0066FF] group-hover:bg-[#E1EFFE] flex items-center justify-center transition-colors shrink-0 ml-1">
+                  <ChevronRight size={15} strokeWidth={2.4} />
                 </div>
               </div>
             </div>
 
-            <p className="text-[11px] text-[var(--text-muted)] leading-relaxed mb-3.5">
-              You can also compare scores on the Leaderboard, download the open Dataset, or read habit recommendations in the Improve guide.
-            </p>
+            {/* Supporting Links Callout Box */}
+            <div className="rounded-2xl bg-[#F4F9FF]/90 border border-[#E0EEFB] p-3 sm:p-3.5 flex items-center gap-3 text-[11.5px] sm:text-[12px] text-[#475569] leading-relaxed shadow-[0_2px_8px_rgba(0,102,255,0.03)] z-10 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-white border border-sky-100 text-[#0066FF] flex items-center justify-center shrink-0 shadow-xs">
+                <Database size={16} strokeWidth={2.2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                You can also compare scores on the{' '}
+                <Link 
+                  to="/leaderboard" 
+                  onClick={() => handleDismiss()}
+                  className="text-[#0066FF] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] rounded"
+                >
+                  Leaderboard
+                </Link>
+                , download the open{' '}
+                <Link 
+                  to="/dataset" 
+                  onClick={() => handleDismiss()}
+                  className="text-[#0066FF] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] rounded"
+                >
+                  Dataset
+                </Link>
+                , or read habit recommendations in the{' '}
+                <Link 
+                  to="/improve" 
+                  onClick={() => handleDismiss()}
+                  className="text-[#0066FF] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] rounded"
+                >
+                  Improve
+                </Link>{' '}
+                guide.
+              </div>
+            </div>
 
-            {/* Footer Checkbox */}
-            <div className="pt-0.5 mb-3.5">
-              <label className="flex items-center gap-2 text-xs text-[var(--text-secondary)] cursor-pointer w-fit select-none hover:text-[var(--text-primary)] transition-colors">
-                <input 
-                  type="checkbox" 
-                  checked={dontShowAgain}
-                  onChange={handleDontShowAgain}
-                  className="w-3.5 h-3.5 rounded border-[var(--border-default)] bg-[var(--surface-1)] text-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] cursor-pointer" 
-                />
-                Don't show this again
+            {/* Footer Row: Checkbox & CTA Button */}
+            <div className="flex items-center justify-between gap-3 pt-1 z-10 flex-wrap sm:flex-nowrap">
+              {/* "Don't show this again" Checkbox */}
+              <label 
+                htmlFor="welcome-dont-show-again"
+                className="flex items-center gap-2 text-xs sm:text-[13px] font-medium text-[#475569] hover:text-[#090D1A] cursor-pointer select-none group py-1"
+              >
+                <div className="relative flex items-center justify-center">
+                  <input 
+                    id="welcome-dont-show-again"
+                    type="checkbox" 
+                    checked={dontShowAgain}
+                    onChange={handleDontShowAgainChange}
+                    className="sr-only peer"
+                    aria-label="Don't show this again"
+                  />
+                  <div className={`w-5 h-5 rounded-[6px] flex items-center justify-center transition-all ${
+                    dontShowAgain 
+                      ? 'bg-[#0066FF] text-white shadow-xs' 
+                      : 'border border-slate-300 bg-white group-hover:border-slate-400 peer-focus-visible:ring-2 peer-focus-visible:ring-[#0066FF]'
+                  }`}>
+                    {dontShowAgain && <Check size={14} strokeWidth={3} />}
+                  </div>
+                </div>
+                <span>Don't show this again</span>
               </label>
-            </div>
 
-            {/* Button */}
-            <div className="flex">
+              {/* Start Cognitive Battery CTA Button */}
               <button 
                 type="button" 
                 id="welcome-start-assessments-btn"
                 onClick={handleStartAssessments}
-                className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:scale-[0.98] text-slate-950 rounded-xl py-3 px-4 text-xs font-semibold cursor-pointer transition-all shadow-sm text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white text-xs sm:text-[13.5px] font-semibold shadow-[0_4px_14px_rgba(0,102,255,0.35)] hover:shadow-[0_6px_18px_rgba(0,102,255,0.45)] active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ml-auto shrink-0"
               >
-                Start Cognitive Battery
+                <span>Start Cognitive Battery</span>
+                <ArrowRight size={15} strokeWidth={2.4} />
               </button>
             </div>
           </motion.div>
