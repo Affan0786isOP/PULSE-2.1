@@ -70,8 +70,8 @@ interface AssessmentTrialDoc {
   experimentId: string;        // Linked sessionId
   test: AssessmentType;        // Protocol identifier
   trialNumber: number;         // 1-indexed trial number
-  stimulusTimestamp: number | null; // performance.now() epoch mark
-  responseTimestamp: number | null; // performance.now() epoch mark
+  stimulusTimestamp: number | null; // high-resolution monotonic mark; not Unix epoch
+  responseTimestamp: number | null; // high-resolution monotonic mark; not Unix epoch
   reactionTime: number | null; // Calculated latency in milliseconds
   rawReactionTime?: number;    // Uncorrected hardware latency
   displayDelayOffsetMs?: number; // Hardware frame delay offset
