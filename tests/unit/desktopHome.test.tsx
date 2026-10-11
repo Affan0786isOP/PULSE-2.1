@@ -68,7 +68,7 @@ describe('Desktop Home Redesign', () => {
     expect(startTestingBtn.getAttribute('href')).toBe('/assessments');
   });
 
-  it('renders the metrics row with Tests, live Results, and No Sign-up Required', () => {
+  it('renders the metrics row with Tests, live Results, and Available 24/7', () => {
     renderHome();
     // 5 Tests
     expect(screen.getByText('5')).toBeDefined();
@@ -76,9 +76,9 @@ describe('Desktop Home Redesign', () => {
     // Live results count
     expect(screen.getByText('90')).toBeDefined();
     expect(screen.getByText('Results')).toBeDefined();
-    // No Sign-up Required
-    expect(screen.getByText('No Sign-up')).toBeDefined();
-    expect(screen.getByText('Required')).toBeDefined();
+    // Available 24/7
+    expect(screen.getByText('24/7')).toBeDefined();
+    expect(screen.getByText('Available')).toBeDefined();
   });
 
   it('renders the 3D Assessment Carousel with all 5 protocols', () => {

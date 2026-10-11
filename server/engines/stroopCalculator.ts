@@ -25,7 +25,10 @@ export function validateColorRecognitionTrial(
 
   const clientWord = t.wordName.trim().toUpperCase();
   const clientColor = t.wordColor.trim().toUpperCase();
-  const clientCond = t.condition.trim().toLowerCase();
+  const clientCondRaw = t.condition.trim().toLowerCase();
+  const clientCond = clientCondRaw.startsWith('congruent')
+    ? 'congruent'
+    : (clientCondRaw.startsWith('incongruent') ? 'incongruent' : clientCondRaw);
   const clientInst = t.instruction.trim().toUpperCase();
 
   if (!COLORS.includes(clientWord)) {

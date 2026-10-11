@@ -28,7 +28,9 @@ async function run() {
     });
   });
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    args: ['--disable-gpu', '--disable-software-rasterizer', '--disable-dev-shm-usage', '--no-sandbox']
+  });
 
   try {
     for (const target of TARGETS) {
@@ -44,9 +46,10 @@ async function run() {
         localStorage.setItem('pulse_welcome_dismissed', 'true');
       });
 
+      page.on('console', msg => console.log('BROWSER:', msg.text()));
+      page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
       await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'networkidle' });
-      await page.hover('[role="region"][aria-label="Assessment Protocols 3D Carousel"]');
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(1500);
 
       const screenshotPath = `${ARTIFACT_DIR}/${target.name}.png`;
       await page.screenshot({ path: screenshotPath });

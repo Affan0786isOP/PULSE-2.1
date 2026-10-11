@@ -50,6 +50,23 @@ describe('Wave 2 Backend Fixes Regression', () => {
     expect(res.derivedFalseStart).toBe(true);
   });
 
+  it('validates condition when condition includes suffix like congruent-word or congruent-color', () => {
+    const trialWithSuffix = {
+      wordName: 'RED',
+      wordColor: 'RED',
+      condition: 'congruent-color',
+      instruction: 'COLOR',
+      reactionTime: 450,
+      userResponse: 'RED',
+      stimulusTimestamp: 1000,
+      responseTimestamp: 1450
+    };
+
+    const res = validateColorRecognitionTrial(trialWithSuffix, 0, 'RED', 'RED', 'congruent', 'COLOR');
+    expect(res.success).toBe(true);
+    expect(res.isCorrect).toBe(true);
+  });
+
   it('PB-5: Color Type coercion safely handles missing properties', () => {
     // Generate 15 valid trials
     const trials = Array.from({ length: 15 }, (_, i) => ({

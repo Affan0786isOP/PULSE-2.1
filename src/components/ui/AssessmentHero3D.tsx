@@ -12,34 +12,6 @@ export function AssessmentHero3D() {
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Continuous scale factor for carousel geometry (S = 1.0 at <= 1280px, S = 3.5 at >= 7680px)
-  const getScaleFactor = () => {
-    if (typeof window === 'undefined') return 1;
-    const w = window.innerWidth;
-    if (w <= 1280) return 1;
-    if (w >= 7680) return 3.5;
-    return 1 + 2.5 * ((w - 1280) / (7680 - 1280));
-  };
-
-  const [carouselScale, setCarouselScale] = useState(getScaleFactor);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let rafId: number | null = null;
-    const onResize = () => {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(() => {
-        setCarouselScale(getScaleFactor());
-        rafId = null;
-      });
-    };
-    window.addEventListener('resize', onResize, { passive: true });
-    return () => {
-      window.removeEventListener('resize', onResize);
-      if (rafId !== null) cancelAnimationFrame(rafId);
-    };
-  }, []);
-
   const startAutoplay = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (shouldReduceMotion) return;
@@ -99,8 +71,8 @@ export function AssessmentHero3D() {
       case 0:
         return {
           x: 0,
-          width: 440 * carouselScale,
-          height: 280 * carouselScale,
+          width: 440,
+          height: 280,
           rotateY: 0,
           z: 0,
           scale: 1,
@@ -109,9 +81,9 @@ export function AssessmentHero3D() {
         };
       case 1:
         return {
-          x: 428 * carouselScale,
-          width: 72 * carouselScale,
-          height: 265 * carouselScale,
+          x: 428,
+          width: 72,
+          height: 265,
           rotateY: shouldReduceMotion ? 0 : -10,
           z: shouldReduceMotion ? 0 : -40,
           scale: 1,
@@ -120,9 +92,9 @@ export function AssessmentHero3D() {
         };
       case 2:
         return {
-          x: 488 * carouselScale,
-          width: 68 * carouselScale,
-          height: 252 * carouselScale,
+          x: 488,
+          width: 68,
+          height: 252,
           rotateY: shouldReduceMotion ? 0 : -14,
           z: shouldReduceMotion ? 0 : -80,
           scale: 1,
@@ -131,9 +103,9 @@ export function AssessmentHero3D() {
         };
       case 3:
         return {
-          x: 544 * carouselScale,
-          width: 64 * carouselScale,
-          height: 238 * carouselScale,
+          x: 544,
+          width: 64,
+          height: 238,
           rotateY: shouldReduceMotion ? 0 : -18,
           z: shouldReduceMotion ? 0 : -120,
           scale: 1,
@@ -143,9 +115,9 @@ export function AssessmentHero3D() {
       case 4:
       default:
         return {
-          x: 598 * carouselScale,
-          width: 58 * carouselScale,
-          height: 224 * carouselScale,
+          x: 598,
+          width: 58,
+          height: 224,
           rotateY: shouldReduceMotion ? 0 : -22,
           z: shouldReduceMotion ? 0 : -160,
           scale: 1,
@@ -167,33 +139,21 @@ export function AssessmentHero3D() {
     >
       {/* 3D Perspective Stage */}
       <div 
-        className="relative w-full flex items-center justify-center"
-        style={{ 
-          maxWidth: `${680 * carouselScale}px`,
-          height: `${300 * carouselScale}px`,
-          perspective: 1200 
-        }}
+        className="relative w-full max-w-[680px] h-[300px] flex items-center justify-center"
+        style={{ perspective: 1200 }}
       >
         {/* Previous Button */}
         <button 
           type="button"
           onClick={handlePrev}
-          style={{
-            left: `${-24 * carouselScale}px`,
-            width: `${44 * carouselScale}px`,
-            height: `${44 * carouselScale}px`,
-          }}
-          className="absolute z-40 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+          className="absolute -left-3 sm:-left-4 lg:-left-5 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           aria-label="Previous assessment protocol"
         >
-          <ChevronLeft size={Math.round(21 * carouselScale)} strokeWidth={2.4} />
+          <ChevronLeft size={21} strokeWidth={2.4} />
         </button>
 
         {/* 3D Card Stack Container */}
-        <div 
-          className="relative w-full transform-style-3d"
-          style={{ height: `${300 * carouselScale}px` }}
-        >
+        <div className="relative w-full h-[300px] transform-style-3d">
           {HERO_ASSESSMENTS.map((assessment, index) => {
             const offset = (index - activeIndex + HERO_ASSESSMENTS.length) % HERO_ASSESSMENTS.length;
             const isActive = offset === 0;
@@ -265,9 +225,9 @@ export function AssessmentHero3D() {
                   aria-hidden="true"
                 />
 
-                {/* Content Layer 1: Active Card Full Layout */}
+                {/* Content Layer 1: Active Card Full Layout (Fixed 440px width prevents any text squishing) */}
                 <div 
-                  className={`absolute inset-0 w-full h-full p-6 sm:p-7 min-[1280px]:p-[clamp(28px,calc(16.8px+0.875vw),84px)] flex flex-row items-center justify-between gap-4 transition-opacity duration-300 ${
+                  className={`absolute inset-0 w-[440px] h-[280px] p-6 sm:p-7 flex flex-row items-center justify-between gap-4 transition-opacity duration-300 ${
                     isActive ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                   }`}
                 >
@@ -280,27 +240,39 @@ export function AssessmentHero3D() {
                   {/* Left: Metadata & Actions */}
                   <div className="flex flex-col justify-between h-full z-10 flex-1 min-w-0">
                     <div>
-                      {/* Protocol Counter */}
-                      <div className="flex items-center gap-2 mb-2.5">
-                        <span className="font-mono text-[11.5px] min-[1280px]:text-[clamp(11.5px,calc(7.4px+0.32031vw),32px)] font-bold text-slate-800 tracking-wider">
+                      {/* Protocol Counter & Progress Dashes */}
+                      <div className="flex items-center gap-2.5 mb-2.5">
+                        <span className="font-mono text-[11.5px] font-bold text-slate-800 tracking-wider">
                           {String(index + 1).padStart(2, '0')} <span className="text-slate-400 font-normal">/ 05</span>
                         </span>
+                        <div className="flex items-center gap-1.5" aria-hidden="true">
+                          {[0, 1, 2, 3, 4].map((step) => (
+                            <div 
+                              key={step} 
+                              className={`h-[3.5px] rounded-full transition-all duration-300 ${
+                                step === activeIndex 
+                                  ? 'w-4 bg-[#0066FF]' 
+                                  : 'w-2.5 bg-slate-200'
+                              }`} 
+                            />
+                          ))}
+                        </div>
                       </div>
 
                       {/* Assessment Title */}
-                      <h3 className="font-heading font-extrabold text-2xl min-[1280px]:text-[clamp(24px,calc(15.2px+0.6875vw),68px)] text-[#090D1A] tracking-tight leading-tight mb-2 whitespace-nowrap">
+                      <h3 className="font-heading font-extrabold text-2xl text-[#090D1A] tracking-tight leading-tight mb-2 whitespace-nowrap">
                         {assessment.title}
                       </h3>
 
                       {/* Assessment Subtext */}
-                      <p className="text-xs sm:text-[13px] min-[1280px]:text-[clamp(13px,calc(8.4px+0.35938vw),36px)] text-[#475569] leading-relaxed max-w-[200px] min-[1280px]:max-w-[clamp(200px,calc(100px+7.8125vw),600px)] line-clamp-2">
+                      <p className="text-xs sm:text-[13px] text-[#475569] leading-relaxed max-w-[200px] line-clamp-2">
                         {assessment.description}
                       </p>
                     </div>
 
                     {/* CTA: Try Test Button */}
                     <div className="mt-3">
-                      <div className="inline-flex items-center gap-1.5 px-4 min-[1280px]:px-[clamp(16px,calc(10px+0.46875vw),42px)] py-2 min-[1280px]:py-[clamp(8px,calc(5px+0.234375vw),22px)] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white text-xs sm:text-[13px] min-[1280px]:text-[clamp(13px,calc(8.4px+0.35938vw),36px)] font-semibold shadow-[0_4px_12px_rgba(0,102,255,0.35)] hover:shadow-[0_6px_16px_rgba(0,102,255,0.45)] active:scale-95 transition-shadow">
+                      <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white text-xs sm:text-[13px] font-semibold shadow-[0_4px_12px_rgba(0,102,255,0.35)] hover:shadow-[0_6px_16px_rgba(0,102,255,0.45)] active:scale-95 transition-shadow">
                         <span>Try Test</span>
                         <ArrowRight size={14} strokeWidth={2.4} />
                       </div>
@@ -308,13 +280,7 @@ export function AssessmentHero3D() {
                   </div>
 
                   {/* Right: High-Contrast Glowing Protocol Art Container */}
-                  <div 
-                    className="relative flex items-center justify-center shrink-0 z-10"
-                    style={{
-                      width: `${144 * carouselScale}px`,
-                      height: `${144 * carouselScale}px`,
-                    }}
-                  >
+                  <div className="relative w-36 h-36 flex items-center justify-center shrink-0 z-10">
                     {/* Outer Ambient Atmospheric Halo */}
                     <div 
                       className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.22)_0%,rgba(56,189,248,0.12)_45%,transparent_70%)] pointer-events-none" 
@@ -341,11 +307,7 @@ export function AssessmentHero3D() {
                     <motion.img 
                       src={assessment.logo} 
                       alt={assessment.title}
-                      style={{
-                        width: `${108 * carouselScale}px`,
-                        height: `${108 * carouselScale}px`,
-                      }}
-                      className="object-contain relative z-10 drop-shadow-[0_0_14px_rgba(0,240,255,0.85)] drop-shadow-[0_4px_12px_rgba(0,102,255,0.5)] filter contrast-125 brightness-110"
+                      className="w-26 h-26 sm:w-28 sm:h-28 object-contain relative z-10 drop-shadow-[0_0_14px_rgba(0,240,255,0.85)] drop-shadow-[0_4px_12px_rgba(0,102,255,0.5)] filter contrast-125 brightness-110"
                       animate={isActive ? { scale: [1, 1.03, 1] } : {}}
                       transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
                     />
@@ -366,21 +328,21 @@ export function AssessmentHero3D() {
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center">
                     {/* Dark High-Contrast Badge Halo Behind Inactive Icon */}
                     <div 
-                      style={{
-                        width: `${(offset === 1 ? 48 : offset === 2 ? 44 : offset === 3 ? 40 : 36) * carouselScale}px`,
-                        height: `${(offset === 1 ? 48 : offset === 2 ? 44 : offset === 3 ? 40 : 36) * carouselScale}px`,
-                      }}
-                      className="absolute rounded-full bg-gradient-to-b from-[#1E293B] via-[#111C2E] to-[#09111F] border border-sky-400/40 shadow-[0_3px_10px_rgba(0,0,0,0.25),inset_0_0_8px_rgba(0,210,255,0.18)] pointer-events-none"
+                      className={`absolute rounded-full bg-gradient-to-b from-[#1E293B] via-[#111C2E] to-[#09111F] border border-sky-400/40 shadow-[0_3px_10px_rgba(0,0,0,0.25),inset_0_0_8px_rgba(0,210,255,0.18)] pointer-events-none ${
+                        offset === 1 ? 'w-12 h-12' :
+                        offset === 2 ? 'w-11 h-11' :
+                        offset === 3 ? 'w-10 h-10' : 'w-9 h-9'
+                      }`}
                       aria-hidden="true"
                     />
                     <img 
                       src={assessment.logo} 
                       alt={assessment.title}
-                      style={{
-                        width: `${(offset === 1 ? 32 : offset === 2 ? 30 : offset === 3 ? 28 : 26) * carouselScale}px`,
-                        height: `${(offset === 1 ? 32 : offset === 2 ? 30 : offset === 3 ? 28 : 26) * carouselScale}px`,
-                      }}
-                      className="object-contain relative z-10 drop-shadow-[0_0_8px_rgba(0,220,255,0.85)] filter contrast-125 brightness-110"
+                      className={`object-contain relative z-10 drop-shadow-[0_0_8px_rgba(0,220,255,0.85)] filter contrast-125 brightness-110 ${
+                        offset === 1 ? 'w-8 h-8' :
+                        offset === 2 ? 'w-7.5 h-7.5' :
+                        offset === 3 ? 'w-7 h-7' : 'w-6.5 h-6.5'
+                      }`}
                     />
                   </div>
                 </div>
@@ -393,28 +355,15 @@ export function AssessmentHero3D() {
         <button 
           type="button"
           onClick={handleNext}
-          style={{
-            right: `${-24 * carouselScale}px`,
-            width: `${44 * carouselScale}px`,
-            height: `${44 * carouselScale}px`,
-          }}
-          className="absolute z-40 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+          className="absolute -right-3 sm:-right-4 lg:-right-5 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] border border-sky-100 flex items-center justify-center text-slate-700 hover:text-[#0066FF] hover:border-[#0066FF]/40 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           aria-label="Next assessment protocol"
         >
-          <ChevronRight size={Math.round(21 * carouselScale)} strokeWidth={2.4} />
+          <ChevronRight size={21} strokeWidth={2.4} />
         </button>
       </div>
 
       {/* Pagination Pill Dots */}
-      <div 
-        className="flex items-center z-20 shrink-0" 
-        style={{ 
-          gap: `${10 * carouselScale}px`,
-          marginTop: `${12 * carouselScale}px`
-        }}
-        role="tablist" 
-        aria-label="Assessment protocols"
-      >
+      <div className="flex items-center gap-2.5 mt-3 z-20 shrink-0" role="tablist" aria-label="Assessment protocols">
         {HERO_ASSESSMENTS.map((assessment, idx) => (
           <button
             key={assessment.id}
@@ -422,14 +371,10 @@ export function AssessmentHero3D() {
             role="tab"
             aria-selected={idx === activeIndex}
             onClick={() => handleSelect(idx)}
-            style={{
-              width: idx === activeIndex ? `${10 * carouselScale}px` : `${8 * carouselScale}px`,
-              height: idx === activeIndex ? `${10 * carouselScale}px` : `${8 * carouselScale}px`,
-            }}
             className={`transition-all duration-300 rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
               idx === activeIndex 
-                ? 'bg-[#0066FF] ring-4 ring-[#0066FF]/20' 
-                : 'bg-[#64748B] hover:bg-[#475569]'
+                ? 'w-2.5 h-2.5 bg-[#0066FF] ring-4 ring-[#0066FF]/20' 
+                : 'w-2 h-2 bg-slate-300 hover:bg-slate-400'
             }`}
             aria-label={`Select protocol ${idx + 1}: ${assessment.title}`}
           />

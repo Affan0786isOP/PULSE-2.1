@@ -263,7 +263,8 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       // Save granular raw trial measurement
       rawObservationsRef.current.push({
         experimentId: sessionId,
-        condition: trialCondition,
+        condition,
+        conditionLabel: trialCondition,
         test: 'color-recognition',
         trialNumber: obsIndex,
         trialIndex: obsIndex,
@@ -429,7 +430,8 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
 
       rawObservationsRef.current.push({
         experimentId: sessionId,
-        condition: trialCondition,
+        condition,
+        conditionLabel: trialCondition,
         test: 'color-recognition',
         trialNumber: rawObservationsRef.current.length + 1,
         wordName: nextWord.name,
