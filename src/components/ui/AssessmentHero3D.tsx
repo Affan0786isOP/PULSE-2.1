@@ -281,27 +281,23 @@ export function AssessmentHero3D() {
                       </div>
                     </div>
 
-                    {/* Right: High-Contrast Glowing Protocol Art Container */}
+                    {/* Right: Soft Restrained Blue Protocol Art Container */}
                     <div className="relative w-36 h-36 flex items-center justify-center shrink-0 z-10">
                       {/* Outer Ambient Atmospheric Halo */}
                       <div 
-                        className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.22)_0%,rgba(56,189,248,0.12)_45%,transparent_70%)] pointer-events-none" 
+                        className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.06)_0%,rgba(186,230,253,0.15)_50%,transparent_70%)] pointer-events-none" 
                         aria-hidden="true"
                       />
 
-                      {/* Dark High-Contrast Background Disc for Crisp Logo Legibility */}
+                      {/* Restrained Soft Pale-Blue Surface Disc with Subtle Slate-Blue Core */}
                       <div 
-                        className="absolute inset-0 rounded-full bg-gradient-to-b from-[#1E293B] via-[#0F172A] to-[#080E1C] border border-sky-400/35 shadow-[0_12px_28px_rgba(0,102,255,0.22),inset_0_0_20px_rgba(0,210,255,0.15)] pointer-events-none" 
+                        className="absolute inset-0 rounded-full bg-gradient-to-b from-[#EDF5FF] via-[#DBECFE] to-[#C9E0FA] border border-[#BFDBFE] shadow-[0_8px_20px_rgba(0,102,255,0.07),inset_0_1px_2px_rgba(255,255,255,0.9)] pointer-events-none" 
                         aria-hidden="true"
                       />
 
-                      {/* Inner Calibration Rings */}
+                      {/* Inner Circular Well */}
                       <div 
-                        className="absolute inset-2.5 rounded-full border border-sky-400/25 pointer-events-none shadow-[inset_0_0_12px_rgba(0,102,255,0.2)]" 
-                        aria-hidden="true"
-                      />
-                      <div 
-                        className="absolute inset-5 rounded-full border border-sky-300/15 pointer-events-none" 
+                        className="absolute inset-2.5 rounded-full bg-gradient-to-b from-[#1E293B]/90 via-[#0F172A]/90 to-[#1E293B]/90 border border-sky-400/20 shadow-[inset_0_2px_6px_rgba(0,0,0,0.3)] pointer-events-none" 
                         aria-hidden="true"
                       />
 
@@ -309,8 +305,8 @@ export function AssessmentHero3D() {
                       <motion.img 
                         src={assessment.logo} 
                         alt={assessment.title}
-                        className="w-26 h-26 sm:w-28 sm:h-28 object-contain relative z-10 drop-shadow-[0_0_14px_rgba(0,240,255,0.85)] drop-shadow-[0_4px_12px_rgba(0,102,255,0.5)] filter contrast-125 brightness-110"
-                        animate={isActive ? { scale: [1, 1.03, 1] } : {}}
+                        className="w-20 h-20 sm:w-22 sm:h-22 object-contain relative z-10 drop-shadow-[0_2px_8px_rgba(0,102,255,0.25)]"
+                        animate={isActive ? { scale: [1, 1.02, 1] } : {}}
                         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
                       />
                     </div>
@@ -322,9 +318,9 @@ export function AssessmentHero3D() {
                       isActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
                     }`}
                   >
-                    {/* Ambient inner soft cyan glow */}
+                    {/* Ambient inner soft pale-blue glow */}
                     <div 
-                      className="absolute inset-0 bg-[radial-gradient(circle_at_right,rgba(56,189,248,0.22)_0%,rgba(0,102,255,0.08)_50%,transparent_75%)] pointer-events-none" 
+                      className="absolute inset-0 bg-[radial-gradient(circle_at_right,rgba(186,230,253,0.25)_0%,rgba(0,102,255,0.04)_50%,transparent_75%)] pointer-events-none" 
                       aria-hidden="true" 
                     />
                     
@@ -333,23 +329,23 @@ export function AssessmentHero3D() {
                       0{index + 1}
                     </div>
 
-                    {/* Identifiable High-Contrast Logo Badge */}
+                    {/* Identifiable Restrained Logo Badge */}
                     <div className="relative flex items-center justify-center my-auto">
                       <div 
-                        className={`absolute rounded-full bg-gradient-to-b from-[#1E293B] via-[#111C2E] to-[#09111F] border border-sky-400/40 shadow-[0_3px_10px_rgba(0,0,0,0.25),inset_0_0_8px_rgba(0,210,255,0.18)] pointer-events-none ${
-                          offset === 1 ? 'w-11 h-11' :
-                          offset === 2 ? 'w-10 h-10' :
-                          offset === 3 ? 'w-9 h-9' : 'w-8 h-8'
+                        className={`absolute rounded-full bg-gradient-to-b from-[#1E293B]/85 via-[#0F172A]/85 to-[#1E293B]/85 border border-[#BFDBFE]/60 shadow-[0_2px_5px_rgba(0,0,0,0.18)] pointer-events-none ${
+                          offset === 1 ? 'w-10 h-10' :
+                          offset === 2 ? 'w-9 h-9' :
+                          offset === 3 ? 'w-8 h-8' : 'w-7.5 h-7.5'
                         }`}
                         aria-hidden="true"
                       />
                       <img 
                         src={assessment.logo} 
                         alt={assessment.title}
-                        className={`object-contain relative z-10 drop-shadow-[0_0_8px_rgba(0,220,255,0.85)] filter contrast-125 brightness-110 ${
-                          offset === 1 ? 'w-7.5 h-7.5' :
-                          offset === 2 ? 'w-7 h-7' :
-                          offset === 3 ? 'w-6 h-6' : 'w-5.5 h-5.5'
+                        className={`object-contain relative z-10 drop-shadow-[0_1px_3px_rgba(0,0,0,0.2)] ${
+                          offset === 1 ? 'w-6 h-6' :
+                          offset === 2 ? 'w-5.5 h-5.5' :
+                          offset === 3 ? 'w-5 h-5' : 'w-4.5 h-4.5'
                         }`}
                       />
                     </div>

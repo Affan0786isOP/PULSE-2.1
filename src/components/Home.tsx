@@ -152,7 +152,7 @@ export function Home() {
       />
 
       {/* Top Navigation Bar */}
-      <header className="relative z-30 w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto px-6 sm:px-10 lg:px-14 min-[2560px]:px-20 h-16 sm:h-20 min-[2560px]:h-24 flex items-center justify-between shrink-0">
+      <header className="relative z-30 w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto px-6 sm:px-10 lg:px-14 min-[2560px]:px-20 h-14 sm:h-16 min-[2560px]:h-20 flex items-center justify-between shrink-0">
         {/* Brand Lockup */}
         <Link 
           to="/"
@@ -221,15 +221,18 @@ export function Home() {
             type="button"
             onClick={() => setIsWelcomeOpen(true)}
             aria-label="Platform Information"
-            className="w-9 h-9 sm:w-10 sm:h-10 min-[2560px]:w-11 min-[2560px]:h-11 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+            title="Platform Information"
+            className="flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           >
-            <Info size={17} strokeWidth={2.2} />
+            <Info size={15} strokeWidth={2.2} />
+            <span className="hidden sm:inline">Info</span>
           </button>
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
             aria-label="Settings"
-            className="flex items-center gap-2 px-3.5 sm:px-4 min-[2560px]:px-5 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] text-xs sm:text-[13px] min-[2560px]:text-[14.5px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+            title="Application Settings"
+            className="flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           >
             <Settings size={15} strokeWidth={2.2} />
             <span>Settings</span>
@@ -241,7 +244,7 @@ export function Home() {
       <main 
         id="main-content" 
         tabIndex={-1} 
-        className="w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-12 min-[2560px]:gap-20 items-center px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 relative z-10 focus-visible:outline-none pb-4 sm:pb-8"
+        className="w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 relative z-10 focus-visible:outline-none my-auto pb-2 sm:pb-4"
       >
         {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
         <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[2560px]:max-w-[580px]">

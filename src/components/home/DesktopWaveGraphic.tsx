@@ -3,7 +3,7 @@ import React from 'react';
 export const DesktopWaveGraphic: React.FC = () => {
   return (
     <div 
-      className="absolute bottom-0 left-0 right-0 w-full h-[110px] sm:h-[130px] lg:h-[150px] pointer-events-none select-none z-0 overflow-hidden"
+      className="absolute bottom-0 left-0 right-0 w-full h-[70px] sm:h-[85px] lg:h-[95px] min-[2560px]:h-[120px] pointer-events-none select-none z-0 overflow-hidden"
       aria-hidden="true"
     >
       <svg 
