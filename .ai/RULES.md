@@ -28,14 +28,14 @@ These rules govern all AI coding agents working within the PULSE repository. The
 ---
 
 ## 4. Scientific Measurement Integrity
-1. **Hardware-Accurate Timing:** Always use `performance.now()` for millisecond-precision reaction time measurements. Never use `Date.now()` or `setTimeout` for stimulus duration or latency calculations.
-2. **No Animations During Active Stimuli:** Do not introduce CSS transitions, framer-motion animations, or repaints during active measurement intervals (between stimulus scheduling and user input receipt).
+1. **High-Resolution Timing:** Use `performance.now()` and monotonic timestamps for measured reaction latencies. Use `Date.now()` only for wall-clock metadata; `setTimeout`/`setInterval` may schedule foreperiods and timeouts but must never be used to calculate reaction latency or claim exact stimulus-onset time.
+2. **No Transition on Active Stimuli:** Do not apply CSS transitions or animations to the stimulus apparatus, stimulus indicator, timer, or status text during a measured reaction trial. In both desktop and mobile reaction components, ensure the `STIMULUS_ACTIVE` state applies `transition-none` to the apparatus and changing text. A repaint is necessary to present the stimulus; avoid extra layout work and animated state changes around that presentation. `requestAnimationFrame` timestamps estimate browser-frame onset and are not physical display measurements.
 3. **Physiological Floor Enforcement:** Maintain the $80\text{ms}$ physiological reaction time floor ($RT \ge 80\text{ms}$). Responses under $80\text{ms}$ are classified as `ANTICIPATORY_TOO_FAST` or false starts.
 
 ---
 
 ## 5. UI, Design & Accessibility
-1. **Respect Design Tokens:** Adhere strictly to the observatory dark palette (`--surface-0` through `--surface-3`, `#00F0FF` Signal Cyan, `#10B981` Provenance Green) and typography defined in [`docs/DESIGN_SYSTEM.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DESIGN_SYSTEM.md).
+1. **Respect Design Tokens:** Adhere strictly to the observatory dark palette (`--surface-0` through `--surface-3`, `#00F0FF` Signal Cyan, `#10B981` Provenance Green) and typography defined in [`docs/DESIGN_SYSTEM.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/DESIGN_SYSTEM.md).
 2. **Active States & Tactility:** Every interactive element must have defined `:active` and `:focus-visible` styles.
 3. **Reduced Motion:** Always respect `prefers-reduced-motion` and the `reducedMotionEnabled` setting via `<MotionConfig>`.
 4. **Dual-Surface Compatibility:** Changes to shared logic must maintain parity between the desktop application (`/src`) and mobile PWA (`/mobile/src`).
@@ -46,5 +46,5 @@ These rules govern all AI coding agents working within the PULSE repository. The
 ---
 
 ## 6. Documentation Maintenance
-1. **Synchronize Documentation:** When architectural or data model changes are made, update [`docs/PROJECT_SPEC.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/PROJECT_SPEC.md), [`docs/ARCHITECTURE.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/ARCHITECTURE.md), and [`docs/DATA_MODEL.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DATA_MODEL.md).
+1. **Synchronize Documentation:** When architectural or data model changes are made, update [`docs/PROJECT_SPEC.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/PROJECT_SPEC.md), [`docs/ARCHITECTURE.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/ARCHITECTURE.md), and [`docs/DATA_MODEL.md`](https://github.com/Affan0786isOP/PULSE-2.1/blob/main/docs/DATA_MODEL.md).
 2. **Never Mark Planned as Implemented:** Clearly distinguish implemented features from planned enhancements across all docs.
