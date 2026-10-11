@@ -39,25 +39,25 @@
 }
 
 :root[data-theme="light"] {
-  --surface-0: #F8FAFC;
+  --surface-0: #FFFFFF;
   --surface-1: #FFFFFF;
-  --surface-2: #F1F5F9;
-  --surface-3: #E2E8F0;
+  --surface-2: #F4F9FF;
+  --surface-3: #EAF3FD;
 
-  --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-default: rgba(0, 0, 0, 0.14);
-  --border-strong: rgba(0, 0, 0, 0.25);
+  --border-subtle: rgba(9, 13, 26, 0.08);
+  --border-default: #D9E6F5;
+  --border-strong: #B8CDE6;
 
-  --accent: #0098A6;
-  --accent-hover: #00828F;
-  --accent-subtle: rgba(0, 152, 166, 0.12);
-  --focus-ring: #0098A6;
+  --accent: #0066FF;
+  --accent-hover: #0052CC;
+  --accent-subtle: rgba(0, 102, 255, 0.10);
+  --focus-ring: #0066FF;
 
   --success: #059669;
   --warning: #D97706;
   --danger: #DC2626;
 
-  --text-primary: #0F172A;
+  --text-primary: #090D1A;
   --text-secondary: #475569;
   --text-muted: #64748B;
 }
@@ -105,12 +105,12 @@ h1, h2, h3, .font-heading {
 .pulse-btn-primary:hover {
   background-color: var(--accent-hover);
   transform: translateY(-1.5px);
-  box-shadow: 0 4px 14px -2px rgba(0, 240, 255, 0.35);
+  box-shadow: 0 4px 14px -2px rgba(0, 102, 255, 0.20);
 }
 
 .pulse-btn-primary:active {
   transform: translateY(0.5px) scale(0.985);
-  box-shadow: 0 1px 4px rgba(0, 240, 255, 0.2);
+  box-shadow: 0 1px 4px rgba(0, 102, 255, 0.14);
 }
 
 /* Interactive Navigation Card (Mostly flat, hairline border, subtle lift) */
@@ -124,7 +124,7 @@ h1, h2, h3, .font-heading {
 }
 
 .pulse-card-interactive:hover {
-  border-color: rgba(0, 240, 255, 0.35);
+  border-color: rgba(0, 102, 255, 0.20);
   background-color: var(--surface-2);
   transform: translateY(-1.5px);
 }
