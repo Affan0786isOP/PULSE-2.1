@@ -74,9 +74,22 @@ describe('leaderboard display names', () => {
     alias => expect(validateLeaderboardDisplayName(alias)).toMatchObject({ valid: true, normalized: alias })
   );
 
-  it('screens common confusable and leetspeak variants of explicit profanity', () => {
-    expect(validateLeaderboardDisplayName('sh1t').valid).toBe(false);
-    expect(validateLeaderboardDisplayName('ѕһіt').valid).toBe(false);
+  it('screens profanity hidden by separators, digits, suffixes, prefixes, or confusable letters', () => {
+    for (const alias of ['sh1t', 'ѕһіt', 'fuck123', 'shitty', 'xXfuckXx', 'f u c k', 'f.u.c.k']) {
+      expect(validateLeaderboardDisplayName(alias).valid, alias).toBe(false);
+    }
+  });
+
+  it('rejects obfuscated generic aliases consistently on writes and reads', () => {
+    for (const alias of ['Аnonymous', 'a n o n y m o u s', 'g.u.e.s.t', 'participant-123']) {
+      expect(validateLeaderboardDisplayName(alias).valid, alias).toBe(false);
+      expect(safeLeaderboardDisplayNameForRead(alias), alias).toBeNull();
+    }
+  });
+
+  it('preserves known harmless words that contain profanity substrings', () => {
+    expect(validateLeaderboardDisplayName('Scunthorpe')).toMatchObject({ valid: true, normalized: 'Scunthorpe' });
+    expect(validateLeaderboardDisplayName('Snigger')).toMatchObject({ valid: true, normalized: 'Snigger' });
   });
 
   it('preserves safe legacy aliases with punctuation and emoji while rejecting clearly unsafe values', () => {
