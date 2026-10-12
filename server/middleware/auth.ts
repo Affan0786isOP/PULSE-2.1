@@ -2,6 +2,7 @@ import type express from 'express';
 import * as crypto from 'crypto';
 import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 import { initializeAdminApp } from '../config/firebaseAdmin';
+import { AppError } from '../models/replayContracts';
 function getAdminSessionSecret(): string {
   const secret = process.env.PULSE_ADMIN_SESSION_SECRET;
   if (!secret || !secret.trim()) {
@@ -22,8 +23,13 @@ export async function verifyFirebaseUserToken(req: express.Request): Promise<Dec
   const idToken = authHeader.split('Bearer ')[1]?.trim();
   if (!idToken) return null;
 
-  // Let initializeAdminApp throw if server config is missing/invalid
-  initializeAdminApp();
+  try {
+    initializeAdminApp();
+  } catch (err: unknown) {
+    // Missing service-account/project configuration is a server fault, not an
+    // invalid participant credential. Surface it as retryable service failure.
+    throw new AppError('AUTH_CONFIGURATION_UNAVAILABLE', 503);
+  }
 
   try {
     const decoded = await getAuth().verifyIdToken(idToken);
