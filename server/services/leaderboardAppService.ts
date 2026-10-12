@@ -13,7 +13,6 @@ import { VALID_AGE_GROUPS, VALID_ASSESSMENT_TYPES } from '../config/constants';
 import { normalizeAssessmentType } from '../engines/assessmentTypes';
 import { validateAndDeriveAssessmentFromTrials } from '../engines/assessmentEngine';
 import { computeCanonicalTrialsDigest, signProvenancePayload } from './provenanceService';
-import { isValidLeaderboardScoreMetric } from './leaderboardService';
 import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 import { safeLogWarning } from '../config/firebaseAdmin';
@@ -48,7 +47,7 @@ export class LeaderboardAppService implements ILeaderboardService {
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       if (errMsg === 'DATABASE_UNAVAILABLE') {
-        throw new AppError('DATABASE_UNAVAILABLE', 404);
+        throw new AppError('DATABASE_UNAVAILABLE', 503);
       }
       throw new AppError('Failed to read experiment session from database', 500);
     }

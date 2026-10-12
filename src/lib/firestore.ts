@@ -3,6 +3,8 @@ import { signInAnonymously } from 'firebase/auth';
 import { getInMemorySessionTrials } from './inMemorySessionStore';
 import { db, auth, isConfigured, authInitPromise } from './firebase';
 import { reportError } from './errorReporter';
+import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric } from '../../shared/domain/leaderboardEligibility';
+export { isOptedInLeaderboardUser };
 
 export const isFirestoreAvailable = (): boolean => {
   return Boolean(isConfigured && db);
@@ -411,15 +413,6 @@ export function normalizeAssessmentType(type: string): AssessmentType | null {
   return null;
 }
 
-export function isOptedInLeaderboardUser(displayName: string | null | undefined): boolean {
-  const trimmed = String(displayName || '').trim();
-  if (!trimmed) return false;
-  const lower = trimmed.toLowerCase();
-  if (lower === 'anonymous' || lower === 'unknown' || lower === 'guest') return false;
-  if (lower.startsWith('participant')) return false;
-  return true;
-}
-
 export const getLeaderboardResults = async (assessmentType: AssessmentType): Promise<LeaderboardEntry[]> => {
   const canonicalType = normalizeAssessmentType(assessmentType);
   if (!canonicalType) return [];
@@ -441,12 +434,19 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
         payload.entries.forEach((e: any) => {
           const name = String(e?.displayName || '').trim();
           const normalizedType = normalizeAssessmentType(e?.assessmentType || canonicalType);
-          if (normalizedType && e && e.id && !entriesMap.has(e.id) && isOptedInLeaderboardUser(name)) {
+          if (
+            normalizedType === canonicalType &&
+            e && e.id &&
+            typeof e.scoreMetric === 'number' &&
+            isValidLeaderboardScoreMetric(canonicalType, e.scoreMetric) &&
+            !entriesMap.has(e.id) &&
+            isOptedInLeaderboardUser(name)
+          ) {
             entriesMap.set(e.id, {
               id: e.id,
               displayName: name,
               assessmentType: normalizedType,
-              scoreMetric: Number(e.scoreMetric),
+              scoreMetric: e.scoreMetric,
               ageGroup: String(e.ageGroup || ''),
               createdAt: e.createdAt,
               source: 'cloud'
@@ -494,8 +494,9 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
               const data = docSnap.data();
               if (!data || data.hidden === true) return;
 
-              const score = Number(data.scoreMetric);
-              if (isNaN(score) || score <= 0) return;
+              if (typeof data.scoreMetric !== 'number') return;
+              const score = data.scoreMetric;
+              if (!isValidLeaderboardScoreMetric(canonicalType, score)) return;
 
               const displayName = String(data.displayName || '').trim();
               if (!isOptedInLeaderboardUser(displayName)) return;
@@ -518,46 +519,7 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
             });
           } catch (qErr: any) {
             lastError = qErr instanceof Error ? qErr : new Error(String(qErr));
-            // Fallback without compound hidden filter if index is not ready
-            try {
-              const fallbackQ = query(
-                colRef,
-                where('assessmentType', '==', alias),
-                orderBy('scoreMetric', aliasDirection),
-                limit(100)
-              );
-              const snapshot = await getDocsFromServer(fallbackQ);
-              querySuccessCount++;
-
-              snapshot.docs.forEach(docSnap => {
-                const data = docSnap.data();
-                if (!data || data.hidden === true) return;
-
-                const score = Number(data.scoreMetric);
-                if (isNaN(score) || score <= 0) return;
-
-                const displayName = String(data.displayName || '').trim();
-                if (!isOptedInLeaderboardUser(displayName)) return;
-
-                const rawType = String(data.assessmentType || canonicalType);
-                const normalizedType = normalizeAssessmentType(rawType);
-                if (!normalizedType) return;
-
-                if (!entriesMap.has(docSnap.id)) {
-                  entriesMap.set(docSnap.id, {
-                    id: docSnap.id,
-                    displayName,
-                    assessmentType: normalizedType,
-                    scoreMetric: score,
-                    ageGroup: String(data.ageGroup || ''),
-                    createdAt: data.createdAt,
-                    source: 'cloud'
-                  });
-                }
-              });
-            } catch (fallbackErr: any) {
-              lastError = fallbackErr instanceof Error ? fallbackErr : new Error(String(fallbackErr));
-            }
+            console.warn('[Leaderboard] Direct Firestore alias query failed:', qErr?.message || qErr);
           }
         }
 
