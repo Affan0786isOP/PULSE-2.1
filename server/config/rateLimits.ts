@@ -34,9 +34,18 @@ export const verificationLimiter = rateLimit({
   message: { success: false, error: 'Too many verification requests. Please try again later.' }
 });
 
+export const leaderboardReadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many leaderboard requests. Please retry shortly.' }
+});
+
 export const generalApiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
+  skip: (req) => req.method === 'GET' && req.originalUrl.split('?')[0] === '/api/leaderboard',
   message: { success: false, error: 'Too many API requests' }
 });
 
@@ -48,6 +57,7 @@ export const adminLoginLimiter = rateLimit({
 
 /** Registers the route-scoped rate limiters. Order is significant and preserved from the original server. */
 export function applyRateLimits(app: Express): void {
+  app.use('/api/leaderboard', leaderboardReadLimiter);
   app.use('/api/admin', generalApiLimiter);
   app.use('/api/research/session', sessionStartLimiter);
   app.use('/api/sessions', generalSessionsLimiter);

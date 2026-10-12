@@ -19,6 +19,8 @@ import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayCont
 import { safeLogWarning } from '../config/firebaseAdmin';
 
 export class LeaderboardAppService implements ILeaderboardService {
+  private readonly publicLeaderboardCache = new Map<string, { expiresAt: number; entries: LeaderboardEntryRecord[] }>();
+
   constructor(
     private readonly sessionRepo: ISessionRepository,
     private readonly leaderboardRepo: ILeaderboardRepository,
@@ -159,6 +161,10 @@ export class LeaderboardAppService implements ILeaderboardService {
       throw new AppError('Unknown assessmentType', 400);
     }
 
+    const cached = this.publicLeaderboardCache.get(rawType);
+    if (cached && cached.expiresAt > Date.now()) return cached.entries;
+    this.publicLeaderboardCache.delete(rawType);
+
     const isSpeed = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
     const aliasesByType: Record<string, string[]> = {
       'visual-reaction': ['visual-reaction', 'reaction-test'],
@@ -211,6 +217,10 @@ export class LeaderboardAppService implements ILeaderboardService {
       return a.id.localeCompare(b.id);
     });
 
-    return entries.slice(0, 100);
+    const publicEntries = entries.slice(0, 100);
+    // Very short-lived, instance-local cache to reduce repeated reads during rapid tab switching.
+    // The Firestore repositories remain authoritative and hidden results expire from cache quickly.
+    this.publicLeaderboardCache.set(rawType, { expiresAt: Date.now() + 5000, entries: publicEntries });
+    return publicEntries;
   }
 }

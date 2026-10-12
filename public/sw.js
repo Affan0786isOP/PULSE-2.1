@@ -56,7 +56,6 @@ self.addEventListener('fetch', (event) => {
     request.method !== 'GET' ||
     !request.url.startsWith('http') ||
     url.pathname.startsWith('/api') ||
-    url.pathname.startsWith('/leaderboard') ||
     url.pathname.startsWith('/personal-best') ||
     url.pathname.startsWith('/research') ||
     url.pathname.startsWith('/admin') ||

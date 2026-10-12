@@ -2,17 +2,25 @@ import type { Express } from 'express';
 
 /** URL prefix normalisation (Vercel/proxies) + production security headers / CSP. */
 export function applySecurityMiddleware(app: Express): void {
-  // Normalize incoming URLs for Vercel/proxies that might strip or preserve /api prefix
+  // Normalize legacy API paths only. Browser document requests must retain their
+  // page URL (notably /leaderboard and /admin/*) for SPA routing and hard refreshes.
   app.use((req, _res, next) => {
-    if (req.url && !req.url.startsWith('/api') && (
-      req.url.startsWith('/research') ||
-      req.url.startsWith('/leaderboard') ||
-      req.url.startsWith('/admin') ||
-      req.url.startsWith('/health') ||
-      req.url.startsWith('/personal-best') ||
-      req.url.startsWith('/sessions')
-    )) {
-      req.url = '/api' + req.url;
+    const url = req.url || '';
+    const pathname = url.split('?')[0];
+    const isDocumentNavigation =
+      (req.method === 'GET' || req.method === 'HEAD') &&
+      /text\/html/i.test(String(req.headers.accept || ''));
+
+    const isLegacyApiPath = [
+      '/research', '/leaderboard/submit', '/leaderboard/verify-provenance',
+      '/admin/login', '/admin/audit-log', '/admin/log-action', '/admin/audit-logs',
+      '/admin/leaderboard/hide', '/admin/leaderboard/unhide',
+      '/admin/leaderboard/delete', '/admin/leaderboard/all',
+      '/health', '/personal-best', '/sessions'
+    ].some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'));
+
+    if (!isDocumentNavigation && url && !url.startsWith('/api') && isLegacyApiPath) {
+      req.url = '/api' + url;
     }
     next();
   });
