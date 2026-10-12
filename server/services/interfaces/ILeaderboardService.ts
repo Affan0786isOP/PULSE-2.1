@@ -17,6 +17,7 @@ export interface SubmitLeaderboardResult {
   trialsDigest: string;
   derivedMetrics: Record<string, unknown>;
   alreadySubmitted?: boolean;
+  pendingReview?: boolean;
 }
 
 export interface ILeaderboardService {
