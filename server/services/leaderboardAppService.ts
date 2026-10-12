@@ -18,6 +18,7 @@ import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayCont
 import { safeLogWarning } from '../config/firebaseAdmin';
 
 export class LeaderboardAppService implements ILeaderboardService {
+  private readonly publicLeaderboardInFlight = new Map<string, Promise<LeaderboardEntryRecord[]>>();
   constructor(
     private readonly sessionRepo: ISessionRepository,
     private readonly leaderboardRepo: ILeaderboardRepository,
@@ -386,6 +387,21 @@ export class LeaderboardAppService implements ILeaderboardService {
       throw new AppError('Unknown assessmentType', 400);
     }
 
+    const pending = this.publicLeaderboardInFlight.get(rawType);
+    if (pending) return pending;
+
+    const request = this.loadPublicLeaderboard(rawType);
+    this.publicLeaderboardInFlight.set(rawType, request);
+    try {
+      return await request;
+    } finally {
+      if (this.publicLeaderboardInFlight.get(rawType) === request) {
+        this.publicLeaderboardInFlight.delete(rawType);
+      }
+    }
+  }
+
+  private async loadPublicLeaderboard(rawType: string): Promise<LeaderboardEntryRecord[]> {
     const isSpeed = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
     const aliasesByType: Record<string, string[]> = {
       'visual-reaction': ['visual-reaction', 'reaction-test', 'reaction', 'visual', 'visual-reaction-test'],
