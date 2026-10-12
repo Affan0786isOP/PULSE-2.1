@@ -73,6 +73,28 @@ export class LeaderboardAppService implements ILeaderboardService {
       throw new AppError('Leaderboard submission requires a completed, consumed research session', 400);
     }
 
+    // Reject impossible rapid-completion submissions using server-recorded session
+    // and completion times, not client-provided trial timestamps.
+    const startedAt = Number(sData.createdAt);
+    const completedAt = Number(sData.consumedAt);
+    const elapsedMs = completedAt - startedAt;
+    const minimumDurationMs: Record<string, number> = {
+      'visual-reaction': 5000,
+      direction: 3000,
+      'color-recognition': 5000,
+      'block-memory': 3000,
+      'number-memory': 3000
+    };
+    if (
+      !Number.isFinite(startedAt) ||
+      !Number.isFinite(completedAt) ||
+      startedAt <= 0 ||
+      completedAt < startedAt ||
+      elapsedMs < (minimumDurationMs[normalizedAssessmentType] || 5000)
+    ) {
+      throw new AppError('Assessment completion time is implausibly short for the selected test. Please retake it.', 400);
+    }
+
     // The assessment session must have been valid at completion. Allow opt-in for
     // up to 24 hours after completion so reading results/typing an alias cannot
     // consume the only submission opportunity after the original session expires.
