@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { submitLeaderboardResult, AssessmentType, AgeGroup } from '../lib/firestore';
+import { isValidLeaderboardScoreMetric, validateLeaderboardDisplayName } from '../../../shared/domain/leaderboardEligibility';
 
 
 interface LeaderboardOptInProps {
@@ -79,15 +80,12 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
   const handleSubmit = async () => {
     if (isSubmittingRef.current) return;
 
-    const trimmed = displayName.trim();
-    if (!trimmed) {
-      setErrorMsg("Display name cannot be empty.");
+    const aliasValidation = validateLeaderboardDisplayName(displayName);
+    if (!aliasValidation.valid || !aliasValidation.normalized) {
+      setErrorMsg(aliasValidation.error || 'Choose a valid display name.');
       return;
     }
-    if ([...trimmed].length > 30) {
-      setErrorMsg("Display name must be 30 characters or less.");
-      return;
-    }
+    const trimmed = aliasValidation.normalized;
 
     isSubmittingRef.current = true;
     setOptInState('SUBMITTING');
@@ -111,6 +109,14 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
     }
   };
 
+  if (!isValidLeaderboardScoreMetric(assessmentType, scoreMetric)) {
+    return (
+      <div role="note" className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] p-2 text-center text-xs text-[var(--text-muted)]">
+        This result does not meet the leaderboard score requirements and cannot be published.
+      </div>
+    );
+  }
+
   if (optInState === 'SUCCESS') {
     return (
       <div className="w-full bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--color-success)] p-2 rounded-lg flex items-center justify-center text-center animate-[fadeIn_0.2s_ease-out]">
@@ -123,7 +129,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
 
   if (optInState === 'IDLE') {
     return (
-      <div className="w-full bg-[var(--surface-2)]/60 border border-[var(--border-subtle)] p-2 rounded-lg flex items-center justify-between gap-2 text-left transition-colors transition-transform transition-opacity">
+      <div className="w-full bg-[var(--surface-2)]/60 border border-[var(--border-subtle)] p-2 rounded-lg flex items-center justify-between gap-2 text-left transition-[color,background-color,border-color,opacity,transform]">
         <div className="flex flex-col min-w-0">
           <span className="font-mono font-semibold text-[10px] text-[var(--text-primary)] uppercase tracking-wide truncate">Research Leaderboard</span>
           <span className="text-[var(--text-muted)] text-[9px] font-mono truncate">Publish score to public leaderboard</span>

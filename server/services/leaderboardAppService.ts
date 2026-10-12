@@ -15,7 +15,6 @@ import { validateAndDeriveAssessmentFromTrials } from '../engines/assessmentEngi
 import { computeCanonicalTrialsDigest, signProvenancePayload } from './provenanceService';
 import { isValidLeaderboardScoreMetric } from './leaderboardService';
 import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
-import { getIdempotency, setIdempotency } from './idempotencyService';
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 import { safeLogWarning } from '../config/firebaseAdmin';
 
@@ -28,13 +27,6 @@ export class LeaderboardAppService implements ILeaderboardService {
 
   async submitLeaderboard(input: SubmitLeaderboardInput): Promise<SubmitLeaderboardResult> {
     const { sessionId, userId, displayName, assessmentType, ageGroup, trials, idempotencyKey } = input;
-
-    if (idempotencyKey) {
-      const cached = getIdempotency<SubmitLeaderboardResult>(`lb_sub:${idempotencyKey}`);
-      if (cached) {
-        return cached;
-      }
-    }
 
     const aliasValidation = validateLeaderboardDisplayName(displayName);
     if (!aliasValidation.valid || !aliasValidation.normalized) {
@@ -83,8 +75,14 @@ export class LeaderboardAppService implements ILeaderboardService {
       throw new AppError('Leaderboard submission requires a completed, consumed research session', 400);
     }
 
-    if (typeof sData.expiresAt === 'number' && Date.now() > sData.expiresAt + 60000) {
-      throw new AppError('Experiment session has expired', 400);
+    // The assessment session must have been valid at completion. Allow opt-in for
+    // up to 24 hours after completion so reading results/typing an alias cannot
+    // consume the only submission opportunity after the original session expires.
+    if (!sData.consumedAt && typeof sData.expiresAt === 'number' && Date.now() > sData.expiresAt + 60000) {
+      throw new AppError('Experiment session has expired. Please retake the test.', 400);
+    }
+    if (sData.consumedAt && Date.now() > sData.consumedAt + 24 * 60 * 60 * 1000) {
+      throw new AppError('The leaderboard opt-in window has expired. Please retake the test.', 400);
     }
 
     if (sData.leaderboardSubmitted) {
@@ -146,10 +144,6 @@ export class LeaderboardAppService implements ILeaderboardService {
       metrics: (metrics || {}) as Record<string, unknown>,
       now
     });
-
-    if (idempotencyKey) {
-      setIdempotency(`lb_sub:${idempotencyKey}`, result);
-    }
 
     return result;
   }

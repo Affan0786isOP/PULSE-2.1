@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { submitLeaderboardResult, AssessmentType, AgeGroup } from '../lib/firestore';
+import { isValidLeaderboardScoreMetric, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 
 
 interface LeaderboardOptInProps {
@@ -80,15 +81,12 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
   const handleSubmit = async () => {
     if (isSubmittingRef.current) return;
 
-    const trimmed = displayName.trim();
-    if (!trimmed) {
-      setErrorMsg("Display name cannot be empty.");
+    const aliasValidation = validateLeaderboardDisplayName(displayName);
+    if (!aliasValidation.valid || !aliasValidation.normalized) {
+      setErrorMsg(aliasValidation.error || 'Choose a valid display name.');
       return;
     }
-    if ([...trimmed].length > 30) {
-      setErrorMsg("Display name must be 30 characters or less.");
-      return;
-    }
+    const trimmed = aliasValidation.normalized;
 
     isSubmittingRef.current = true;
     setOptInState('SUBMITTING');
@@ -112,6 +110,14 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
       setOptInState('ERROR');
     }
   };
+
+  if (!isValidLeaderboardScoreMetric(assessmentType, scoreMetric)) {
+    return (
+      <div role="note" className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] p-2 text-center text-xs text-[var(--text-muted)]">
+        This result does not meet the leaderboard score requirements and cannot be published.
+      </div>
+    );
+  }
 
   if (optInState === 'SUCCESS') {
     return (
