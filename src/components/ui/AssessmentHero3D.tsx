@@ -165,7 +165,7 @@ export function AssessmentHero3D() {
                 <motion.div
                   key={assessment.id}
                   role="button"
-                  tabIndex={Math.abs(offset) <= 1 ? 0 : -1}
+                  tabIndex={0}
                   aria-label={isActive ? `Launch ${assessment.title}` : `Select ${assessment.title}`}
                   aria-current={isActive ? 'true' : 'false'}
                   initial={false}
@@ -209,7 +209,7 @@ export function AssessmentHero3D() {
                       handleSelect(index);
                     }
                   }}
-                  className="rounded-[28px] overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                  className="rounded-[28px] overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#0066FF] hover:ring-2 hover:ring-[#0066FF]/30 transition-shadow"
                 >
                   {/* Background Layer 1: Active Card Light Gradient & Shadow */}
                   <div 
@@ -242,7 +242,7 @@ export function AssessmentHero3D() {
                     {/* Left: Metadata & Actions */}
                     <div className="flex flex-col justify-between h-full z-10 flex-1 min-w-0">
                       <div>
-                        {/* Protocol Counter (Streamlined, without redundant segments) */}
+                        {/* Protocol Counter (Clean 01 / 05 counter) */}
                         <div className="flex items-center gap-2 mb-2.5">
                           <span className="font-mono text-[13px] font-bold text-[#090D1A] tracking-wider">
                             {String(index + 1).padStart(2, '0')} <span className="text-slate-500 font-medium">/ 05</span>
@@ -269,23 +269,23 @@ export function AssessmentHero3D() {
                       </div>
                     </div>
 
-                    {/* Right: Soft Brand-Tinted Blue Protocol Art Container */}
+                    {/* Right: Soft Brand-Tinted Protocol Art Medallion */}
                     <div className="relative w-36 h-36 flex items-center justify-center shrink-0 z-10">
                       {/* Outer Ambient Atmospheric Halo */}
                       <div 
-                        className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.08)_0%,rgba(186,230,253,0.18)_50%,transparent_70%)] pointer-events-none" 
+                        className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.1)_0%,rgba(186,230,253,0.2)_50%,transparent_70%)] pointer-events-none" 
                         aria-hidden="true"
                       />
 
-                      {/* Restrained Airy Pale-Blue Surface Disc with Subtle Sky Border */}
+                      {/* Light Airy Medallion with Brand Blue Tint */}
                       <div 
-                        className="absolute inset-0 rounded-full bg-gradient-to-b from-[#F0F7FF] via-[#E4F0FC] to-[#D5E8FD] border border-[#BFDBFE] shadow-[0_8px_20px_rgba(0,102,255,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] pointer-events-none" 
+                        className="absolute inset-0 rounded-full bg-gradient-to-b from-[#F0F7FF] via-[#E2EFFF] to-[#D4E8FC] border border-[#BFDBFE] shadow-[0_8px_20px_rgba(0,102,255,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] pointer-events-none" 
                         aria-hidden="true"
                       />
 
-                      {/* Soft Brand-Blue Tinted Core Well (Airy and harmonious with light theme) */}
+                      {/* Inner Well with Brand Blue Tint (No Heavy Dark Navy) */}
                       <div 
-                        className="absolute inset-2.5 rounded-full bg-gradient-to-b from-[#1E3A8A]/25 via-[#2563EB]/20 to-[#1D4ED8]/30 border border-sky-400/30 shadow-[inset_0_2px_6px_rgba(0,102,255,0.1)] pointer-events-none" 
+                        className="absolute inset-2.5 rounded-full bg-gradient-to-b from-[#1E3A8A]/20 via-[#0284C7]/15 to-[#0066FF]/20 border border-[#93C5FD]/60 shadow-[inset_0_1px_4px_rgba(0,102,255,0.12)] pointer-events-none" 
                         aria-hidden="true"
                       />
 
@@ -293,7 +293,7 @@ export function AssessmentHero3D() {
                       <motion.img 
                         src={assessment.logo} 
                         alt={assessment.title}
-                        className="w-20 h-20 sm:w-22 sm:h-22 object-contain relative z-10 drop-shadow-[0_4px_12px_rgba(0,102,255,0.3)] filter contrast-110 brightness-105"
+                        className="w-22 h-22 sm:w-24 sm:h-24 object-contain relative z-10 drop-shadow-[0_4px_12px_rgba(0,102,255,0.2)]"
                         animate={isActive ? { scale: [1, 1.02, 1] } : {}}
                         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
                       />
@@ -302,8 +302,8 @@ export function AssessmentHero3D() {
 
                   {/* Content Layer 2: Inactive Card Identifiable Art & Label */}
                   <div 
-                    className={`w-full h-full relative flex flex-col items-center justify-between py-4 overflow-hidden transition-all duration-300 group ${
-                      isActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto hover:bg-sky-50/50'
+                    className={`w-full h-full relative flex flex-col items-center justify-between py-4 overflow-hidden transition-all duration-300 group-hover:bg-white/40 ${
+                      isActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
                     }`}
                   >
                     {/* Ambient inner soft pale-blue glow */}
@@ -313,24 +313,24 @@ export function AssessmentHero3D() {
                     />
                     
                     {/* Top Protocol Number Badge */}
-                    <div className="z-10 font-mono text-[10.5px] font-bold text-slate-800 bg-white/95 px-1.5 py-0.5 rounded shadow-sm border border-slate-300">
+                    <div className="z-10 font-mono text-[10px] font-bold text-slate-700 bg-white/95 px-1.5 py-0.5 rounded shadow-sm border border-slate-300/80">
                       0{index + 1}
                     </div>
 
                     {/* Identifiable Restrained Logo Badge */}
                     <div className="relative flex items-center justify-center my-auto">
                       <div 
-                        className={`absolute rounded-full bg-gradient-to-b from-[#1E3A8A]/30 via-[#2563EB]/25 to-[#1D4ED8]/35 border border-sky-400/40 shadow-[0_2px_6px_rgba(0,102,255,0.12)] pointer-events-none group-hover:scale-105 transition-transform ${
+                        className={`absolute rounded-full bg-gradient-to-b from-[#E0F2FE] via-[#BAE6FD] to-[#E0F2FE] border border-[#7DD3FC]/80 shadow-[0_2px_5px_rgba(0,102,255,0.12)] pointer-events-none ${
                           offset === 1 ? 'w-10 h-10' :
-                          offset === 2 ? 'w-9.5 h-9.5' :
-                          offset === 3 ? 'w-9 h-9' : 'w-8.5 h-8.5'
+                          offset === 2 ? 'w-9 h-9' :
+                          offset === 3 ? 'w-8 h-8' : 'w-7.5 h-7.5'
                         }`}
                         aria-hidden="true"
                       />
                       <img 
                         src={assessment.logo} 
                         alt={assessment.title}
-                        className={`object-contain relative z-10 drop-shadow-[0_2px_6px_rgba(0,102,255,0.25)] filter contrast-110 brightness-105 group-hover:scale-105 transition-transform ${
+                        className={`object-contain relative z-10 drop-shadow-[0_1px_4px_rgba(0,102,255,0.2)] filter contrast-125 brightness-105 ${
                           offset === 1 ? 'w-6.5 h-6.5' :
                           offset === 2 ? 'w-6 h-6' :
                           offset === 3 ? 'w-5.5 h-5.5' : 'w-5 h-5'
@@ -339,7 +339,7 @@ export function AssessmentHero3D() {
                     </div>
 
                     {/* Vertical Readable Title Label for Inactive Cards */}
-                    <div className="z-10 text-[11px] font-bold text-[#0F172A] tracking-wider uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 group-hover:text-[#0066FF] transition-colors mt-1">
+                    <div className="z-10 text-[10.5px] font-bold text-[#090D1A] tracking-wider uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 opacity-90 mt-1">
                       {assessment.title}
                     </div>
                   </div>
