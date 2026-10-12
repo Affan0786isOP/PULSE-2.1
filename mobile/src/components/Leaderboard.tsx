@@ -145,6 +145,12 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               handleNextProtocol();
               document.getElementById(`leaderboard-tab-${PROTOCOLS[nextIndex].id}`)?.focus();
             }
+            if (e.key === 'Home' || e.key === 'End') {
+              e.preventDefault();
+              const targetIndex = e.key === 'Home' ? 0 : PROTOCOLS.length - 1;
+              selectProtocol(PROTOCOLS[targetIndex].id);
+              document.getElementById(`leaderboard-tab-${PROTOCOLS[targetIndex].id}`)?.focus();
+            }
           }}
           tabIndex={0}
           aria-label="Protocol Selector"
