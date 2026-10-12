@@ -74,11 +74,21 @@ export function safeLeaderboardDisplayNameForRead(value: unknown): string | null
 
   if (!isOptedInLeaderboardUser(normalized)) return null;
 
-  const screeningText = normalizeAliasForSafetyCheck(normalized);
-  const containsDisallowedTerm = DISALLOWED_TERMS.some(term =>
-    new RegExp('(?:^|[^a-z0-9])' + term + '(?:$|[^a-z0-9])', 'u').test(screeningText)
-  );
-  return containsDisallowedTerm ? null : normalized;
+  return containsDisallowedAliasTerm(normalized) ? null : normalized;
+}
+
+// A compact form catches obfuscation by inserting separators or digits between letters.
+// These exact common-word/place-name exceptions prevent known substring false positives.
+const PROFANITY_FALSE_POSITIVES = new Set(['scunthorpe', 'snigger']);
+
+function compactAliasForSafetyCheck(value: string): string {
+  return normalizeAliasForSafetyCheck(value).replace(/[^a-z]/gu, '');
+}
+
+function containsDisallowedAliasTerm(value: string): boolean {
+  const compact = compactAliasForSafetyCheck(value);
+  if (PROFANITY_FALSE_POSITIVES.has(compact)) return false;
+  return DISALLOWED_TERMS.some(term => compact.includes(term));
 }
 
 /** True only for a participant-selected, non-generic public alias. */
@@ -86,7 +96,13 @@ export function isOptedInLeaderboardUser(displayName: string | null | undefined)
   const trimmed = String(displayName || '').normalize('NFKC').trim();
   if (!trimmed) return false;
   const lower = trimmed.toLocaleLowerCase('en-US');
-  if (GENERIC_ALIASES.has(lower) || lower.startsWith('participant')) return false;
+  const compact = compactAliasForSafetyCheck(trimmed);
+  if (
+    GENERIC_ALIASES.has(lower) ||
+    GENERIC_ALIASES.has(compact) ||
+    lower.startsWith('participant') ||
+    compact.startsWith('participant')
+  ) return false;
   return true;
 }
 
@@ -131,11 +147,7 @@ export function validateLeaderboardDisplayName(value: unknown): LeaderboardAlias
     return { valid: false, error: 'Choose a non-generic display name instead of Guest, Anonymous, Unknown, or Participant.' };
   }
 
-  const screeningText = normalizeAliasForSafetyCheck(normalized);
-  const containsDisallowedTerm = DISALLOWED_TERMS.some(term =>
-    new RegExp('(?:^|[^a-z0-9])' + term + '(?:$|[^a-z0-9])', 'u').test(screeningText)
-  );
-  if (containsDisallowedTerm) {
+  if (containsDisallowedAliasTerm(normalized)) {
     return { valid: false, error: 'Choose a different display name that follows the community guidelines.' };
   }
 
