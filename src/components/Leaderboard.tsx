@@ -284,7 +284,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 </thead>
                 <tbody className="divide-y divide-[var(--border-subtle)] font-mono text-sm">
                   {displayedEntries.map((entry, idx) => {
-                    const rank = idx + 1;
+                    const rank = getDisplayedRank(displayedEntries, entry);
                     const proto = PROTOCOLS.find(p => p.id === entry.assessmentType);
                     const unit = proto?.unit || '';
                     const formattedScore = formatLeaderboardScore(entry.scoreMetric, unit);

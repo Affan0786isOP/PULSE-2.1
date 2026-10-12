@@ -27,7 +27,7 @@ export class LeaderboardAppService implements ILeaderboardService {
   ) {}
 
   async submitLeaderboard(input: SubmitLeaderboardInput): Promise<SubmitLeaderboardResult> {
-    const { sessionId, userId, displayName, assessmentType, ageGroup, trials, idempotencyKey } = input;
+    const { sessionId, userId, displayName, assessmentType, ageGroup, trials } = input;
 
     const aliasValidation = validateLeaderboardDisplayName(displayName);
     if (!aliasValidation.valid || !aliasValidation.normalized) {
