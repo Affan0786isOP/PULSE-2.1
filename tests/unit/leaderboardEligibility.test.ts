@@ -27,7 +27,7 @@ describe('shared leaderboard assessment normalization', () => {
 });
 
 describe('leaderboard display names', () => {
-  it.each(['', '   ', 'Guest', 'Anonymous', 'Unknown', 'Participant 12', 'http://example.com', 'person@example.com', 'Ahmed1234567', 'bad\u202Ename', '<script>', 'shit'])(
+  it.each(['', '   ', 'Guest', 'Anonymous', 'Unknown', 'Participant 12', 'http://example.com', 'person@example.com', 'Ahmed1234567', 'bad\u202Ename', '<script>', 'shit', 'shit'])(
     'rejects unsafe or ineligible alias %j',
     (alias) => expect(validateLeaderboardDisplayName(alias).valid).toBe(false)
   );
@@ -55,7 +55,8 @@ describe('leaderboard score eligibility', () => {
     ['color-recognition', 49.9, false],
     ['visual-reaction', 10000.1, false],
     ['block-memory', 1, true],
-    ['number-memory', 151, true],
+    ['number-memory', 150, true],
+    ['number-memory', 151, false],
     ['block-memory', 2.5, false],
     ['number-memory', 0, false],
     ['number-memory', Number.NaN, false],

@@ -93,7 +93,7 @@ export function isValidLeaderboardScoreMetric(assessmentType: string, scoreMetri
   }
 
   if (assessmentType === 'block-memory' || assessmentType === 'number-memory') {
-    return Number.isInteger(scoreMetric) && scoreMetric >= 1;
+    return Number.isInteger(scoreMetric) && scoreMetric >= 1 && scoreMetric <= 150;
   }
 
   return false;
