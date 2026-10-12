@@ -17,12 +17,11 @@ import {
   X
 } from 'lucide-react';
 import { 
-  getLeaderboardResults, 
   LeaderboardEntry, 
   AssessmentType, 
   VALID_AGE_GROUPS 
 } from '../../lib/firestore';
-import { hideLeaderboardEntry, deleteLeaderboardEntryPermanently, fetchAllAdminLeaderboard } from '../../lib/adminActions';
+import { hideLeaderboardEntry, unhideLeaderboardEntry, deleteLeaderboardEntryPermanently, fetchAllAdminLeaderboard } from '../../lib/adminActions';
 import { useAdminAuth } from '../../lib/useAdminAuth';
 
 const PROFANITY_REGEX = /\b(fuck|shit|bitch|asshole|nigger|faggot|dick|pussy|cunt|bastard|porn|sex|penis|vagina|retard|idiot|loser|hacker|bot|cheater|cheat|admin)\b/i;
@@ -40,7 +39,8 @@ export function LeaderboardModeration() {
   const { email, user } = useAdminAuth();
   const currentAdminEmail = email || user?.email || 'admin@pulse-research.org';
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [showHidden, setShowHidden] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [filterAssessment, setFilterAssessment] = useState<string>('All');
@@ -58,6 +58,7 @@ export function LeaderboardModeration() {
 
   const fetchAllLeaderboardEntries = async () => {
     setIsLoading(true);
+    setLoadError(null);
     try {
       const results = await fetchAllAdminLeaderboard();
       const all: LeaderboardEntry[] = [];
@@ -72,7 +73,9 @@ export function LeaderboardModeration() {
 
       setEntries(all);
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to load moderation queue.';
       console.warn("Failed to fetch leaderboard for moderation:", err);
+      setLoadError(message);
     } finally {
       setIsLoading(false);
     }
@@ -155,7 +158,7 @@ export function LeaderboardModeration() {
   // Filter and sort entries
   const filteredEntries = useMemo(() => {
     return enrichedEntries
-      .filter(e => !hiddenIds.has(e.id))
+      .filter(e => showHidden || !e.hidden)
       .filter(e => {
         if (filterAssessment !== 'All' && e.assessmentType !== filterAssessment) return false;
         if (filterAgeGroup !== 'All' && e.ageGroup !== filterAgeGroup) return false;
@@ -190,7 +193,7 @@ export function LeaderboardModeration() {
         const tB = getTime(b.createdAt);
         return sortAsc ? tA - tB : tB - tA;
       });
-  }, [enrichedEntries, hiddenIds, filterAssessment, filterAgeGroup, filterFlaggedOnly, searchQuery, sortField, sortAsc]);
+  }, [enrichedEntries, showHidden, filterAssessment, filterAgeGroup, filterFlaggedOnly, searchQuery, sortField, sortAsc]);
 
   // Selection handlers
   const allFilteredSelected = useMemo(() => {
@@ -232,7 +235,7 @@ export function LeaderboardModeration() {
 
     try {
       await hideLeaderboardEntry(entryId, modReason, currentAdminEmail);
-      setHiddenIds(prev => new Set(prev).add(entryId));
+      setEntries(prev => prev.map(e => e.id === entryId ? { ...e, hidden: true } : e));
       setSelectedIds(prev => {
         const next = new Set(prev);
         next.delete(entryId);
@@ -257,7 +260,7 @@ export function LeaderboardModeration() {
 
     try {
       await deleteLeaderboardEntryPermanently(entryId, `Permanent Deletion: ${modReason}`, currentAdminEmail);
-      setHiddenIds(prev => new Set(prev).add(entryId));
+      setEntries(prev => prev.map(e => e.id === entryId ? { ...e, hidden: true } : e));
       setSelectedIds(prev => {
         const next = new Set(prev);
         next.delete(entryId);
@@ -297,11 +300,7 @@ export function LeaderboardModeration() {
 
     // Incremental reconciliation: successful IDs disappear from visible list
     if (successfulIds.length > 0) {
-      setHiddenIds(prev => {
-        const next = new Set<string>(prev);
-        successfulIds.forEach(id => next.add(id));
-        return next;
-      });
+      setEntries(prev => prev.map(e => successfulIds.includes(e.id) ? { ...e, hidden: true } : e));
       setSelectedIds(prev => {
         const next = new Set(prev);
         successfulIds.forEach(id => next.delete(id));
@@ -373,6 +372,15 @@ export function LeaderboardModeration() {
           )}
 
           <button type="button"
+            aria-pressed={showHidden}
+            onClick={() => setShowHidden(value => !value)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] border border-white/10 text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer"
+          >
+            <EyeOff size={14} />
+            <span>{showHidden ? 'Hide hidden' : `Show hidden (${entries.filter(e => e.hidden).length})`}</span>
+          </button>
+
+          <button type="button"
             onClick={fetchAllLeaderboardEntries}
             disabled={isLoading}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] active:scale-95 border border-white/10 text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer disabled:opacity-50"
@@ -382,6 +390,13 @@ export function LeaderboardModeration() {
           </button>
         </div>
       </div>
+
+      {loadError && (
+        <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-300">
+          <span>Moderation queue unavailable: {loadError}</span>
+          <button type="button" onClick={fetchAllLeaderboardEntries} disabled={isLoading} className="underline underline-offset-2 disabled:opacity-50">Retry</button>
+        </div>
+      )}
 
       {/* FILTER & SEARCH TOOLBAR */}
       <div className="bg-[var(--bg-surface)] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-4">
@@ -446,7 +461,7 @@ export function LeaderboardModeration() {
           <div className="flex items-center gap-4">
             <span>Showing {filteredEntries.length} of {entries.length} records</span>
             <span className="text-amber-400">
-              ● {enrichedEntries.filter(e => e.isFlagged && !hiddenIds.has(e.id)).length} flagged anomalies
+              ● {enrichedEntries.filter(e => e.isFlagged && !e.hidden).length} flagged anomalies
             </span>
           </div>
           <div className="text-[11px]">
@@ -548,6 +563,7 @@ export function LeaderboardModeration() {
                           <span className={entry.isProfane ? 'text-rose-400 underline decoration-rose-500/50' : ''}>
                             {entry.displayName}
                           </span>
+                          {entry.hidden && <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] uppercase text-amber-300">Hidden</span>}
                         </div>
                       </td>
 
@@ -596,18 +612,35 @@ export function LeaderboardModeration() {
                       </td>
 
                       <td className="p-3 text-right">
-                        <button type="button"
-                          onClick={() => {
-                            setModeratingEntry(entry);
-                            setModReason(
-                              entry.isProfane ? 'Profanity / Inappropriate Name' : 
-                              entry.isOutlier ? 'Statistically Infeasible Score (> 2.5 SD)' : 'Moderator Discretion'
-                            );
-                          }}
-                          className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 text-[11px] font-mono transition-colors cursor-pointer"
-                        >
-                          Hide Entry
-                        </button>
+                        {entry.hidden ? (
+                          <button type="button"
+                            onClick={async () => {
+                              try {
+                                await unhideLeaderboardEntry(entry.id, 'Restored by moderator', currentAdminEmail);
+                                setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, hidden: false } : e));
+                                showToast(`Entry "${entry.displayName}" restored and audit logged.`);
+                              } catch (err: any) {
+                                showToast(err?.message || `Failed to restore entry "${entry.displayName}".`, true);
+                              }
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-mono transition-colors cursor-pointer"
+                          >
+                            Restore Entry
+                          </button>
+                        ) : (
+                          <button type="button"
+                            onClick={() => {
+                              setModeratingEntry(entry);
+                              setModReason(
+                                entry.isProfane ? 'Profanity / Inappropriate Name' :
+                                entry.isOutlier ? 'Statistically Infeasible Score (> 2.5 SD)' : 'Moderator Discretion'
+                              );
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 text-[11px] font-mono transition-colors cursor-pointer"
+                          >
+                            Hide Entry
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
