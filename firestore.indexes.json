@@ -60,5 +60,12 @@
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "_rateLimitCounters",
+      "fieldPath": "resetAt",
+      "ttl": true,
+      "indexes": []
+    }
+  ]
 }
