@@ -87,9 +87,21 @@ describe('leaderboard display names', () => {
     }
   });
 
-  it('preserves known harmless words that contain profanity substrings', () => {
-    expect(validateLeaderboardDisplayName('Scunthorpe')).toMatchObject({ valid: true, normalized: 'Scunthorpe' });
-    expect(validateLeaderboardDisplayName('Snigger')).toMatchObject({ valid: true, normalized: 'Snigger' });
+  it.each([
+    'Harshit', 'Harshita', 'Ishita', 'Kshitij', 'Kshitiz', 'Akshit',
+    'Akshita', 'Nishit', 'Nishita', 'Shital', 'Shitij', 'Rishit',
+    'Vanshita', 'Anshita', 'Push It', 'Fish It', 'Mass Holes', 'Class Hole',
+    'Scunthorpe', 'Snigger',
+  ])('allows legitimate names and phrases containing profanity-like substrings: %s', alias => {
+    expect(validateLeaderboardDisplayName(alias), alias).toMatchObject({ valid: true, normalized: alias });
+    expect(safeLeaderboardDisplayNameForRead(alias), alias).toBe(alias);
+  });
+
+  it('keeps stored aliases out of the stricter new-submission evasion filter', () => {
+    for (const alias of ['fuck123', 'shitty', 'xXfuckXx', 'f u c k', 'f.u.c.k', 'b1tch']) {
+      expect(validateLeaderboardDisplayName(alias).valid, alias).toBe(false);
+      expect(safeLeaderboardDisplayNameForRead(alias), alias).toBe(alias);
+    }
   });
 
   it('preserves safe legacy aliases with punctuation and emoji while rejecting clearly unsafe values', () => {
