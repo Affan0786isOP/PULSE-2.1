@@ -168,6 +168,7 @@ export class LeaderboardAppService implements ILeaderboardService {
       trialsDigest: trialsDigest || '',
       metrics: metrics as Record<string, unknown>,
       now,
+      idempotencyKey: input.idempotencyKey || null,
       requiresModeration,
       qualityFlags
     });
