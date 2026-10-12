@@ -15,26 +15,41 @@ function isBetterScore(assessmentType: string, candidate: number, current: numbe
   return isSpeedAssessment(assessmentType) ? candidate < current : candidate > current;
 }
 
+function ownerIndexDocumentId(userId: string, assessmentType: string): string {
+  return crypto.createHash('sha256').update(`${userId}:${assessmentType}`).digest('hex');
+}
+
 export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSubmissionRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
 
   async executeLeaderboardSubmission(input: LeaderboardSubmissionTxInput): Promise<LeaderboardSubmissionTxResult> {
     const db = this.getDb();
-    if (!db) {
-      throw new Error('DATABASE_UNAVAILABLE');
-    }
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
     const sessionDocRef = db.collection('experimentSessions').doc(input.activeSessionId);
     const requestedLeaderboardDocRef = db.collection('leaderboardResults').doc(input.leaderboardDocId);
-    // This deterministic index doc serializes concurrent submissions from the
-    // same participant and assessment, even when the owner has no row yet.
-    const ownerIndexId = crypto.createHash('sha256')
-      .update(`${input.userId}:${input.assessmentType}`)
-      .digest('hex');
-    const ownerIndexRef = db.collection('leaderboardOwnerIndex').doc(ownerIndexId);
+    // Private metadata uses the same document ID, but never lives in the publicly readable collection.
+    const requestedPrivateMetaRef = db.collection('leaderboardPrivateMeta').doc(input.leaderboardDocId);
+    const ownerIndexRef = db.collection('leaderboardOwnerIndex').doc(ownerIndexDocumentId(input.userId, input.assessmentType));
 
-    const requestedLeaderboardDoc = {
+    // Only fields required to render a public ranking live in leaderboardResults.
+    const publicLeaderboardDoc = {
       displayName: input.displayName,
+      assessmentType: input.assessmentType,
+      scoreMetric: input.scoreMetric,
+      ageGroup: input.authoritativeAgeGroup,
+      provenanceToken: input.provenanceToken,
+      provenanceVersion: 2,
+      hidden: input.requiresModeration === true,
+      createdAt: FieldValue.serverTimestamp()
+    };
+
+    // This collection is covered by the default-deny Firestore rules. Owner IDs,
+    // session identifiers, raw metrics/digests, idempotency keys and review flags
+    // must not be placed on the publicly-readable leaderboardResults document.
+    const privateMetaDoc = {
+      ownerUid: input.userId,
+      sessionId: input.activeSessionId,
       assessmentType: input.assessmentType,
       scoreMetric: input.scoreMetric,
       ageGroup: input.authoritativeAgeGroup,
@@ -42,44 +57,36 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       provenanceVersion: 2,
       trialsDigest: input.trialsDigest || '',
       derivedMetrics: input.metrics,
-      ownerUid: input.userId,
-      sessionId: input.activeSessionId,
       ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {}),
       qualityFlags: input.qualityFlags || [],
       moderationReason: (input.qualityFlags || []).join(', '),
       hidden: input.requiresModeration === true,
-      createdAt: FieldValue.serverTimestamp()
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: input.now
     };
 
     let result: LeaderboardSubmissionTxResult | null = null;
 
-    await db.runTransaction(async (tx) => {
+    await db.runTransaction(async tx => {
       const sessionSnap = await tx.get(sessionDocRef);
-      if (!sessionSnap.exists) {
-        throw new AppError('Experiment session not found', 404);
-      }
+      if (!sessionSnap.exists) throw new AppError('Experiment session not found', 404);
 
       const sData = sessionSnap.data() as ExperimentSessionRecord;
       if (sData.uid !== input.userId) {
         throw new AppError('Session UID mismatch with authenticated user', 403);
       }
-      if (sData.leaderboardSubmitted) {
-        throw new LeaderboardAlreadySubmittedError(sData);
-      }
+      if (sData.leaderboardSubmitted) throw new LeaderboardAlreadySubmittedError(sData);
 
-      // A transactional read makes concurrent first submissions for this same
-      // participant/assessment conflict and retry, preventing duplicate rows.
+      // Shared deterministic guard both serializes simultaneous first submissions
+      // and blocks writes while an owner-initiated erasure is running.
       const ownerIndexSnap = await tx.get(ownerIndexRef);
       if (ownerIndexSnap.data()?.deleting === true) {
         throw new AppError('Participant leaderboard erasure is in progress. Please retry later.', 409);
       }
 
-      // Query only the submitting user's rows. The owner field is private and is
-      // deliberately excluded from the public LeaderboardEntryRecord/API shape.
-      const ownerRows = await tx.get(
-        db.collection('leaderboardResults').where('ownerUid', '==', input.userId)
-      );
-      const existingRows = ownerRows.docs
+      const ownerMetaQuery = db.collection('leaderboardPrivateMeta').where('ownerUid', '==', input.userId);
+      const ownerMetaSnap = await tx.get(ownerMetaQuery);
+      const existingRows = ownerMetaSnap.docs
         .filter(doc => doc.id !== input.leaderboardDocId && doc.data().assessmentType === input.assessmentType)
         .sort((a, b) => {
           const aScore = Number(a.data().scoreMetric);
@@ -87,10 +94,12 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
           if (aScore === bScore) return a.id.localeCompare(b.id);
           return isSpeedAssessment(input.assessmentType) ? aScore - bScore : bScore - aScore;
         });
+
       const idempotencyMatch = input.idempotencyKey
         ? existingRows.find(doc => doc.data().idempotencyKey === input.idempotencyKey)
         : undefined;
       const bestExisting = idempotencyMatch || existingRows[0];
+
       let responseDocId = input.leaderboardDocId;
       let responseScore = input.scoreMetric;
       let responseToken = input.provenanceToken;
@@ -99,7 +108,8 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       let responsePendingReview = input.requiresModeration === true;
 
       if (!bestExisting) {
-        tx.set(requestedLeaderboardDocRef, requestedLeaderboardDoc);
+        tx.set(requestedLeaderboardDocRef, publicLeaderboardDoc);
+        tx.set(requestedPrivateMetaRef, privateMetaDoc);
       } else {
         const existingData = bestExisting.data();
         const existingScore = Number(existingData.scoreMetric);
@@ -108,16 +118,23 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
           Number.isFinite(existingScore) &&
           isBetterScore(input.assessmentType, input.scoreMetric, existingScore)
         ) {
-          // Replace the prior best under the new ID so provenance can bind to the exact row.
+          const oldPublicRowRef = db.collection('leaderboardResults').doc(bestExisting.id);
+          tx.delete(oldPublicRowRef);
           tx.delete(bestExisting.ref);
+
           responsePendingReview = existingData.hidden === true || input.requiresModeration === true;
           tx.set(requestedLeaderboardDocRef, {
-            ...requestedLeaderboardDoc,
+            ...publicLeaderboardDoc,
             hidden: responsePendingReview
+          });
+          tx.set(requestedPrivateMetaRef, {
+            ...privateMetaDoc,
+            hidden: responsePendingReview,
+            updatedAt: input.now
           });
           responseDocId = input.leaderboardDocId;
         } else {
-          // Same idempotency key, a worse score, or a tie: return the existing row.
+          // Same idempotency key, worse score, or tie: preserve the best existing record.
           responseDocId = bestExisting.id;
           responseScore = existingScore;
           responseToken = String(existingData.provenanceToken || '');
@@ -138,6 +155,7 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
         provenanceToken: responseToken,
         derivedMetrics: responseMetrics
       }, { merge: true });
+
       tx.set(ownerIndexRef, {
         ownerUid: input.userId,
         assessmentType: input.assessmentType,
