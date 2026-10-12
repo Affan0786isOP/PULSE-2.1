@@ -97,4 +97,25 @@ describe('desktop and mobile leaderboard components', () => {
   it('loads the protocol specified in the URL and supports keyboard tab navigation on mobile', async () => {
     await verifyBoard(MobileLeaderboard, getMobileLeaderboardResults as typeof getDesktopLeaderboardResults);
   });
+
+  it('keeps narrow-phone protocol controls within the selector with 44px dot targets', async () => {
+    render(
+      <MemoryRouter initialEntries={['/leaderboard']}>
+        <MobileLeaderboard onNavigate={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(await screen.findByText('Speed Winner')).toBeTruthy();
+
+    expect(document.getElementById('mobile-leaderboard-prev-btn')?.className).toContain('max-[360px]:hidden');
+    expect(document.getElementById('mobile-leaderboard-next-btn')?.className).toContain('max-[360px]:hidden');
+
+    const tabs = Array.from(document.querySelectorAll('#leaderboard-panel ~ * [role="tab"]'));
+    const protocolTabs = Array.from(document.querySelectorAll('[role="tablist"][aria-label="Protocols"] [role="tab"]'));
+    expect(protocolTabs).toHaveLength(5);
+    for (const tab of protocolTabs) {
+      expect(tab.className).toContain('max-[360px]:w-11');
+      expect(tab.className).toContain('max-[360px]:min-w-[44px]');
+      expect(tab.className).toContain('min-h-[44px]');
+    }
+  });
 });
