@@ -68,6 +68,7 @@ describe('desktop assessment hero carousel keyboard scope', () => {
     const previousButton = screen.getByRole('button', { name: 'Previous assessment protocol' });
     expect(activeCardLabel(region)).toBe('Launch Visual Reaction');
 
+    fireEvent.mouseEnter(region);
     fireEvent.focus(previousButton);
     act(() => { vi.advanceTimersByTime(5500); });
     expect(activeCardLabel(region)).toBe('Launch Visual Reaction');
