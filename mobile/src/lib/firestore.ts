@@ -171,7 +171,7 @@ export type LeaderboardEntry = {
   scoreMetric: number;
   ageGroup: string;
   createdAt: any;
-  source: 'cloud' | 'local';
+  source: 'cloud';
   hidden?: boolean;
 };
 
@@ -413,7 +413,6 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
 
   const isSpeed = canonicalType === 'visual-reaction' || canonicalType === 'direction' || canonicalType === 'color-recognition';
   const entriesMap = new Map<string, LeaderboardEntry>();
-  let firestoreAttempted = false;
   let firestoreSucceeded = false;
   let apiSucceeded = false;
   let lastError: Error | null = null;
@@ -461,7 +460,6 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
 
   // 2. Direct Firestore query for opted-in leaderboard submissions from leaderboardResults
   if (!apiSucceeded && isFirestoreAvailable() && db) {
-    firestoreAttempted = true;
     try {
       const ready = await ensureFirebaseReady();
       if (ready) {
