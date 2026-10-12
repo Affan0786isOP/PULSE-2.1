@@ -32,5 +32,7 @@ This document defines the statutory retention schedules, automated purge trigger
 ---
 
 ## 4. Participant Deletion Procedures (Right to Erasure)
-- **Execution Window:** In accordance with GDPR Art. 17 and RCW 19.373, verified erasure requests are executed across active databases and backup systems within **45 calendar days**.
-- **Mechanism:** The reviewed repository does not expose a participant-facing, verified erasure-request workflow. Do not treat the retention periods in this document as automated guarantees unless an external retention/erasure service is configured and verified. Leaderboard records can be hidden or deleted through the admin API; research-record erasure procedures require an independently verified operational workflow.
+- **Leaderboard removal:** An authenticated participant can call `DELETE /api/leaderboard/mine?assessmentType=<canonical-id>` to remove their entries for one assessment, or use `assessmentType=all` to remove all linked leaderboard entries. The endpoint serializes erasure against concurrent submissions and deletes both public rows and private metadata.
+- **Legacy leaderboard rows:** The server can link older rows only when a server-owned consumed session explicitly references the row ID. Rows with missing or inconsistent session provenance may still require administrator investigation and are not guaranteed to be found by self-removal.
+- **Research-record deletion:** The leaderboard removal endpoint does not delete `assessmentTrials`, `assessmentResults`, `trialObservations`, or other research data. A complete cross-collection participant erasure workflow is not implemented by this endpoint.
+- **Execution window:** No scheduled service-level timer is enforced by this repository. Do not claim completion within 45 calendar days across all active stores or backups unless a separate operational process is verified.
