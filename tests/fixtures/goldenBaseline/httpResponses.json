@@ -147,10 +147,10 @@
     }
   },
   "POST /api/leaderboard/submit [db_null]": {
-    "status": 404,
+    "status": 503,
     "body": {
       "success": false,
-      "error": "Experiment session not found"
+      "error": "Database service unavailable"
     }
   },
   "POST /api/leaderboard/submit [session_unconsumed]": {

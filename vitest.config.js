@@ -9,7 +9,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup/setupTests.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**', '**/.agent/**'],
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@shared': path.resolve(__dirname, './shared'),

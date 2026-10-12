@@ -234,6 +234,8 @@ describe('Server Application Services Unit Tests', () => {
     const mockSubRepo: ILeaderboardSubmissionRepository = { executeLeaderboardSubmission };
     const service = new LeaderboardAppService(mockSessionRepo, mockLbRepo, mockSubRepo);
 
+    // The old session expiry has passed, but the completion-based opt-in window remains open.
+    // Empty trials are rejected by the next validation step, proving the expiry gate did not reject them first.
     await expect(service.submitLeaderboard({
       sessionId: session.sessionId,
       userId: session.uid,
@@ -241,8 +243,11 @@ describe('Server Application Services Unit Tests', () => {
       assessmentType: 'visual-reaction',
       ageGroup: session.ageGroup,
       trials: []
-    })).resolves.toMatchObject({ docId: 'lb-completed', scoreMetric: 200 });
-    expect(executeLeaderboardSubmission).toHaveBeenCalledTimes(1);
+    })).rejects.toMatchObject({
+      status: 400,
+      message: 'Trial sequence must be a non-empty array.'
+    });
+    expect(executeLeaderboardSubmission).not.toHaveBeenCalled();
 
     const expiredSession: ExperimentSessionRecord = {
       ...session,
@@ -276,7 +281,10 @@ describe('Server Application Services Unit Tests', () => {
       assessmentType: 'visual-reaction',
       ageGroup: expiredSession.ageGroup,
       trials: []
-    })).rejects.toMatchObject({ status: 400 });
+    })).rejects.toMatchObject({
+      status: 400,
+      message: 'The leaderboard opt-in window has expired. Please retake the test.'
+    });
     expect(neverSubmit).not.toHaveBeenCalled();
   });
 

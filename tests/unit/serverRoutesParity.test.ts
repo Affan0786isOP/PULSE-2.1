@@ -414,7 +414,7 @@ describe('Server Route Parity Suite (against Golden Baseline)', () => {
     expect(res.body).toEqual(goldenResponses['GET /api/research/dataset [empty]'].body);
 
     // 5. POST /api/leaderboard/submit
-    // 5.1 DB Null -> 404
+    // 5.1 DB Null -> 503; do not misreport a database outage as a missing session.
     activeMockDb = null;
     res = await makeRequest(server, 'POST', '/api/leaderboard/submit', {
       sessionId: 'sess-lb-1',

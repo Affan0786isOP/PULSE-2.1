@@ -14,11 +14,11 @@ describe('Oct 4–5 regression guards', () => {
     expect(source.match(/executeTriggerRef\.current\(e\);/g)?.length).toBe(1);
   });
 
-  it('keeps Home constrained to a single viewport', () => {
+  it('keeps Home at least viewport-height and prevents horizontal overflow', () => {
     const source = readSource('src/components/Home.tsx');
 
     expect(source).toContain('h-[100dvh]');
-    expect(source).toContain('overflow-hidden');
+    expect(source).toContain('overflow-x-hidden');
     expect(source).not.toContain('Structured Telemetry Showcase Below-the-fold');
   });
 
@@ -26,7 +26,7 @@ describe('Oct 4–5 regression guards', () => {
     const source = readSource('src/components/ui/AssessmentHero3D.tsx');
 
     expect(source).toContain('role="button"');
-    expect(source).toContain('tabIndex={Math.abs(offset) <= 1 ? 0 : -1}');
+    expect(source).toContain('tabIndex={0}');
     expect(source).toContain('if (e.key === \'Enter\' || e.key === \' \')');
     expect(source).toContain('navigate(assessment.targetRoute);');
   });
