@@ -1,42 +1,98 @@
-import type { Express } from 'express';
-import rateLimit from 'express-rate-limit';
+import type { Express, Request } from 'express';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { getAdminDb } from './firebaseAdmin';
+import { FirestoreRateLimitStore } from './firestoreRateLimitStore';
 
-// NOTE: express-rate-limit uses an in-memory store per process. When scaled across multiple
-// instances, back these with a shared store (Redis / Firestore counters) - see docs/SECURITY.md.
+/**
+ * Decodes a Firebase UID only to partition rate-limit counters. This is NOT
+ * authentication; every protected route still verifies the ID token itself.
+ */
+function getUnverifiedUid(req: Request): string | null {
+  const authorization = req.headers.authorization;
+  if (typeof authorization !== 'string' || !/^Bearer\s+/i.test(authorization)) return null;
+  const token = authorization.replace(/^Bearer\s+/i, '').trim();
+  const payload = token.split('.')[1];
+  if (!payload) return null;
+  try {
+    const decoded = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as {
+      sub?: unknown;
+      user_id?: unknown;
+    };
+    const uid = typeof decoded.user_id === 'string' ? decoded.user_id : decoded.sub;
+    return typeof uid === 'string' && uid.length > 0 && uid.length <= 256 ? uid : null;
+  } catch {
+    return null;
+  }
+}
 
+function normalizedRequestIp(req: Request): string {
+  const rawIp = req.ip || req.socket.remoteAddress || 'unknown';
+  return rawIp === 'unknown' ? rawIp : ipKeyGenerator(rawIp);
+}
+
+function createLimiterKey(namespace: string, useUserIdentity: boolean) {
+  return (req: Request): string => {
+    const ip = normalizedRequestIp(req);
+    const uid = useUserIdentity ? getUnverifiedUid(req) : null;
+    const identity = uid ? `uid:${uid}:ip:${ip}` : `ip:${ip}`;
+    return `${namespace}:${identity}`;
+  };
+}
+
+function createSharedStore(): FirestoreRateLimitStore {
+  return new FirestoreRateLimitStore(() => getAdminDb());
+}
+
+const windowMs = 15 * 60 * 1000;
+
+// Firestore-backed counters are shared across serverless instances. Authenticated
+// traffic is partitioned by UID + IP to prevent a school/carrier NAT from making
+// one participant exhaust every other participant's per-test allowance.
 export const sessionStartLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs,
   max: 30,
-  message: { success: false, error: 'Too many requests. Please try again later.' }
+  keyGenerator: createLimiterKey('session-start', true),
+  store: createSharedStore(),
+  message: { success: false, error: 'Too many session starts. Please try again later.' }
 });
 
 export const sessionSubmitLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs,
   max: 30,
-  message: { success: false, error: 'Too many requests. Please try again later.' }
+  keyGenerator: createLimiterKey('session-submit', true),
+  store: createSharedStore(),
+  message: { success: false, error: 'Too many research submissions. Please try again later.' }
 });
 
 export const leaderboardSubmitLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs,
   max: 30,
-  message: { success: false, error: 'Too many requests. Please try again later.' }
+  keyGenerator: createLimiterKey('leaderboard-submit', true),
+  store: createSharedStore(),
+  message: { success: false, error: 'Too many leaderboard submissions. Please try again later.' }
 });
 
 export const generalSessionsLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  message: { success: false, error: 'Too many requests. Please try again later.' }
+  windowMs,
+  max: 60,
+  keyGenerator: createLimiterKey('sessions', true),
+  store: createSharedStore(),
+  message: { success: false, error: 'Too many session requests. Please try again later.' }
 });
 
 export const verificationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs,
   max: 60,
+  keyGenerator: createLimiterKey('verification', false),
+  store: createSharedStore(),
   message: { success: false, error: 'Too many verification requests. Please try again later.' }
 });
 
 export const leaderboardReadLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs,
   max: 600,
+  keyGenerator: createLimiterKey('leaderboard-read', false),
+  store: createSharedStore(),
   skip: (req) => req.method !== 'GET' || req.originalUrl.split('?')[0] !== '/api/leaderboard',
   standardHeaders: true,
   legacyHeaders: false,
@@ -51,15 +107,21 @@ export const leaderboardReadLimiter = rateLimit({
 });
 
 export const generalApiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
+  windowMs,
+  // A coarse per-IP ceiling remains for invalid/unauthenticated requests; actual
+  // authenticated study traffic uses the per-user limiters above.
+  max: 2000,
+  keyGenerator: createLimiterKey('general-api', false),
+  store: createSharedStore(),
   skip: (req) => req.method === 'GET' && req.originalUrl.split('?')[0] === '/api/leaderboard',
   message: { success: false, error: 'Too many API requests' }
 });
 
 export const adminLoginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs,
   max: 10,
+  keyGenerator: createLimiterKey('admin-login', false),
+  store: createSharedStore(),
   message: { success: false, error: 'Too many admin login attempts. Please try again in 15 minutes.' }
 });
 
