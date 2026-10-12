@@ -122,6 +122,21 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     };
   }
 
+  async getEntryById(entryId: string): Promise<AdminLeaderboardEntryRecord | null> {
+    const db = this.getDb();
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
+    if (!entryId || entryId.includes('/') || entryId.length > 1500) throw new Error('INVALID_ENTRY_ID');
+
+    const snap = await db.collection('leaderboardResults').doc(entryId).get();
+    if (!snap.exists) return null;
+    const data = snap.data() || {};
+    return {
+      id: snap.id,
+      ...data,
+      createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
+    } as AdminLeaderboardEntryRecord;
+  }
+
   async softHideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }> {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
