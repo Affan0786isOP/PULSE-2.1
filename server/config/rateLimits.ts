@@ -40,7 +40,14 @@ export const leaderboardReadLimiter = rateLimit({
   skip: (req) => req.method !== 'GET' || req.originalUrl.split('?')[0] !== '/api/leaderboard',
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, error: 'Too many leaderboard requests. Please retry shortly.' }
+  handler: (_req, res) => {
+    // Keep the throttle response envelope identical to GET /api/leaderboard.
+    res.status(429).json({
+      success: false,
+      error: 'Too many leaderboard requests. Please retry shortly.',
+      entries: []
+    });
+  }
 });
 
 export const generalApiLimiter = rateLimit({
