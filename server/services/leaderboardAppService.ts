@@ -11,7 +11,7 @@ import type { LeaderboardEntryRecord } from '../models/leaderboardModels';
 import type { ExperimentSessionRecord } from '../models/sessionModels';
 import { VALID_AGE_GROUPS, VALID_ASSESSMENT_TYPES } from '../config/constants';
 import { normalizeAssessmentType } from '../engines/assessmentTypes';
-import { signProvenancePayload } from './provenanceService';
+import { safeCompareHex, signProvenancePayload } from './provenanceService';
 import { isValidLeaderboardScoreMetric, safeLeaderboardDisplayNameForRead, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 import { safeLogWarning } from '../config/firebaseAdmin';
@@ -143,7 +143,8 @@ export class LeaderboardAppService implements ILeaderboardService {
     }
 
     const sanitizedDisplayName = normalizedDisplayName.replace(/:/g, '_');
-    const tokenData = `lb:${normalizedAssessmentType}:${authoritativeAgeGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest || ''}`;
+    const leaderboardDocId = crypto.randomUUID();
+    const tokenData = `lb:v2:${leaderboardDocId}:${normalizedAssessmentType}:${authoritativeAgeGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest}`;
     const provenanceToken = signProvenancePayload(tokenData);
 
     const qualityFlags: string[] = [];
@@ -153,7 +154,6 @@ export class LeaderboardAppService implements ILeaderboardService {
     if (elapsedMs < minimumDurationMs[normalizedAssessmentType] * 1.5) qualityFlags.push('RAPID_COMPLETION');
 
     const requiresModeration = qualityFlags.length > 0;
-    const leaderboardDocId = crypto.randomUUID();
     const now = Date.now();
 
     const result = await this.submissionRepo.executeLeaderboardSubmission({
@@ -174,6 +174,58 @@ export class LeaderboardAppService implements ILeaderboardService {
     });
 
     return { ...result, pendingReview: requiresModeration };
+  }
+
+  async verifyPublicEntryProvenance(entryId: string): Promise<{ verified: boolean; reason?: string }> {
+    const normalizedId = entryId.trim();
+    if (!normalizedId || normalizedId.includes('/') || normalizedId.length > 1500) {
+      throw new AppError('Invalid leaderboard entry id', 400);
+    }
+
+    if (!this.leaderboardRepo.getEntryById) {
+      throw new AppError('Provenance verification is unavailable', 503);
+    }
+
+    let row: import('../models/leaderboardModels').AdminLeaderboardEntryRecord | null;
+    try {
+      row = await this.leaderboardRepo.getEntryById(normalizedId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message === 'DATABASE_UNAVAILABLE') throw new AppError('DATABASE_UNAVAILABLE', 503);
+      throw new AppError('Failed to retrieve leaderboard entry for provenance verification', 500);
+    }
+
+    if (!row || row.hidden !== false) {
+      return { verified: false, reason: 'Entry does not exist or is not publicly visible.' };
+    }
+
+    const displayName = safeLeaderboardDisplayNameForRead(row.displayName);
+    const assessmentType = normalizeAssessmentType(String(row.assessmentType || ''));
+    const scoreMetric = Number(row.scoreMetric);
+    const ageGroup = String(row.ageGroup || '');
+    const trialsDigest = String(row.trialsDigest || '');
+    const provenanceToken = String(row.provenanceToken || '');
+    if (!displayName || !VALID_ASSESSMENT_TYPES.includes(assessmentType) ||
+        !Number.isFinite(scoreMetric) || !ageGroup || !provenanceToken) {
+      return { verified: false, reason: 'Stored leaderboard entry has invalid provenance fields.' };
+    }
+
+    const sanitizedDisplayName = displayName.replace(/:/g, '_');
+    // V2 tokens include the stored entry ID. Legacy tokens are accepted only for
+    // a matching existing visible row, not as standalone HMAC proofs.
+    const tokenData = Number(row.provenanceVersion) >= 2
+      ? `lb:v2:${normalizedId}:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest}`
+      : `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest}`;
+
+    try {
+      return { verified: safeCompareHex(signProvenancePayload(tokenData), provenanceToken) };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes('PULSE_PROVENANCE_SECRET')) {
+        throw new AppError('Provenance verification is not configured', 503);
+      }
+      throw err;
+    }
   }
 
   async getPublicLeaderboard(assessmentType?: string | null): Promise<LeaderboardEntryRecord[]> {
