@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as firestore from 'firebase/firestore';
 import * as firebaseAuth from 'firebase/auth';
-import { getLeaderboardResults } from '@/lib/firestore';
+import { getLeaderboardResults, isOptedInLeaderboardUser } from '@/lib/firestore';
+import { getLeaderboardResults as getMobileLeaderboardResults } from '../../mobile/src/lib/firestore';
 
 // Mock Firebase
 vi.mock('firebase/app', () => ({
@@ -84,6 +85,29 @@ describe('Firebase Integration Tests (Mocked)', () => {
     
     // Explicitly verify no local storage fallback was attempted
     expect(localStorageSpy).not.toHaveBeenCalledWith('pulse_leaderboard_fallback');
+  });
+
+  it('loads the shared leaderboard helpers in desktop and mobile data layers', async () => {
+    expect(isOptedInLeaderboardUser('PULSE learner')).toBe(true);
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        entries: [{
+          id: 'mobile-entry',
+          displayName: 'Mobile Player',
+          assessmentType: 'visual-reaction',
+          scoreMetric: 200,
+          ageGroup: 'Adults (26–40)',
+          createdAt: 1
+        }]
+      })
+    });
+
+    const mobileEntries = await getMobileLeaderboardResults('visual-reaction');
+    expect(mobileEntries).toHaveLength(1);
+    expect(mobileEntries[0].displayName).toBe('Mobile Player');
   });
 
   it('maintains Firebase mock isolation (no real network calls)', () => {
