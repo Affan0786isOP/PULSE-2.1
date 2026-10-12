@@ -18,11 +18,68 @@ export function normalizeLeaderboardAssessmentType(value: unknown): CanonicalLea
 }
 
 const GENERIC_ALIASES = new Set(['anonymous', 'unknown', 'guest']);
+// Keep this list limited to clear profanity/slurs. Ordinary names and words such as
+// Dick, Bot, Admin, Staff, and Sex are not reliable evidence of abuse by themselves.
 const DISALLOWED_TERMS = [
-  'fuck', 'shit', 'bitch', 'asshole', 'nigger', 'faggot', 'dick', 'pussy',
-  'cunt', 'bastard', 'porn', 'sex', 'penis', 'vagina', 'retard',
-  'idiot', 'loser', 'hacker', 'bot', 'cheater', 'cheat', 'admin', 'moderator', 'staff'
+  'fuck', 'shit', 'bitch', 'asshole', 'nigger', 'faggot', 'pussy',
+  'cunt', 'bastard', 'retard'
 ];
+
+const CONFUSABLE_CHARACTERS: Record<string, string> = {
+  'а': 'a', 'α': 'a',
+  'е': 'e', 'ε': 'e',
+  'і': 'i', 'ι': 'i', 'ı': 'i',
+  'о': 'o', 'ο': 'o',
+  'р': 'p', 'ρ': 'p',
+  'с': 'c', 'ϲ': 'c',
+  'х': 'x', 'χ': 'x',
+  'у': 'y', 'υ': 'y',
+  'к': 'k', 'κ': 'k',
+  'м': 'm',
+  'т': 't', 'τ': 't',
+  'в': 'b', 'β': 'b',
+  'н': 'h', 'η': 'h',
+  'ј': 'j',
+  'ѕ': 's',
+  '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't'
+};
+
+function normalizeAliasForSafetyCheck(value: string): string {
+  return value
+    .normalize('NFKC')
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .toLocaleLowerCase('en-US')
+    .replace(/[аαеεіιıоοрρсϲхχуυкκмтτвβнηјѕ013457]/gu, char => CONFUSABLE_CHARACTERS[char] || char);
+}
+
+/**
+ * Normalizes and safety-checks an already-stored public alias without applying
+ * the stricter character whitelist for new submissions. Return null when the
+ * alias is clearly unsafe; preserve safe punctuation, Unicode scripts and emoji.
+ */
+export function safeLeaderboardDisplayNameForRead(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.normalize('NFKC').replace(/\s+/gu, ' ').trim();
+  const length = Array.from(normalized).length;
+  if (length < 1 || length > 100) return null;
+
+  // Reject controls and bidi/invisible overrides. U+200D remains available for emoji ZWJ sequences.
+  if (/[\u0000-\u001F\u007F-\u009F\u200B-\u200C\u200E-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/u.test(normalized)) return null;
+  if (/[<>]/u.test(normalized)) return null;
+
+  if (/(?:https?:\/\/|www\.)/iu.test(normalized) ||
+      /[\w.+-]+@[\w.-]+\.[A-Z]{2,}/iu.test(normalized) ||
+      (normalized.match(/\p{N}/gu) || []).length >= 7) return null;
+
+  if (!isOptedInLeaderboardUser(normalized)) return null;
+
+  const screeningText = normalizeAliasForSafetyCheck(normalized);
+  const containsDisallowedTerm = DISALLOWED_TERMS.some(term =>
+    new RegExp('(?:^|[^a-z0-9])' + term + '(?:$|[^a-z0-9])', 'u').test(screeningText)
+  );
+  return containsDisallowedTerm ? null : normalized;
+}
 
 /** True only for a participant-selected, non-generic public alias. */
 export function isOptedInLeaderboardUser(displayName: string | null | undefined): boolean {
@@ -74,9 +131,9 @@ export function validateLeaderboardDisplayName(value: unknown): LeaderboardAlias
     return { valid: false, error: 'Choose a non-generic display name instead of Guest, Anonymous, Unknown, or Participant.' };
   }
 
-  const lower = normalized.toLocaleLowerCase('en-US');
+  const screeningText = normalizeAliasForSafetyCheck(normalized);
   const containsDisallowedTerm = DISALLOWED_TERMS.some(term =>
-    new RegExp('(?:^|[^\\p{L}\\p{N}])' + term + '(?:$|[^\\p{L}\\p{N}])', 'iu').test(lower)
+    new RegExp('(?:^|[^a-z0-9])' + term + '(?:$|[^a-z0-9])', 'u').test(screeningText)
   );
   if (containsDisallowedTerm) {
     return { valid: false, error: 'Choose a different display name that follows the community guidelines.' };

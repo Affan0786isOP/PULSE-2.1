@@ -4,6 +4,7 @@ import {
   isOptedInLeaderboardUser,
   isValidLeaderboardScoreMetric,
   normalizeLeaderboardAssessmentType,
+  safeLeaderboardDisplayNameForRead,
   validateLeaderboardDisplayName,
 } from '../../shared/domain/leaderboardEligibility';
 
@@ -66,6 +67,25 @@ describe('leaderboard display names', () => {
     expect(validateLeaderboardDisplayName('PULSE learner-7')).toMatchObject({ valid: true, normalized: 'PULSE learner-7' });
     expect(isOptedInLeaderboardUser('PULSE learner-7')).toBe(true);
     expect(isOptedInLeaderboardUser(' Anonymous ')).toBe(false);
+  });
+
+  it.each(['Dick', 'Bot', 'Admin', 'Staff', 'Sex'])(
+    'does not reject an ordinary word or name merely because it appears on an overbroad blocklist: %s',
+    alias => expect(validateLeaderboardDisplayName(alias)).toMatchObject({ valid: true, normalized: alias })
+  );
+
+  it('screens common confusable and leetspeak variants of explicit profanity', () => {
+    expect(validateLeaderboardDisplayName('sh1t').valid).toBe(false);
+    expect(validateLeaderboardDisplayName('ѕһіt').valid).toBe(false);
+  });
+
+  it('preserves safe legacy aliases with punctuation and emoji while rejecting clearly unsafe values', () => {
+    expect(safeLeaderboardDisplayNameForRead('Legacy Player! 🙂')).toBe('Legacy Player! 🙂');
+    expect(safeLeaderboardDisplayNameForRead('Díck')).toBe('Díck');
+    expect(safeLeaderboardDisplayNameForRead('bad\u202Ename')).toBeNull();
+    expect(safeLeaderboardDisplayNameForRead('https://example.com')).toBeNull();
+    expect(safeLeaderboardDisplayNameForRead('Anonymous')).toBeNull();
+    expect(safeLeaderboardDisplayNameForRead('ѕһіt')).toBeNull();
   });
 
   it('rejects aliases longer than 30 Unicode code points', () => {

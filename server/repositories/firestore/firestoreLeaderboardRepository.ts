@@ -3,7 +3,7 @@ import * as crypto from 'crypto';
 import type { ILeaderboardRepository } from '../interfaces/ILeaderboardRepository';
 import type { LeaderboardEntryRecord, AdminLeaderboardEntryRecord } from '../../models/leaderboardModels';
 import { normalizeAssessmentType } from '../../engines/assessmentTypes';
-import { validateLeaderboardDisplayName, isValidLeaderboardScoreMetric } from '../../../shared/domain/leaderboardEligibility';
+import { safeLeaderboardDisplayNameForRead, isValidLeaderboardScoreMetric } from '../../../shared/domain/leaderboardEligibility';
 
 export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
@@ -25,19 +25,19 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     snap.docs.forEach(docSnap => {
       const data = docSnap.data();
       const displayName = String(data?.displayName || '').trim();
-      const aliasValidation = validateLeaderboardDisplayName(displayName);
+      const safeDisplayName = safeLeaderboardDisplayNameForRead(displayName);
       const docType = normalizeAssessmentType(String(data?.assessmentType || alias));
 
       const scoreMetric = data && typeof data.scoreMetric === 'number' ? data.scoreMetric : Number.NaN;
       if (
         data &&
         data.hidden !== true &&
-        aliasValidation.valid &&
+        safeDisplayName !== null &&
         isValidLeaderboardScoreMetric(docType, scoreMetric)
       ) {
         records.push({
           id: docSnap.id,
-          displayName: aliasValidation.normalized || displayName,
+          displayName: safeDisplayName,
           assessmentType: docType,
           scoreMetric,
           ageGroup: String(data.ageGroup || ''),

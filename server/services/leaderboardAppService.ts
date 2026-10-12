@@ -13,7 +13,7 @@ import { VALID_AGE_GROUPS, VALID_ASSESSMENT_TYPES } from '../config/constants';
 import { normalizeAssessmentType } from '../engines/assessmentTypes';
 import { validateAndDeriveAssessmentFromTrials } from '../engines/assessmentEngine';
 import { computeCanonicalTrialsDigest, signProvenancePayload } from './provenanceService';
-import { isValidLeaderboardScoreMetric, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
+import { isValidLeaderboardScoreMetric, safeLeaderboardDisplayNameForRead, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 import { safeLogWarning } from '../config/firebaseAdmin';
 
@@ -184,16 +184,16 @@ export class LeaderboardAppService implements ILeaderboardService {
         const records = await this.leaderboardRepo.getEntriesByAlias(alias, aliasDirection, 100);
         successfulQueries++;
         for (const record of records) {
-          const aliasValidation = validateLeaderboardDisplayName(record.displayName);
+          const safeDisplayName = safeLeaderboardDisplayNameForRead(record.displayName);
           if (
             record.assessmentType === rawType &&
-            aliasValidation.valid &&
+            safeDisplayName !== null &&
             isValidLeaderboardScoreMetric(rawType, record.scoreMetric) &&
             !entriesMap.has(record.id)
           ) {
             entriesMap.set(record.id, {
               ...record,
-              displayName: aliasValidation.normalized || record.displayName
+              displayName: safeDisplayName
             });
           }
         }

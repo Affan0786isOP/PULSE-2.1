@@ -212,6 +212,22 @@ describe('Firestore Repositories Unit Tests', () => {
     });
   });
 
+  it('preserves safe historical aliases that do not meet the new-submission character whitelist', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardRepository(() => mockDb);
+    await mockDb.collection('leaderboardResults').doc('legacy-punctuation').set({
+      displayName: 'Legacy Player! 🙂',
+      assessmentType: 'visual-reaction',
+      scoreMetric: 215,
+      ageGroup: 'Adults (26–40)',
+      hidden: false
+    });
+
+    const entries = await repo.getEntriesByAlias('visual-reaction', 'asc', 10);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].displayName).toBe('Legacy Player! 🙂');
+  });
+
   it('AdminAuditRepository writes and retrieves audit logs', async () => {
     const mockDb = createMockDb();
     const repo = new FirestoreAdminAuditRepository(() => mockDb);
