@@ -40,9 +40,13 @@ VITE_FIREBASE_STORAGE_BUCKET="pulse-lab-36920.appspot.com"
 VITE_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
 VITE_FIREBASE_APP_ID="your-app-id"
 
-# Server Secrets (CRITICAL: Never prefix with VITE_)
-ADMIN_PASSCODE="your-secure-admin-passcode"
-PULSE_PROVENANCE_SECRET="your-32-character-hmac-secret-key"
+# Server Secrets (required for the corresponding production APIs; never prefix with VITE_)
+ADMIN_PASSCODE="replace-with-a-strong-random-passcode"
+PULSE_ADMIN_SESSION_SECRET="replace-with-a-different-random-signing-key"
+PULSE_PROVENANCE_SECRET="replace-with-another-different-random-signing-key"
+
+# These three values must be independent. There is no built-in admin passcode fallback.
+# Configure them in both local secrets and your hosting provider's server-only environment.
 
 # Server-Side Firebase Admin Credentials (Optional for offline preview, required for production writes)
 FIREBASE_SERVICE_ACCOUNT='{"type":"service_account","project_id":"pulse-lab-36920",...}'
@@ -61,16 +65,24 @@ All commands below are verified directly against [`package.json`](../package.jso
 | `npm start` | `node dist/server.js` | Launches production bundled Express server. |
 | `npm run lint` | `tsc --noEmit` | Runs TypeScript compiler type check on root desktop project. |
 | `npm run check` | `tsc --noEmit && cd mobile && tsc --noEmit` | Runs full dual-surface type checking (desktop + mobile). |
-| `npm test` | `vitest run --passWithNoTests` | Executes Vitest test suite. |
+| `npm test` | `vitest run` | Executes the full Vitest suite. |
 | `npm run dev:mobile` | `vite --config mobile/vite.config.ts ...` | Runs standalone mobile Vite dev server on port 3000. |
 | `npm run build:mobile` | `vite build --config mobile/vite.config.ts` | Builds mobile PWA bundle. |
 | `npm run preview` | `vite preview` | Previews production client build. |
 | `npm run clean` | `rm -rf dist server.js` | Purges build artifacts. |
 | `npm run generate-icons`| `node scripts/generate-icons.js` | Re-generates PWA app icons and favicons from source SVG. |
+| `npm run migrate:leaderboard-privacy` | `tsx scripts/migrateLeaderboardPrivacyAndAudit.ts` | One-time/rerunnable server-admin migration: moves legacy private leaderboard fields out of public rows and normalizes string audit timestamps. Back up Firestore first; this command modifies live data and is not run automatically. |
 
 ---
 
-## 5. Development Workflows
+## 5. Deployment notes for the leaderboard backend
+
+1. Set `ADMIN_PASSCODE`, `PULSE_ADMIN_SESSION_SECRET`, `PULSE_PROVENANCE_SECRET`, and `FIREBASE_SERVICE_ACCOUNT` in the server/host environment. Never reuse one signing key for both admin sessions and provenance. Existing deployments that only used the former `SESSION_SECRET` fallback must configure `PULSE_PROVENANCE_SECRET`; old tokens signed only with the fallback will no longer verify.
+2. Deploy `firestore.rules` and `firestore.indexes.json` before switching traffic. Leaderboard reads must go through the API; direct client Firestore reads of `leaderboardResults` are intentionally denied.
+3. Back up the relevant Firestore collections, then run `npm run migrate:leaderboard-privacy` once to scrub legacy private fields from public rows and normalize historic string audit timestamps. Verify the migration summary and spot-check admin moderation/provenance before considering cutover complete.
+4. The migration script is **not** run against live Firestore by the development workflow. Running it requires valid Firebase Admin credentials and explicit operator action.
+
+## 6. Development Workflows
 
 ### Running Full-Stack Dev Server (Recommended)
 ```bash
