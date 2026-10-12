@@ -1,4 +1,5 @@
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
+import * as crypto from 'crypto';
 import type { ILeaderboardSubmissionRepository } from '../interfaces/ILeaderboardSubmissionRepository';
 import type { LeaderboardSubmissionTxInput, LeaderboardSubmissionTxResult } from '../../models/leaderboardModels';
 import type { ExperimentSessionRecord } from '../../models/sessionModels';
@@ -25,6 +26,12 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
 
     const sessionDocRef = db.collection('experimentSessions').doc(input.activeSessionId);
     const requestedLeaderboardDocRef = db.collection('leaderboardResults').doc(input.leaderboardDocId);
+    // This deterministic index doc serializes concurrent submissions from the
+    // same participant and assessment, even when the owner has no row yet.
+    const ownerIndexId = crypto.createHash('sha256')
+      .update(`${input.userId}: ${input.assessmentType}`)
+      .digest('hex');
+    const ownerIndexRef = db.collection('leaderboardOwnerIndex').doc(ownerIndexId);
 
     const requestedLeaderboardDoc = {
       displayName: input.displayName,
@@ -59,6 +66,10 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       if (sData.leaderboardSubmitted) {
         throw new LeaderboardAlreadySubmittedError(sData);
       }
+
+      // A transactional read makes concurrent first submissions for this same
+      // participant/assessment conflict and retry, preventing duplicate rows.
+      await tx.get(ownerIndexRef);
 
       // Query only the submitting user's rows. The owner field is private and is
       // deliberately excluded from the public LeaderboardEntryRecord/API shape.
@@ -123,6 +134,12 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
         trialsDigest: responseDigest,
         provenanceToken: responseToken,
         derivedMetrics: responseMetrics
+      }, { merge: true });
+      tx.set(ownerIndexRef, {
+        ownerUid: input.userId,
+        assessmentType: input.assessmentType,
+        leaderboardDocId: responseDocId,
+        updatedAt: input.now
       }, { merge: true });
 
       result = {
