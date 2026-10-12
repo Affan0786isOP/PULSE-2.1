@@ -126,8 +126,9 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
       ]);
     }
 
-    // A saved mobile preference must not override a desktop User-Agent. Real mobile
-    // requests are routed by isMobileUserAgent below; URL force flags remain explicit.
+    // Only explicit routing flags should trigger a server redirect. User-Agent-only
+    // redirects disagree with client viewport detection (especially landscape tablets/phones).
+    // The SPA applies the same client-side policy after it can inspect the actual viewport.
     const isExplicitForceMobile = hasForceMobileParam;
     const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || cookieDesktop);
 
@@ -144,7 +145,7 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
       return next();
     }
 
-    if (isExplicitForceMobile || isMobileUserAgent(req)) {
+    if (isExplicitForceMobile) {
       const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') 
         ? '/' 
         : pathname;
