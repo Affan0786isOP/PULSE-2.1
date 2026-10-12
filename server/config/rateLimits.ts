@@ -37,6 +37,7 @@ export const verificationLimiter = rateLimit({
 export const leaderboardReadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 600,
+  skip: (req) => req.method !== 'GET' || req.originalUrl.split('?')[0] !== '/api/leaderboard',
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Too many leaderboard requests. Please retry shortly.' }
