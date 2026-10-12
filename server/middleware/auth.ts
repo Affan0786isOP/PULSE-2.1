@@ -26,9 +26,9 @@ export async function verifyFirebaseUserToken(req: express.Request): Promise<Dec
 
 export function getAdminPasscode(): string {
   const passcode = process.env.ADMIN_PASSCODE || process.env.PULSE_ADMIN_PASSCODE;
-  if (!passcode) {
-    // Secure fallback for local development only if no env set
-    return 'pulse-admin-2026-master-key';
+  if (!passcode || !passcode.trim()) {
+    // Fail closed. Never ship a known credential as an implicit production fallback.
+    throw new Error('ADMIN_PASSCODE_NOT_CONFIGURED');
   }
   return passcode;
 }
