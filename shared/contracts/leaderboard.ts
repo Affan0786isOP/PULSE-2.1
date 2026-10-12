@@ -1,6 +1,6 @@
 import type { AssessmentId } from './common';
 
 export interface LeaderboardQuery {
-  assessmentId?: AssessmentId;
+  assessmentType?: AssessmentId;
   limit?: number;
 }
