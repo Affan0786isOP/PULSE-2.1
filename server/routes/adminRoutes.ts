@@ -6,6 +6,22 @@ import { getAdminPasscode, createAdminSessionToken, verifyAdminSession } from '.
 import type { IAdminService } from '../services/interfaces/IAdminService';
 import { AppError } from '../models/replayContracts';
 
+function normalizeLeaderboardEntryId(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const id = value.trim();
+  if (
+    !id ||
+    Buffer.byteLength(id, 'utf8') > 1500 ||
+    id === '.' ||
+    id === '..' ||
+    (id.startsWith('__') && id.endsWith('__')) ||
+    /[\/\u0000-\u001F\u007F]/u.test(id)
+  ) {
+    return null;
+  }
+  return id;
+}
+
 export function registerAdminRoutes(
   app: Express,
   services: {
@@ -111,9 +127,10 @@ export function registerAdminRoutes(
       if (!verifyAdminSession(req)) {
         return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required' });
       }
-      const { id, reason } = req.body || {};
-      if (!id || typeof id !== 'string') {
-        return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
+      const { id: rawId, reason } = req.body || {};
+      const id = normalizeLeaderboardEntryId(rawId);
+      if (!id) {
+        return res.status(400).json({ success: false, error: 'Missing or malformed entry id' });
       }
 
       const result = await services.adminService.hideLeaderboardEntry(id, reason);
@@ -135,9 +152,10 @@ export function registerAdminRoutes(
       if (!verifyAdminSession(req)) {
         return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required' });
       }
-      const { id, reason } = req.body || {};
-      if (!id || typeof id !== 'string') {
-        return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
+      const { id: rawId, reason } = req.body || {};
+      const id = normalizeLeaderboardEntryId(rawId);
+      if (!id) {
+        return res.status(400).json({ success: false, error: 'Missing or malformed entry id' });
       }
 
       const result = await services.adminService.deleteLeaderboardEntry(id, reason);
@@ -159,11 +177,12 @@ export function registerAdminRoutes(
       if (!verifyAdminSession(req)) {
         return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required' });
       }
-      const { id, reason } = req.body || {};
-      if (!id || typeof id !== 'string' || !id.trim()) {
-        return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
+      const { id: rawId, reason } = req.body || {};
+      const id = normalizeLeaderboardEntryId(rawId);
+      if (!id) {
+        return res.status(400).json({ success: false, error: 'Missing or malformed entry id' });
       }
-      const result = await services.adminService.unhideLeaderboardEntry(id.trim(), reason);
+      const result = await services.adminService.unhideLeaderboardEntry(id, reason);
       return res.json(result);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
