@@ -36,7 +36,9 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       derivedMetrics: input.metrics,
       ownerUid: input.userId,
       sessionId: input.activeSessionId,
-      hidden: false,
+      qualityFlags: input.qualityFlags || [],
+      moderationReason: (input.qualityFlags || []).join(', '),
+      hidden: input.requiresModeration === true,
       createdAt: FieldValue.serverTimestamp()
     };
 
@@ -83,12 +85,12 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
         const existingScore = Number(existingData.scoreMetric);
         if (Number.isFinite(existingScore) && isBetterScore(input.assessmentType, input.scoreMetric, existingScore)) {
           // Keep one row per owner/assessment and preserve a moderator's hidden state.
-          tx.set(bestExisting.ref, {
+          tx.delete(bestExisting.ref);
+          tx.set(requestedLeaderboardDocRef, {
             ...requestedLeaderboardDoc,
-            hidden: existingData.hidden === true,
-            createdAt: FieldValue.serverTimestamp()
-          }, { merge: true });
-          responseDocId = bestExisting.id;
+            hidden: existingData.hidden === true || input.requiresModeration === true
+          });
+          responseDocId = input.leaderboardDocId;
         } else {
           // Do not create a second row for a worse or tied score.
           responseDocId = bestExisting.id;
@@ -117,7 +119,10 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
         scoreMetric: responseScore,
         provenanceToken: responseToken,
         trialsDigest: responseDigest,
-        derivedMetrics: responseMetrics
+        derivedMetrics: responseMetrics,
+        pendingReview: responseDocId === input.leaderboardDocId
+          ? input.requiresModeration === true || (bestExisting?.data().hidden === true)
+          : existingRows[0]?.data().hidden === true
       };
     });
 
