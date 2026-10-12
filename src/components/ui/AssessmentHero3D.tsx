@@ -9,7 +9,9 @@ export function AssessmentHero3D() {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotionPreference();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasFocus, setHasFocus] = useState(false);
+  const isPaused = isHovered || hasFocus;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const startAutoplay = useCallback(() => {
@@ -107,10 +109,15 @@ export function AssessmentHero3D() {
   return (
     <div 
       className="relative w-full h-full flex flex-col items-center justify-center py-1 min-h-0 select-none"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
-      onBlur={() => setIsPaused(false)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setHasFocus(true)}
+      onBlur={(event) => {
+        const nextTarget = event.relatedTarget as Node | null;
+        if (!nextTarget || !event.currentTarget.contains(nextTarget)) {
+          setHasFocus(false);
+        }
+      }}
       onKeyDown={(event) => {
         // Scope arrow-key handling to the carousel; never hijack page-level navigation.
         const target = event.target as HTMLElement;
@@ -283,8 +290,8 @@ export function AssessmentHero3D() {
                         src={assessment.logo} 
                         alt={assessment.title}
                         className="w-22 h-22 sm:w-24 sm:h-24 object-contain relative z-10 drop-shadow-[0_4px_12px_rgba(0,102,255,0.2)]"
-                        animate={isActive ? { scale: [1, 1.02, 1] } : {}}
-                        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                        animate={isActive && !shouldReduceMotion ? { scale: [1, 1.02, 1] } : {}}
+                        transition={{ duration: 3.5, repeat: shouldReduceMotion ? 0 : Infinity, ease: "easeInOut" }}
                       />
                     </div>
                   </div>
