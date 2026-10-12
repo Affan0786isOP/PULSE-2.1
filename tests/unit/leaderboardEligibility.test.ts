@@ -81,7 +81,7 @@ describe('leaderboard display names', () => {
   });
 
   it('rejects obfuscated generic aliases consistently on writes and reads', () => {
-    for (const alias of ['Аnonymous', 'a n o n y m o u s', 'g.u.e.s.t', 'participant-123']) {
+    for (const alias of ['Аnonymous', 'Anonymоus', 'a n o n y m o u s', 'g.u.e.s.t', 'participant-123']) {
       expect(validateLeaderboardDisplayName(alias).valid, alias).toBe(false);
       expect(safeLeaderboardDisplayNameForRead(alias), alias).toBeNull();
     }
