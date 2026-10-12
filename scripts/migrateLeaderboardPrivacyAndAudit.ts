@@ -1,4 +1,4 @@
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldPath, FieldValue } from 'firebase-admin/firestore';
 import { initializeAdminApp, getAdminDb } from '../server/config/firebaseAdmin';
 
 const PRIVATE_PUBLIC_ROW_FIELDS = [
@@ -24,7 +24,7 @@ async function migrateLeaderboardRows(db: NonNullable<ReturnType<typeof getAdmin
   const pageSize = 200;
 
   while (true) {
-    let query = db.collection('leaderboardResults').orderBy('__name__').limit(pageSize);
+    let query = db.collection('leaderboardResults').orderBy(FieldPath.documentId()).limit(pageSize);
     if (cursor) query = query.startAfter(cursor);
     const page = await query.get();
     if (page.empty) break;
@@ -59,10 +59,12 @@ async function migrateLeaderboardRows(db: NonNullable<ReturnType<typeof getAdmin
           }
         }
 
+        const scoreMetric = typeof row.scoreMetric === 'number'
+          ? row.scoreMetric
+          : Number(existingMeta.scoreMetric);
         const meta: Record<string, unknown> = {
           ...existingMeta,
           assessmentType: String(row.assessmentType || existingMeta.assessmentType || ''),
-          scoreMetric: typeof row.scoreMetric === 'number' ? row.scoreMetric : Number(existingMeta.scoreMetric),
           ageGroup: String(row.ageGroup || existingMeta.ageGroup || ''),
           provenanceToken: String(row.provenanceToken || existingMeta.provenanceToken || ''),
           provenanceVersion: Number(row.provenanceVersion || existingMeta.provenanceVersion || 1),
@@ -72,6 +74,8 @@ async function migrateLeaderboardRows(db: NonNullable<ReturnType<typeof getAdmin
           createdAt: row.createdAt || existingMeta.createdAt || FieldValue.serverTimestamp(),
           updatedAt: Date.now()
         };
+        if (Number.isFinite(scoreMetric)) meta.scoreMetric = scoreMetric;
+        else delete meta.scoreMetric;
         if (ownerUid) meta.ownerUid = ownerUid;
         else delete meta.ownerUid;
         if (sessionId) meta.sessionId = sessionId;
