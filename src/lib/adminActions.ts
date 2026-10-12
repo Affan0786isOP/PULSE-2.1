@@ -29,7 +29,7 @@ export async function fetchAdminAuditLogs(): Promise<AdminAuditLog[]> {
   return (data.logs || []) as AdminAuditLog[];
 }
 
-export async function hideLeaderboardEntry(id: string, reason: string, _adminEmail?: string): Promise<void> {
+export async function hideLeaderboardEntry(id: string, reason: string, _adminEmail?: string): Promise<{ success: boolean; message: string; alreadyInState?: boolean }> {
   const token = getAdminToken();
   const res = await fetch('/api/admin/leaderboard/hide', {
     method: 'POST',
@@ -41,13 +41,14 @@ export async function hideLeaderboardEntry(id: string, reason: string, _adminEma
     body: JSON.stringify({ id, reason }),
   });
 
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({ error: 'Failed to hide leaderboard entry' }));
-    throw new Error(errData.error || `Server returned ${res.status}`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success === false) {
+    throw new Error(data.error || `Failed to hide leaderboard entry (${res.status})`);
   }
+  return data as { success: boolean; message: string; alreadyInState?: boolean };
 }
 
-export async function unhideLeaderboardEntry(id: string, reason: string, _adminEmail?: string): Promise<void> {
+export async function unhideLeaderboardEntry(id: string, reason: string, _adminEmail?: string): Promise<{ success: boolean; message: string; alreadyInState?: boolean }> {
   const token = getAdminToken();
   const res = await fetch('/api/admin/leaderboard/unhide', {
     method: 'POST',
@@ -62,6 +63,7 @@ export async function unhideLeaderboardEntry(id: string, reason: string, _adminE
   if (!res.ok || data.success === false) {
     throw new Error(data.error || `Failed to restore leaderboard entry (${res.status})`);
   }
+  return data as { success: boolean; message: string; alreadyInState?: boolean };
 }
 
 export async function deleteLeaderboardEntryPermanently(id: string, reason: string, _adminEmail?: string): Promise<void> {

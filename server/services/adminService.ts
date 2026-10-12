@@ -15,7 +15,7 @@ export class AdminService implements IAdminService {
     return this.auditRepo.writeLog(input);
   }
 
-  private ensureModerationSucceeded(result: { success: boolean; found: boolean }): void {
+  private ensureModerationSucceeded(result: { success: boolean; found: boolean; alreadyInState?: boolean }): void {
     if (!result.success) throw new AppError('Database service unavailable', 503);
     if (!result.found) throw new AppError('LEADERBOARD_ENTRY_NOT_FOUND', 404);
   }
@@ -23,13 +23,17 @@ export class AdminService implements IAdminService {
   async hideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string }> {
     const result = await this.leaderboardRepo.softHideEntry(id, reason);
     this.ensureModerationSucceeded(result);
-    return { success: true, message: 'Leaderboard entry hidden successfully' };
+    return result.alreadyInState
+      ? { success: true, alreadyInState: true, message: 'Leaderboard entry was already hidden; no duplicate audit record was created.' }
+      : { success: true, alreadyInState: false, message: 'Leaderboard entry hidden and audit record written.' };
   }
 
   async unhideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string }> {
     const result = await this.leaderboardRepo.unhideEntry(id, reason);
     this.ensureModerationSucceeded(result);
-    return { success: true, message: 'Leaderboard entry restored successfully' };
+    return result.alreadyInState
+      ? { success: true, alreadyInState: true, message: 'Leaderboard entry was already visible; no duplicate audit record was created.' }
+      : { success: true, alreadyInState: false, message: 'Leaderboard entry restored and audit record written.' };
   }
 
   async deleteLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string }> {

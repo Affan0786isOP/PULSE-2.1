@@ -228,6 +228,33 @@ describe('Firestore Repositories Unit Tests', () => {
     expect(entries[0].displayName).toBe('Legacy Player! 🙂');
   });
 
+  it('does not write duplicate audit rows for repeated hide/unhide operations', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardRepository(() => mockDb);
+    await mockDb.collection('leaderboardResults').doc('repeat-entry').set({
+      displayName: 'Player One',
+      assessmentType: 'visual-reaction',
+      scoreMetric: 215,
+      hidden: false
+    });
+
+    const firstHide = await repo.softHideEntry('repeat-entry', 'first hide');
+    expect(firstHide).toMatchObject({ success: true, found: true });
+    const repeatHide = await repo.softHideEntry('repeat-entry', 'repeat hide');
+    expect(repeatHide).toMatchObject({ success: true, found: true, alreadyInState: true });
+
+    let audit = await mockDb.collection('adminAuditLogs').orderBy('timestamp', 'desc').limit(10).get();
+    expect(audit.docs).toHaveLength(1);
+
+    const firstUnhide = await repo.unhideEntry('repeat-entry', 'restore');
+    expect(firstUnhide).toMatchObject({ success: true, found: true });
+    const repeatUnhide = await repo.unhideEntry('repeat-entry', 'repeat restore');
+    expect(repeatUnhide).toMatchObject({ success: true, found: true, alreadyInState: true });
+
+    audit = await mockDb.collection('adminAuditLogs').orderBy('timestamp', 'desc').limit(10).get();
+    expect(audit.docs).toHaveLength(2);
+  });
+
   it('AdminAuditRepository writes and retrieves audit logs', async () => {
     const mockDb = createMockDb();
     const repo = new FirestoreAdminAuditRepository(() => mockDb);

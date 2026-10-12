@@ -68,7 +68,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     });
   }
 
-  async softHideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean }> {
+  async softHideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }> {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
@@ -79,6 +79,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     return db.runTransaction(async tx => {
       const snap = await tx.get(docRef);
       if (!snap.exists) return { success: true, found: false };
+      if (snap.data()?.hidden === true) return { success: true, found: true, alreadyInState: true };
 
       tx.update(docRef, { hidden: true, hiddenAt: timestamp, hiddenBy: 'admin', hideReason: reason || '' });
       tx.set(auditRef, {
@@ -92,7 +93,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     });
   }
 
-  async unhideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean }> {
+  async unhideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }> {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
@@ -103,6 +104,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     return db.runTransaction(async tx => {
       const snap = await tx.get(docRef);
       if (!snap.exists) return { success: true, found: false };
+      if (snap.data()?.hidden === false) return { success: true, found: true, alreadyInState: true };
 
       tx.update(docRef, { hidden: false, unhiddenAt: timestamp, unhiddenBy: 'admin', unhideReason: reason || '' });
       tx.set(auditRef, {

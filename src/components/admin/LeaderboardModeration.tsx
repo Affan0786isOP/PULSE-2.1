@@ -234,7 +234,7 @@ export function LeaderboardModeration() {
     const entryName = moderatingEntry.displayName;
 
     try {
-      await hideLeaderboardEntry(entryId, modReason, currentAdminEmail);
+      const result = await hideLeaderboardEntry(entryId, modReason, currentAdminEmail);
       setEntries(prev => prev.map(e => e.id === entryId ? { ...e, hidden: true } : e));
       setSelectedIds(prev => {
         const next = new Set(prev);
@@ -242,7 +242,7 @@ export function LeaderboardModeration() {
         return next;
       });
       setModeratingEntry(null);
-      showToast(`Entry "${entryName}" hidden and logged to audit trail.`);
+      showToast(result.message || `Entry "${entryName}" hidden.`);
     } catch (err: any) {
       console.error("Moderation action failed:", err);
       showToast(err?.message || `Failed to hide entry "${entryName}" in cloud database.`, true);
@@ -281,17 +281,19 @@ export function LeaderboardModeration() {
 
     const results = await Promise.allSettled(
       idsArray.map(async (id) => {
-        await hideLeaderboardEntry(id, `Bulk Moderation: ${modReason}`, currentAdminEmail);
-        return id;
+        const result = await hideLeaderboardEntry(id, `Bulk Moderation: ${modReason}`, currentAdminEmail);
+        return { id, alreadyInState: Boolean(result.alreadyInState) };
       })
     );
 
     const successfulIds: string[] = [];
+    const alreadyHiddenIds: string[] = [];
     const failedIds: string[] = [];
 
     results.forEach((res, index) => {
       if (res.status === 'fulfilled') {
-        successfulIds.push(res.value);
+        successfulIds.push(res.value.id);
+        if (res.value.alreadyInState) alreadyHiddenIds.push(res.value.id);
       } else {
         console.error(`Failed to hide leaderboard entry "${idsArray[index]}":`, res.reason);
         failedIds.push(idsArray[index]);
@@ -310,10 +312,10 @@ export function LeaderboardModeration() {
 
     if (failedIds.length === 0) {
       setIsBulkModerating(false);
-      showToast(`Successfully hidden ${successfulIds.length} entries and logged to audit trail.`);
+      showToast(`Processed ${successfulIds.length} entries: ${successfulIds.length - alreadyHiddenIds.length} newly hidden, ${alreadyHiddenIds.length} already hidden without duplicate audit records.`);
     } else if (successfulIds.length > 0) {
       setIsBulkModerating(false);
-      showToast(`Partially completed: Hid ${successfulIds.length} entries, but ${failedIds.length} failed.`, true);
+      showToast(`Partially completed: processed ${successfulIds.length} entries (${alreadyHiddenIds.length} already hidden, no duplicate audit rows); ${failedIds.length} failed.`, true);
     } else {
       showToast(`Failed to hide ${failedIds.length} entries in cloud database.`, true);
     }
@@ -616,9 +618,9 @@ export function LeaderboardModeration() {
                           <button type="button"
                             onClick={async () => {
                               try {
-                                await unhideLeaderboardEntry(entry.id, 'Restored by moderator', currentAdminEmail);
+                                const result = await unhideLeaderboardEntry(entry.id, 'Restored by moderator', currentAdminEmail);
                                 setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, hidden: false } : e));
-                                showToast(`Entry "${entry.displayName}" restored and audit logged.`);
+                                showToast(result.message || `Entry "${entry.displayName}" restored.`);
                               } catch (err: any) {
                                 showToast(err?.message || `Failed to restore entry "${entry.displayName}".`, true);
                               }

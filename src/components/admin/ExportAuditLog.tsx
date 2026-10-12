@@ -16,14 +16,18 @@ export function ExportAuditLog() {
   const [logs, setLogs] = useState<AdminAuditLog[]>([]);
   const [searchLogQuery, setSearchLogQuery] = useState('');
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadSessionsAndLogs = async () => {
     setIsLoadingLogs(true);
+    setLoadError(null);
     try {
       const auditLogs = await fetchAdminAuditLogs();
       setLogs(auditLogs);
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to load audit logs.';
       console.warn("Failed to load audit logs:", err);
+      setLoadError(message);
     } finally {
       setIsLoadingLogs(false);
     }
@@ -113,7 +117,13 @@ export function ExportAuditLog() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredLogs.length > 0 ? (
+              {loadError ? (
+                <tr>
+                  <td colSpan={5} role="alert" className="p-8 text-center text-sm font-sans text-rose-300">
+                    Audit logs are unavailable: {loadError}. Use Refresh to try again.
+                  </td>
+                </tr>
+              ) : filteredLogs.length > 0 ? (
                 filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="p-3 font-semibold text-cyan-300">
