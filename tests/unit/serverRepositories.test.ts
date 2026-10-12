@@ -100,6 +100,16 @@ function createMockDb(): Firestore {
     }
   };
 
+  (db as any).runTransaction = async (updateFunction: (tx: any) => Promise<unknown>) => {
+    const tx = {
+      get: (ref: any) => ref.get(),
+      set: (ref: any, data: Record<string, unknown>, options?: { merge?: boolean }) => ref.set(data, options),
+      update: (ref: any, data: Record<string, unknown>) => ref.update(data),
+      delete: (ref: any) => ref.delete()
+    };
+    return updateFunction(tx);
+  };
+
   const rawDb: unknown = db;
   return rawDb as Firestore;
 }

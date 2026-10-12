@@ -475,14 +475,14 @@ describe('Record Golden Baseline', () => {
     capturedResponses['POST /api/leaderboard/submit [session_unconsumed]'] = { status: res.status, body: res.body };
 
     // 7. GET /api/leaderboard
-    // 7.1 DB Null -> Graceful 200 with empty entries
+    // 7.1 DB Null -> 503 with an explicit error
     activeMockDb = null;
-    res = await makeRequest(server, 'GET', '/api/leaderboard');
+    res = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=visual-reaction');
     capturedResponses['GET /api/leaderboard [db_null]'] = { status: res.status, body: res.body };
 
     // 7.2 Empty Leaderboard
     activeMockDb = new MockFirestore();
-    res = await makeRequest(server, 'GET', '/api/leaderboard');
+    res = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=visual-reaction');
     capturedResponses['GET /api/leaderboard [empty]'] = { status: res.status, body: res.body };
 
     // 8. Admin Routes
@@ -510,12 +510,12 @@ describe('Record Golden Baseline', () => {
       }
     };
 
-    // 8.4 POST /api/admin/leaderboard/hide [db_null] -> returns 200
+    // 8.4 POST /api/admin/leaderboard/hide [db_null] -> returns 503
     activeMockDb = null;
     res = await makeRequest(server, 'POST', '/api/admin/leaderboard/hide', { id: 'entry-123' });
     capturedResponses['POST /api/admin/leaderboard/hide [db_null]'] = { status: res.status, body: res.body };
 
-    // 8.5 POST /api/admin/leaderboard/hide [missing_doc] -> returns 200, still writes audit log
+    // 8.5 POST /api/admin/leaderboard/hide [missing_doc] -> returns 404 without a false-success audit entry
     activeMockDb = new MockFirestore();
     res = await makeRequest(server, 'POST', '/api/admin/leaderboard/hide', { id: 'entry-missing' });
     capturedResponses['POST /api/admin/leaderboard/hide [missing_doc]'] = { status: res.status, body: res.body };
@@ -523,7 +523,7 @@ describe('Record Golden Baseline', () => {
       adminAuditLogsCount: activeMockDb.getCollection('adminAuditLogs').size,
     };
 
-    // 8.6 POST /api/admin/leaderboard/delete [db_null] -> returns 200
+    // 8.6 POST /api/admin/leaderboard/delete [db_null] -> returns 503
     activeMockDb = null;
     res = await makeRequest(server, 'POST', '/api/admin/leaderboard/delete', { id: 'entry-123' });
     capturedResponses['POST /api/admin/leaderboard/delete [db_null]'] = { status: res.status, body: res.body };

@@ -426,19 +426,19 @@ describe('Server Route Parity Suite (against Golden Baseline)', () => {
     expect(res.body).toEqual(goldenResponses['POST /api/leaderboard/submit [db_null]'].body);
 
     // 6. GET /api/leaderboard
-    // 6.1 DB Null -> 200 []
+    // 6.1 DB Null -> 503 error
     activeMockDb = null;
-    res = await makeRequest(server, 'GET', '/api/leaderboard');
+    res = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=visual-reaction');
     expect(res.status).toBe(goldenResponses['GET /api/leaderboard [db_null]'].status);
     expect(res.body).toEqual(goldenResponses['GET /api/leaderboard [db_null]'].body);
 
     // 7. Admin Moderation
-    // 7.1 Hide DB Null -> 200
+    // 7.1 Hide DB Null -> 503
     res = await makeRequest(server, 'POST', '/api/admin/leaderboard/hide', { id: 'entry-123' });
     expect(res.status).toBe(goldenResponses['POST /api/admin/leaderboard/hide [db_null]'].status);
     expect(res.body).toEqual(goldenResponses['POST /api/admin/leaderboard/hide [db_null]'].body);
 
-    // 7.2 Delete DB Null -> 200
+    // 7.2 Delete DB Null -> 503
     res = await makeRequest(server, 'POST', '/api/admin/leaderboard/delete', { id: 'entry-123' });
     expect(res.status).toBe(goldenResponses['POST /api/admin/leaderboard/delete [db_null]'].status);
     expect(res.body).toEqual(goldenResponses['POST /api/admin/leaderboard/delete [db_null]'].body);

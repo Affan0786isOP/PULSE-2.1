@@ -161,9 +161,10 @@
     }
   },
   "GET /api/leaderboard [db_null]": {
-    "status": 200,
+    "status": 503,
     "body": {
-      "success": true,
+      "success": false,
+      "error": "Leaderboard service unavailable. Please retry.",
       "entries": []
     }
   },
@@ -198,24 +199,24 @@
     }
   },
   "POST /api/admin/leaderboard/hide [db_null]": {
-    "status": 200,
+    "status": 503,
     "body": {
-      "success": true,
-      "message": "Leaderboard entry hidden successfully"
+      "success": false,
+      "error": "Database service unavailable"
     }
   },
   "POST /api/admin/leaderboard/hide [missing_doc]": {
-    "status": 200,
+    "status": 404,
     "body": {
-      "success": true,
-      "message": "Leaderboard entry hidden successfully"
+      "success": false,
+      "error": "Leaderboard entry not found"
     }
   },
   "POST /api/admin/leaderboard/delete [db_null]": {
-    "status": 200,
+    "status": 503,
     "body": {
-      "success": true,
-      "message": "Leaderboard entry deleted permanently"
+      "success": false,
+      "error": "Database service unavailable"
     }
   },
   "GET /api/admin/audit-logs [db_null]": {
