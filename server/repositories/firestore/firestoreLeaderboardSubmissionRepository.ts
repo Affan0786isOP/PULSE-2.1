@@ -4,6 +4,16 @@ import type { LeaderboardSubmissionTxInput, LeaderboardSubmissionTxResult } from
 import type { ExperimentSessionRecord } from '../../models/sessionModels';
 import { LeaderboardAlreadySubmittedError } from '../../models/replayContracts';
 
+function isSpeedAssessment(assessmentType: string): boolean {
+  return assessmentType === 'visual-reaction' ||
+    assessmentType === 'direction' ||
+    assessmentType === 'color-recognition';
+}
+
+function isBetterScore(assessmentType: string, candidate: number, current: number): boolean {
+  return isSpeedAssessment(assessmentType) ? candidate < current : candidate > current;
+}
+
 export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSubmissionRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
 
@@ -14,50 +24,108 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
     }
 
     const sessionDocRef = db.collection('experimentSessions').doc(input.activeSessionId);
-    const leaderboardDocRef = db.collection('leaderboardResults').doc(input.leaderboardDocId);
+    const requestedLeaderboardDocRef = db.collection('leaderboardResults').doc(input.leaderboardDocId);
 
-    const leaderboardDoc = {
+    const requestedLeaderboardDoc = {
       displayName: input.displayName,
       assessmentType: input.assessmentType,
       scoreMetric: input.scoreMetric,
       ageGroup: input.authoritativeAgeGroup,
       provenanceToken: input.provenanceToken,
+      trialsDigest: input.trialsDigest || '',
+      derivedMetrics: input.metrics,
+      ownerUid: input.userId,
+      sessionId: input.activeSessionId,
       hidden: false,
       createdAt: FieldValue.serverTimestamp()
     };
 
+    let result: LeaderboardSubmissionTxResult | null = null;
+
     await db.runTransaction(async (tx) => {
       const sessionSnap = await tx.get(sessionDocRef);
       if (!sessionSnap.exists) {
-        throw new Error('SESSION_NOT_FOUND');
+        const error = new Error('SESSION_NOT_FOUND') as Error & { code?: string };
+        error.code = 'SESSION_NOT_FOUND';
+        throw error;
       }
+
       const sData = sessionSnap.data() as ExperimentSessionRecord;
       if (sData.uid !== input.userId) {
-        throw new Error('SESSION_UID_MISMATCH');
+        const error = new Error('SESSION_UID_MISMATCH') as Error & { code?: string };
+        error.code = 'SESSION_UID_MISMATCH';
+        throw error;
       }
       if (sData.leaderboardSubmitted) {
         throw new LeaderboardAlreadySubmittedError(sData);
       }
 
-      tx.set(leaderboardDocRef, leaderboardDoc);
+      // Query only the submitting user's rows. The owner field is private and is
+      // deliberately excluded from the public LeaderboardEntryRecord/API shape.
+      const ownerRows = await tx.get(
+        db.collection('leaderboardResults').where('ownerUid', '==', input.userId)
+      );
+      const existingRows = ownerRows.docs
+        .filter(doc => doc.id !== input.leaderboardDocId && doc.data().assessmentType === input.assessmentType)
+        .sort((a, b) => {
+          const aScore = Number(a.data().scoreMetric);
+          const bScore = Number(b.data().scoreMetric);
+          if (aScore === bScore) return a.id.localeCompare(b.id);
+          return isSpeedAssessment(input.assessmentType) ? aScore - bScore : bScore - aScore;
+        });
+      const bestExisting = existingRows[0];
+      let responseDocId = input.leaderboardDocId;
+      let responseScore = input.scoreMetric;
+      let responseToken = input.provenanceToken;
+      let responseDigest = input.trialsDigest || '';
+      let responseMetrics = input.metrics;
+
+      if (!bestExisting) {
+        tx.set(requestedLeaderboardDocRef, requestedLeaderboardDoc);
+      } else {
+        const existingData = bestExisting.data();
+        const existingScore = Number(existingData.scoreMetric);
+        if (Number.isFinite(existingScore) && isBetterScore(input.assessmentType, input.scoreMetric, existingScore)) {
+          // Keep one row per owner/assessment and preserve a moderator's hidden state.
+          tx.set(bestExisting.ref, {
+            ...requestedLeaderboardDoc,
+            hidden: existingData.hidden === true,
+            createdAt: FieldValue.serverTimestamp()
+          }, { merge: true });
+          responseDocId = bestExisting.id;
+        } else {
+          // Do not create a second row for a worse or tied score.
+          responseDocId = bestExisting.id;
+          responseScore = existingScore;
+          responseToken = String(existingData.provenanceToken || '');
+          responseDigest = String(existingData.trialsDigest || '');
+          responseMetrics = (existingData.derivedMetrics && typeof existingData.derivedMetrics === 'object')
+            ? existingData.derivedMetrics as Record<string, unknown>
+            : {};
+        }
+      }
+
       tx.set(sessionDocRef, {
         leaderboardSubmitted: true,
-        leaderboardDocId: input.leaderboardDocId,
+        leaderboardDocId: responseDocId,
         leaderboardSubmittedAt: input.now,
-        scoreMetric: input.scoreMetric,
-        trialsDigest: input.trialsDigest || '',
-        provenanceToken: input.provenanceToken,
-        derivedMetrics: input.metrics
+        scoreMetric: responseScore,
+        trialsDigest: responseDigest,
+        provenanceToken: responseToken,
+        derivedMetrics: responseMetrics
       }, { merge: true });
+
+      result = {
+        success: true,
+        docId: responseDocId,
+        scoreMetric: responseScore,
+        provenanceToken: responseToken,
+        trialsDigest: responseDigest,
+        derivedMetrics: responseMetrics
+      };
     });
 
-    return {
-      success: true,
-      docId: input.leaderboardDocId,
-      scoreMetric: input.scoreMetric,
-      provenanceToken: input.provenanceToken,
-      trialsDigest: input.trialsDigest,
-      derivedMetrics: input.metrics
-    };
+    if (!result) throw new Error('LEADERBOARD_SUBMISSION_TRANSACTION_NO_RESULT');
+    return result;
   }
 }
