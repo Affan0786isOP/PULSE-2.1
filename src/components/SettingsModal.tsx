@@ -276,6 +276,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         'pulse_pending_sync_queue',
         'pulse_analytics_sessions',
         'pulse_analytics_sessions_evicted_count',
+        // One-time cleanup of legacy offline leaderboard keys; public rankings are cloud-only.
         'pulse_local_leaderboard',
         'pulse_local_leaderboard_entries',
         'pulse_local_leaderboard_entries_evicted_count',
