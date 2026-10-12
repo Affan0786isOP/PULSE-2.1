@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import { deriveForeperiodCategory } from '../engines/reactionCalculator';
 
 export function getProvenanceSecret() {
-  const secret = process.env.PULSE_PROVENANCE_SECRET || process.env.SESSION_SECRET;
+  const secret = process.env.PULSE_PROVENANCE_SECRET;
   if (!secret) {
     throw new Error('PULSE_PROVENANCE_SECRET environment variable is missing. Please configure it in the application settings.');
   }
