@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
@@ -14,6 +15,18 @@ const PROTOCOLS: { id: AssessmentType; route: string; name: string; unit: string
   { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits', logo: '/brand/assessments/number-memory.png' },
 ];
 
+function getDisplayedRank(entries: LeaderboardEntry[], entry: LeaderboardEntry): number {
+  const unit = PROTOCOLS.find(p => p.id === entry.assessmentType)?.unit || '';
+  const key = unit === 'ms' ? entry.scoreMetric.toFixed(2) : String(entry.scoreMetric);
+  const firstIndex = entries.findIndex(candidate => {
+    if (candidate.assessmentType !== entry.assessmentType) return false;
+    const candidateUnit = PROTOCOLS.find(p => p.id === candidate.assessmentType)?.unit || '';
+    const candidateKey = candidateUnit === 'ms' ? candidate.scoreMetric.toFixed(2) : String(candidate.scoreMetric);
+    return key === candidateKey;
+  });
+  return firstIndex >= 0 ? firstIndex + 1 : entries.indexOf(entry) + 1;
+}
+
 function formatLeaderboardScore(score: number, unit: string): string {
   if (unit !== 'ms') {
     return String(score);
@@ -22,11 +35,33 @@ function formatLeaderboardScore(score: number, unit: string): string {
 }
 
 export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const [selectedProtocol, setSelectedProtocol] = useState<AssessmentType>('visual-reaction');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialProtocol = PROTOCOLS.find(p => p.id === searchParams.get('assessmentType'))?.id || 'visual-reaction';
+  const [selectedProtocol, setSelectedProtocol] = useState<AssessmentType>(initialProtocol);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const activeFetchIdRef = useRef(0);
+
+  useEffect(() => {
+    const fromUrl = PROTOCOLS.find(p => p.id === searchParams.get('assessmentType'))?.id;
+    if (!fromUrl) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set('assessmentType', selectedProtocol);
+      setSearchParams(nextParams, { replace: true });
+    } else if (fromUrl !== selectedProtocol) {
+      setEntries([]);
+      setSelectedProtocol(fromUrl);
+    }
+  }, [searchParams, selectedProtocol, setSearchParams]);
+
+  const selectProtocol = useCallback((protocol: AssessmentType) => {
+    setEntries([]);
+    setSelectedProtocol(protocol);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('assessmentType', protocol);
+    setSearchParams(nextParams);
+  }, [searchParams, setSearchParams]);
 
   const fetchLeaderboard = useCallback(async (protocolToFetch?: AssessmentType) => {
     const targetProtocol = protocolToFetch || selectedProtocol;
@@ -67,19 +102,19 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
   const handlePrevProtocol = () => {
     const prevIdx = (currentIndex - 1 + PROTOCOLS.length) % PROTOCOLS.length;
-    setSelectedProtocol(PROTOCOLS[prevIdx].id);
+    selectProtocol(PROTOCOLS[prevIdx].id);
   };
 
   const handleNextProtocol = () => {
     const nextIdx = (currentIndex + 1) % PROTOCOLS.length;
-    setSelectedProtocol(PROTOCOLS[nextIdx].id);
+    selectProtocol(PROTOCOLS[nextIdx].id);
   };
 
   return (
     <div className="bg-[var(--bg-base)] text-[var(--text-primary)] font-sans min-h-[100dvh] w-full flex flex-col selection:bg-[var(--accent-subtle)]">
       <SEO 
         title="Verified Leaderboard & Cohort Rankings | PULSE"
-        description="Compare your cognitive performance results against our global anonymous cohort rankings in real-time."
+        description="Compare participant-selected display names against age-cohort results across five cognitive assessments."
       />
       <Navbar currentView="leaderboard" onNavigate={onNavigate} />
 
@@ -96,7 +131,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               </h1>
             </div>
             <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-xl leading-relaxed">
-              Standardized public telemetry rankings. Real-time millisecond benchmarks segmented by assessment battery.
+              Verified, opted-in rankings across reaction, choice, and memory assessments. Refresh to load the latest available results.
             </p>
           </div>
           <button 
@@ -117,8 +152,18 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         <div 
           className="flex items-center justify-between gap-3 mb-6 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl p-2 sm:p-2.5"
           onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') handlePrevProtocol();
-            if (e.key === 'ArrowRight') handleNextProtocol();
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const nextIndex = (currentIndex - 1 + PROTOCOLS.length) % PROTOCOLS.length;
+              handlePrevProtocol();
+              document.getElementById(`leaderboard-tab-${PROTOCOLS[nextIndex].id}`)?.focus();
+            }
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const nextIndex = (currentIndex + 1) % PROTOCOLS.length;
+              handleNextProtocol();
+              document.getElementById(`leaderboard-tab-${PROTOCOLS[nextIndex].id}`)?.focus();
+            }
           }}
           tabIndex={0}
           aria-label="Protocol Selector - Use arrow keys to cycle between assessment batteries"
@@ -154,9 +199,12 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 <button 
                   type="button"
                   key={p.id}
-                  onClick={() => setSelectedProtocol(p.id)}
+                  onClick={() => selectProtocol(p.id)}
                   aria-label={`Select ${p.name}`}
+                  id={`leaderboard-tab-${p.id}`}
                   role="tab"
+                  aria-controls="leaderboard-panel"
+                  tabIndex={p.id === selectedProtocol ? 0 : -1}
                   aria-selected={p.id === selectedProtocol}
                   className={`h-1.5 sm:h-2 rounded-full transition-all cursor-pointer active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${
                     p.id === selectedProtocol 
@@ -180,13 +228,13 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         </div>
 
         {/* Leaderboard Table Slot */}
-        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 sm:p-6 flex-1 flex flex-col">
+        <div id="leaderboard-panel" role="tabpanel" aria-labelledby={`leaderboard-tab-${selectedProtocol}`} aria-busy={loading} className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 sm:p-6 flex-1 flex flex-col">
           {loading ? (
-            <div className="py-6">
+            <div className="py-6" role="status" aria-live="polite" aria-label="Loading leaderboard">
               <SkeletonTable rows={7} cols={5} />
             </div>
           ) : error ? (
-            <div className="py-16 flex flex-col items-center justify-center text-center max-w-md mx-auto my-auto">
+            <div role="alert" className="py-16 flex flex-col items-center justify-center text-center max-w-md mx-auto my-auto">
               <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4">
                 <AlertCircle size={22} />
               </div>
@@ -211,7 +259,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 <Inbox size={22} />
               </div>
               <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">
-                No Cohort Telemetry Recorded
+                No telemetry recorded
               </h3>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-6">
                 Be the first participant to complete the {currentProto.name} battery and submit your verified result to the public demographic dataset.
@@ -222,7 +270,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-semibold text-xs cursor-pointer active:scale-[0.98] transition-all"
               >
                 <Play size={14} className="fill-current" />
-                <span>Launch {currentProto.name} Battery</span>
+                <span>Take Test</span>
               </button>
             </div>
           ) : (
@@ -246,14 +294,14 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
                     return (
                       <motion.tr 
-                        key={entry.id ? `${entry.id}-${idx}` : `entry-${idx}`}
+                        key={entry.id}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2, delay: Math.min(idx * 0.02, 0.2) }}
                         className="hover:bg-[var(--surface-2)]/60 transition-colors"
                       >
                         <td className="py-3.5 px-4">
-                          <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold ${
+                          <span role="img" aria-label={`Rank ${rank}`} className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold ${
                             rank === 1
                               ? 'bg-amber-400/15 text-amber-500 border border-amber-400/30'
                               : rank === 2

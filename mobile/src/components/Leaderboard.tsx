@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from './Navbar';
 import { getLeaderboardResults, LeaderboardEntry, AssessmentType, isOptedInLeaderboardUser } from '../lib/firestore';
@@ -14,7 +15,19 @@ const PROTOCOLS: { id: AssessmentType; route: string; name: string; shortName: s
   { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', shortName: 'Number Mem', unit: 'Digits', logo: '/brand/assessments/number-memory.png' },
 ];
 
-function formatLeaderboardScore(score: number, unit: string, allScores: number[]): string {
+function getDisplayedRank(entries: LeaderboardEntry[], entry: LeaderboardEntry): number {
+  const unit = PROTOCOLS.find(p => p.id === entry.assessmentType)?.unit || '';
+  const key = unit === 'ms' ? entry.scoreMetric.toFixed(2) : String(entry.scoreMetric);
+  const firstIndex = entries.findIndex(candidate => {
+    if (candidate.assessmentType !== entry.assessmentType) return false;
+    const candidateUnit = PROTOCOLS.find(p => p.id === candidate.assessmentType)?.unit || '';
+    const candidateKey = candidateUnit === 'ms' ? candidate.scoreMetric.toFixed(2) : String(candidate.scoreMetric);
+    return key === candidateKey;
+  });
+  return firstIndex >= 0 ? firstIndex + 1 : entries.indexOf(entry) + 1;
+}
+
+function formatLeaderboardScore(score: number, unit: string): string {
   if (unit !== 'ms') {
     return String(score);
   }
@@ -22,11 +35,33 @@ function formatLeaderboardScore(score: number, unit: string, allScores: number[]
 }
 
 export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const [selectedProtocol, setSelectedProtocol] = useState<AssessmentType>('visual-reaction');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialProtocol = PROTOCOLS.find(p => p.id === searchParams.get('assessmentType'))?.id || 'visual-reaction';
+  const [selectedProtocol, setSelectedProtocol] = useState<AssessmentType>(initialProtocol);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const activeFetchIdRef = useRef(0);
+
+  useEffect(() => {
+    const fromUrl = PROTOCOLS.find(p => p.id === searchParams.get('assessmentType'))?.id;
+    if (!fromUrl) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set('assessmentType', selectedProtocol);
+      setSearchParams(nextParams, { replace: true });
+    } else if (fromUrl !== selectedProtocol) {
+      setEntries([]);
+      setSelectedProtocol(fromUrl);
+    }
+  }, [searchParams, selectedProtocol, setSearchParams]);
+
+  const selectProtocol = useCallback((protocol: AssessmentType) => {
+    setEntries([]);
+    setSelectedProtocol(protocol);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('assessmentType', protocol);
+    setSearchParams(nextParams);
+  }, [searchParams, setSearchParams]);
 
   const fetchLeaderboard = useCallback(async (protocolToFetch?: AssessmentType) => {
     const targetProtocol = protocolToFetch || selectedProtocol;
@@ -66,31 +101,30 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   const currentIndex = PROTOCOLS.findIndex(p => p.id === selectedProtocol);
   const currentProto = PROTOCOLS[currentIndex] || PROTOCOLS[0];
   const displayedEntries = useMemo(() => entries.filter(e => isOptedInLeaderboardUser(e?.displayName)), [entries]);
-  const allScores = useMemo(() => displayedEntries.map(e => e.scoreMetric), [displayedEntries]);
 
   const handlePrevProtocol = () => {
     triggerHaptic('tap');
     const prevIdx = (currentIndex - 1 + PROTOCOLS.length) % PROTOCOLS.length;
-    setSelectedProtocol(PROTOCOLS[prevIdx].id);
+    selectProtocol(PROTOCOLS[prevIdx].id);
   };
 
   const handleNextProtocol = () => {
     triggerHaptic('tap');
     const nextIdx = (currentIndex + 1) % PROTOCOLS.length;
-    setSelectedProtocol(PROTOCOLS[nextIdx].id);
+    selectProtocol(PROTOCOLS[nextIdx].id);
   };
 
   return (
-    <div className="bg-transparent text-[var(--text-main)] font-sans h-full max-h-full w-full overflow-hidden flex flex-col selection:bg-cyan-500/30">
+    <div className="bg-transparent text-[var(--text-main)] font-sans min-h-[100dvh] w-full overflow-x-hidden flex flex-col selection:bg-cyan-500/30">
       <SEO 
         title="Verified Leaderboard & Cohort Rankings | PULSE"
-        description="Compare your cognitive performance results against our global anonymous cohort rankings in real-time."
+        description="Compare participant-selected leaderboard aliases against age-cohort results across five cognitive assessments."
       />
       <Navbar 
         currentView="leaderboard" 
         onNavigate={onNavigate} 
         onBack={() => onNavigate('home')} 
-        title="PUBLIC LEADERBOARD"
+        title="LEADERBOARD"
         rightContent={
           <button type="button"
             id="mobile-leaderboard-refresh-btn"
@@ -98,20 +132,30 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             disabled={loading}
             aria-label="Refresh Leaderboard"
             title="Refresh Leaderboard"
-            className="p-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--cyan-primary)] hover:border-[var(--cyan-primary)] active:scale-95 transition-colors transition-transform transition-opacity cursor-pointer disabled:opacity-50 shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="p-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--cyan-primary)] hover:border-[var(--cyan-primary)] active:scale-95 transition-[color,background-color,border-color,opacity,transform] cursor-pointer disabled:opacity-50 shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin text-[var(--cyan-primary)]' : ''} />
           </button>
         }
       />
 
-      <main className="flex-1 overflow-y-auto w-full max-w-2xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-col pb-12 pb-safe">
+      <main className="flex-1 w-full max-w-2xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-col pb-[calc(3rem+env(safe-area-inset-bottom,0px))]">
         {/* Game Navigation Selector with Left & Right Arrows */}
         <div 
           className="flex items-center justify-between gap-2 mb-3 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-1.5 shadow-sm"
           onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') handlePrevProtocol();
-            if (e.key === 'ArrowRight') handleNextProtocol();
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const nextIndex = (currentIndex - 1 + PROTOCOLS.length) % PROTOCOLS.length;
+              handlePrevProtocol();
+              document.getElementById(`leaderboard-tab-${PROTOCOLS[nextIndex].id}`)?.focus();
+            }
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const nextIndex = (currentIndex + 1) % PROTOCOLS.length;
+              handleNextProtocol();
+              document.getElementById(`leaderboard-tab-${PROTOCOLS[nextIndex].id}`)?.focus();
+            }
           }}
           tabIndex={0}
           aria-label="Protocol Selector"
@@ -121,7 +165,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             onClick={handlePrevProtocol}
             aria-label="Previous Protocol"
             title="Previous Protocol"
-            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-colors transition-transform transition-opacity cursor-pointer shrink-0"
+            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-[color,background-color,border-color,opacity,transform] cursor-pointer shrink-0"
           >
             <ChevronLeft size={20} />
           </button>
@@ -148,13 +192,16 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                   key={p.id}
                   onClick={() => {
                     triggerHaptic('tap');
-                    setSelectedProtocol(p.id);
+                    selectProtocol(p.id);
                   }}
                   aria-label={`Select ${p.name}`}
                   title={p.name}
+                  id={`leaderboard-tab-${p.id}`}
                   role="tab"
+                  aria-controls="leaderboard-panel"
+                  tabIndex={p.id === selectedProtocol ? 0 : -1}
                   aria-selected={p.id === selectedProtocol}
-                  className={`h-2.5 rounded-full transition-colors transition-transform transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] ${
+                  className={`h-2.5 rounded-full transition-[color,background-color,border-color,opacity,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] ${
                     p.id === selectedProtocol 
                       ? 'w-5 bg-[var(--cyan-primary)]' 
                       : 'w-2 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'
@@ -169,20 +216,20 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             onClick={handleNextProtocol}
             aria-label="Next Protocol"
             title="Next Protocol"
-            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-colors transition-transform transition-opacity cursor-pointer shrink-0"
+            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-[color,background-color,border-color,opacity,transform] cursor-pointer shrink-0"
           >
             <ChevronRight size={20} />
           </button>
         </div>
 
         {/* Leaderboard Entries List — Clean, Decluttered & Full-Width Mobile Fitting */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3 sm:p-4 backdrop-blur-xl flex-1 min-w-0">
+        <div id="leaderboard-panel" role="tabpanel" aria-labelledby={`leaderboard-tab-${selectedProtocol}`} aria-busy={loading} className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3 sm:p-4 backdrop-blur-xl flex-1 min-w-0">
           {loading ? (
-            <div className="py-2">
+            <div className="py-2" role="status" aria-live="polite" aria-label="Loading leaderboard">
               <SkeletonTable rows={6} cols={3} />
             </div>
           ) : error ? (
-            <div className="py-12 flex flex-col items-center justify-center text-center px-4">
+            <div role="alert" className="py-12 flex flex-col items-center justify-center text-center px-4">
               <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-3">
                 <AlertCircle size={20} />
               </div>
@@ -213,7 +260,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               <button
                 type="button"
                 onClick={() => onNavigate(currentProto.route)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--cyan-primary)] text-black font-bold text-xs uppercase tracking-wider transition-colors transition-transform transition-opacity shadow-sm active:scale-95 cursor-pointer min-h-[40px]"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--cyan-primary)] text-black font-bold text-xs uppercase tracking-wider transition-[color,background-color,border-color,opacity,transform] shadow-sm active:scale-95 cursor-pointer min-h-[40px]"
               >
                 <Play size={13} className="fill-black" />
                 <span>Take Test</span>
@@ -231,13 +278,13 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               {/* Rows */}
               <div className="divide-y divide-[var(--border-subtle)] font-mono">
                 {displayedEntries.map((entry, idx) => {
-                  const rank = idx + 1;
-                  const unit = currentProto?.unit || '';
-                  const formattedScore = formatLeaderboardScore(entry.scoreMetric, unit, allScores);
+                  const unit = PROTOCOLS.find(p => p.id === entry.assessmentType)?.unit || '';
+                  const formattedScore = formatLeaderboardScore(entry.scoreMetric, unit);
+                  const rank = getDisplayedRank(displayedEntries, entry);
 
                   return (
                     <motion.div
-                      key={entry.id ? `${entry.id}-${idx}` : `entry-${idx}`}
+                      key={entry.id}
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.18, delay: Math.min(idx * 0.025, 0.25) }}
@@ -246,6 +293,8 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                       {/* Rank badge */}
                       <div className="col-span-2 flex items-center">
                         <span
+                          role="img"
+                          aria-label={`Rank ${rank}`}
                           className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-bold ${
                             rank === 1
                               ? 'bg-amber-400/20 text-amber-500 dark:text-amber-300 border border-amber-400/40'
@@ -267,7 +316,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                         </span>
                         {entry.ageGroup && (
                           <span className="text-[9px] text-[var(--text-muted)] font-normal truncate">
-                            Age {entry.ageGroup}
+                            {entry.ageGroup}
                           </span>
                         )}
                       </div>
