@@ -16,6 +16,6 @@ Cognitive motor latency measurement on mobile touchscreens requires tailored tou
 - **Negative:** Shared features or protocol changes require coordinated updates across `src/` and `mobile/src/`.
 
 ## Evidence
-- [`src/lib/deviceRouting.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/deviceRouting.ts)
-- [`mobile/vite.config.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/mobile/vite.config.ts)
-- [`package.json`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/package.json)
+- [`src/lib/deviceRouting.ts`](../../src/lib/deviceRouting.ts)
+- [`mobile/vite.config.ts`](../../mobile/vite.config.ts)
+- [`package.json`](../../package.json)
