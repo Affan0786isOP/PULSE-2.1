@@ -1,0 +1,56 @@
+name: Leaderboard regression checks
+
+on:
+  push:
+    branches:
+      - CLAUDE-GPT-BUG-FIXES
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/components/Leaderboard*'
+      - 'mobile/src/components/Leaderboard*'
+      - 'src/components/LeaderboardOptIn.tsx'
+      - 'mobile/src/components/LeaderboardOptIn.tsx'
+      - 'src/components/admin/LeaderboardModeration.tsx'
+      - 'server/**'
+      - 'shared/domain/leaderboard*'
+      - 'src/lib/firestore.ts'
+      - 'mobile/src/lib/firestore.ts'
+      - 'src/lib/adminActions.ts'
+      - 'tests/unit/leaderboard*'
+      - 'tests/unit/server*'
+      - 'tests/unit/firebase.test.ts'
+      - 'tests/unit/firestore.test.ts'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leaderboard-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Typecheck and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck desktop and mobile
+        run: npm run check
+
+      - name: Run full unit test suite
+        run: npm test
