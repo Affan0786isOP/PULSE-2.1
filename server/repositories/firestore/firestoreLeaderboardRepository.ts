@@ -1,4 +1,4 @@
-import type { Firestore } from 'firebase-admin/firestore';
+import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import * as crypto from 'crypto';
 import type { ILeaderboardRepository } from '../interfaces/ILeaderboardRepository';
 import type { LeaderboardEntryRecord, AdminLeaderboardEntryRecord } from '../../models/leaderboardModels';
@@ -119,13 +119,16 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     }
 
     const snap = await db.collection('leaderboardResults').orderBy('createdAt', 'desc').limit(limitCount).get();
-    return snap.docs.map(d => {
-      const data = d.data();
+    const metaSnapshots = await db.getAll(...snap.docs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
+    return snap.docs.map((doc, index) => {
+      const data = doc.data();
+      const meta = metaSnapshots[index].exists ? metaSnapshots[index].data() || {} : {};
       return {
-        id: d.id,
+        ...meta,
         ...data,
+        id: doc.id,
         createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
-      };
+      } as AdminLeaderboardEntryRecord;
     });
   }
 
@@ -151,11 +154,14 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     const snap = await query.limit(safeLimit + 1).get();
     const hasMore = snap.docs.length > safeLimit;
     const pageDocs = snap.docs.slice(0, safeLimit);
-    const entries = pageDocs.map(doc => {
+    const metaSnapshots = await db.getAll(...pageDocs.map(doc => collection.firestore.collection('leaderboardPrivateMeta').doc(doc.id)));
+    const entries = pageDocs.map((doc, index) => {
       const data = doc.data();
+      const meta = metaSnapshots[index].exists ? metaSnapshots[index].data() || {} : {};
       return {
-        id: doc.id,
+        ...meta,
         ...data,
+        id: doc.id,
         createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
       } as AdminLeaderboardEntryRecord;
     });
@@ -172,12 +178,16 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
     if (!entryId || entryId.includes('/') || entryId.length > 1500) throw new Error('INVALID_ENTRY_ID');
 
-    const snap = await db.collection('leaderboardResults').doc(entryId).get();
+    const publicRef = db.collection('leaderboardResults').doc(entryId);
+    const metaRef = db.collection('leaderboardPrivateMeta').doc(entryId);
+    const [snap, metaSnap] = await Promise.all([publicRef.get(), metaRef.get()]);
     if (!snap.exists) return null;
     const data = snap.data() || {};
+    const meta = metaSnap.exists ? metaSnap.data() || {} : {};
     return {
-      id: snap.id,
+      ...meta,
       ...data,
+      id: snap.id,
       createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
     } as AdminLeaderboardEntryRecord;
   }
@@ -185,17 +195,28 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
   async getEntriesByOwner(ownerUid: string, assessmentType?: string | null): Promise<AdminLeaderboardEntryRecord[]> {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
-    const snap = await db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get();
-    return snap.docs
-      .filter(doc => !assessmentType || normalizeAssessmentType(String(doc.data().assessmentType || '')) === assessmentType)
-      .map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
-        } as AdminLeaderboardEntryRecord;
-      });
+
+    const metaSnap = await db.collection('leaderboardPrivateMeta').where('ownerUid', '==', ownerUid).get();
+    const matchingMeta = metaSnap.docs.filter(doc =>
+      !assessmentType || normalizeAssessmentType(String(doc.data().assessmentType || '')) === assessmentType
+    );
+    if (matchingMeta.length === 0) return [];
+
+    const publicSnaps = await db.getAll(...matchingMeta.map(doc => db.collection('leaderboardResults').doc(doc.id)));
+    const results: AdminLeaderboardEntryRecord[] = [];
+    matchingMeta.forEach((metaDoc, index) => {
+      const publicSnap = publicSnaps[index];
+      if (!publicSnap.exists) return;
+      const meta = metaDoc.data();
+      const data = publicSnap.data() || {};
+      results.push({
+        ...meta,
+        ...data,
+        id: publicSnap.id,
+        createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
+      } as AdminLeaderboardEntryRecord);
+    });
+    return results;
   }
 
   async linkOwnerToEntry(entryId: string, ownerUid: string, sessionId: string): Promise<boolean> {
