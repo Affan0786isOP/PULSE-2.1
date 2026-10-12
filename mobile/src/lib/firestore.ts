@@ -3,7 +3,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { getInMemorySessionTrials } from './inMemorySessionStore';
 import { db, auth, isConfigured, authInitPromise } from './firebase';
 import { reportError } from './errorReporter';
-import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, normalizeLeaderboardAssessmentType } from '../../../shared/domain/leaderboardEligibility';
+import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, normalizeLeaderboardAssessmentType, validateLeaderboardDisplayName } from '../../../shared/domain/leaderboardEligibility';
 export { isOptedInLeaderboardUser };
 
 export const isFirestoreAvailable = (): boolean => {
