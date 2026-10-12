@@ -32,7 +32,7 @@ flowchart TD
 
 ## 3. Querying & Filtering Engine
 
-The React hook [`src/lib/dataset/index.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/dataset/index.ts) (`useDatasetPipeline`) provides reactive data slicing:
+The React hook [`src/lib/dataset/index.ts`](../../src/lib/dataset/index.ts) (`useDatasetPipeline`) provides reactive data slicing:
 
 ### Filter Dimensions
 1. **Assessment Protocol:** `visual-reaction`, `direction`, `colour-recognition`, `block-memory`, `number-memory`.
