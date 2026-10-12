@@ -113,8 +113,8 @@ export function AssessmentHero3D() {
       onMouseLeave={() => setIsHovered(false)}
       onFocus={() => setHasFocus(true)}
       onBlur={(event) => {
-        const nextTarget = event.relatedTarget as Node | null;
-        if (!nextTarget || !event.currentTarget.contains(nextTarget)) {
+        const nextTarget = event.relatedTarget;
+        if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
           setHasFocus(false);
         }
       }}
