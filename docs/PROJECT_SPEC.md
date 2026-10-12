@@ -128,14 +128,14 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 | :--- | :--- | :--- | :--- |
 | **Desktop Home & Hero** | `/` | `IMPLEMENTED` | Awwwards-tier animated canvas background, 3D assessment carousel, interactive live reticle, quick-start CTAs. |
 | **Mobile PWA Sub-App** | `/mobile/` | `IMPLEMENTED` | Dedicated mobile entry point, touch-optimized layouts, service worker caching, standalone PWA install prompt. |
-| **Device Auto-Routing** | Middleware & Client | `IMPLEMENTED` | Screen width ($<768\text{px}$) & User-Agent detection redirects mobile visitors to `/mobile/` and desktop to `/`. |
+| **Device Auto-Routing** | Middleware & Client | `IMPLEMENTED` | Client-side routing applies viewport/device checks; the server preserves normal page navigation and redirects only for explicit routing flags/preferences. |
 | **Hardware Calibrator** | Background Hook | `IMPLEMENTED` | RAF sampling detects screen refresh rate (60Hz–240Hz) and display latency offset. |
 | **Research Dataset Explorer** | `/dataset`, `/analytics` | `IMPLEMENTED` | Real-time multi-filter distribution curves (Visx/Recharts), cohort slicing, and CSV/JSON export. |
 | **Global Leaderboard** | `/leaderboard` | `IMPLEMENTED` | Top 100 rankings per assessment type, verified server HMAC tokens, strict opt-in alias validation. |
 | **Leaderboard Opt-In** | Modal UI | `IMPLEMENTED` | Self-selected public alias modal with profanity filter; guest/anonymous submissions excluded from public rank. |
 | **Cognitive Guidance** | `/improve` | `IMPLEMENTED` | Sleep, circadian timing, caffeine, and reaction training educational cards backed by scientific literature. |
-| **Admin Console** | `/admin/*` | `IMPLEMENTED` | Passcode-protected overview, live leaderboard moderation (hide/delete with reason notes), and audit trail viewer. |
-| **Privacy Policy & Terms** | `/privacy` | `IMPLEMENTED` | Comprehensive disclosure of zero-PII data handling, statutory compliance, and data subject rights. |
+| **Admin Console** | `/admin/*` | `IMPLEMENTED` | Passcode-protected overview, leaderboard moderation (hide, restore/unhide, or delete with reason notes), and audit trail viewer. |
+| **Privacy Policy & Terms** | `/privacy` | `IMPLEMENTED` | Discloses research records, optional public leaderboard aliases, and current data-removal and retention limitations. |
 | **Multiplayer / Live Duels** | — | `PLANNED` | Real-time peer-to-peer cognitive reaction duels (Not implemented in v2.2). |
 | **Native Mobile App (iOS/Android)**| App Stores | `PLANNED` | Capacitor/React Native native wrapper (Web PWA active in v2.2). |
 
