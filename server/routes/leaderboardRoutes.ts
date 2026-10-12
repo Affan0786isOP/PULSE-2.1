@@ -125,6 +125,12 @@ export function registerLeaderboardRoutes(
 
   // Public Leaderboard Retrieval Endpoint
   app.get('/api/leaderboard', async (req, res) => {
+    // Do not let browser, proxy or CDN caches make laptop and phone surfaces disagree.
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+
     const rawType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : '';
     if (!rawType) {
       return res.status(400).json({ success: false, error: 'assessmentType query parameter is required', entries: [] });
