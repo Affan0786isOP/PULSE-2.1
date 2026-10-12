@@ -7,6 +7,7 @@ import { getLeaderboardResults, LeaderboardEntry, AssessmentType, isOptedInLeade
 import { Trophy, Award, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
 import { SkeletonTable } from './ui/Skeleton';
 import { SEO } from './SEO';
+import { getDisplayedLeaderboardRank } from '../../shared/domain/leaderboardRanking';
 const PROTOCOLS: { id: AssessmentType; route: string; name: string; unit: string; logo: string }[] = [
   { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', unit: 'ms', logo: '/brand/assessments/visual-reaction.png' },
   { id: 'direction', route: 'direction-test', name: 'DIRECTION', unit: 'ms', logo: '/brand/assessments/directional-choice.png' },
@@ -14,18 +15,6 @@ const PROTOCOLS: { id: AssessmentType; route: string; name: string; unit: string
   { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks', logo: '/brand/assessments/block-memory.png' },
   { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits', logo: '/brand/assessments/number-memory.png' },
 ];
-
-function getDisplayedRank(entries: LeaderboardEntry[], entry: LeaderboardEntry): number {
-  const unit = PROTOCOLS.find(p => p.id === entry.assessmentType)?.unit || '';
-  const key = unit === 'ms' ? entry.scoreMetric.toFixed(2) : String(entry.scoreMetric);
-  const firstIndex = entries.findIndex(candidate => {
-    if (candidate.assessmentType !== entry.assessmentType) return false;
-    const candidateUnit = PROTOCOLS.find(p => p.id === candidate.assessmentType)?.unit || '';
-    const candidateKey = candidateUnit === 'ms' ? candidate.scoreMetric.toFixed(2) : String(candidate.scoreMetric);
-    return key === candidateKey;
-  });
-  return firstIndex >= 0 ? firstIndex + 1 : entries.indexOf(entry) + 1;
-}
 
 function formatLeaderboardScore(score: number, unit: string): string {
   if (unit !== 'ms') {
@@ -236,7 +225,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 <AlertCircle size={22} />
               </div>
               <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">
-                Unable to Load Telemetry
+                Unable to Load Leaderboard
               </h3>
               <p className="text-xs font-mono text-[var(--text-secondary)] mb-5">
                 {error}
@@ -284,7 +273,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 </thead>
                 <tbody className="divide-y divide-[var(--border-subtle)] font-mono text-sm">
                   {displayedEntries.map((entry, idx) => {
-                    const rank = getDisplayedRank(displayedEntries, entry);
+                    const rank = getDisplayedLeaderboardRank(displayedEntries, entry);
                     const proto = PROTOCOLS.find(p => p.id === entry.assessmentType);
                     const unit = proto?.unit || '';
                     const formattedScore = formatLeaderboardScore(entry.scoreMetric, unit);
