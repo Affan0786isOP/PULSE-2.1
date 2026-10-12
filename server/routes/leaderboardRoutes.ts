@@ -133,6 +133,66 @@ export function registerLeaderboardRoutes(
     }
   });
 
+  // Authenticated participant-only rank lookup. This searches the full eligible board,
+  // not just the public top 100, and never returns the private owner UID.
+  app.get('/api/leaderboard/my-rank', async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    try {
+      const user = await verifyFirebaseUserToken(req);
+      if (!user) {
+        return res.status(401).json({ success: false, error: 'Authentication required', rank: null });
+      }
+      const assessmentType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : '';
+      if (!assessmentType) {
+        return res.status(400).json({ success: false, error: 'assessmentType query parameter is required', rank: null });
+      }
+      if (!services.leaderboardService.getMyLeaderboardRank) {
+        return res.status(503).json({ success: false, error: 'Rank lookup is unavailable', rank: null });
+      }
+      const result = await services.leaderboardService.getMyLeaderboardRank(user.uid, assessmentType);
+      return res.json({ success: true, ...result });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof AppError ? err.status : (message === 'DATABASE_UNAVAILABLE' ? 503 : 500);
+      return res.status(status).json({
+        success: false,
+        error: status === 400 ? message : status === 503 ? 'Rank lookup is temporarily unavailable' : 'Failed to retrieve participant rank',
+        rank: null
+      });
+    }
+  });
+
+  // Participant erasure: assessmentType must be a canonical ID or the explicit value "all".
+  // Only rows linked to this authenticated UID (including safely migrated legacy rows) are deleted.
+  app.delete('/api/leaderboard/mine', async (req, res) => {
+    try {
+      const user = await verifyFirebaseUserToken(req);
+      if (!user) {
+        return res.status(401).json({ success: false, error: 'Authentication required', deletedCount: 0 });
+      }
+      const assessmentType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : '';
+      if (!assessmentType) {
+        return res.status(400).json({ success: false, error: 'assessmentType is required; use a canonical ID or all', deletedCount: 0 });
+      }
+      if (!services.leaderboardService.deleteMyLeaderboardEntries) {
+        return res.status(503).json({ success: false, error: 'Participant removal is unavailable', deletedCount: 0 });
+      }
+      const result = await services.leaderboardService.deleteMyLeaderboardEntries(
+        user.uid,
+        assessmentType === 'all' ? null : assessmentType
+      );
+      return res.json({ success: true, deletedCount: result.deletedCount });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof AppError ? err.status : (message === 'DATABASE_UNAVAILABLE' ? 503 : 500);
+      return res.status(status).json({
+        success: false,
+        error: status === 400 ? message : status === 503 ? 'Participant removal is temporarily unavailable' : status === 409 ? message : 'Failed to remove participant leaderboard entries',
+        deletedCount: 0
+      });
+    }
+  });
+
   // Public Leaderboard Retrieval Endpoint
   app.get('/api/leaderboard', async (req, res) => {
     // Do not let browser, proxy or CDN caches make laptop and phone surfaces disagree.
