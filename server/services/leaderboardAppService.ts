@@ -120,7 +120,7 @@ export class LeaderboardAppService implements ILeaderboardService {
     }
 
     if (!isValidLeaderboardScoreMetric(normalizedAssessmentType, scoreMetric)) {
-      throw new AppError('Invalid or non-finite score metric for assessment type', 400);
+      throw new AppError('This result is not eligible for the public leaderboard score range for this assessment.', 400);
     }
 
     const sanitizedDisplayName = normalizedDisplayName.replace(/:/g, '_');
