@@ -53,7 +53,7 @@ describe('shared leaderboard assessment normalization', () => {
 });
 
 describe('leaderboard display names', () => {
-  it.each(['', '   ', 'Guest', 'Anonymous', 'Unknown', 'Participant 12', 'http://example.com', 'person@example.com', 'Ahmed1234567', 'bad\u202Ename', '<script>', 'shit', 'shit'])(
+  it.each(['', '   ', '.', '-', '_', '\u0301', '._-', 'Guest', 'Anonymous', 'Unknown', 'Participant 12', 'http://example.com', 'person@example.com', 'Ahmed1234567', 'bad\u202Ename', '<script>', 'shit', 'shit'])(
     'rejects unsafe or ineligible alias %j',
     (alias) => expect(validateLeaderboardDisplayName(alias).valid).toBe(false)
   );
