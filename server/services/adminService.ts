@@ -49,4 +49,17 @@ export class AdminService implements IAdminService {
   async getAllLeaderboardEntries(limitCount = 500): Promise<AdminLeaderboardEntryRecord[]> {
     return this.leaderboardRepo.getAllEntriesForAdmin(limitCount);
   }
+
+  async getAllLeaderboardEntriesPage(limitCount = 100, cursor?: string | null): Promise<{
+    entries: AdminLeaderboardEntryRecord[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  }> {
+    if (this.leaderboardRepo.getAllEntriesForAdminPage) {
+      return this.leaderboardRepo.getAllEntriesForAdminPage(limitCount, cursor);
+    }
+
+    const entries = await this.leaderboardRepo.getAllEntriesForAdmin(limitCount);
+    return { entries, nextCursor: null, hasMore: false };
+  }
 }
