@@ -4,6 +4,8 @@ export interface ILeaderboardRepository {
   getEntriesByAlias(alias: string, direction: 'asc' | 'desc', limitCount: number): Promise<LeaderboardEntryRecord[]>;
   getAllEntriesForAdmin(limitCount: number): Promise<AdminLeaderboardEntryRecord[]>;
   getEntryById?(entryId: string): Promise<AdminLeaderboardEntryRecord | null>;
+  getEntriesByOwner?(ownerUid: string, assessmentType: string): Promise<AdminLeaderboardEntryRecord[]>;
+  deleteEntriesByOwner?(ownerUid: string, assessmentType: string): Promise<number>;
   getAllEntriesForAdminPage?(limitCount: number, cursor?: string | null): Promise<{
     entries: AdminLeaderboardEntryRecord[];
     nextCursor: string | null;
