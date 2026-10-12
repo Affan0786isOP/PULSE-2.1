@@ -2,7 +2,17 @@ import type express from 'express';
 import * as crypto from 'crypto';
 import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 import { initializeAdminApp } from '../config/firebaseAdmin';
-import { signProvenancePayload } from '../services/provenanceService';
+function getAdminSessionSecret(): string {
+  const secret = process.env.PULSE_ADMIN_SESSION_SECRET;
+  if (!secret || !secret.trim()) {
+    throw new Error('ADMIN_SESSION_SECRET_NOT_CONFIGURED');
+  }
+  return secret;
+}
+
+function signAdminSessionPayload(payload: string): string {
+  return crypto.createHmac('sha256', getAdminSessionSecret()).update(payload).digest('hex');
+}
 
 export async function verifyFirebaseUserToken(req: express.Request): Promise<DecodedIdToken | null> {
   const authHeader = req.headers.authorization;
@@ -38,7 +48,7 @@ export function createAdminSessionToken(): { token: string; expiresAt: number } 
   const expiresAt = issuedAt + 8 * 60 * 60 * 1000; // 8 hour active session
   const nonce = crypto.randomUUID();
   const payload = `${issuedAt}:${expiresAt}:${nonce}`;
-  const signature = signProvenancePayload(payload);
+  const signature = signAdminSessionPayload(payload);
   const token = `${payload}:${signature}`;
   return { token, expiresAt };
 }
@@ -60,7 +70,13 @@ export function verifyAdminSession(req: express.Request): boolean {
   if (expiresAt - issuedAt > 8 * 60 * 60 * 1000 + 60000 || expiresAt <= issuedAt) return false;
 
   const payload = `${issuedAtStr}:${expiresAtStr}:${nonce}`;
-  const expectedSig = signProvenancePayload(payload);
+  let expectedSig: string;
+  try {
+    expectedSig = signAdminSessionPayload(payload);
+  } catch {
+    // Missing admin-only signing key must invalidate existing tokens, not fall back to a shared key.
+    return false;
+  }
 
   const bufSig = Buffer.from(signature, 'hex');
   const bufExp = Buffer.from(expectedSig, 'hex');
