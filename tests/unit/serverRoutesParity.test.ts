@@ -432,6 +432,20 @@ describe('Server Route Parity Suite (against Golden Baseline)', () => {
     expect(res.status).toBe(goldenResponses['GET /api/leaderboard [db_null]'].status);
     expect(res.body).toEqual(goldenResponses['GET /api/leaderboard [db_null]'].body);
 
+    // 6.2 Missing protocol is a client error, not an unfiltered mixed leaderboard.
+    res = await makeRequest(server, 'GET', '/api/leaderboard');
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({
+      success: false,
+      error: 'assessmentType query parameter is required',
+      entries: []
+    });
+
+    // 6.3 Unknown protocol is rejected before any database query is attempted.
+    res = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=not-a-real-assessment');
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ success: false, error: 'Unknown assessmentType', entries: [] });
+
     // 7. Admin Moderation
     // 7.1 Hide DB Null -> 503
     res = await makeRequest(server, 'POST', '/api/admin/leaderboard/hide', { id: 'entry-123' });

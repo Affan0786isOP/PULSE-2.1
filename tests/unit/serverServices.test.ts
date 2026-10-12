@@ -100,7 +100,7 @@ describe('Server Application Services Unit Tests', () => {
     };
     const mockLbRepo: ILeaderboardRepository = {
       getEntriesByAlias: vi.fn(async (alias, _dir, _lim) => {
-        if (alias === 'direction') {
+        if (alias === 'reaction-test') {
           throw new Error('Temporary Firestore timeout');
         }
         if (alias === 'visual-reaction') {
@@ -136,10 +136,36 @@ describe('Server Application Services Unit Tests', () => {
 
     const lbService = new LeaderboardAppService(mockSessionRepo, mockLbRepo, mockSubRepo);
 
-    // Query unfiltered leaderboard: direction fails, visual-reaction succeeds, returns 200 with partial merged results
-    const entries = await lbService.getPublicLeaderboard(null);
+    // Query the Visual Reaction board: one legacy-alias query fails while the canonical query succeeds.
+    const entries = await lbService.getPublicLeaderboard('visual-reaction');
     expect(entries.length).toBe(1);
     expect(entries[0].displayName).toBe('Alice');
     expect(entries[0].scoreMetric).toBe(205);
   });
+  it('rejects missing or unknown protocol and distinguishes total query failure from an empty board', async () => {
+    const emptyRepo = {
+      getEntriesByAlias: vi.fn(async () => []),
+    } as unknown as ILeaderboardRepository;
+    const emptyService = new LeaderboardAppService(
+      {} as ISessionRepository,
+      emptyRepo,
+      {} as ILeaderboardSubmissionRepository
+    );
+
+    await expect(emptyService.getPublicLeaderboard(null)).rejects.toMatchObject({ status: 400 });
+    await expect(emptyService.getPublicLeaderboard('not-a-real-assessment')).rejects.toMatchObject({ status: 400 });
+    await expect(emptyService.getPublicLeaderboard('visual-reaction')).resolves.toEqual([]);
+
+    const failingRepo = {
+      getEntriesByAlias: vi.fn(async () => { throw new Error('Firestore unavailable'); }),
+    } as unknown as ILeaderboardRepository;
+    const failingService = new LeaderboardAppService(
+      {} as ISessionRepository,
+      failingRepo,
+      {} as ILeaderboardSubmissionRepository
+    );
+
+    await expect(failingService.getPublicLeaderboard('visual-reaction')).rejects.toMatchObject({ status: 503 });
+  });
+
 });
