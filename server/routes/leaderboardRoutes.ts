@@ -84,16 +84,29 @@ export function registerLeaderboardRoutes(
         if (errMsg === 'DATABASE_UNAVAILABLE') {
           return res.status(503).json({ success: false, error: 'Database service unavailable' });
         }
-        if (errMsg === 'Failed to read experiment session from database') {
-          return res.status(500).json({ success: false, error: errMsg });
-        }
         if (errStatus === 400 || errStatus === 403 || errStatus === 404) {
           return res.status(errStatus).json({ success: false, error: errMsg });
         }
 
+        const errorCode = (submitErr as { code?: unknown } | null)?.code;
+        if (
+          errStatus === 503 ||
+          errorCode === 10 ||
+          errorCode === '10' ||
+          errorCode === 'ABORTED' ||
+          errMsg.includes('ABORTED') ||
+          errMsg.includes('DATABASE_UNAVAILABLE')
+        ) {
+          return res.status(503).json({ success: false, error: 'Leaderboard submission service temporarily unavailable. Please retry.' });
+        }
+
         return res.status(500).json({ success: false, error: 'Failed to persist leaderboard result in database' });
       }
-    } catch {
+    } catch (err: unknown) {
+      const status = err instanceof AppError ? err.status : 500;
+      if (status === 503) {
+        return res.status(503).json({ success: false, error: 'Authentication or leaderboard service temporarily unavailable' });
+      }
       return res.status(500).json({ success: false, error: 'Failed to persist leaderboard result in database' });
     }
   });
