@@ -98,8 +98,8 @@ describe('leaderboard display names', () => {
   it.each([
     'Harshit', 'Harshita', 'Ishita', 'Kshitij', 'Kshitiz', 'Akshit',
     'Akshita', 'Nishit', 'Nishita', 'Shital', 'Shitij', 'Rishit',
-    'Vanshita', 'Anshita', 'Push It', 'Fish It', 'Mass Holes', 'Class Hole',
-    'Scunthorpe', 'Snigger',
+    'Vanshita', 'Anshita', 'Shitanshu', 'Push It', 'Fish It', 'Mass Holes', 'Class Hole',
+    'Scunthorpe', 'Snigger', 'Therapist', 'Dick', 'Admin', 'Bot', 'Staff', 'Sex',
   ])('allows legitimate names and phrases containing profanity-like substrings: %s', alias => {
     expect(validateLeaderboardDisplayName(alias), alias).toMatchObject({ valid: true, normalized: alias });
     expect(safeLeaderboardDisplayNameForRead(alias), alias).toBe(alias);
