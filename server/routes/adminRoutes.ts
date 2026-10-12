@@ -37,7 +37,18 @@ export function registerAdminRoutes(
         token: session.token,
         expiresAt: session.expiresAt
       });
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const isMissingConfiguration =
+        message === 'ADMIN_PASSCODE_NOT_CONFIGURED' ||
+        message === 'ADMIN_SESSION_SECRET_NOT_CONFIGURED' ||
+        message.includes('PULSE_PROVENANCE_SECRET environment variable is missing');
+      if (isMissingConfiguration) {
+        return res.status(503).json({
+          success: false,
+          error: 'Admin authentication is not configured. Set ADMIN_PASSCODE and PULSE_ADMIN_SESSION_SECRET.'
+        });
+      }
       return res.status(500).json({ success: false, error: 'Admin authentication failed' });
     }
   });
