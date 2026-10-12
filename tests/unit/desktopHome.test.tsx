@@ -68,7 +68,7 @@ describe('Desktop Home Redesign', () => {
     expect(startTestingBtn.getAttribute('href')).toBe('/assessments');
   });
 
-  it('renders the metrics row with Tests, live Results, and Available 24/7', () => {
+  it('renders the metrics row with Tests, live Results, and ~2 min Per Test', () => {
     renderHome();
     // 5 Tests
     expect(screen.getByText('5')).toBeDefined();
@@ -76,9 +76,9 @@ describe('Desktop Home Redesign', () => {
     // Live results count
     expect(screen.getByText('90')).toBeDefined();
     expect(screen.getByText('Results')).toBeDefined();
-    // Available 24/7
-    expect(screen.getByText('24/7')).toBeDefined();
-    expect(screen.getByText('Available')).toBeDefined();
+    // ~2 min Per Test
+    expect(screen.getByText('~2 min')).toBeDefined();
+    expect(screen.getByText('Per Test')).toBeDefined();
   });
 
   it('renders the 3D Assessment Carousel with all 5 protocols', () => {

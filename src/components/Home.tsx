@@ -250,8 +250,8 @@ export function Home() {
         <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[2560px]:max-w-[580px]">
           {/* Eyebrow Badge */}
           <div className={`mb-2.5 sm:mb-3 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
-            <div className="inline-flex items-center rounded-full bg-[#E0F2FE] border border-[#7DD3FC] px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.08)]">
-              <span className="text-[10px] sm:text-[10.5px] min-[2560px]:text-[11.5px] font-mono font-bold tracking-[0.18em] text-[#0369A1] uppercase">
+            <div className="inline-flex items-center rounded-full bg-[#E0F2FE] border border-[#38BDF8]/60 px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.08)]">
+              <span className="text-[11px] sm:text-[11.5px] min-[2560px]:text-[12.5px] font-mono font-bold tracking-[0.16em] text-[#0284C7] uppercase">
                 COGNITIVE BENCHMARKING
               </span>
             </div>
@@ -267,20 +267,30 @@ export function Home() {
           </h1>
 
           {/* Subtitle */}
-          <p className={`text-[#334155] text-xs sm:text-[13.5px] lg:text-[14px] min-[2560px]:text-[16.5px] font-medium leading-relaxed mb-6 sm:mb-7 max-w-[420px] min-[2560px]:max-w-[520px] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
-            Test your reaction speed, memory and attention — right in your browser, with no account required.
+          <p className={`text-[#334155] text-xs sm:text-[13.5px] lg:text-[14px] min-[2560px]:text-[16.5px] font-medium leading-relaxed mb-5 sm:mb-6 max-w-[420px] min-[2560px]:max-w-[520px] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
+            Test your reaction speed, memory and attention — right in your browser, with millisecond precision.
           </p>
 
-          {/* Primary CTA: Start Testing */}
-          <Link 
-            to="/assessments"
-            className="w-full max-w-[340px] sm:max-w-[360px] min-[2560px]:max-w-[420px] h-[50px] sm:h-[54px] min-[2560px]:h-[62px] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white font-semibold text-[15px] sm:text-[16px] min-[2560px]:text-[18px] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.4),0_4px_10px_-2px_rgba(0,102,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 focus-visible:ring-offset-2 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group mb-6 sm:mb-7"
-          >
-            <span>Start Testing</span>
-            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
+          {/* Primary CTA Block */}
+          <div className="mb-6 sm:mb-7 flex flex-col items-start w-full max-w-[340px] sm:max-w-[360px] min-[2560px]:max-w-[420px]">
+            <Link 
+              to="/assessments"
+              className="w-full h-[50px] sm:h-[54px] min-[2560px]:h-[62px] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white font-semibold text-[15px] sm:text-[16px] min-[2560px]:text-[18px] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.4),0_4px_10px_-2px_rgba(0,102,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 focus-visible:ring-offset-2 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+            >
+              <span>Start Testing</span>
+              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
 
-          {/* Metrics Row (3 Distinct Stats: Tests, Results, No Sign-up Required) */}
+            {/* Objection-Remover Under Decision Button */}
+            <div className="flex items-center gap-1.5 mt-2.5 px-1 text-slate-600 text-[11.5px] sm:text-[12px] font-medium">
+              <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Free, no sign-up required</span>
+            </div>
+          </div>
+
+          {/* Metrics Row (3 Distinct Stats: Tests, Results, ~2 min per test) */}
           <div className="w-full max-w-[340px] sm:max-w-[360px] min-[2560px]:max-w-[420px] grid grid-cols-3 items-center py-1.5 relative">
             {/* Col 1: Canonical Tests */}
             <Link 
@@ -292,7 +302,7 @@ export function Home() {
               <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight">
                 {testsCount}
               </span>
-              <span className="text-[11.5px] min-[2560px]:text-[13px] font-semibold text-[#1E293B] mt-0.5">
+              <span className="text-[12px] min-[2560px]:text-[13.5px] font-bold text-[#1E293B] mt-0.5">
                 Tests
               </span>
             </Link>
@@ -308,7 +318,7 @@ export function Home() {
               <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
                 {displayResults}
               </span>
-              <span className="text-[11.5px] min-[2560px]:text-[13px] font-semibold text-[#1E293B] mt-0.5">
+              <span className="text-[12px] min-[2560px]:text-[13.5px] font-bold text-[#1E293B] mt-0.5">
                 Results
               </span>
             </div>
@@ -316,16 +326,16 @@ export function Home() {
             {/* Divider */}
             <div className="absolute left-[66.66%] top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#BFDBFE]" aria-hidden="true" />
 
-            {/* Col 3: Available 24/7 */}
+            {/* Col 3: Product-specific ~2 min per test */}
             <div
               className="flex flex-col items-center text-center"
-              title="Assessments are open and available 24/7"
+              title="Each cognitive benchmark takes roughly 2 minutes to complete"
             >
               <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
-                24/7
+                ~2 min
               </span>
-              <span className="text-[11.5px] min-[2560px]:text-[13px] font-semibold text-[#1E293B] mt-0.5 leading-tight">
-                Available
+              <span className="text-[12px] min-[2560px]:text-[13.5px] font-bold text-[#1E293B] mt-0.5 leading-tight">
+                Per Test
               </span>
             </div>
           </div>
