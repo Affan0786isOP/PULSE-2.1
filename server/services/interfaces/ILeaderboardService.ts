@@ -24,4 +24,11 @@ export interface ILeaderboardService {
   submitLeaderboard(input: SubmitLeaderboardInput): Promise<SubmitLeaderboardResult>;
   getPublicLeaderboard(assessmentType?: string | null): Promise<LeaderboardEntryRecord[]>;
   verifyPublicEntryProvenance?(entryId: string): Promise<{ verified: boolean; reason?: string }>;
+  getMyLeaderboardRank?(userId: string, assessmentType: string): Promise<{
+    rank: number | null;
+    scoreMetric: number | null;
+    displayName: string | null;
+    pendingReview: boolean;
+  }>;
+  deleteMyLeaderboardEntries?(userId: string, assessmentType?: string | null): Promise<{ deletedCount: number }>;
 }
