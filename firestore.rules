@@ -47,10 +47,21 @@ service cloud.firestore {
       allow read, write: if false; // Server authoritative only via verified admin token
     }
 
-    // Collection: leaderboardResults (Public read for active non-hidden scores)
+    // Leaderboard results are served through the backend API, which returns only
+    // public fields. Firestore security rules cannot hide individual fields inside
+    // a readable document, so clients must not read these documents directly.
     match /leaderboardResults/{docId} {
-      allow read: if resource.data.hidden == false;
-      allow write: if false; // Server authoritative only (creation, hide/unhide, deletion)
+      allow read, write: if false; // Server Admin SDK only
+    }
+
+    // Participant ownership, idempotency, and provenance details are server-only.
+    match /leaderboardPrivateMeta/{docId} {
+      allow read, write: if false;
+    }
+
+    // Per-owner transaction guards contain pseudonymous owner-index state.
+    match /leaderboardOwnerIndex/{docId} {
+      allow read, write: if false;
     }
   }
 }
