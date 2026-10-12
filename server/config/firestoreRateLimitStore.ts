@@ -39,7 +39,7 @@ export class FirestoreRateLimitStore implements Store {
       tx.set(ref, {
         count: totalHits,
         windowStart,
-        resetAt: windowStart + this.windowMs,
+        resetAt: new Date(windowStart + this.windowMs),
         updatedAt: now
       });
     });
@@ -48,19 +48,23 @@ export class FirestoreRateLimitStore implements Store {
   }
 
   decrement(key: string): void {
-    const ref = this.getCounterRef(key);
-    void ref.firestore.runTransaction(async tx => {
-      const snap = await tx.get(ref);
-      if (!snap.exists) return;
-      const data = snap.data();
-      const now = Date.now();
-      const windowStart = Math.floor(now / this.windowMs) * this.windowMs;
-      if (data?.windowStart !== windowStart) return;
-      const count = Math.max(0, (Number(data.count) || 0) - 1);
-      tx.set(ref, { ...data, count, updatedAt: now });
-    }).catch(err => {
-      console.warn('[Rate limit store] Failed to decrement shared counter:', err instanceof Error ? err.message : String(err));
-    });
+    try {
+      const ref = this.getCounterRef(key);
+      void ref.firestore.runTransaction(async tx => {
+        const snap = await tx.get(ref);
+        if (!snap.exists) return;
+        const data = snap.data();
+        const now = Date.now();
+        const windowStart = Math.floor(now / this.windowMs) * this.windowMs;
+        if (data?.windowStart !== windowStart) return;
+        const count = Math.max(0, (Number(data.count) || 0) - 1);
+        tx.set(ref, { ...data, count, updatedAt: now });
+      }).catch(err => {
+        console.warn('[Rate limit store] Failed to decrement shared counter:', err instanceof Error ? err.message : String(err));
+      });
+    } catch (err) {
+      console.warn('[Rate limit store] Shared counter is unavailable during decrement:', err instanceof Error ? err.message : String(err));
+    }
   }
 
   resetKey(key: string): void {
