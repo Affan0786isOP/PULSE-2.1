@@ -36,6 +36,7 @@ export interface LeaderboardSubmissionTxInput {
   trialsDigest: string;
   metrics: Record<string, unknown>;
   now: number;
+  idempotencyKey?: string | null;
   requiresModeration?: boolean;
   qualityFlags?: string[];
 }
