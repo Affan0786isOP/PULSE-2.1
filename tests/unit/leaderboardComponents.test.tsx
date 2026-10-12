@@ -109,7 +109,6 @@ describe('desktop and mobile leaderboard components', () => {
     expect(document.getElementById('mobile-leaderboard-prev-btn')?.className).toContain('max-[360px]:hidden');
     expect(document.getElementById('mobile-leaderboard-next-btn')?.className).toContain('max-[360px]:hidden');
 
-    const tabs = Array.from(document.querySelectorAll('#leaderboard-panel ~ * [role="tab"]'));
     const protocolTabs = Array.from(document.querySelectorAll('[role="tablist"][aria-label="Protocols"] [role="tab"]'));
     expect(protocolTabs).toHaveLength(5);
     for (const tab of protocolTabs) {
