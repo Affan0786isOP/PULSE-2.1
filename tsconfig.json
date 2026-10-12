@@ -37,6 +37,7 @@
   "exclude": [
     "dist",
     "node_modules",
-    "mobile"
+    "mobile",
+    "scratch"
   ]
 }

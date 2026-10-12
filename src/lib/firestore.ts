@@ -493,7 +493,7 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
 
               const displayName = String(data.displayName || '').trim();
               const safeDisplayName = safeLeaderboardDisplayNameForRead(displayName);
-              if (!aliasValidation.valid) return;
+              if (safeDisplayName === null) return;
 
               const rawType = String(data.assessmentType || canonicalType);
               const normalizedType = normalizeAssessmentType(rawType);

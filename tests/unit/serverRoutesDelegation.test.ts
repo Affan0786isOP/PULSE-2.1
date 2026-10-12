@@ -100,6 +100,7 @@ describe('Server Route Delegation Tests', () => {
     const mockAdminService: IAdminService = {
       recordAuditLog: vi.fn(async input => ({ id: 'log-1', ...input })),
       hideLeaderboardEntry: vi.fn(async () => ({ success: true, message: 'Leaderboard entry hidden successfully' })),
+      unhideLeaderboardEntry: vi.fn(async () => ({ success: true, message: 'Leaderboard entry restored successfully' })),
       deleteLeaderboardEntry: vi.fn(async () => ({ success: true, message: 'Leaderboard entry deleted permanently' })),
       getAuditLogs: vi.fn(async () => []),
       getAllLeaderboardEntries: vi.fn(async () => [])

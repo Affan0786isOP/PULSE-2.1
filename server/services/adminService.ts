@@ -20,7 +20,7 @@ export class AdminService implements IAdminService {
     if (!result.found) throw new AppError('LEADERBOARD_ENTRY_NOT_FOUND', 404);
   }
 
-  async hideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string }> {
+  async hideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string; alreadyInState?: boolean }> {
     const result = await this.leaderboardRepo.softHideEntry(id, reason);
     this.ensureModerationSucceeded(result);
     return result.alreadyInState
@@ -28,7 +28,7 @@ export class AdminService implements IAdminService {
       : { success: true, alreadyInState: false, message: 'Leaderboard entry hidden and audit record written.' };
   }
 
-  async unhideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string }> {
+  async unhideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string; alreadyInState?: boolean }> {
     const result = await this.leaderboardRepo.unhideEntry(id, reason);
     this.ensureModerationSucceeded(result);
     return result.alreadyInState
