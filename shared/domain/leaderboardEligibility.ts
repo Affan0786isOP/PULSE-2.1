@@ -44,13 +44,52 @@ const CONFUSABLE_CHARACTERS: Record<string, string> = {
   '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't'
 };
 
-function normalizeAliasForSafetyCheck(value: string): string {
-  return value
-    .normalize('NFKC')
-    .normalize('NFKD')
-    .replace(/\p{M}/gu, '')
+function normalizeAliasText(value: string, splitCamelCase: boolean): string {
+  let text = value.normalize('NFKC').normalize('NFKD').replace(/\p{M}/gu, '');
+  // Detect intentionally mixed-case word boundaries such as xXfuckXx without
+  // splitting ordinary title-cased names such as Harshit.
+  if (splitCamelCase) {
+    text = text.replace(/(?<=[a-z])([A-Z])(?=[a-z])/gu, ' $1 ');
+  }
+  return text
     .toLocaleLowerCase('en-US')
-    .replace(/[аαеεіιıоοрρсϲхχуυкκмтτвβнηјһѕ013457]/gu, char => CONFUSABLE_CHARACTERS[char] || char);
+    .replace(/[аαеεіιıоοрρсϲхχуυкκмтτвβнηјһѕ]/gu, char => CONFUSABLE_CHARACTERS[char] || char);
+}
+
+function compactAliasForSafetyCheck(value: string): string {
+  return normalizeAliasText(value, false)
+    .replace(/[013457]/gu, char => CONFUSABLE_CHARACTERS[char] || char)
+    .replace(/[^a-z]/gu, '');
+}
+
+function containsDisallowedAliasTerm(value: string): boolean {
+  const normalized = normalizeAliasText(value, true);
+  const leetNormalized = normalized.replace(/[013457]/gu, char => CONFUSABLE_CHARACTERS[char] || char);
+
+  // Check explicit terms as whole words. Non-letter separators and digits can
+  // delimit a term (fuck123), or appear between its letters (f.u.c.k, f u c k).
+  // Whole-word boundaries avoid blocking names such as Harshit or phrases such as Push It.
+  const hasDisallowedWord = (text: string) => DISALLOWED_TERMS.some(term => {
+    const separatedLetters = term.split('').join('[^a-z]*');
+    return new RegExp('(?:^|[^a-z])' + separatedLetters + '(?:$|[^a-z])', 'u').test(text);
+  });
+
+  // Include explicit common inflections without treating every containing substring as abuse.
+  const hasDisallowedInflection = /(?:^|[^a-z])(?:shitty|shithead|shithole|fucker|fucked|fucking|fuckery)(?:$|[^a-z])/u;
+
+  return hasDisallowedWord(normalized) ||
+    hasDisallowedWord(leetNormalized) ||
+    hasDisallowedInflection.test(normalized) ||
+    hasDisallowedInflection.test(leetNormalized);
+}
+
+function containsDisallowedWholeWordForRead(value: string): boolean {
+  // Intentionally lenient for already-stored aliases: no camel-case splitting,
+  // no leetspeak conversion, and no matching across inserted separators.
+  const normalized = normalizeAliasText(value, false);
+  return DISALLOWED_TERMS.some(term =>
+    new RegExp('(?:^|[^a-z0-9])' + term + '(?:$|[^a-z0-9])', 'u').test(normalized)
+  );
 }
 
 /**
@@ -74,21 +113,7 @@ export function safeLeaderboardDisplayNameForRead(value: unknown): string | null
 
   if (!isOptedInLeaderboardUser(normalized)) return null;
 
-  return containsDisallowedAliasTerm(normalized) ? null : normalized;
-}
-
-// A compact form catches obfuscation by inserting separators or digits between letters.
-// These exact common-word/place-name exceptions prevent known substring false positives.
-const PROFANITY_FALSE_POSITIVES = new Set(['scunthorpe', 'snigger']);
-
-function compactAliasForSafetyCheck(value: string): string {
-  return normalizeAliasForSafetyCheck(value).replace(/[^a-z]/gu, '');
-}
-
-function containsDisallowedAliasTerm(value: string): boolean {
-  const compact = compactAliasForSafetyCheck(value);
-  if (PROFANITY_FALSE_POSITIVES.has(compact)) return false;
-  return DISALLOWED_TERMS.some(term => compact.includes(term));
+  return containsDisallowedWholeWordForRead(normalized) ? null : normalized;
 }
 
 /** True only for a participant-selected, non-generic public alias. */
