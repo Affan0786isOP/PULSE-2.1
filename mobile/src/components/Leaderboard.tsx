@@ -131,7 +131,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
       <main className="flex-1 w-full max-w-2xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-col pb-[calc(3rem+env(safe-area-inset-bottom,0px))]">
         {/* Game Navigation Selector with Left & Right Arrows */}
         <div 
-          className="flex items-center justify-between gap-2 mb-3 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-1.5 shadow-sm max-[360px]:gap-0.5 max-[360px]:p-1"
+          className="flex items-center justify-between gap-2 mb-3 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-1.5 shadow-sm max-[340px]:gap-0.5 max-[340px]:p-1"
           onKeyDown={(e) => {
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
@@ -160,12 +160,12 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             onClick={handlePrevProtocol}
             aria-label="Previous Protocol"
             title="Previous Protocol"
-            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-[color,background-color,border-color,opacity,transform] cursor-pointer shrink-0 max-[360px]:hidden"
+            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-[color,background-color,border-color,opacity,transform] cursor-pointer shrink-0 max-[340px]:hidden"
           >
             <ChevronLeft size={20} />
           </button>
 
-          <div className="flex flex-col items-center justify-center min-w-0 px-2 select-none max-[360px]:flex-1 max-[360px]:px-0">
+          <div className="flex flex-col items-center justify-center min-w-0 px-2 select-none max-[340px]:flex-1 max-[340px]:px-0">
             <AnimatePresence mode="wait">
               <motion.div 
                 key={currentProto.id}
@@ -181,7 +181,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 </span>
               </motion.div>
             </AnimatePresence>
-            <div className="flex items-center justify-center gap-1 mt-1.5 py-1 max-[360px]:gap-0" role="tablist" aria-label="Protocols">
+            <div className="flex items-center justify-center gap-1 mt-1.5 py-1 max-[340px]:gap-0" role="tablist" aria-label="Protocols">
               {PROTOCOLS.map((p) => (
                 <button type="button"
                   key={p.id}
@@ -196,7 +196,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                   aria-controls="leaderboard-panel"
                   tabIndex={p.id === selectedProtocol ? 0 : -1}
                   aria-selected={p.id === selectedProtocol}
-                  className="min-w-[32px] min-h-[44px] flex items-center justify-center rounded-md bg-transparent p-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] max-[360px]:w-11 max-[360px]:min-w-[44px]">
+                  className="min-w-[32px] min-h-[44px] flex items-center justify-center rounded-md bg-transparent p-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] max-[340px]:w-11 max-[340px]:min-w-[44px]">
                   <span aria-hidden="true" className={`block rounded-full transition-[color,background-color,transform] ${p.id === selectedProtocol ? 'h-2.5 w-5 bg-[var(--cyan-primary)]' : 'h-2.5 w-2 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'}`}/>
                 </button>
               ))}
@@ -208,7 +208,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             onClick={handleNextProtocol}
             aria-label="Next Protocol"
             title="Next Protocol"
-            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-[color,background-color,border-color,opacity,transform] cursor-pointer shrink-0 max-[360px]:hidden"
+            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-[color,background-color,border-color,opacity,transform] cursor-pointer shrink-0 max-[340px]:hidden"
           >
             <ChevronRight size={20} />
           </button>
