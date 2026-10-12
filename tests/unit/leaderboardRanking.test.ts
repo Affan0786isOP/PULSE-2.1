@@ -25,6 +25,6 @@ describe('displayed leaderboard ranking', () => {
       { id: 'a', assessmentType: 'visual-reaction', scoreMetric: 200 },
       { id: 'b', assessmentType: 'number-memory', scoreMetric: 200 }
     ];
-    expect(getDisplayedLeaderboardRank(entries, entries[1])).toBe(2);
+    expect(getDisplayedLeaderboardRank(entries, entries[1])).toBe(1);
   });
 });

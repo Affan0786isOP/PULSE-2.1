@@ -25,11 +25,9 @@ export function getDisplayedLeaderboardRank<T extends LeaderboardRankableEntry>(
   entries: readonly T[],
   entry: T
 ): number {
+  const sameAssessmentEntries = entries.filter(candidate => candidate.assessmentType === entry.assessmentType);
   const key = scoreDisplayKey(entry);
-  const firstIndex = entries.findIndex(candidate =>
-    candidate.assessmentType === entry.assessmentType &&
-    scoreDisplayKey(candidate) === key
-  );
+  const firstIndex = sameAssessmentEntries.findIndex(candidate => scoreDisplayKey(candidate) === key);
   if (firstIndex >= 0) return firstIndex + 1;
-  return entries.indexOf(entry) + 1;
+  return sameAssessmentEntries.indexOf(entry) + 1;
 }
