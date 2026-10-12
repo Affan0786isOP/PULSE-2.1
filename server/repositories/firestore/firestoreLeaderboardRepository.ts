@@ -265,14 +265,15 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
         ownerIndexRefs.forEach(({ type, ref }, idx) => {
           const data = snapshots[idx].data();
           if (data?.ownerUid === ownerUid && data?.assessmentType === type) {
+            // Remove the UID from the private guard record after erasure. The
+            // document ID is already a one-way hash; future submissions can reuse it.
             tx.set(ref, {
-              ownerUid,
               assessmentType: type,
               leaderboardDocId: null,
               deleting: false,
               erasedAt: Date.now(),
               updatedAt: Date.now()
-            }, { merge: true });
+            });
           }
         });
       });
