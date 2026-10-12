@@ -886,7 +886,7 @@ return (
                 if (typeof timerRef !== 'undefined' && timerRef.current) timerRef.current.textContent = '000.0';
               }}
               onNext={() => onNavigate('direction-test')}
-              onViewLeaderboard={() => onNavigate('leaderboard')}
+              onViewLeaderboard={() => onNavigate('/leaderboard?assessmentType=visual-reaction')}
             >
               {!submissionError && hasSubmittedRef.current && reportStats && sessionId && (
                 <LeaderboardOptIn 

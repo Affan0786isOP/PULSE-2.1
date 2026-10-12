@@ -691,7 +691,7 @@ return (
               nextAssessmentName="Assessments"
               onRetry={handleStart}
               onNext={() => onNavigate('assessments')}
-              onViewLeaderboard={() => onNavigate('leaderboard')}
+              onViewLeaderboard={() => onNavigate('/leaderboard?assessmentType=number-memory')}
             >
               {!submissionError && hasSubmittedRef.current && reportStats && sessionId && (
                 <LeaderboardOptIn 
