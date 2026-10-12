@@ -21,12 +21,12 @@ PULSE is a high-precision cognitive assessment platform, research data engine, a
 
 | Asset | Path | Format | Usage & Resolution |
 | :--- | :--- | :--- | :--- |
-| **Primary Logo** | [`/public/brand/pulse-reticle-logo.svg`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/public/brand/pulse-reticle-logo.svg) | Vector SVG | Official standalone P-symbol mark |
-| **Favicon (Desktop)** | [`/public/favicon.svg`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/public/favicon.svg) | Vector SVG | Browser tab icon on obsidian squircle |
-| **Favicon (Mobile)** | [`/mobile/public/favicon.svg`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/mobile/public/favicon.svg) | Vector SVG | Mobile web browser tab icon |
-| **App Icon (Squircle)** | [`/public/brand/app-icon.svg`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/public/brand/app-icon.svg) | Vector SVG | 512×512 PWA & mobile app icon with squircle |
-| **Horizontal Lockup** | [`/public/brand/pulse-lockup-horizontal.svg`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/public/brand/pulse-lockup-horizontal.svg) | Vector SVG | P-symbol + wide geometric wordmark `PULSE` |
-| **Stacked Master Lockup** | [`/public/brand/pulse-lockup-stacked.svg`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/public/brand/pulse-lockup-stacked.svg) | Vector SVG | Centered P-symbol on dark base + wordmark + telemetry label |
+| **Primary Logo** | [`/public/brand/pulse-reticle-logo.svg`](../public/brand/pulse-reticle-logo.svg) | Vector SVG | Official standalone P-symbol mark |
+| **Favicon (Desktop)** | [`/public/favicon.svg`](../public/favicon.svg) | Vector SVG | Browser tab icon on obsidian squircle |
+| **Favicon (Mobile)** | [`/mobile/public/favicon.svg`](../mobile/public/favicon.svg) | Vector SVG | Mobile web browser tab icon |
+| **App Icon (Squircle)** | [`/public/brand/app-icon.svg`](../public/brand/app-icon.svg) | Vector SVG | 512×512 PWA & mobile app icon with squircle |
+| **Horizontal Lockup** | [`/public/brand/pulse-lockup-horizontal.svg`](../public/brand/pulse-lockup-horizontal.svg) | Vector SVG | P-symbol + wide geometric wordmark `PULSE` |
+| **Stacked Master Lockup** | [`/public/brand/pulse-lockup-stacked.svg`](../public/brand/pulse-lockup-stacked.svg) | Vector SVG | Centered P-symbol on dark base + wordmark + telemetry label |
 
 ---
 

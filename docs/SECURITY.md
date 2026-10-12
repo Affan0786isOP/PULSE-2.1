@@ -13,7 +13,7 @@ This document outlines the security controls, cryptographic attestation mechanis
   2. Physiological human latency boundaries ($RT \ge 80\text{ms}$).
   3. Accuracy and score calculations.
 - **Signing:** Verified payloads are cryptographically signed using an HMAC-SHA256 token initialized with the server secret `PULSE_PROVENANCE_SECRET`.
-- **Database Rules:** [`firestore.rules`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/firestore.rules) sets `allow write: if false` on all primary collections (`publicDataset`, `assessmentTrials`, `assessmentResults`, `leaderboardResults`, `adminAuditLogs`). All database modifications are executed exclusively by the backend via Firebase Admin SDK.
+- **Database Rules:** [`firestore.rules`](../firestore.rules) sets `allow write: if false` on all primary collections (`publicDataset`, `assessmentTrials`, `assessmentResults`, `leaderboardResults`, `adminAuditLogs`). All database modifications are executed exclusively by the backend via Firebase Admin SDK.
 
 ### 1.2 Zero-PII Anonymous Participant Architecture
 - **No User Credentials:** The platform does not collect, store, or process user email addresses, passwords, phone numbers, or physical identities.
@@ -39,8 +39,8 @@ This document outlines the security controls, cryptographic attestation mechanis
 PULSE operates in compliance with international privacy mandates:
 - **GDPR (Art. 33):** 72-hour supervisory authority notification for confirmed breaches affecting pseudonymous data.
 - **FTC Health Breach Notification Rule (16 CFR 318):** 60-day individual notification window for cognitive telemetry.
-- **Washington My Health My Data Act (RCW 19.373):** 45-day verified data subject erasure execution reaching active databases and backup systems.
-- Detailed emergency procedures and secret rotation checklists are maintained in [`docs/breach-runbook.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/breach-runbook.md).
+- **Data subject requests:** The reviewed repository does not include a participant-facing verified erasure workflow or evidence of a 45-day deletion service. Do not represent that timeframe as implemented unless the separate operational process is verified.
+- Detailed emergency procedures and secret rotation checklists are maintained in [`docs/breach-runbook.md`](breach-runbook.md).
 
 ---
 

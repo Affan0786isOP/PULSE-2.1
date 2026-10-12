@@ -45,7 +45,7 @@ These conventions are actively established in the codebase:
 - When modifying shared protocols, types, or validators in `src/lib/`, ensure compatibility with both surfaces.
 
 ### 3.4 Styling & Design Tokens
-- Use the observatory dark palette tokens (`--surface-0` through `--surface-3`, `#00F0FF` Signal Cyan, `#10B981` Provenance Green) documented in [`docs/DESIGN_SYSTEM.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DESIGN_SYSTEM.md).
+- Use the observatory dark palette tokens (`--surface-0` through `--surface-3`, `#00F0FF` Signal Cyan, `#10B981` Provenance Green) documented in [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 - Do not introduce arbitrary saturated purple gradients or heavy drop shadow halos.
 
 ---

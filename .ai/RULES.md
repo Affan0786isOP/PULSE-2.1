@@ -35,7 +35,7 @@ These rules govern all AI coding agents working within the PULSE repository. The
 ---
 
 ## 5. UI, Design & Accessibility
-1. **Respect Design Tokens:** Adhere strictly to the observatory dark palette (`--surface-0` through `--surface-3`, `#00F0FF` Signal Cyan, `#10B981` Provenance Green) and typography defined in [`docs/DESIGN_SYSTEM.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DESIGN_SYSTEM.md).
+1. **Respect Design Tokens:** Adhere strictly to the observatory dark palette (`--surface-0` through `--surface-3`, `#00F0FF` Signal Cyan, `#10B981` Provenance Green) and typography defined in [`docs/DESIGN_SYSTEM.md`](../docs/DESIGN_SYSTEM.md).
 2. **Active States & Tactility:** Every interactive element must have defined `:active` and `:focus-visible` styles.
 3. **Reduced Motion:** Always respect `prefers-reduced-motion` and the `reducedMotionEnabled` setting via `<MotionConfig>`.
 4. **Dual-Surface Compatibility:** Changes to shared logic must maintain parity between the desktop application (`/src`) and mobile PWA (`/mobile/src`).
@@ -46,5 +46,5 @@ These rules govern all AI coding agents working within the PULSE repository. The
 ---
 
 ## 6. Documentation Maintenance
-1. **Synchronize Documentation:** When architectural or data model changes are made, update [`docs/PROJECT_SPEC.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/PROJECT_SPEC.md), [`docs/ARCHITECTURE.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/ARCHITECTURE.md), and [`docs/DATA_MODEL.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DATA_MODEL.md).
+1. **Synchronize Documentation:** When architectural or data model changes are made, update [`docs/PROJECT_SPEC.md`](../docs/PROJECT_SPEC.md), [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md), and [`docs/DATA_MODEL.md`](../docs/DATA_MODEL.md).
 2. **Never Mark Planned as Implemented:** Clearly distinguish implemented features from planned enhancements across all docs.

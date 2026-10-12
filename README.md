@@ -84,11 +84,11 @@ PULSE operates as a dual-surface application connecting React 19 clients to an E
 
 ## 📚 Detailed Documentation
 
-- **[Product Specification](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/PROJECT_SPEC.md):** Complete product functionality, protocols, and implementation status.
-- **[System Architecture](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/ARCHITECTURE.md):** Detailed topologies, sequence diagrams, and subsystem designs.
-- **[Developer Guide](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DEVELOPMENT.md):** Comprehensive setup, scripts, and debugging tips.
-- **[Data Model & Schemas](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DATA_MODEL.md):** Firestore collection schemas, types, and retention schedules.
-- **[Security & Threat Model](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/SECURITY.md):** HMAC attestation, trust boundaries, and statutory compliance.
-- **[Design System & Tokens](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DESIGN_SYSTEM.md):** Color tokens, typography, and official brand assets.
-- **[Testing & Verification](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/TESTING.md):** QA checklists and verification procedures.
-- **[AI Agent Rules](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/.ai/RULES.md):** Strict guidelines for AI coding agents.
+- **[Product Specification](docs/PROJECT_SPEC.md):** Complete product functionality, protocols, and implementation status.
+- **[System Architecture](docs/ARCHITECTURE.md):** Detailed topologies, sequence diagrams, and subsystem designs.
+- **[Developer Guide](docs/DEVELOPMENT.md):** Comprehensive setup, scripts, and debugging tips.
+- **[Data Model & Schemas](docs/DATA_MODEL.md):** Firestore collection schemas, types, and retention schedules.
+- **[Security & Threat Model](docs/SECURITY.md):** HMAC attestation, trust boundaries, and statutory compliance.
+- **[Design System & Tokens](docs/DESIGN_SYSTEM.md):** Color tokens, typography, and official brand assets.
+- **[Testing & Verification](docs/TESTING.md):** QA checklists and verification procedures.
+- **[AI Agent Rules](.ai/RULES.md):** Strict guidelines for AI coding agents.
