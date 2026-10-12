@@ -75,10 +75,18 @@ describe('leaderboard display names', () => {
   );
 
   it('screens profanity hidden by separators, digits, suffixes, prefixes, or confusable letters', () => {
-    for (const alias of ['sh1t', 'ѕһіt', 'fuck123', 'shitty', 'xXfuckXx', 'f u c k', 'f.u.c.k']) {
+    for (const alias of ['sh1t', 'ѕһіt', 'fuck123', 'shitty', 'xXfuckXx', 'f u c k', 'f.u.c.k', 'b1tch', 'Ass Hole']) {
       expect(validateLeaderboardDisplayName(alias).valid, alias).toBe(false);
     }
   });
+
+  it.each(['fuckboi', 'Fuckwit', 'shitface', 'motherfucker', 'dumbshit', 'asshat', 'fuckers', 'motherfucking'])(
+    'rejects clear compound profanity on submission and public read: %s',
+    alias => {
+      expect(validateLeaderboardDisplayName(alias).valid, alias).toBe(false);
+      expect(safeLeaderboardDisplayNameForRead(alias), alias).toBeNull();
+    }
+  );
 
   it('rejects obfuscated generic aliases consistently on writes and reads', () => {
     for (const alias of ['Аnonymous', 'Anonymоus', 'a n o n y m o u s', 'g.u.e.s.t', 'participant-123']) {
@@ -97,8 +105,8 @@ describe('leaderboard display names', () => {
     expect(safeLeaderboardDisplayNameForRead(alias), alias).toBe(alias);
   });
 
-  it('keeps stored aliases out of the stricter new-submission evasion filter', () => {
-    for (const alias of ['fuck123', 'shitty', 'xXfuckXx', 'f u c k', 'f.u.c.k', 'b1tch']) {
+  it('keeps obfuscated legacy aliases out of the stricter new-submission evasion filter', () => {
+    for (const alias of ['fuck123', 'xXfuckXx', 'f u c k', 'f.u.c.k', 'b1tch']) {
       expect(validateLeaderboardDisplayName(alias).valid, alias).toBe(false);
       expect(safeLeaderboardDisplayNameForRead(alias), alias).toBe(alias);
     }
