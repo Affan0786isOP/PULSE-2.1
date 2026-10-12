@@ -201,12 +201,9 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                   aria-controls="leaderboard-panel"
                   tabIndex={p.id === selectedProtocol ? 0 : -1}
                   aria-selected={p.id === selectedProtocol}
-                  className={`h-2.5 rounded-full transition-[color,background-color,border-color,opacity,transform] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] ${
-                    p.id === selectedProtocol 
-                      ? 'w-5 bg-[var(--cyan-primary)]' 
-                      : 'w-2 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'
-                  }`}
-                />
+                  className="min-w-[32px] min-h-[44px] flex items-center justify-center rounded-md bg-transparent p-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)]">
+                  <span aria-hidden="true" className={`block rounded-full transition-[color,background-color,transform] ${p.id === selectedProtocol ? 'h-2.5 w-5 bg-[var(--cyan-primary)]' : 'h-2.5 w-2 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'}`}/>
+                </button>
               ))}
             </div>
           </div>

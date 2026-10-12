@@ -206,12 +206,9 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                   aria-controls="leaderboard-panel"
                   tabIndex={p.id === selectedProtocol ? 0 : -1}
                   aria-selected={p.id === selectedProtocol}
-                  className={`h-1.5 sm:h-2 rounded-full transition-all cursor-pointer active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${
-                    p.id === selectedProtocol 
-                      ? 'w-7 sm:w-8 bg-[var(--accent)]' 
-                      : 'w-2 sm:w-2.5 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'
-                  }`}
-                />
+                  className="min-w-[32px] min-h-[44px] flex items-center justify-center rounded-md bg-transparent p-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
+                  <span aria-hidden="true" className={`block rounded-full transition-[color,background-color,transform] ${p.id === selectedProtocol ? 'h-2 sm:h-2 w-7 sm:w-8 bg-[var(--accent)]' : 'h-2 sm:h-2 w-2 sm:w-2.5 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'}`}/>
+                </button>
               ))}
             </div>
           </div>
@@ -250,7 +247,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-primary)] hover:border-[var(--accent)] transition-all cursor-pointer"
               >
                 <RefreshCw size={14} />
-                <span>Try Again</span>
+                <span>Retry</span>
               </button>
             </div>
           ) : displayedEntries.length === 0 ? (
