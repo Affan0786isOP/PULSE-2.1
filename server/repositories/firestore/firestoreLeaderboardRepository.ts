@@ -67,6 +67,51 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     return records;
   }
 
+  async getAllEntriesByAlias(alias: string, direction: 'asc' | 'desc'): Promise<LeaderboardEntryRecord[]> {
+    const db = this.getDb();
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
+
+    const pageSize = 250;
+    const records: LeaderboardEntryRecord[] = [];
+    let cursor: any = undefined;
+
+    // Used only for explicit rank lookups, not the public top-100 endpoint.
+    // Continue until Firestore is exhausted so a participant outside the top 100
+    // can still receive their real rank.
+    while (true) {
+      let query = db.collection('leaderboardResults')
+        .where('assessmentType', '==', alias)
+        .where('hidden', '==', false)
+        .orderBy('scoreMetric', direction)
+        .limit(pageSize);
+      if (cursor) query = query.startAfter(cursor);
+
+      const snap = await query.get();
+      if (snap.empty) break;
+      cursor = snap.docs[snap.docs.length - 1];
+
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data();
+        const safeName = safeLeaderboardDisplayNameForRead(data?.displayName);
+        const docType = normalizeAssessmentType(String(data?.assessmentType || alias));
+        const scoreMetric = typeof data?.scoreMetric === 'number' ? data.scoreMetric : Number.NaN;
+        if (safeName === null || data?.hidden === true || !isValidLeaderboardScoreMetric(docType, scoreMetric)) continue;
+        records.push({
+          id: docSnap.id,
+          displayName: safeName,
+          assessmentType: docType,
+          scoreMetric,
+          ageGroup: String(data.ageGroup || ''),
+          createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0),
+          provenanceToken: String(data.provenanceToken || ''),
+          hidden: false
+        });
+      }
+      if (snap.size < pageSize) break;
+    }
+    return records;
+  }
+
   async getAllEntriesForAdmin(limitCount: number): Promise<AdminLeaderboardEntryRecord[]> {
     const db = this.getDb();
     if (!db) {
@@ -137,12 +182,12 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     } as AdminLeaderboardEntryRecord;
   }
 
-  async getEntriesByOwner(ownerUid: string, assessmentType: string): Promise<AdminLeaderboardEntryRecord[]> {
+  async getEntriesByOwner(ownerUid: string, assessmentType?: string | null): Promise<AdminLeaderboardEntryRecord[]> {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
     const snap = await db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get();
     return snap.docs
-      .filter(doc => normalizeAssessmentType(String(doc.data().assessmentType || '')) === assessmentType)
+      .filter(doc => !assessmentType || normalizeAssessmentType(String(doc.data().assessmentType || '')) === assessmentType)
       .map(doc => {
         const data = doc.data();
         return {
@@ -153,21 +198,76 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
       });
   }
 
-  async deleteEntriesByOwner(ownerUid: string, assessmentType: string): Promise<number> {
+  async linkOwnerToEntry(entryId: string, ownerUid: string, sessionId: string): Promise<boolean> {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
-    const snap = await db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get();
-    const matching = snap.docs.filter(doc =>
-      normalizeAssessmentType(String(doc.data().assessmentType || '')) === assessmentType
-    );
+    if (!entryId || entryId.includes('/') || entryId.length > 1500) return false;
+    const ref = db.collection('leaderboardResults').doc(entryId);
+    return db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) return false;
+      const data = snap.data() || {};
+      if (typeof data.ownerUid === 'string' && data.ownerUid !== ownerUid) return false;
+      if (data.ownerUid === ownerUid && data.sessionId === sessionId) return true;
+      tx.update(ref, { ownerUid, sessionId, ownerLinkedAt: Date.now() });
+      return true;
+    });
+  }
 
-    // Firestore write batches are limited to 500 operations; stay below that.
-    for (let offset = 0; offset < matching.length; offset += 400) {
-      const batch = db.batch();
-      for (const doc of matching.slice(offset, offset + 400)) batch.delete(doc.ref);
-      await batch.commit();
+  async deleteEntriesByOwner(ownerUid: string, assessmentType?: string | null): Promise<number> {
+    const db = this.getDb();
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
+    const types = assessmentType
+      ? [assessmentType]
+      : ['visual-reaction', 'direction', 'color-recognition', 'block-memory', 'number-memory'];
+    let deletedCount = 0;
+
+    for (const type of types) {
+      const ownerIndexId = crypto.createHash('sha256').update(`${ownerUid}:${type}`).digest('hex');
+      const ownerIndexRef = db.collection('leaderboardOwnerIndex').doc(ownerIndexId);
+
+      // Mark the owner/type as erasing. Submission transactions read this same
+      // document, so they will retry or reject while the delete is in progress.
+      await db.runTransaction(async tx => {
+        const guard = await tx.get(ownerIndexRef);
+        if (guard.data()?.deleting === true) throw new Error('OWNER_ERASURE_IN_PROGRESS');
+        tx.set(ownerIndexRef, {
+          ownerUid,
+          assessmentType: type,
+          deleting: true,
+          deletingStartedAt: Date.now()
+        }, { merge: true });
+      });
+
+      try {
+        const snap = await db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get();
+        const matching = snap.docs.filter(doc =>
+          normalizeAssessmentType(String(doc.data().assessmentType || '')) === type
+        );
+        // Firestore write batches are limited to 500 operations; stay below that.
+        for (let offset = 0; offset < matching.length; offset += 400) {
+          const batch = db.batch();
+          for (const doc of matching.slice(offset, offset + 400)) batch.delete(doc.ref);
+          await batch.commit();
+        }
+        deletedCount += matching.length;
+      } finally {
+        await db.runTransaction(async tx => {
+          const guard = await tx.get(ownerIndexRef);
+          if (guard.data()?.ownerUid === ownerUid && guard.data()?.assessmentType === type) {
+            tx.set(ownerIndexRef, {
+              ownerUid,
+              assessmentType: type,
+              leaderboardDocId: null,
+              deleting: false,
+              erasedAt: Date.now(),
+              updatedAt: Date.now()
+            }, { merge: true });
+          }
+        });
+      }
     }
-    return matching.length;
+    return deletedCount;
   }
 
   async softHideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }> {
