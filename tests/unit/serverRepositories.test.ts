@@ -163,6 +163,55 @@ describe('Firestore Repositories Unit Tests', () => {
     expect(docAfter.data().hideReason).toBe('Rule violation');
   });
 
+  it('normalizes legacy assessment aliases and rejects corrupt leaderboard metrics', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardRepository(() => mockDb);
+    const col = mockDb.collection('leaderboardResults');
+
+    await col.doc('legacy-valid').set({
+      displayName: 'Legacy Player',
+      assessmentType: 'reaction-test',
+      scoreMetric: 215,
+      ageGroup: 'Adults (26–40)',
+      createdAt: 1700000000000,
+      hidden: false
+    });
+    await col.doc('legacy-missing-score').set({
+      displayName: 'Missing Score',
+      assessmentType: 'reaction-test',
+      ageGroup: 'Adults (26–40)',
+      hidden: false
+    });
+    await col.doc('legacy-zero-score').set({
+      displayName: 'Zero Score',
+      assessmentType: 'reaction-test',
+      scoreMetric: 0,
+      hidden: false
+    });
+    await col.doc('legacy-out-of-range').set({
+      displayName: 'Out of Range',
+      assessmentType: 'reaction-test',
+      scoreMetric: 10001,
+      hidden: false
+    });
+    await col.doc('legacy-hidden').set({
+      displayName: 'Hidden Player',
+      assessmentType: 'reaction-test',
+      scoreMetric: 205,
+      hidden: true
+    });
+
+    const entries = await repo.getEntriesByAlias('reaction-test', 'asc', 100);
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({
+      id: 'legacy-valid',
+      displayName: 'Legacy Player',
+      assessmentType: 'visual-reaction',
+      scoreMetric: 215,
+      hidden: false
+    });
+  });
+
   it('AdminAuditRepository writes and retrieves audit logs', async () => {
     const mockDb = createMockDb();
     const repo = new FirestoreAdminAuditRepository(() => mockDb);
