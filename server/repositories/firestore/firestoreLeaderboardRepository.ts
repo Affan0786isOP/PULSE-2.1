@@ -220,42 +220,52 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     const types = assessmentType
       ? [assessmentType]
       : ['visual-reaction', 'direction', 'color-recognition', 'block-memory', 'number-memory'];
-    let deletedCount = 0;
-
-    for (const type of types) {
+    const ownerIndexRefs = types.map(type => {
       const ownerIndexId = crypto.createHash('sha256').update(`${ownerUid}:${type}`).digest('hex');
-      const ownerIndexRef = db.collection('leaderboardOwnerIndex').doc(ownerIndexId);
+      return { type, ref: db.collection('leaderboardOwnerIndex').doc(ownerIndexId) };
+    });
 
-      // Mark the owner/type as erasing. Submission transactions read this same
-      // document, so they will retry or reject while the delete is in progress.
-      await db.runTransaction(async tx => {
-        const guard = await tx.get(ownerIndexRef);
-        if (guard.data()?.deleting === true) throw new Error('OWNER_ERASURE_IN_PROGRESS');
-        tx.set(ownerIndexRef, {
+    // Lock all selected assessment buckets before deleting any rows. This closes
+    // the gap where an all-assessment erasure could miss a new row created while
+    // the method was processing a different assessment.
+    await db.runTransaction(async tx => {
+      const snapshots = [];
+      for (const { ref } of ownerIndexRefs) snapshots.push(await tx.get(ref));
+      if (snapshots.some(snap => snap.data()?.deleting === true)) {
+        throw new Error('OWNER_ERASURE_IN_PROGRESS');
+      }
+      const now = Date.now();
+      ownerIndexRefs.forEach(({ type, ref }) => {
+        tx.set(ref, {
           ownerUid,
           assessmentType: type,
           deleting: true,
-          deletingStartedAt: Date.now()
+          deletingStartedAt: now
         }, { merge: true });
       });
+    });
 
-      try {
-        const snap = await db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get();
-        const matching = snap.docs.filter(doc =>
-          normalizeAssessmentType(String(doc.data().assessmentType || '')) === type
-        );
-        // Firestore write batches are limited to 500 operations; stay below that.
-        for (let offset = 0; offset < matching.length; offset += 400) {
-          const batch = db.batch();
-          for (const doc of matching.slice(offset, offset + 400)) batch.delete(doc.ref);
-          await batch.commit();
-        }
-        deletedCount += matching.length;
-      } finally {
-        await db.runTransaction(async tx => {
-          const guard = await tx.get(ownerIndexRef);
-          if (guard.data()?.ownerUid === ownerUid && guard.data()?.assessmentType === type) {
-            tx.set(ownerIndexRef, {
+    try {
+      const snap = await db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get();
+      const matching = snap.docs.filter(doc =>
+        types.includes(normalizeAssessmentType(String(doc.data().assessmentType || '')))
+      );
+
+      // Firestore write batches are limited to 500 operations; stay below that.
+      for (let offset = 0; offset < matching.length; offset += 400) {
+        const batch = db.batch();
+        for (const doc of matching.slice(offset, offset + 400)) batch.delete(doc.ref);
+        await batch.commit();
+      }
+      return matching.length;
+    } finally {
+      await db.runTransaction(async tx => {
+        const snapshots = [];
+        for (const { ref } of ownerIndexRefs) snapshots.push(await tx.get(ref));
+        ownerIndexRefs.forEach(({ type, ref }, idx) => {
+          const data = snapshots[idx].data();
+          if (data?.ownerUid === ownerUid && data?.assessmentType === type) {
+            tx.set(ref, {
               ownerUid,
               assessmentType: type,
               leaderboardDocId: null,
@@ -265,9 +275,8 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
             }, { merge: true });
           }
         });
-      }
+      });
     }
-    return deletedCount;
   }
 
   async softHideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }> {
