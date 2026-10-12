@@ -222,13 +222,33 @@ export function registerAdminRoutes(
       if (!verifyAdminSession(req)) {
         return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required', entries: [] });
       }
+      const rawLimit = req.query.limit;
+      const limitCount = rawLimit === undefined ? 100 : Number(rawLimit);
+      if (!Number.isInteger(limitCount) || limitCount < 1 || limitCount > 250) {
+        return res.status(400).json({ success: false, error: 'limit must be an integer between 1 and 250', entries: [] });
+      }
+      const rawCursor = req.query.cursor;
+      if (rawCursor !== undefined && (typeof rawCursor !== 'string' || !normalizeLeaderboardEntryId(rawCursor))) {
+        return res.status(400).json({ success: false, error: 'Invalid leaderboard cursor', entries: [] });
+      }
+      const cursor = typeof rawCursor === 'string' && rawCursor.trim() ? rawCursor.trim() : null;
+
       try {
-        const entries = await services.adminService.getAllLeaderboardEntries(500);
-        return res.json({ success: true, entries });
+        const page = services.adminService.getAllLeaderboardEntriesPage
+          ? await services.adminService.getAllLeaderboardEntriesPage(limitCount, cursor)
+          : {
+              entries: await services.adminService.getAllLeaderboardEntries(limitCount),
+              nextCursor: null,
+              hasMore: false
+            };
+        return res.json({ success: true, ...page });
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : String(err);
         if (errMsg === 'DATABASE_UNAVAILABLE') {
           return res.status(503).json({ success: false, error: 'Database service unavailable', entries: [] });
+        }
+        if (errMsg === 'INVALID_CURSOR') {
+          return res.status(400).json({ success: false, error: 'Invalid leaderboard cursor', entries: [] });
         }
         return res.status(500).json({ success: false, error: 'Failed to retrieve admin leaderboard entries', entries: [] });
       }
