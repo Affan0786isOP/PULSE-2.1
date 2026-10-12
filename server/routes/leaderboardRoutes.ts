@@ -136,9 +136,15 @@ export function registerLeaderboardRoutes(
       return res.status(400).json({ success: false, error: 'assessmentType query parameter is required', entries: [] });
     }
 
+    const rawLimit = req.query.limit;
+    const limitCount = rawLimit === undefined ? 100 : Number(rawLimit);
+    if (!Number.isInteger(limitCount) || limitCount < 1 || limitCount > 100) {
+      return res.status(400).json({ success: false, error: 'limit must be an integer between 1 and 100', entries: [] });
+    }
+
     try {
       const entries = await services.leaderboardService.getPublicLeaderboard(rawType);
-      return res.json({ success: true, entries });
+      return res.json({ success: true, entries: entries.slice(0, limitCount) });
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       const status = err instanceof AppError ? err.status : (errMsg === 'DATABASE_UNAVAILABLE' ? 503 : 500);
