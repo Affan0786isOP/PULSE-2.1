@@ -41,8 +41,8 @@ PULSE separates desktop and mobile web experiences into distinct build pipelines
 ```
 
 ### Device Auto-Routing
-- [`src/lib/deviceRouting.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/deviceRouting.ts) inspects User-Agent signatures and screen width breakpoints (`< 768px`).
-- Express server middleware handles edge redirects between `/` and `/mobile/`.
+- [`src/lib/deviceRouting.ts`](../src/lib/deviceRouting.ts) inspects User-Agent signatures and screen width breakpoints (`< 768px`).
+- Express preserves document routes; client-side routing applies device detection after the browser can inspect its user agent and viewport. Server redirects are reserved for explicit routing flags/preferences.
 - Cross-surface navigation allows manual override if a user explicitly requests the desktop or mobile interface.
 
 ---
@@ -79,9 +79,9 @@ sequenceDiagram
 ## 4. State Management Architecture
 
 State is partitioned across four clear tiers:
-1. **In-Memory Volatile State:** [`src/lib/inMemorySessionStore.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/inMemorySessionStore.ts) holds active session trial arrays during assessment runs to prevent unnecessary I/O during timing loops.
-2. **Local Client Storage:** [`src/lib/settingsStore.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/settingsStore.ts) manages user preferences (selected age cohort, reduced motion, sound effects, system dark/light theme) in `localStorage`.
-3. **PWA Offline Store:** [`src/lib/pwaStore.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/pwaStore.ts) tracks install prompt readiness and service worker updates.
+1. **In-Memory Volatile State:** [`src/lib/inMemorySessionStore.ts`](../src/lib/inMemorySessionStore.ts) holds active session trial arrays during assessment runs to prevent unnecessary I/O during timing loops.
+2. **Local Client Storage:** [`src/lib/settingsStore.ts`](../src/lib/settingsStore.ts) manages user preferences (selected age cohort, reduced motion, sound effects, system dark/light theme) in `localStorage`.
+3. **PWA Offline Store:** [`src/lib/pwaStore.ts`](../src/lib/pwaStore.ts) tracks install prompt readiness and service worker updates.
 4. **Cloud Database:** Google Cloud Firestore holds persistent assessment trials, results, public datasets, leaderboards, and admin audit logs.
 
 ---
@@ -163,7 +163,7 @@ The `engines/` layer can be unit-tested without HTTP wrappers (see `tests/unit/s
 
 ## 6. Firestore Security & Trust Boundaries
 
-The Firestore database enforces strict role isolation via [`firestore.rules`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/firestore.rules):
+The Firestore database enforces strict role isolation via [`firestore.rules`](../firestore.rules):
 
 | Collection | Client Read | Client Write | Server Backend (Admin SDK) |
 | :--- | :--- | :--- | :--- |

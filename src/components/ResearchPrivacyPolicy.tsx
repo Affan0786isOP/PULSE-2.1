@@ -33,7 +33,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
               Research Privacy Policy
             </h1>
             <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed max-w-[65ch]">
-              This policy explains how PULSE (Precision User Latency &amp; Stimulus Evaluator) handles data. It covers what we store locally, what we save to the cloud, and how we keep participants anonymous.
+              This policy explains how PULSE (Precision User Latency &amp; Stimulus Evaluator) handles local settings, research records, and optional public leaderboard entries, including the limits of the current removal process.
             </p>
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-[var(--text-muted)] pt-1">
               <span>Last updated: September 2026</span>
@@ -175,7 +175,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
             </div>
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                Assessment results and leaderboard entries are saved in a cloud database (Firestore). Because the research data is anonymous, past entries cannot be linked back to you or retrieved if you ask.
+                Assessment results and leaderboard entries are saved in Firestore. Leaderboard opt-in entries include the alias you choose and are publicly visible until hidden or deleted by an administrator. The app does not currently provide a self-service, verified request workflow to find and remove a participant's records. Because aliases are not identity-verified and research records do not include contact details, a request alone cannot reliably identify the relevant records. Do not use your real name or contact details as a public alias.
               </p>
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-[var(--text-primary)]">Local Storage &amp; Cache Clearing</h3>

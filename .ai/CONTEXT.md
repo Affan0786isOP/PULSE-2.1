@@ -1,12 +1,12 @@
 # PULSE AI System Context Snapshot
 
 > **Quick Navigation:**  
-> - Specification: [`docs/PROJECT_SPEC.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/PROJECT_SPEC.md)  
-> - Architecture: [`docs/ARCHITECTURE.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/ARCHITECTURE.md)  
-> - Data Model: [`docs/DATA_MODEL.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DATA_MODEL.md)  
-> - Security Model: [`docs/SECURITY.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/SECURITY.md)  
-> - Design System: [`docs/DESIGN_SYSTEM.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DESIGN_SYSTEM.md)  
-> - Development Guide: [`docs/DEVELOPMENT.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/docs/DEVELOPMENT.md)
+> - Specification: [`docs/PROJECT_SPEC.md`](../docs/PROJECT_SPEC.md)  
+> - Architecture: [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md)  
+> - Data Model: [`docs/DATA_MODEL.md`](../docs/DATA_MODEL.md)  
+> - Security Model: [`docs/SECURITY.md`](../docs/SECURITY.md)  
+> - Design System: [`docs/DESIGN_SYSTEM.md`](../docs/DESIGN_SYSTEM.md)  
+> - Development Guide: [`docs/DEVELOPMENT.md`](../docs/DEVELOPMENT.md)
 
 ---
 
@@ -46,7 +46,7 @@
        ├── assessmentTrials (5-yr retention, pseudonymous UID-scoped)
        ├── assessmentResults (5-yr retention, derived metrics)
        ├── publicDataset (Indefinite, fully anonymized, open research)
-       ├── leaderboardResults (2-yr retention, voluntary alias)
+       ├── leaderboardResults (voluntary public alias; no automated expiry found in reviewed code)
        └── adminAuditLogs (7-yr retention, immutable moderation log)
 ```
 
@@ -84,7 +84,7 @@
 ---
 
 ## 6. Important Files Before Editing
-- **Timing & Validation:** [`src/lib/protocolValidators.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/protocolValidators.ts)
-- **Client Firestore API:** [`src/lib/firestore.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/firestore.ts)
-- **Server API & Provenance:** [`server.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/server.ts)
-- **Design Tokens:** [`src/DESIGN_SYSTEM.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/DESIGN_SYSTEM.md) and [`src/styles/pulse-aesthetic.css`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/styles/pulse-aesthetic.css)
+- **Timing & Validation:** [`src/lib/protocolValidators.ts`](../src/lib/protocolValidators.ts)
+- **Client Firestore API:** [`src/lib/firestore.ts`](../src/lib/firestore.ts)
+- **Server API & Provenance:** [`server.ts`](../server.ts)
+- **Design Tokens:** [`src/DESIGN_SYSTEM.md`](../src/DESIGN_SYSTEM.md) and [`src/styles/pulse-aesthetic.css`](../src/styles/pulse-aesthetic.css)
