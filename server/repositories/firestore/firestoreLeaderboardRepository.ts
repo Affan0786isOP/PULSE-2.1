@@ -154,7 +154,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     const snap = await query.limit(safeLimit + 1).get();
     const hasMore = snap.docs.length > safeLimit;
     const pageDocs = snap.docs.slice(0, safeLimit);
-    const metaSnapshots = await db.getAll(...pageDocs.map(doc => collection.firestore.collection('leaderboardPrivateMeta').doc(doc.id)));
+    const metaSnapshots = await db.getAll(...pageDocs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
     const entries = pageDocs.map((doc, index) => {
       const data = doc.data();
       const meta = metaSnapshots[index].exists ? metaSnapshots[index].data() || {} : {};
@@ -223,14 +223,60 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
     if (!entryId || entryId.includes('/') || entryId.length > 1500) return false;
-    const ref = db.collection('leaderboardResults').doc(entryId);
+
+    const publicRef = db.collection('leaderboardResults').doc(entryId);
+    const metaRef = db.collection('leaderboardPrivateMeta').doc(entryId);
     return db.runTransaction(async tx => {
-      const snap = await tx.get(ref);
-      if (!snap.exists) return false;
-      const data = snap.data() || {};
+      const [publicSnap, metaSnap] = await Promise.all([tx.get(publicRef), tx.get(metaRef)]);
+      if (!publicSnap.exists) return false;
+
+      const data = publicSnap.data() || {};
+      const priorMeta = metaSnap.exists ? metaSnap.data() || {} : {};
       if (typeof data.ownerUid === 'string' && data.ownerUid !== ownerUid) return false;
-      if (data.ownerUid === ownerUid && data.sessionId === sessionId) return true;
-      tx.update(ref, { ownerUid, sessionId, ownerLinkedAt: Date.now() });
+      if (typeof priorMeta.ownerUid === 'string' && priorMeta.ownerUid !== ownerUid) return false;
+
+      const assessmentType = normalizeAssessmentType(String(data.assessmentType || priorMeta.assessmentType || ''));
+      const scoreMetric = typeof data.scoreMetric === 'number' ? data.scoreMetric : Number(priorMeta.scoreMetric);
+      const privateMeta = {
+        ownerUid,
+        sessionId,
+        assessmentType,
+        scoreMetric,
+        ageGroup: String(data.ageGroup || priorMeta.ageGroup || ''),
+        provenanceToken: String(data.provenanceToken || priorMeta.provenanceToken || ''),
+        provenanceVersion: Number(data.provenanceVersion || priorMeta.provenanceVersion || 1),
+        trialsDigest: String(priorMeta.trialsDigest || data.trialsDigest || ''),
+        derivedMetrics: (priorMeta.derivedMetrics || data.derivedMetrics || {}) as Record<string, unknown>,
+        ...(typeof priorMeta.idempotencyKey === 'string'
+          ? { idempotencyKey: priorMeta.idempotencyKey }
+          : typeof data.idempotencyKey === 'string' ? { idempotencyKey: data.idempotencyKey } : {}),
+        qualityFlags: Array.isArray(priorMeta.qualityFlags) ? priorMeta.qualityFlags : (Array.isArray(data.qualityFlags) ? data.qualityFlags : []),
+        moderationReason: String(priorMeta.moderationReason || data.moderationReason || ''),
+        hidden: data.hidden === true || priorMeta.hidden === true,
+        createdAt: data.createdAt || priorMeta.createdAt || FieldValue.serverTimestamp(),
+        updatedAt: Date.now()
+      };
+
+      // Write owner/session identity and research details only to the server-only collection.
+      tx.set(metaRef, privateMeta, { merge: true });
+
+      // Scrub private fields that older code may have attached to the public row.
+      tx.update(publicRef, {
+        ownerUid: FieldValue.delete(),
+        sessionId: FieldValue.delete(),
+        trialsDigest: FieldValue.delete(),
+        derivedMetrics: FieldValue.delete(),
+        idempotencyKey: FieldValue.delete(),
+        qualityFlags: FieldValue.delete(),
+        moderationReason: FieldValue.delete(),
+        ownerLinkedAt: FieldValue.delete(),
+        hiddenAt: FieldValue.delete(),
+        hiddenBy: FieldValue.delete(),
+        hideReason: FieldValue.delete(),
+        unhiddenAt: FieldValue.delete(),
+        unhiddenBy: FieldValue.delete(),
+        unhideReason: FieldValue.delete()
+      });
       return true;
     });
   }
@@ -267,18 +313,32 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     });
 
     try {
-      const snap = await db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get();
-      const matching = snap.docs.filter(doc =>
-        types.includes(normalizeAssessmentType(String(doc.data().assessmentType || '')))
-      );
+      const [metaSnap, legacyPublicSnap] = await Promise.all([
+        db.collection('leaderboardPrivateMeta').where('ownerUid', '==', ownerUid).get(),
+        db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get()
+      ]);
+      const ids = new Set<string>();
 
-      // Firestore write batches are limited to 500 operations; stay below that.
-      for (let offset = 0; offset < matching.length; offset += 400) {
+      for (const doc of metaSnap.docs) {
+        if (types.includes(normalizeAssessmentType(String(doc.data().assessmentType || '')))) ids.add(doc.id);
+      }
+      // Include pre-migration rows that still carry ownerUid on the public document.
+      for (const doc of legacyPublicSnap.docs) {
+        if (types.includes(normalizeAssessmentType(String(doc.data().assessmentType || '')))) ids.add(doc.id);
+      }
+
+      const idsToDelete = Array.from(ids);
+      // Every leaderboard row has one public document and one private metadata
+      // document. Keep batches below Firestore's 500-operation write limit.
+      for (let offset = 0; offset < idsToDelete.length; offset += 200) {
         const batch = db.batch();
-        for (const doc of matching.slice(offset, offset + 400)) batch.delete(doc.ref);
+        for (const id of idsToDelete.slice(offset, offset + 200)) {
+          batch.delete(db.collection('leaderboardResults').doc(id));
+          batch.delete(db.collection('leaderboardPrivateMeta').doc(id));
+        }
         await batch.commit();
       }
-      return matching.length;
+      return idsToDelete.length;
     } finally {
       await db.runTransaction(async tx => {
         const snapshots = [];
