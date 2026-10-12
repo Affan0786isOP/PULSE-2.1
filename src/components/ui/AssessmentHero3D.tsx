@@ -41,29 +41,6 @@ export function AssessmentHero3D() {
     setActiveIndex(index);
   }, []);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept when user is in an input, textarea, select, or modal dialog
-      if (
-        document.activeElement?.tagName === 'INPUT' ||
-        document.activeElement?.tagName === 'TEXTAREA' ||
-        document.activeElement?.tagName === 'SELECT' ||
-        document.activeElement?.closest('[role="dialog"]') ||
-        document.querySelector('[role="dialog"]')
-      ) {
-        return;
-      }
-      if (e.key === 'ArrowLeft') {
-        handlePrev();
-      } else if (e.key === 'ArrowRight') {
-        handleNext();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleNext, handlePrev]);
-
   const springEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
   const getCardStyle = (offset: number) => {
@@ -134,6 +111,18 @@ export function AssessmentHero3D() {
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
+      onKeyDown={(event) => {
+        // Scope arrow-key handling to the carousel; never hijack page-level navigation.
+        const target = event.target as HTMLElement;
+        if (target.closest('input, textarea, select, [role="dialog"]')) return;
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          handlePrev();
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          handleNext();
+        }
+      }}
       role="region"
       aria-label="Assessment Protocols 3D Carousel"
     >
