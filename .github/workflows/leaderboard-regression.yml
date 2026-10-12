@@ -12,6 +12,8 @@ on:
       - 'mobile/src/components/Leaderboard*'
       - 'src/components/LeaderboardOptIn.tsx'
       - 'mobile/src/components/LeaderboardOptIn.tsx'
+      - 'src/components/ui/AssessmentHero3D.tsx'
+      - 'tests/unit/assessmentHeroKeyboard.test.tsx'
       - 'src/components/admin/LeaderboardModeration.tsx'
       - 'server/**'
       - 'shared/domain/leaderboard*'
