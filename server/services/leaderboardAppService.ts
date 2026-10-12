@@ -7,7 +7,8 @@ import type {
   SubmitLeaderboardInput,
   SubmitLeaderboardResult
 } from './interfaces/ILeaderboardService';
-import type { LeaderboardEntryRecord } from '../models/leaderboardModels';
+import type { LeaderboardEntryRecord, AdminLeaderboardEntryRecord } from '../models/leaderboardModels';
+import { getDisplayedLeaderboardRank } from '../../shared/domain/leaderboardRanking';
 import type { ExperimentSessionRecord } from '../models/sessionModels';
 import { VALID_AGE_GROUPS, VALID_ASSESSMENT_TYPES } from '../config/constants';
 import { normalizeAssessmentType } from '../engines/assessmentTypes';
@@ -22,6 +23,152 @@ export class LeaderboardAppService implements ILeaderboardService {
     private readonly leaderboardRepo: ILeaderboardRepository,
     private readonly submissionRepo: ILeaderboardSubmissionRepository
   ) {}
+
+  private aliasesForAssessment(assessmentType: string): string[] {
+    const aliasesByType: Record<string, string[]> = {
+      'visual-reaction': ['visual-reaction', 'reaction-test', 'reaction', 'visual', 'visual-reaction-test'],
+      direction: ['direction', 'direction-test', 'direction-reflex'],
+      'color-recognition': ['color-recognition', 'colour-recognition', 'color-test', 'colour-test', 'color', 'colour', 'color-rec', 'colour-rec'],
+      'block-memory': ['block-memory', 'block-memory-test', 'block'],
+      'number-memory': ['number-memory', 'number-memory-test', 'number']
+    };
+    return aliasesByType[assessmentType] || [];
+  }
+
+  private async backfillLegacyOwnership(userId: string, assessmentType: string): Promise<void> {
+    if (!this.leaderboardRepo.linkOwnerToEntry) return;
+
+    // Earlier row documents did not store an owner, but the authoritative
+    // session still records both uid and leaderboardDocId. Backfill only from
+    // that server-written pairing, and never overwrite a different owner.
+    const sessions = await this.sessionRepo.findUserConsumedSessions(userId, assessmentType);
+    for (const session of sessions) {
+      if (!session.leaderboardDocId) continue;
+      await this.leaderboardRepo.linkOwnerToEntry(session.leaderboardDocId, userId, session.sessionId);
+    }
+  }
+
+  async getMyLeaderboardRank(userId: string, assessmentType: string): Promise<{
+    rank: number | null;
+    scoreMetric: number | null;
+    displayName: string | null;
+    pendingReview: boolean;
+  }> {
+    const rawType = normalizeAssessmentType(assessmentType);
+    if (!VALID_ASSESSMENT_TYPES.includes(rawType)) {
+      throw new AppError('Unknown assessmentType', 400);
+    }
+    if (!this.leaderboardRepo.getEntriesByOwner || !this.leaderboardRepo.getAllEntriesByAlias) {
+      throw new AppError('Participant leaderboard rank lookup is unavailable', 503);
+    }
+
+    await this.backfillLegacyOwnership(userId, rawType);
+    let ownedRows: AdminLeaderboardEntryRecord[];
+    try {
+      ownedRows = await this.leaderboardRepo.getEntriesByOwner(userId, rawType);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message === 'DATABASE_UNAVAILABLE') throw new AppError('DATABASE_UNAVAILABLE', 503);
+      throw new AppError('Failed to retrieve your leaderboard entry', 500);
+    }
+
+    const rows = ownedRows
+      .filter(row => normalizeAssessmentType(String(row.assessmentType || '')) === rawType)
+      .sort((a, b) => {
+        const as = Number(a.scoreMetric);
+        const bs = Number(b.scoreMetric);
+        if (as !== bs) {
+          const speed = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
+          return speed ? as - bs : bs - as;
+        }
+        return (Number(a.createdAt) || 0) - (Number(b.createdAt) || 0);
+      });
+    const ownedBest = rows[0];
+    if (!ownedBest) {
+      return { rank: null, scoreMetric: null, displayName: null, pendingReview: false };
+    }
+
+    const ownedName = safeLeaderboardDisplayNameForRead(ownedBest.displayName);
+    const ownedScore = Number(ownedBest.scoreMetric);
+    const pendingReview = ownedBest.hidden === true;
+    if (pendingReview || ownedName === null || !isValidLeaderboardScoreMetric(rawType, ownedScore)) {
+      return { rank: null, scoreMetric: Number.isFinite(ownedScore) ? ownedScore : null, displayName: ownedName, pendingReview };
+    }
+
+    const aliases = this.aliasesForAssessment(rawType);
+    const aliasQueries = await Promise.all(aliases.map(async alias => {
+      try {
+        return { records: await this.leaderboardRepo.getAllEntriesByAlias!(alias, rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition' ? 'asc' : 'desc'), error: null as unknown | null };
+      } catch (error: unknown) {
+        safeLogWarning('[Leaderboard Rank] Firestore query notice:', error);
+        return { records: [] as LeaderboardEntryRecord[], error };
+      }
+    }));
+    if (aliasQueries.some(query => query.error !== null)) {
+      throw new AppError('LEADERBOARD_UNAVAILABLE', 503);
+    }
+
+    const visibleMap = new Map<string, LeaderboardEntryRecord>();
+    for (const query of aliasQueries) {
+      for (const record of query.records) {
+        const safeName = safeLeaderboardDisplayNameForRead(record.displayName);
+        if (
+          record.assessmentType === rawType &&
+          safeName !== null &&
+          isValidLeaderboardScoreMetric(rawType, record.scoreMetric) &&
+          !visibleMap.has(record.id)
+        ) {
+          visibleMap.set(record.id, { ...record, displayName: safeName });
+        }
+      }
+    }
+    const visible = Array.from(visibleMap.values());
+    const speed = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
+    visible.sort((a, b) => {
+      if (a.scoreMetric !== b.scoreMetric) return speed ? a.scoreMetric - b.scoreMetric : b.scoreMetric - a.scoreMetric;
+      return (a.createdAt || 0) - (b.createdAt || 0) || a.id.localeCompare(b.id);
+    });
+
+    const publicSelf = visible.find(entry => entry.id === ownedBest.id);
+    if (!publicSelf) {
+      return { rank: null, scoreMetric: ownedScore, displayName: ownedName, pendingReview: false };
+    }
+    return {
+      rank: getDisplayedLeaderboardRank(visible, publicSelf),
+      scoreMetric: publicSelf.scoreMetric,
+      displayName: publicSelf.displayName,
+      pendingReview: false
+    };
+  }
+
+  async deleteMyLeaderboardEntries(userId: string, assessmentType?: string | null): Promise<{ deletedCount: number }> {
+    if (!this.leaderboardRepo.deleteEntriesByOwner) {
+      throw new AppError('Participant leaderboard removal is unavailable', 503);
+    }
+
+    let normalizedType: string | null = null;
+    if (assessmentType && assessmentType !== 'all') {
+      normalizedType = normalizeAssessmentType(assessmentType);
+      if (!VALID_ASSESSMENT_TYPES.includes(normalizedType)) {
+        throw new AppError('Unknown assessmentType', 400);
+      }
+      await this.backfillLegacyOwnership(userId, normalizedType);
+    } else {
+      // Best-effort migration of all legacy rows linked from server-owned sessions
+      // before applying the erasure across all five canonical assessments.
+      for (const type of VALID_ASSESSMENT_TYPES) await this.backfillLegacyOwnership(userId, type);
+    }
+
+    try {
+      const deletedCount = await this.leaderboardRepo.deleteEntriesByOwner(userId, normalizedType);
+      return { deletedCount };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message === 'DATABASE_UNAVAILABLE') throw new AppError('DATABASE_UNAVAILABLE', 503);
+      if (message === 'OWNER_ERASURE_IN_PROGRESS') throw new AppError('An erasure request is already being processed.', 409);
+      throw new AppError('Failed to delete your leaderboard entries', 500);
+    }
+  }
 
   async submitLeaderboard(input: SubmitLeaderboardInput): Promise<SubmitLeaderboardResult> {
     const { sessionId, userId, displayName, assessmentType, ageGroup, trials } = input;
@@ -173,7 +320,7 @@ export class LeaderboardAppService implements ILeaderboardService {
       qualityFlags
     });
 
-    return { ...result, pendingReview: requiresModeration };
+    return result;
   }
 
   async verifyPublicEntryProvenance(entryId: string): Promise<{ verified: boolean; reason?: string }> {
