@@ -71,7 +71,7 @@ export function registerAdminRoutes(
       }
 
       const actor = 'admin';
-      const timestamp = new Date().toISOString();
+      const timestamp = Date.now();
       const cleanAction = action.trim();
       const cleanTarget = target.trim();
       const cleanNote = (typeof note === 'string') ? note.trim() : '';
