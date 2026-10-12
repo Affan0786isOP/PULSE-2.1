@@ -52,7 +52,7 @@ FIREBASE_SERVICE_ACCOUNT='{"type":"service_account","project_id":"pulse-lab-3692
 
 ## 4. Verified NPM Scripts
 
-All commands below are verified directly against [`package.json`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/package.json):
+All commands below are verified directly against [`package.json`](../package.json):
 
 | Script | Command | Purpose |
 | :--- | :--- | :--- |
