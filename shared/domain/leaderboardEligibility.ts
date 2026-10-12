@@ -20,7 +20,8 @@ export function normalizeLeaderboardAssessmentType(value: unknown): CanonicalLea
 const GENERIC_ALIASES = new Set(['anonymous', 'unknown', 'guest']);
 const DISALLOWED_TERMS = [
   'fuck', 'shit', 'bitch', 'asshole', 'nigger', 'faggot', 'dick', 'pussy',
-  'cunt', 'bastard', 'porn', 'sex', 'penis', 'vagina', 'retard'
+  'cunt', 'bastard', 'porn', 'sex', 'penis', 'vagina', 'retard',
+  'idiot', 'loser', 'hacker', 'bot', 'cheater', 'cheat', 'admin', 'moderator', 'staff'
 ];
 
 /** True only for a participant-selected, non-generic public alias. */

@@ -3,7 +3,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { getInMemorySessionTrials } from './inMemorySessionStore';
 import { db, auth, isConfigured, authInitPromise } from './firebase';
 import { reportError } from './errorReporter';
-import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, normalizeLeaderboardAssessmentType } from '../../shared/domain/leaderboardEligibility';
+import { isValidLeaderboardScoreMetric, normalizeLeaderboardAssessmentType, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 export { isOptedInLeaderboardUser };
 
 export const isFirestoreAvailable = (): boolean => {
@@ -427,6 +427,7 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
         apiSucceeded = true;
         payload.entries.forEach((e: any) => {
           const name = String(e?.displayName || '').trim();
+          const aliasValidation = validateLeaderboardDisplayName(name);
           const normalizedType = normalizeAssessmentType(e?.assessmentType || canonicalType);
           if (
             normalizedType === canonicalType &&
@@ -434,11 +435,11 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
             typeof e.scoreMetric === 'number' &&
             isValidLeaderboardScoreMetric(canonicalType, e.scoreMetric) &&
             !entriesMap.has(e.id) &&
-            isOptedInLeaderboardUser(name)
+            aliasValidation.valid
           ) {
             entriesMap.set(e.id, {
               id: e.id,
-              displayName: name,
+              displayName: aliasValidation.normalized || name,
               assessmentType: normalizedType,
               scoreMetric: e.scoreMetric,
               ageGroup: String(e.ageGroup || ''),
@@ -493,16 +494,17 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
               if (!isValidLeaderboardScoreMetric(canonicalType, score)) return;
 
               const displayName = String(data.displayName || '').trim();
-              if (!isOptedInLeaderboardUser(displayName)) return;
+              const aliasValidation = validateLeaderboardDisplayName(displayName);
+              if (!aliasValidation.valid) return;
 
               const rawType = String(data.assessmentType || canonicalType);
               const normalizedType = normalizeAssessmentType(rawType);
-              if (!normalizedType) return;
+              if (!normalizedType || normalizedType !== canonicalType) return;
 
               if (!entriesMap.has(docSnap.id)) {
                 entriesMap.set(docSnap.id, {
                   id: docSnap.id,
-                  displayName,
+                  displayName: aliasValidation.normalized || displayName,
                   assessmentType: normalizedType,
                   scoreMetric: score,
                   ageGroup: String(data.ageGroup || ''),
