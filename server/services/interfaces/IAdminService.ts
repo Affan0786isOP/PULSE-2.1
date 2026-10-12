@@ -8,4 +8,9 @@ export interface IAdminService {
   deleteLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string; alreadyInState?: boolean }>;
   getAuditLogs(limitCount?: number): Promise<AdminAuditLogRecord[]>;
   getAllLeaderboardEntries(limitCount?: number): Promise<AdminLeaderboardEntryRecord[]>;
+  getAllLeaderboardEntriesPage?(limitCount?: number, cursor?: string | null): Promise<{
+    entries: AdminLeaderboardEntryRecord[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  }>;
 }
