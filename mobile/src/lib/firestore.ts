@@ -3,7 +3,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { getInMemorySessionTrials } from './inMemorySessionStore';
 import { db, auth, isConfigured, authInitPromise } from './firebase';
 import { reportError } from './errorReporter';
-import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric } from '../../../shared/domain/leaderboardEligibility';
+import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, normalizeLeaderboardAssessmentType } from '../../../shared/domain/leaderboardEligibility';
 export { isOptedInLeaderboardUser };
 
 export const isFirestoreAvailable = (): boolean => {
@@ -404,13 +404,7 @@ const PROTOCOL_ALIASES: Record<AssessmentType, string[]> = {
 };
 
 export function normalizeAssessmentType(type: string): AssessmentType | null {
-  const t = String(type || '').toLowerCase().trim();
-  if (t === 'reaction-test' || t === 'visual-reaction') return 'visual-reaction';
-  if (t === 'direction-test' || t === 'direction') return 'direction';
-  if (t === 'colour-recognition' || t === 'color-test' || t === 'color-recognition') return 'color-recognition';
-  if (t === 'block-memory') return 'block-memory';
-  if (t === 'number-memory') return 'number-memory';
-  return null;
+  return normalizeLeaderboardAssessmentType(type);
 }
 
 export const getLeaderboardResults = async (assessmentType: AssessmentType): Promise<LeaderboardEntry[]> => {

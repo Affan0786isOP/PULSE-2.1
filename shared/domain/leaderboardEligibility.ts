@@ -1,3 +1,22 @@
+export type CanonicalLeaderboardAssessmentType =
+  | 'visual-reaction'
+  | 'direction'
+  | 'color-recognition'
+  | 'block-memory'
+  | 'number-memory';
+
+/** One canonical assessment/type-alias mapping shared by server and both clients. */
+export function normalizeLeaderboardAssessmentType(value: unknown): CanonicalLeaderboardAssessmentType | null {
+  if (typeof value !== 'string') return null;
+  const type = value.toLowerCase().trim().replace(/[_\s]+/g, '-');
+  if (['reaction-test', 'visual-reaction', 'reaction', 'visual', 'visual-reaction-test'].includes(type)) return 'visual-reaction';
+  if (['direction-test', 'direction', 'direction-reflex'].includes(type)) return 'direction';
+  if (['colour-recognition', 'color-test', 'colour-test', 'color-recognition', 'color', 'colour', 'color-rec', 'colour-rec'].includes(type)) return 'color-recognition';
+  if (['block-memory', 'block-memory-test', 'block'].includes(type)) return 'block-memory';
+  if (['number-memory', 'number-memory-test', 'number'].includes(type)) return 'number-memory';
+  return null;
+}
+
 const GENERIC_ALIASES = new Set(['anonymous', 'unknown', 'guest']);
 const DISALLOWED_TERMS = [
   'fuck', 'shit', 'bitch', 'asshole', 'nigger', 'faggot', 'dick', 'pussy',
