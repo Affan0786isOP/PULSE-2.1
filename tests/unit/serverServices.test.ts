@@ -234,20 +234,28 @@ describe('Server Application Services Unit Tests', () => {
     const mockSubRepo: ILeaderboardSubmissionRepository = { executeLeaderboardSubmission };
     const service = new LeaderboardAppService(mockSessionRepo, mockLbRepo, mockSubRepo);
 
-    // The old session expiry has passed, but the completion-based opt-in window remains open.
-    // Empty trials are rejected by the next validation step, proving the expiry gate did not reject them first.
-    await expect(service.submitLeaderboard({
-      sessionId: session.sessionId,
-      userId: session.uid,
-      displayName: 'Alice',
-      assessmentType: 'visual-reaction',
-      ageGroup: session.ageGroup,
-      trials: []
-    })).rejects.toMatchObject({
-      status: 400,
-      message: 'Trial sequence must be a non-empty array.'
-    });
-    expect(executeLeaderboardSubmission).not.toHaveBeenCalled();
+    // The session's ordinary expiry has passed, but the 24-hour completion-based
+    // opt-in window is still open. Use a test-only provenance secret; never weaken
+    // production signing requirements for a unit test.
+    const previousProvenanceSecret = process.env.PULSE_PROVENANCE_SECRET;
+    process.env.PULSE_PROVENANCE_SECRET = 'unit-test-provenance-secret';
+    try {
+      await expect(service.submitLeaderboard({
+        sessionId: session.sessionId,
+        userId: session.uid,
+        displayName: 'Alice',
+        assessmentType: 'visual-reaction',
+        ageGroup: session.ageGroup,
+        trials: []
+      })).resolves.toMatchObject({ docId: 'lb-completed', scoreMetric: 200 });
+      expect(executeLeaderboardSubmission).toHaveBeenCalledTimes(1);
+    } finally {
+      if (previousProvenanceSecret === undefined) {
+        delete process.env.PULSE_PROVENANCE_SECRET;
+      } else {
+        process.env.PULSE_PROVENANCE_SECRET = previousProvenanceSecret;
+      }
+    }
 
     const expiredSession: ExperimentSessionRecord = {
       ...session,
