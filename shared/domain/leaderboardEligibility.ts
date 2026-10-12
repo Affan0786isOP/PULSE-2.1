@@ -25,6 +25,17 @@ const DISALLOWED_TERMS = [
   'cunt', 'bastard', 'retard'
 ];
 
+// Common unambiguously abusive compounds are listed explicitly so that names
+// containing the same letters (for example Harshit or Kshitij) are not blocked.
+const DISALLOWED_COMPOUND_TERMS = [
+  'fuckboi', 'fuckboy', 'fuckwit', 'fuckface', 'fuckhead', 'fucktard',
+  'fucker', 'fuckers', 'fucked', 'fucking', 'fuckery',
+  'motherfucker', 'motherfuckers', 'motherfucking',
+  'shitface', 'shithead', 'shithole', 'shitbag', 'shitstain', 'shitshow',
+  'shitbrain', 'dumbshit', 'bullshit', 'shitty',
+  'asshat', 'asswipe', 'assclown', 'assface', 'dumbass', 'jackass'
+];
+
 const CONFUSABLE_CHARACTERS: Record<string, string> = {
   'а': 'a', 'α': 'a',
   'е': 'e', 'ε': 'e',
@@ -77,19 +88,32 @@ function containsDisallowedAliasTerm(value: string): boolean {
   // Include explicit common inflections without treating every containing substring as abuse.
   const hasDisallowedInflection = /(?:^|[^a-z])(?:shitty|shithead|shithole|fucker|fucked|fucking|fuckery)(?:$|[^a-z])/u;
 
+  const hasDisallowedCompound = (text: string) => DISALLOWED_COMPOUND_TERMS.some(term =>
+    new RegExp('(?:^|[^a-z])' + term + '(?:$|[^a-z])', 'u').test(text)
+  );
+
   return hasDisallowedWord(normalized) ||
     hasDisallowedWord(leetNormalized) ||
     hasDisallowedInflection.test(normalized) ||
-    hasDisallowedInflection.test(leetNormalized);
+    hasDisallowedInflection.test(leetNormalized) ||
+    hasDisallowedCompound(normalized) ||
+    hasDisallowedCompound(leetNormalized);
 }
 
 function containsDisallowedWholeWordForRead(value: string): boolean {
   // Intentionally lenient for already-stored aliases: no camel-case splitting,
   // no leetspeak conversion, and no matching across inserted separators.
   const normalized = normalizeAliasText(value, false);
-  return DISALLOWED_TERMS.some(term =>
+  const hasDisallowedWholeWord = DISALLOWED_TERMS.some(term =>
     new RegExp('(?:^|[^a-z0-9])' + term + '(?:$|[^a-z0-9])', 'u').test(normalized)
   );
+  const hasExplicitCompound = DISALLOWED_COMPOUND_TERMS.some(term =>
+    new RegExp('(?:^|[^a-z])' + term + '(?:$|[^a-z])', 'u').test(normalized)
+  );
+
+  // Screen explicit compound abuse on reads too, but keep evasion normalization
+  // (leet conversion, inserted separators, mixed-case splitting) submit-only.
+  return hasDisallowedWholeWord || hasExplicitCompound;
 }
 
 /**
