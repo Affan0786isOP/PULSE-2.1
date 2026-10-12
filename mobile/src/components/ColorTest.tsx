@@ -704,7 +704,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
                 if (typeof timerRef !== 'undefined' && timerRef.current) timerRef.current.textContent = '000.0';
               }}
               onNext={() => onNavigate('block-memory')}
-              onViewLeaderboard={() => onNavigate('leaderboard')}
+              onViewLeaderboard={() => onNavigate('/leaderboard?assessmentType=color-recognition')}
             >
               {!submissionError && hasSubmittedRef.current && reportStats && sessionId && (
                 <LeaderboardOptIn 
