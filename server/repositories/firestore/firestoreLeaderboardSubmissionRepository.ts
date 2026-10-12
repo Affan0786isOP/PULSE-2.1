@@ -36,6 +36,7 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       derivedMetrics: input.metrics,
       ownerUid: input.userId,
       sessionId: input.activeSessionId,
+      ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {}),
       qualityFlags: input.qualityFlags || [],
       moderationReason: (input.qualityFlags || []).join(', '),
       hidden: input.requiresModeration === true,
@@ -71,28 +72,37 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
           if (aScore === bScore) return a.id.localeCompare(b.id);
           return isSpeedAssessment(input.assessmentType) ? aScore - bScore : bScore - aScore;
         });
-      const bestExisting = existingRows[0];
+      const idempotencyMatch = input.idempotencyKey
+        ? existingRows.find(doc => doc.data().idempotencyKey === input.idempotencyKey)
+        : undefined;
+      const bestExisting = idempotencyMatch || existingRows[0];
       let responseDocId = input.leaderboardDocId;
       let responseScore = input.scoreMetric;
       let responseToken = input.provenanceToken;
       let responseDigest = input.trialsDigest || '';
       let responseMetrics = input.metrics;
+      let responsePendingReview = input.requiresModeration === true;
 
       if (!bestExisting) {
         tx.set(requestedLeaderboardDocRef, requestedLeaderboardDoc);
       } else {
         const existingData = bestExisting.data();
         const existingScore = Number(existingData.scoreMetric);
-        if (Number.isFinite(existingScore) && isBetterScore(input.assessmentType, input.scoreMetric, existingScore)) {
-          // Keep one row per owner/assessment and preserve a moderator's hidden state.
+        if (
+          !idempotencyMatch &&
+          Number.isFinite(existingScore) &&
+          isBetterScore(input.assessmentType, input.scoreMetric, existingScore)
+        ) {
+          // Replace the prior best under the new ID so provenance can bind to the exact row.
           tx.delete(bestExisting.ref);
+          responsePendingReview = existingData.hidden === true || input.requiresModeration === true;
           tx.set(requestedLeaderboardDocRef, {
             ...requestedLeaderboardDoc,
-            hidden: existingData.hidden === true || input.requiresModeration === true
+            hidden: responsePendingReview
           });
           responseDocId = input.leaderboardDocId;
         } else {
-          // Do not create a second row for a worse or tied score.
+          // Same idempotency key, a worse score, or a tie: return the existing row.
           responseDocId = bestExisting.id;
           responseScore = existingScore;
           responseToken = String(existingData.provenanceToken || '');
@@ -100,6 +110,7 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
           responseMetrics = (existingData.derivedMetrics && typeof existingData.derivedMetrics === 'object')
             ? existingData.derivedMetrics as Record<string, unknown>
             : {};
+          responsePendingReview = existingData.hidden === true;
         }
       }
 
@@ -120,9 +131,7 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
         provenanceToken: responseToken,
         trialsDigest: responseDigest,
         derivedMetrics: responseMetrics,
-        pendingReview: responseDocId === input.leaderboardDocId
-          ? input.requiresModeration === true || (bestExisting?.data().hidden === true)
-          : existingRows[0]?.data().hidden === true
+        pendingReview: responsePendingReview
       };
     });
 
