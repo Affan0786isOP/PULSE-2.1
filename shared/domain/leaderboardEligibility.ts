@@ -176,6 +176,11 @@ export function validateLeaderboardDisplayName(value: unknown): LeaderboardAlias
     return { valid: false, error: 'Display name must be between 1 and 30 characters.' };
   }
 
+  // Punctuation-only aliases appear blank in rankings and are not meaningful identities.
+  if (!/[\p{L}\p{N}]/u.test(normalized)) {
+    return { valid: false, error: 'Display name must contain at least one letter or number.' };
+  }
+
   // Explicitly reject hidden formatting and directional overrides rather than silently stripping them.
   if (/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/u.test(normalized)) {
     return { valid: false, error: 'Display name contains unsupported hidden characters.' };
