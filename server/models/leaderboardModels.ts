@@ -36,6 +36,8 @@ export interface LeaderboardSubmissionTxInput {
   trialsDigest: string;
   metrics: Record<string, unknown>;
   now: number;
+  requiresModeration?: boolean;
+  qualityFlags?: string[];
 }
 
 export interface LeaderboardSubmissionTxResult {
