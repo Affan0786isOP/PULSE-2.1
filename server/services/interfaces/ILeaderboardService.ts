@@ -23,4 +23,5 @@ export interface SubmitLeaderboardResult {
 export interface ILeaderboardService {
   submitLeaderboard(input: SubmitLeaderboardInput): Promise<SubmitLeaderboardResult>;
   getPublicLeaderboard(assessmentType?: string | null): Promise<LeaderboardEntryRecord[]>;
+  verifyPublicEntryProvenance?(entryId: string): Promise<{ verified: boolean; reason?: string }>;
 }
