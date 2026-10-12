@@ -2,7 +2,7 @@ import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { ILeaderboardSubmissionRepository } from '../interfaces/ILeaderboardSubmissionRepository';
 import type { LeaderboardSubmissionTxInput, LeaderboardSubmissionTxResult } from '../../models/leaderboardModels';
 import type { ExperimentSessionRecord } from '../../models/sessionModels';
-import { LeaderboardAlreadySubmittedError } from '../../models/replayContracts';
+import { AppError, LeaderboardAlreadySubmittedError } from '../../models/replayContracts';
 
 function isSpeedAssessment(assessmentType: string): boolean {
   return assessmentType === 'visual-reaction' ||
@@ -45,16 +45,12 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
     await db.runTransaction(async (tx) => {
       const sessionSnap = await tx.get(sessionDocRef);
       if (!sessionSnap.exists) {
-        const error = new Error('SESSION_NOT_FOUND') as Error & { code?: string };
-        error.code = 'SESSION_NOT_FOUND';
-        throw error;
+        throw new AppError('Experiment session not found', 404);
       }
 
       const sData = sessionSnap.data() as ExperimentSessionRecord;
       if (sData.uid !== input.userId) {
-        const error = new Error('SESSION_UID_MISMATCH') as Error & { code?: string };
-        error.code = 'SESSION_UID_MISMATCH';
-        throw error;
+        throw new AppError('Session UID mismatch with authenticated user', 403);
       }
       if (sData.leaderboardSubmitted) {
         throw new LeaderboardAlreadySubmittedError(sData);
