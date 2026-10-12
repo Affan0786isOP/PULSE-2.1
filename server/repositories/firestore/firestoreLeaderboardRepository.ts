@@ -366,15 +366,43 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
     const docRef = db.collection('leaderboardResults').doc(entryId);
+    const metaRef = db.collection('leaderboardPrivateMeta').doc(entryId);
     const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
     const timestamp = Date.now();
 
     return db.runTransaction(async tx => {
-      const snap = await tx.get(docRef);
+      const [snap, metaSnap] = await Promise.all([tx.get(docRef), tx.get(metaRef)]);
       if (!snap.exists) return { success: true, found: false };
-      if (snap.data()?.hidden === true) return { success: true, found: true, alreadyInState: true };
+      const row = snap.data() || {};
+      const meta = metaSnap.exists ? metaSnap.data() || {} : {};
+      if (row.hidden === true) return { success: true, found: true, alreadyInState: true };
 
-      tx.update(docRef, { hidden: true, hiddenAt: timestamp, hiddenBy: 'admin', hideReason: reason || '' });
+      tx.update(docRef, {
+        hidden: true,
+        // Also scrub any private fields left by pre-migration code.
+        ownerUid: FieldValue.delete(),
+        sessionId: FieldValue.delete(),
+        trialsDigest: FieldValue.delete(),
+        derivedMetrics: FieldValue.delete(),
+        idempotencyKey: FieldValue.delete(),
+        qualityFlags: FieldValue.delete(),
+        moderationReason: FieldValue.delete(),
+        hiddenBy: FieldValue.delete(),
+        hideReason: FieldValue.delete(),
+        unhiddenAt: FieldValue.delete(),
+        unhiddenBy: FieldValue.delete(),
+        unhideReason: FieldValue.delete()
+      });
+      tx.set(metaRef, {
+        ...meta,
+        assessmentType: String(row.assessmentType || meta.assessmentType || ''),
+        scoreMetric: typeof row.scoreMetric === 'number' ? row.scoreMetric : meta.scoreMetric,
+        hidden: true,
+        hiddenAt: timestamp,
+        hiddenBy: 'admin',
+        hideReason: reason || '',
+        updatedAt: timestamp
+      }, { merge: true });
       tx.set(auditRef, {
         actor: 'admin',
         action: 'HIDE_LEADERBOARD_ENTRY',
@@ -391,15 +419,44 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
     const docRef = db.collection('leaderboardResults').doc(entryId);
+    const metaRef = db.collection('leaderboardPrivateMeta').doc(entryId);
     const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
     const timestamp = Date.now();
 
     return db.runTransaction(async tx => {
-      const snap = await tx.get(docRef);
+      const [snap, metaSnap] = await Promise.all([tx.get(docRef), tx.get(metaRef)]);
       if (!snap.exists) return { success: true, found: false };
-      if (snap.data()?.hidden === false) return { success: true, found: true, alreadyInState: true };
+      const row = snap.data() || {};
+      const meta = metaSnap.exists ? metaSnap.data() || {} : {};
+      if (row.hidden === false) return { success: true, found: true, alreadyInState: true };
 
-      tx.update(docRef, { hidden: false, unhiddenAt: timestamp, unhiddenBy: 'admin', unhideReason: reason || '' });
+      tx.update(docRef, {
+        hidden: false,
+        hiddenAt: FieldValue.delete(),
+        hiddenBy: FieldValue.delete(),
+        hideReason: FieldValue.delete(),
+        unhiddenAt: FieldValue.delete(),
+        unhiddenBy: FieldValue.delete(),
+        unhideReason: FieldValue.delete(),
+        ownerUid: FieldValue.delete(),
+        sessionId: FieldValue.delete(),
+        trialsDigest: FieldValue.delete(),
+        derivedMetrics: FieldValue.delete(),
+        idempotencyKey: FieldValue.delete(),
+        qualityFlags: FieldValue.delete(),
+        moderationReason: FieldValue.delete(),
+        ownerLinkedAt: FieldValue.delete()
+      });
+      tx.set(metaRef, {
+        ...meta,
+        assessmentType: String(row.assessmentType || meta.assessmentType || ''),
+        scoreMetric: typeof row.scoreMetric === 'number' ? row.scoreMetric : meta.scoreMetric,
+        hidden: false,
+        unhiddenAt: timestamp,
+        unhiddenBy: 'admin',
+        unhideReason: reason || '',
+        updatedAt: timestamp
+      }, { merge: true });
       tx.set(auditRef, {
         actor: 'admin',
         action: 'UNHIDE_LEADERBOARD_ENTRY',
@@ -416,14 +473,16 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
     const docRef = db.collection('leaderboardResults').doc(entryId);
+    const metaRef = db.collection('leaderboardPrivateMeta').doc(entryId);
     const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
     const timestamp = Date.now();
 
     return db.runTransaction(async tx => {
-      const snap = await tx.get(docRef);
-      if (!snap.exists) return { success: true, found: false };
+      const [snap, metaSnap] = await Promise.all([tx.get(docRef), tx.get(metaRef)]);
+      if (!snap.exists && !metaSnap.exists) return { success: true, found: false };
 
-      tx.delete(docRef);
+      if (snap.exists) tx.delete(docRef);
+      if (metaSnap.exists) tx.delete(metaRef);
       tx.set(auditRef, {
         actor: 'admin',
         action: 'DELETE_LEADERBOARD_ENTRY',
