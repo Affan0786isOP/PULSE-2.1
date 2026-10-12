@@ -17,6 +17,6 @@ Client-side web applications that write directly to Firestore are vulnerable to 
 - **Negative:** Submitting results requires active network connectivity to the Express server API.
 
 ## Evidence
-- [`firestore.rules`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/firestore.rules)
-- [`server.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/server.ts)
-- [`security_spec.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/security_spec.md)
+- [`firestore.rules`](../../firestore.rules)
+- [`server.ts`](../../server.ts)
+- [`security_spec.md`](../../security_spec.md)
