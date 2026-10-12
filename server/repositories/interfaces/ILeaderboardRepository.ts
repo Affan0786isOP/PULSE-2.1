@@ -3,6 +3,7 @@ import type { LeaderboardEntryRecord, AdminLeaderboardEntryRecord } from '../../
 export interface ILeaderboardRepository {
   getEntriesByAlias(alias: string, direction: 'asc' | 'desc', limitCount: number): Promise<LeaderboardEntryRecord[]>;
   getAllEntriesForAdmin(limitCount: number): Promise<AdminLeaderboardEntryRecord[]>;
+  getEntryById?(entryId: string): Promise<AdminLeaderboardEntryRecord | null>;
   getAllEntriesForAdminPage?(limitCount: number, cursor?: string | null): Promise<{
     entries: AdminLeaderboardEntryRecord[];
     nextCursor: string | null;
