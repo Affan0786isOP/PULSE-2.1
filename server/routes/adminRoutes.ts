@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import { adminLoginLimiter } from '../config/rateLimits';
 import { getAdminPasscode, createAdminSessionToken, verifyAdminSession } from '../middleware/auth';
 import type { IAdminService } from '../services/interfaces/IAdminService';
+import { AppError } from '../models/replayContracts';
 
 export function registerAdminRoutes(
   app: Express,
@@ -104,11 +105,16 @@ export function registerAdminRoutes(
         return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
       }
 
-      await services.adminService.hideLeaderboardEntry(id, reason);
-
-      return res.json({ success: true, message: 'Leaderboard entry hidden successfully' });
-    } catch {
-      return res.status(500).json({ success: false, error: 'Failed to hide leaderboard entry' });
+      const result = await services.adminService.hideLeaderboardEntry(id, reason);
+      return res.json(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof AppError ? err.status : (message === 'DATABASE_UNAVAILABLE' ? 503 : 500);
+      return res.status(status).json({
+        success: false,
+        error: status === 404 ? 'Leaderboard entry not found' :
+          status === 503 ? 'Database service unavailable' : 'Failed to hide leaderboard entry'
+      });
     }
   });
 
@@ -123,11 +129,39 @@ export function registerAdminRoutes(
         return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
       }
 
-      await services.adminService.deleteLeaderboardEntry(id, reason);
+      const result = await services.adminService.deleteLeaderboardEntry(id, reason);
+      return res.json(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof AppError ? err.status : (message === 'DATABASE_UNAVAILABLE' ? 503 : 500);
+      return res.status(status).json({
+        success: false,
+        error: status === 404 ? 'Leaderboard entry not found' :
+          status === 503 ? 'Database service unavailable' : 'Failed to delete leaderboard entry'
+      });
+    }
+  });
 
-      return res.json({ success: true, message: 'Leaderboard entry deleted permanently' });
-    } catch {
-      return res.status(500).json({ success: false, error: 'Failed to delete leaderboard entry' });
+  // Admin Moderation: Restore a previously hidden entry.
+  app.post('/api/admin/leaderboard/unhide', async (req, res) => {
+    try {
+      if (!verifyAdminSession(req)) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin session required' });
+      }
+      const { id, reason } = req.body || {};
+      if (!id || typeof id !== 'string' || !id.trim()) {
+        return res.status(400).json({ success: false, error: 'Missing or invalid entry id' });
+      }
+      const result = await services.adminService.unhideLeaderboardEntry(id.trim(), reason);
+      return res.json(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof AppError ? err.status : (message === 'DATABASE_UNAVAILABLE' ? 503 : 500);
+      return res.status(status).json({
+        success: false,
+        error: status === 404 ? 'Leaderboard entry not found' :
+          status === 503 ? 'Database service unavailable' : 'Failed to restore leaderboard entry'
+      });
     }
   });
 

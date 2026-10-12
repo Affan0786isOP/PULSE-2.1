@@ -1,4 +1,5 @@
 import type { Firestore } from 'firebase-admin/firestore';
+import * as crypto from 'crypto';
 import type { ILeaderboardRepository } from '../interfaces/ILeaderboardRepository';
 import type { LeaderboardEntryRecord, AdminLeaderboardEntryRecord } from '../../models/leaderboardModels';
 import { normalizeAssessmentType } from '../../engines/assessmentTypes';
@@ -68,31 +69,73 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
 
   async softHideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean }> {
     const db = this.getDb();
-    if (!db) {
-      return { success: false, found: false };
-    }
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
     const docRef = db.collection('leaderboardResults').doc(entryId);
-    const snap = await docRef.get();
-    if (snap.exists) {
-      await docRef.update({ hidden: true, hiddenAt: Date.now(), hiddenBy: 'admin', hideReason: reason || '' });
+    const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
+    const timestamp = Date.now();
+
+    return db.runTransaction(async tx => {
+      const snap = await tx.get(docRef);
+      if (!snap.exists) return { success: true, found: false };
+
+      tx.update(docRef, { hidden: true, hiddenAt: timestamp, hiddenBy: 'admin', hideReason: reason || '' });
+      tx.set(auditRef, {
+        actor: 'admin',
+        action: 'HIDE_LEADERBOARD_ENTRY',
+        target: entryId,
+        note: reason || 'Soft-hide by admin',
+        timestamp
+      });
       return { success: true, found: true };
-    }
-    return { success: true, found: false };
+    });
   }
 
-  async deleteEntry(entryId: string, _reason?: string): Promise<{ success: boolean; found: boolean }> {
+  async unhideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean }> {
     const db = this.getDb();
-    if (!db) {
-      return { success: false, found: false };
-    }
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
     const docRef = db.collection('leaderboardResults').doc(entryId);
-    const snap = await docRef.get();
-    if (snap.exists) {
-      await docRef.delete();
+    const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
+    const timestamp = Date.now();
+
+    return db.runTransaction(async tx => {
+      const snap = await tx.get(docRef);
+      if (!snap.exists) return { success: true, found: false };
+
+      tx.update(docRef, { hidden: false, unhiddenAt: timestamp, unhiddenBy: 'admin', unhideReason: reason || '' });
+      tx.set(auditRef, {
+        actor: 'admin',
+        action: 'UNHIDE_LEADERBOARD_ENTRY',
+        target: entryId,
+        note: reason || 'Unhide by admin',
+        timestamp
+      });
       return { success: true, found: true };
-    }
-    return { success: true, found: false };
+    });
+  }
+
+  async deleteEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean }> {
+    const db = this.getDb();
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
+
+    const docRef = db.collection('leaderboardResults').doc(entryId);
+    const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
+    const timestamp = Date.now();
+
+    return db.runTransaction(async tx => {
+      const snap = await tx.get(docRef);
+      if (!snap.exists) return { success: true, found: false };
+
+      tx.delete(docRef);
+      tx.set(auditRef, {
+        actor: 'admin',
+        action: 'DELETE_LEADERBOARD_ENTRY',
+        target: entryId,
+        note: reason || 'Permanently deleted by admin',
+        timestamp
+      });
+      return { success: true, found: true };
+    });
   }
 }

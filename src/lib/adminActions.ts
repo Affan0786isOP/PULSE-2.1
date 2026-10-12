@@ -15,24 +15,18 @@ function getAdminToken(): string {
 }
 
 export async function fetchAdminAuditLogs(): Promise<AdminAuditLog[]> {
-  try {
-    const token = getAdminToken();
-    const res = await fetch('/api/admin/audit-logs', {
-      headers: {
-        'x-admin-token': token,
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      }
-    });
-    if (!res.ok) {
-      console.warn(`Failed to fetch admin audit logs: ${res.status} ${res.statusText}`);
-      return [];
+  const token = getAdminToken();
+  const res = await fetch('/api/admin/audit-logs', {
+    headers: {
+      'x-admin-token': token,
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
     }
-    const data = await res.json();
-    return (data.logs || []) as AdminAuditLog[];
-  } catch (err) {
-    console.warn('Failed to fetch admin audit logs:', err);
-    return [];
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success === false) {
+    throw new Error(data.error || `Failed to fetch admin audit logs (${res.status})`);
   }
+  return (data.logs || []) as AdminAuditLog[];
 }
 
 export async function hideLeaderboardEntry(id: string, reason: string, _adminEmail?: string): Promise<void> {
@@ -50,6 +44,23 @@ export async function hideLeaderboardEntry(id: string, reason: string, _adminEma
   if (!res.ok) {
     const errData = await res.json().catch(() => ({ error: 'Failed to hide leaderboard entry' }));
     throw new Error(errData.error || `Server returned ${res.status}`);
+  }
+}
+
+export async function unhideLeaderboardEntry(id: string, reason: string, _adminEmail?: string): Promise<void> {
+  const token = getAdminToken();
+  const res = await fetch('/api/admin/leaderboard/unhide', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-token': token,
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify({ id, reason }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success === false) {
+    throw new Error(data.error || `Failed to restore leaderboard entry (${res.status})`);
   }
 }
 
@@ -72,22 +83,16 @@ export async function deleteLeaderboardEntryPermanently(id: string, reason: stri
 }
 
 export async function fetchAllAdminLeaderboard(): Promise<LeaderboardEntry[]> {
-  try {
-    const token = getAdminToken();
-    const res = await fetch('/api/admin/leaderboard/all', {
-      headers: {
-        'x-admin-token': token,
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      }
-    });
-    if (!res.ok) {
-      console.warn(`Failed to fetch admin leaderboard: ${res.status} ${res.statusText}`);
-      return [];
+  const token = getAdminToken();
+  const res = await fetch('/api/admin/leaderboard/all', {
+    headers: {
+      'x-admin-token': token,
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
     }
-    const data = await res.json();
-    return (data.entries || []) as LeaderboardEntry[];
-  } catch (err) {
-    console.warn('Failed to fetch all leaderboard entries for admin:', err);
-    return [];
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success === false) {
+    throw new Error(data.error || `Failed to fetch admin leaderboard (${res.status})`);
   }
+  return (data.entries || []) as LeaderboardEntry[];
 }

@@ -3,6 +3,7 @@ import type { ILeaderboardRepository } from '../repositories/interfaces/ILeaderb
 import type { IAdminService } from './interfaces/IAdminService';
 import type { AdminAuditLogRecord, CreateAuditLogInput } from '../models/adminModels';
 import type { AdminLeaderboardEntryRecord } from '../models/leaderboardModels';
+import { AppError } from '../models/replayContracts';
 
 export class AdminService implements IAdminService {
   constructor(
@@ -14,37 +15,26 @@ export class AdminService implements IAdminService {
     return this.auditRepo.writeLog(input);
   }
 
+  private ensureModerationSucceeded(result: { success: boolean; found: boolean }): void {
+    if (!result.success) throw new AppError('Database service unavailable', 503);
+    if (!result.found) throw new AppError('LEADERBOARD_ENTRY_NOT_FOUND', 404);
+  }
+
   async hideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string }> {
-    try {
-      await this.leaderboardRepo.softHideEntry(id, reason);
-      // Sequentially coupled inside same try block: append audit log
-      await this.auditRepo.appendLogBestEffort({
-        actor: 'admin',
-        action: 'HIDE_LEADERBOARD_ENTRY',
-        target: id,
-        note: reason || 'Soft-hide by admin',
-        timestamp: Date.now()
-      });
-    } catch {
-      // Best-effort moderation: failure logged, still returns success message
-    }
+    const result = await this.leaderboardRepo.softHideEntry(id, reason);
+    this.ensureModerationSucceeded(result);
     return { success: true, message: 'Leaderboard entry hidden successfully' };
   }
 
+  async unhideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string }> {
+    const result = await this.leaderboardRepo.unhideEntry(id, reason);
+    this.ensureModerationSucceeded(result);
+    return { success: true, message: 'Leaderboard entry restored successfully' };
+  }
+
   async deleteLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string }> {
-    try {
-      await this.leaderboardRepo.deleteEntry(id, reason);
-      // Sequentially coupled inside same try block: append audit log
-      await this.auditRepo.appendLogBestEffort({
-        actor: 'admin',
-        action: 'DELETE_LEADERBOARD_ENTRY',
-        target: id,
-        note: reason || 'Permanently deleted by admin',
-        timestamp: Date.now()
-      });
-    } catch {
-      // Best-effort moderation: failure logged, still returns success message
-    }
+    const result = await this.leaderboardRepo.deleteEntry(id, reason);
+    this.ensureModerationSucceeded(result);
     return { success: true, message: 'Leaderboard entry deleted permanently' };
   }
 
