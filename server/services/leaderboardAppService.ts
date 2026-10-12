@@ -160,47 +160,46 @@ export class LeaderboardAppService implements ILeaderboardService {
 
     const isSpeed = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
     const aliasesByType: Record<string, string[]> = {
-      'visual-reaction': ['visual-reaction', 'reaction-test'],
-      direction: ['direction', 'direction-test'],
-      'color-recognition': ['color-recognition', 'colour-recognition', 'color-test'],
-      'block-memory': ['block-memory'],
-      'number-memory': ['number-memory']
+      'visual-reaction': ['visual-reaction', 'reaction-test', 'reaction', 'visual', 'visual-reaction-test'],
+      direction: ['direction', 'direction-test', 'direction-reflex'],
+      'color-recognition': ['color-recognition', 'colour-recognition', 'color-test', 'colour-test', 'color', 'colour', 'color-rec', 'colour-rec'],
+      'block-memory': ['block-memory', 'block-memory-test', 'block'],
+      'number-memory': ['number-memory', 'number-memory-test', 'number']
     };
     const aliases = aliasesByType[rawType];
     const entriesMap = new Map<string, LeaderboardEntryRecord>();
-    let successfulQueries = 0;
 
-    for (const alias of aliases) {
-      const aliasIsSpeed = alias === 'visual-reaction' || alias === 'direction' || alias === 'color-recognition' || alias === 'colour-recognition' || alias === 'color-test';
-      const aliasDirection: 'asc' | 'desc' = aliasIsSpeed ? 'asc' : 'desc';
-
+    // Query stored aliases in parallel. If any query fails, the caller gets a
+    // 503 rather than a partial board that differs between clients/instances.
+    const aliasQueries = await Promise.all(aliases.map(async alias => {
       try {
-        const records = await this.leaderboardRepo.getEntriesByAlias(alias, aliasDirection, 100);
-        successfulQueries++;
-        for (const record of records) {
-          const safeDisplayName = safeLeaderboardDisplayNameForRead(record.displayName);
-          if (
-            record.assessmentType === rawType &&
-            safeDisplayName !== null &&
-            isValidLeaderboardScoreMetric(rawType, record.scoreMetric) &&
-            !entriesMap.has(record.id)
-          ) {
-            entriesMap.set(record.id, {
-              ...record,
-              displayName: safeDisplayName
-            });
-          }
-        }
-      } catch (err: unknown) {
-        safeLogWarning('[Leaderboard API] Firestore query notice:', err);
-        // Resilient per-alias isolation: query error in one alias continues others
+        const records = await this.leaderboardRepo.getEntriesByAlias(alias, isSpeed ? 'asc' : 'desc', 100);
+        return { alias, records, error: null as unknown | null };
+      } catch (error: unknown) {
+        safeLogWarning('[Leaderboard API] Firestore query notice:', error);
+        return { alias, records: [] as LeaderboardEntryRecord[], error };
       }
+    }));
+
+    if (aliasQueries.some(query => query.error !== null)) {
+      throw new AppError('LEADERBOARD_UNAVAILABLE', 503);
     }
 
-    if (successfulQueries !== aliases.length) {
-      // Do not serve a partial board as though it were complete; clients on
-      // separate serverless instances must see a failure rather than different subsets.
-      throw new AppError('LEADERBOARD_UNAVAILABLE', 503);
+    for (const query of aliasQueries) {
+      for (const record of query.records) {
+        const safeDisplayName = safeLeaderboardDisplayNameForRead(record.displayName);
+        if (
+          record.assessmentType === rawType &&
+          safeDisplayName !== null &&
+          isValidLeaderboardScoreMetric(rawType, record.scoreMetric) &&
+          !entriesMap.has(record.id)
+        ) {
+          entriesMap.set(record.id, {
+            ...record,
+            displayName: safeDisplayName
+          });
+        }
+      }
     }
 
     const entries = Array.from(entriesMap.values());
