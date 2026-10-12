@@ -17,6 +17,6 @@ Collecting cognitive reaction times and working memory metrics involves handling
 - **Negative:** Longitudinal cross-device tracking requires anonymous session persistence on the local device.
 
 ## Evidence
-- [`security/retention.md`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/security/retention.md)
-- [`security/data-map.yaml`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/security/data-map.yaml)
-- [`src/lib/protocolValidators.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/protocolValidators.ts)
+- [`security/retention.md`](../../security/retention.md)
+- [`security/data-map.yaml`](../../security/data-map.yaml)
+- [`src/lib/protocolValidators.ts`](../../src/lib/protocolValidators.ts)
