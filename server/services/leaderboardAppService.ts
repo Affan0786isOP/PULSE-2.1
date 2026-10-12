@@ -11,8 +11,7 @@ import type { LeaderboardEntryRecord } from '../models/leaderboardModels';
 import type { ExperimentSessionRecord } from '../models/sessionModels';
 import { VALID_AGE_GROUPS, VALID_ASSESSMENT_TYPES } from '../config/constants';
 import { normalizeAssessmentType } from '../engines/assessmentTypes';
-import { validateAndDeriveAssessmentFromTrials } from '../engines/assessmentEngine';
-import { computeCanonicalTrialsDigest, signProvenancePayload } from './provenanceService';
+import { signProvenancePayload } from './provenanceService';
 import { isValidLeaderboardScoreMetric, safeLeaderboardDisplayNameForRead, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 import { safeLogWarning } from '../config/firebaseAdmin';
@@ -92,18 +91,16 @@ export class LeaderboardAppService implements ILeaderboardService {
     }
 
     const authoritativeAgeGroup = sData.ageGroup;
-    let metrics = sData.derivedMetrics;
-    let trialsDigest = sData.trialsDigest;
+    const metrics = sData.derivedMetrics;
+    const trialsDigest = sData.trialsDigest;
 
-    if (!metrics) {
-      const validation = validateAndDeriveAssessmentFromTrials(normalizedAssessmentType, authoritativeAgeGroup, trials as Record<string, unknown>[], sData);
-      if (!validation.success || !validation.derivedMetrics) {
-        throw new AppError(validation.error || 'Trial validation failed', 400);
-      }
-      metrics = validation.derivedMetrics;
-      trialsDigest = computeCanonicalTrialsDigest(trials as Record<string, unknown>[]);
-    } else if (!trialsDigest && Array.isArray(trials) && trials.length > 0) {
-      trialsDigest = computeCanonicalTrialsDigest(trials as Record<string, unknown>[]);
+    // A leaderboard opt-in must consume the result already validated and stored
+    // by the research submission path. Never re-derive metrics from client trials.
+    if (!metrics || typeof metrics !== 'object' || Object.keys(metrics).length === 0) {
+      throw new AppError('Completed assessment session has no server-stored metrics. Please retake the test.', 400);
+    }
+    if (typeof trialsDigest !== 'string' || !trialsDigest.trim()) {
+      throw new AppError('Completed assessment session is missing authoritative provenance. Please retake the test.', 400);
     }
 
     let scoreMetric = 0;
