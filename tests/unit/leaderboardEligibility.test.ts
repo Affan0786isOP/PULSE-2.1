@@ -1,10 +1,35 @@
 import { describe, expect, it } from 'vitest';
+import { normalizeAssessmentType } from '../../server/engines/assessmentTypes';
 import {
   isOptedInLeaderboardUser,
   isValidLeaderboardScoreMetric,
   normalizeLeaderboardAssessmentType,
   validateLeaderboardDisplayName,
 } from '../../shared/domain/leaderboardEligibility';
+
+describe('server assessment type normalization wrapper', () => {
+  it.each([
+    ['visual-reaction', 'visual-reaction'],
+    ['reaction-test', 'visual-reaction'],
+    ['direction', 'direction'],
+    ['direction-test', 'direction'],
+    ['color-recognition', 'color-recognition'],
+    ['color-test', 'color-recognition'],
+    ['block-memory', 'block-memory'],
+    ['number-memory', 'number-memory'],
+  ])('normalizes %s to %s', (input, expected) => {
+    expect(normalizeAssessmentType(input)).toBe(expected);
+  });
+
+  it('normalizes whitespace and underscores without corrupting canonical IDs', () => {
+    expect(normalizeAssessmentType(' visual_reaction ')).toBe('visual-reaction');
+    expect(normalizeAssessmentType('direction_test')).toBe('direction');
+  });
+
+  it('does not silently convert unknown types to Visual Reaction', () => {
+    expect(normalizeAssessmentType('made-up-test')).toBe('made-up-test');
+  });
+});
 
 describe('shared leaderboard assessment normalization', () => {
   it.each([
