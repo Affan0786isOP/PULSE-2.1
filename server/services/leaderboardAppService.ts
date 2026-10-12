@@ -146,6 +146,13 @@ export class LeaderboardAppService implements ILeaderboardService {
     const tokenData = `lb:${normalizedAssessmentType}:${authoritativeAgeGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest || ''}`;
     const provenanceToken = signProvenancePayload(tokenData);
 
+    const qualityFlags: string[] = [];
+    if (isSpeed && scoreMetric < 120) qualityFlags.push('EXTREME_SPEED_SCORE');
+    if (normalizedAssessmentType === 'block-memory' && scoreMetric > 25) qualityFlags.push('EXTREME_BLOCK_MEMORY_SCORE');
+    if (normalizedAssessmentType === 'number-memory' && scoreMetric > 30) qualityFlags.push('EXTREME_NUMBER_MEMORY_SCORE');
+    if (elapsedMs < minimumDurationMs[normalizedAssessmentType] * 1.5) qualityFlags.push('RAPID_COMPLETION');
+
+    const requiresModeration = qualityFlags.length > 0;
     const leaderboardDocId = crypto.randomUUID();
     const now = Date.now();
 
@@ -159,11 +166,13 @@ export class LeaderboardAppService implements ILeaderboardService {
       authoritativeAgeGroup,
       provenanceToken,
       trialsDigest: trialsDigest || '',
-      metrics: (metrics || {}) as Record<string, unknown>,
-      now
+      metrics: metrics as Record<string, unknown>,
+      now,
+      requiresModeration,
+      qualityFlags
     });
 
-    return result;
+    return { ...result, pendingReview: requiresModeration };
   }
 
   async getPublicLeaderboard(assessmentType?: string | null): Promise<LeaderboardEntryRecord[]> {
