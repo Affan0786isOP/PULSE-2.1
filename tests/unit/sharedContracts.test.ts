@@ -78,11 +78,11 @@ describe('Shared Contracts & Primitives', () => {
 
   it('supports minimal leaderboard query contract', () => {
     const query: LeaderboardQuery = {
-      assessmentId: 'direction',
+      assessmentType: 'direction',
       limit: 25,
     };
 
-    expect(query.assessmentId).toBe('direction');
+    expect(query.assessmentType).toBe('direction');
     expect(query.limit).toBe(25);
   });
 
