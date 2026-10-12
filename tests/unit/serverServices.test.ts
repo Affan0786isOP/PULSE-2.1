@@ -168,4 +168,115 @@ describe('Server Application Services Unit Tests', () => {
     await expect(failingService.getPublicLeaderboard('visual-reaction')).rejects.toMatchObject({ status: 503 });
   });
 
+  it('rejects an ineligible display name before reading or consuming a session', async () => {
+    const findById = vi.fn(async () => null);
+    const mockSessionRepo: ISessionRepository = {
+      findById,
+      create: vi.fn(async r => r as ExperimentSessionRecord),
+      findUserConsumedSessions: vi.fn(async () => [])
+    };
+    const executeLeaderboardSubmission = vi.fn(async () => ({
+      success: true as const,
+      docId: 'lb-never-written',
+      scoreMetric: 200,
+      provenanceToken: 'token',
+      trialsDigest: 'digest',
+      derivedMetrics: {}
+    }));
+    const mockLbRepo = { getEntriesByAlias: vi.fn(async () => []) } as unknown as ILeaderboardRepository;
+    const mockSubRepo: ILeaderboardSubmissionRepository = { executeLeaderboardSubmission };
+
+    const service = new LeaderboardAppService(mockSessionRepo, mockLbRepo, mockSubRepo);
+    await expect(service.submitLeaderboard({
+      sessionId: 'session-invalid-alias',
+      userId: 'user-1',
+      displayName: 'Guest',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      trials: []
+    })).rejects.toMatchObject({ status: 400 });
+
+    expect(findById).not.toHaveBeenCalled();
+    expect(executeLeaderboardSubmission).not.toHaveBeenCalled();
+  });
+
+  it('measures the opt-in window from session completion and expires it after 24 hours', async () => {
+    const completedAt = Date.now() - 60 * 60 * 1000;
+    const session: ExperimentSessionRecord = {
+      sessionId: 'session-completed',
+      uid: 'user-1',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      createdAt: completedAt - 60 * 60 * 1000,
+      expiresAt: completedAt - 30 * 60 * 1000,
+      consumed: true,
+      consumedAt: completedAt,
+      derivedMetrics: { averageReactionTime: 200 },
+      trialsDigest: 'digest',
+      leaderboardSubmitted: false
+    };
+    const findById = vi.fn(async () => session);
+    const mockSessionRepo: ISessionRepository = {
+      findById,
+      create: vi.fn(async r => r as ExperimentSessionRecord),
+      findUserConsumedSessions: vi.fn(async () => [])
+    };
+    const executeLeaderboardSubmission = vi.fn(async () => ({
+      success: true as const,
+      docId: 'lb-completed',
+      scoreMetric: 200,
+      provenanceToken: 'token',
+      trialsDigest: 'digest',
+      derivedMetrics: { averageReactionTime: 200 }
+    }));
+    const mockLbRepo = { getEntriesByAlias: vi.fn(async () => []) } as unknown as ILeaderboardRepository;
+    const mockSubRepo: ILeaderboardSubmissionRepository = { executeLeaderboardSubmission };
+    const service = new LeaderboardAppService(mockSessionRepo, mockLbRepo, mockSubRepo);
+
+    await expect(service.submitLeaderboard({
+      sessionId: session.sessionId,
+      userId: session.uid,
+      displayName: 'Alice',
+      assessmentType: 'visual-reaction',
+      ageGroup: session.ageGroup,
+      trials: []
+    })).resolves.toMatchObject({ docId: 'lb-completed', scoreMetric: 200 });
+    expect(executeLeaderboardSubmission).toHaveBeenCalledTimes(1);
+
+    const expiredSession: ExperimentSessionRecord = {
+      ...session,
+      sessionId: 'session-expired-opt-in',
+      consumedAt: Date.now() - 25 * 60 * 60 * 1000
+    };
+    const expiredFindById = vi.fn(async () => expiredSession);
+    const expiredSessionRepo: ISessionRepository = {
+      findById: expiredFindById,
+      create: vi.fn(async r => r as ExperimentSessionRecord),
+      findUserConsumedSessions: vi.fn(async () => [])
+    };
+    const neverSubmit = vi.fn(async () => ({
+      success: true as const,
+      docId: 'should-not-write',
+      scoreMetric: 200,
+      provenanceToken: 'token',
+      trialsDigest: 'digest',
+      derivedMetrics: {}
+    }));
+    const expiredService = new LeaderboardAppService(
+      expiredSessionRepo,
+      mockLbRepo,
+      { executeLeaderboardSubmission: neverSubmit }
+    );
+
+    await expect(expiredService.submitLeaderboard({
+      sessionId: expiredSession.sessionId,
+      userId: expiredSession.uid,
+      displayName: 'Alice',
+      assessmentType: 'visual-reaction',
+      ageGroup: expiredSession.ageGroup,
+      trials: []
+    })).rejects.toMatchObject({ status: 400 });
+    expect(neverSubmit).not.toHaveBeenCalled();
+  });
+
 });
