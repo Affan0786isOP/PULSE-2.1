@@ -39,7 +39,7 @@ const CONFUSABLE_CHARACTERS: Record<string, string> = {
   'т': 't', 'τ': 't',
   'в': 'b', 'β': 'b',
   'н': 'h', 'η': 'h',
-  'ј': 'j',
+  'ј': 'j', 'һ': 'h',
   'ѕ': 's',
   '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't'
 };
@@ -50,7 +50,7 @@ function normalizeAliasForSafetyCheck(value: string): string {
     .normalize('NFKD')
     .replace(/\p{M}/gu, '')
     .toLocaleLowerCase('en-US')
-    .replace(/[аαеεіιıоοрρсϲхχуυкκмтτвβнηјѕ013457]/gu, char => CONFUSABLE_CHARACTERS[char] || char);
+    .replace(/[аαеεіιıоοрρсϲхχуυкκмтτвβнηјһѕ013457]/gu, char => CONFUSABLE_CHARACTERS[char] || char);
 }
 
 /**
