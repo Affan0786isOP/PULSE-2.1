@@ -1,7 +1,7 @@
 import type express from 'express';
 import type { Express } from 'express';
 import { verifyFirebaseUserToken } from '../middleware/auth';
-import { safeCompareHex, signProvenancePayload } from '../services/provenanceService';
+
 import type { ILeaderboardService } from '../services/interfaces/ILeaderboardService';
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 
@@ -111,16 +111,26 @@ export function registerLeaderboardRoutes(
     }
   });
 
-  // Verification helper for audits
-  app.post('/api/leaderboard/verify-provenance', (req, res) => {
-    const { assessmentType, ageGroup, scoreMetric, displayName, trialsDigest, provenanceToken } = req.body || {};
-    if (!provenanceToken || typeof provenanceToken !== 'string' || typeof scoreMetric !== 'number') {
-      return res.json({ verified: false, reason: 'Missing parameters' });
+  // Verification is bound to a real stored row and its current visibility.
+  app.post('/api/leaderboard/verify-provenance', async (req, res) => {
+    const entryId = typeof req.body?.entryId === 'string' ? req.body.entryId.trim() : '';
+    if (!entryId) {
+      return res.status(400).json({ verified: false, reason: 'entryId is required' });
     }
-    const sanitizedDisplayName = (displayName || '').trim().replace(/:/g, '_');
-    const tokenData = `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest || ''}`;
-    const expected = signProvenancePayload(tokenData);
-    return res.json({ verified: safeCompareHex(expected, provenanceToken) });
+    try {
+      if (!services.leaderboardService.verifyPublicEntryProvenance) {
+        return res.status(503).json({ verified: false, reason: 'Provenance verification is unavailable' });
+      }
+      const result = await services.leaderboardService.verifyPublicEntryProvenance(entryId);
+      return res.json(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof AppError ? err.status : (message === 'DATABASE_UNAVAILABLE' ? 503 : 500);
+      return res.status(status).json({
+        verified: false,
+        reason: status === 400 ? message : status === 503 ? 'Provenance verification is unavailable' : 'Failed to verify leaderboard provenance'
+      });
+    }
   });
 
   // Public Leaderboard Retrieval Endpoint
