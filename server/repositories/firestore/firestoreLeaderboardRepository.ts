@@ -137,6 +137,39 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     } as AdminLeaderboardEntryRecord;
   }
 
+  async getEntriesByOwner(ownerUid: string, assessmentType: string): Promise<AdminLeaderboardEntryRecord[]> {
+    const db = this.getDb();
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
+    const snap = await db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get();
+    return snap.docs
+      .filter(doc => normalizeAssessmentType(String(doc.data().assessmentType || '')) === assessmentType)
+      .map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
+        } as AdminLeaderboardEntryRecord;
+      });
+  }
+
+  async deleteEntriesByOwner(ownerUid: string, assessmentType: string): Promise<number> {
+    const db = this.getDb();
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
+    const snap = await db.collection('leaderboardResults').where('ownerUid', '==', ownerUid).get();
+    const matching = snap.docs.filter(doc =>
+      normalizeAssessmentType(String(doc.data().assessmentType || '')) === assessmentType
+    );
+
+    // Firestore write batches are limited to 500 operations; stay below that.
+    for (let offset = 0; offset < matching.length; offset += 400) {
+      const batch = db.batch();
+      for (const doc of matching.slice(offset, offset + 400)) batch.delete(doc.ref);
+      await batch.commit();
+    }
+    return matching.length;
+  }
+
   async softHideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }> {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
