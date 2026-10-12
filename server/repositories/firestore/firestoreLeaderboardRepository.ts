@@ -2,7 +2,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import type { ILeaderboardRepository } from '../interfaces/ILeaderboardRepository';
 import type { LeaderboardEntryRecord, AdminLeaderboardEntryRecord } from '../../models/leaderboardModels';
 import { normalizeAssessmentType } from '../../engines/assessmentTypes';
-import { isOptedInLeaderboardUser } from '../../../shared/domain/leaderboardEligibility';
+import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric } from '../../../shared/domain/leaderboardEligibility';
 
 export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
@@ -26,12 +26,18 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
       const displayName = String(data?.displayName || '').trim();
       const docType = normalizeAssessmentType(String(data?.assessmentType || alias));
 
-      if (data && data.hidden !== true && isOptedInLeaderboardUser(displayName)) {
+      const scoreMetric = data && typeof data.scoreMetric === 'number' ? data.scoreMetric : Number.NaN;
+      if (
+        data &&
+        data.hidden !== true &&
+        isOptedInLeaderboardUser(displayName) &&
+        isValidLeaderboardScoreMetric(docType, scoreMetric)
+      ) {
         records.push({
           id: docSnap.id,
           displayName,
           assessmentType: docType,
-          scoreMetric: Number(data.scoreMetric) || 0,
+          scoreMetric,
           ageGroup: String(data.ageGroup || ''),
           createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || Date.now()),
           provenanceToken: String(data.provenanceToken || ''),

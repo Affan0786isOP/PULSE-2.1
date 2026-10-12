@@ -14,7 +14,7 @@ import { normalizeAssessmentType } from '../engines/assessmentTypes';
 import { validateAndDeriveAssessmentFromTrials } from '../engines/assessmentEngine';
 import { computeCanonicalTrialsDigest, signProvenancePayload } from './provenanceService';
 import { isValidLeaderboardScoreMetric } from './leaderboardService';
-import { isOptedInLeaderboardUser } from '../../shared/domain/leaderboardEligibility';
+import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 import { getIdempotency, setIdempotency } from './idempotencyService';
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 import { safeLogWarning } from '../config/firebaseAdmin';
@@ -36,9 +36,11 @@ export class LeaderboardAppService implements ILeaderboardService {
       }
     }
 
-    if (!displayName || typeof displayName !== 'string' || !displayName.trim() || [...displayName.trim()].length > 30) {
-      throw new AppError('Invalid displayName (1-30 characters required)', 400);
+    const aliasValidation = validateLeaderboardDisplayName(displayName);
+    if (!aliasValidation.valid || !aliasValidation.normalized) {
+      throw new AppError(aliasValidation.error || 'Invalid displayName', 400);
     }
+    const normalizedDisplayName = aliasValidation.normalized;
 
     const normalizedAssessmentType = normalizeAssessmentType(assessmentType);
     if (!normalizedAssessmentType || !VALID_ASSESSMENT_TYPES.includes(normalizedAssessmentType)) {
@@ -124,7 +126,7 @@ export class LeaderboardAppService implements ILeaderboardService {
       throw new AppError('Invalid or non-finite score metric for assessment type', 400);
     }
 
-    const sanitizedDisplayName = displayName.trim().replace(/:/g, '_');
+    const sanitizedDisplayName = normalizedDisplayName.replace(/:/g, '_');
     const tokenData = `lb:${normalizedAssessmentType}:${authoritativeAgeGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest || ''}`;
     const provenanceToken = signProvenancePayload(tokenData);
 
@@ -135,7 +137,7 @@ export class LeaderboardAppService implements ILeaderboardService {
       leaderboardDocId,
       activeSessionId: sessionId,
       userId,
-      displayName: displayName.trim(),
+      displayName: normalizedDisplayName,
       assessmentType: normalizedAssessmentType,
       scoreMetric,
       authoritativeAgeGroup,
@@ -153,14 +155,27 @@ export class LeaderboardAppService implements ILeaderboardService {
   }
 
   async getPublicLeaderboard(assessmentType?: string | null): Promise<LeaderboardEntryRecord[]> {
-    const rawType = assessmentType ? normalizeAssessmentType(assessmentType) : null;
-    const isSpeed = !rawType || rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
+    const providedType = typeof assessmentType === 'string' ? assessmentType.trim() : '';
+    if (!providedType) {
+      throw new AppError('assessmentType query parameter is required', 400);
+    }
 
-    const aliases = rawType
-      ? (rawType === 'color-recognition' ? ['color-recognition', 'colour-recognition', 'color-test'] : [rawType])
-      : ['visual-reaction', 'direction', 'color-recognition', 'block-memory', 'number-memory'];
+    const rawType = normalizeAssessmentType(providedType);
+    if (!VALID_ASSESSMENT_TYPES.includes(rawType)) {
+      throw new AppError('Unknown assessmentType', 400);
+    }
 
+    const isSpeed = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
+    const aliasesByType: Record<string, string[]> = {
+      'visual-reaction': ['visual-reaction', 'reaction-test'],
+      direction: ['direction', 'direction-test'],
+      'color-recognition': ['color-recognition', 'colour-recognition', 'color-test'],
+      'block-memory': ['block-memory'],
+      'number-memory': ['number-memory']
+    };
+    const aliases = aliasesByType[rawType];
     const entriesMap = new Map<string, LeaderboardEntryRecord>();
+    let successfulQueries = 0;
 
     for (const alias of aliases) {
       const aliasIsSpeed = alias === 'visual-reaction' || alias === 'direction' || alias === 'color-recognition' || alias === 'colour-recognition' || alias === 'color-test';
@@ -168,8 +183,14 @@ export class LeaderboardAppService implements ILeaderboardService {
 
       try {
         const records = await this.leaderboardRepo.getEntriesByAlias(alias, aliasDirection, 100);
+        successfulQueries++;
         for (const record of records) {
-          if (!entriesMap.has(record.id)) {
+          if (
+            record.assessmentType === rawType &&
+            isOptedInLeaderboardUser(record.displayName) &&
+            isValidLeaderboardScoreMetric(rawType, record.scoreMetric) &&
+            !entriesMap.has(record.id)
+          ) {
             entriesMap.set(record.id, record);
           }
         }
@@ -177,6 +198,10 @@ export class LeaderboardAppService implements ILeaderboardService {
         safeLogWarning('[Leaderboard API] Firestore query notice:', err);
         // Resilient per-alias isolation: query error in one alias continues others
       }
+    }
+
+    if (successfulQueries === 0) {
+      throw new AppError('LEADERBOARD_UNAVAILABLE', 503);
     }
 
     const entries = Array.from(entriesMap.values());

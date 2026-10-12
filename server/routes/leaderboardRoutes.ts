@@ -82,7 +82,7 @@ export function registerLeaderboardRoutes(
         const errStatus = submitErr instanceof AppError ? submitErr.status : undefined;
 
         if (errMsg === 'DATABASE_UNAVAILABLE') {
-          return res.status(404).json({ success: false, error: 'Experiment session not found' });
+          return res.status(503).json({ success: false, error: 'Database service unavailable' });
         }
         if (errMsg === 'Failed to read experiment session from database') {
           return res.status(500).json({ success: false, error: errMsg });
@@ -112,27 +112,21 @@ export function registerLeaderboardRoutes(
 
   // Public Leaderboard Retrieval Endpoint
   app.get('/api/leaderboard', async (req, res) => {
-    try {
-      const rawType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : null;
+    const rawType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : '';
+    if (!rawType) {
+      return res.status(400).json({ success: false, error: 'assessmentType query parameter is required', entries: [] });
+    }
 
-      try {
-        const entries = await services.leaderboardService.getPublicLeaderboard(rawType);
-        return res.json({
-          success: true,
-          entries
-        });
-      } catch {
-        return res.json({
-          success: true,
-          entries: []
-        });
-      }
-    } catch {
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to retrieve leaderboard',
-        entries: []
-      });
+    try {
+      const entries = await services.leaderboardService.getPublicLeaderboard(rawType);
+      return res.json({ success: true, entries });
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      const status = err instanceof AppError ? err.status : (errMsg === 'DATABASE_UNAVAILABLE' ? 503 : 500);
+      const error = status === 400 ? errMsg :
+        status === 503 ? 'Leaderboard service unavailable. Please retry.' :
+        'Failed to retrieve leaderboard';
+      return res.status(status).json({ success: false, error, entries: [] });
     }
   });
 }
