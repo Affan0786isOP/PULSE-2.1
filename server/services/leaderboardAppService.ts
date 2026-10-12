@@ -18,8 +18,6 @@ import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayCont
 import { safeLogWarning } from '../config/firebaseAdmin';
 
 export class LeaderboardAppService implements ILeaderboardService {
-  private readonly publicLeaderboardCache = new Map<string, { expiresAt: number; entries: LeaderboardEntryRecord[] }>();
-
   constructor(
     private readonly sessionRepo: ISessionRepository,
     private readonly leaderboardRepo: ILeaderboardRepository,
@@ -160,10 +158,6 @@ export class LeaderboardAppService implements ILeaderboardService {
       throw new AppError('Unknown assessmentType', 400);
     }
 
-    const cached = this.publicLeaderboardCache.get(rawType);
-    if (cached && cached.expiresAt > Date.now()) return cached.entries;
-    this.publicLeaderboardCache.delete(rawType);
-
     const isSpeed = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
     const aliasesByType: Record<string, string[]> = {
       'visual-reaction': ['visual-reaction', 'reaction-test'],
@@ -203,7 +197,9 @@ export class LeaderboardAppService implements ILeaderboardService {
       }
     }
 
-    if (successfulQueries === 0) {
+    if (successfulQueries !== aliases.length) {
+      // Do not serve a partial board as though it were complete; clients on
+      // separate serverless instances must see a failure rather than different subsets.
       throw new AppError('LEADERBOARD_UNAVAILABLE', 503);
     }
 
@@ -220,10 +216,8 @@ export class LeaderboardAppService implements ILeaderboardService {
       return a.id.localeCompare(b.id);
     });
 
-    const publicEntries = entries.slice(0, 100);
-    // Very short-lived, instance-local cache to reduce repeated reads during rapid tab switching.
-    // The Firestore repositories remain authoritative and hidden results expire from cache quickly.
-    this.publicLeaderboardCache.set(rawType, { expiresAt: Date.now() + 5000, entries: publicEntries });
-    return publicEntries;
+    // Keep the response authoritative and uncached at this layer; Vercel may route
+    // consecutive requests to different serverless instances.
+    return entries.slice(0, 100);
   }
 }
