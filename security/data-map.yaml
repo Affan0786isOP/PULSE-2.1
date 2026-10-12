@@ -207,8 +207,8 @@ entities:
     writers:
       - "Server Authoritative Backend only"
     retention:
-      period: "2 years"
-      deletion_trigger: "User request or administrator moderation action"
+      period: "Not automatically enforced in the reviewed repository"
+      deletion_trigger: "Administrator hide/delete; no automated TTL or participant request workflow found"
     lawful_basis: "Explicit Consent (Voluntary Leaderboard Opt-In)"
 
   - collection: "adminAuditLogs"

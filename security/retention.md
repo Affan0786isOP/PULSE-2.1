@@ -19,7 +19,7 @@ This document defines the statutory retention schedules, automated purge trigger
 | **`assessmentTrials`** | Granular millisecond reaction telemetry | **5 years** | Scientific replication retention; purged upon verified participant erasure request. |
 | **`assessmentResults`** | Longitudinal assessment score summaries | **5 years** | Longitudinal cognitive cohort baselining; purged upon verified participant erasure request. |
 | **`publicDataset`** | Anonymized open research benchmark data | **Indefinite** | Anonymized scientific open archive (contains zero UIDs, zero IPs, zero device identifiers). |
-| **`leaderboardResults`** | Voluntary opted-in public rank records | **2 years** | Competition cycle refresh or user-requested removal/moderation action. |
+| **`leaderboardResults`** | Voluntary opted-in public rank records | **No automated expiry configured in the reviewed repository** | Records persist until an administrator hides/deletes them or a separately implemented removal process is run. A 2-year target is not enforced by code found in this review. |
 | **`adminAuditLogs`** | Immutable moderation & administrative trail | **7 years** | Statutory security and compliance audit logging requirements. |
 
 ---
@@ -33,4 +33,4 @@ This document defines the statutory retention schedules, automated purge trigger
 
 ## 4. Participant Deletion Procedures (Right to Erasure)
 - **Execution Window:** In accordance with GDPR Art. 17 and RCW 19.373, verified erasure requests are executed across active databases and backup systems within **45 calendar days**.
-- **Mechanism:** Since participants possess anonymous UIDs (`request.auth.uid`), an authenticated erasure request deletes linked `assessmentTrials` and `assessmentResults` matching that UID, and flags any corresponding `leaderboardResults` doc for immediate purge.
+- **Mechanism:** The reviewed repository does not expose a participant-facing, verified erasure-request workflow. Do not treat the retention periods in this document as automated guarantees unless an external retention/erasure service is configured and verified. Leaderboard records can be hidden or deleted through the admin API; research-record erasure procedures require an independently verified operational workflow.

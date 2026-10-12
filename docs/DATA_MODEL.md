@@ -12,7 +12,7 @@ This document defines the data structures, Firestore collections, TypeScript typ
 | **`assessmentTrials`** | Granular millisecond-level trial telemetry | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
 | **`assessmentResults`** | Aggregated assessment outcome summaries | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
 | **`publicDataset`** | Anonymized open research benchmark records | Authenticated Users (`auth != null`) | Server Backend Only | **Indefinite** (Open science) |
-| **`leaderboardResults`** | Voluntary opted-in public rank records | Public (`hidden == false`) | Server Backend Only | **2 years** (or user removal) |
+| **`leaderboardResults`** | Voluntary opted-in public rank records | Public (`hidden == false`) | Server Backend Only | **Not automatically enforced**; no TTL/deletion job was found in the reviewed repository. Admins can hide/delete records. |
 | **`adminAuditLogs`** | Immutable administrator moderation log | Server Admin Only (Client read denied) | Server Backend Only | **7 years** (Statutory audit) |
 
 ---
