@@ -84,6 +84,44 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     });
   }
 
+  async getAllEntriesForAdminPage(limitCount: number, cursor?: string | null): Promise<{
+    entries: AdminLeaderboardEntryRecord[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  }> {
+    const db = this.getDb();
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
+
+    const safeLimit = Number.isInteger(limitCount) ? Math.max(1, Math.min(limitCount, 250)) : 100;
+    const collection = db.collection('leaderboardResults');
+    let query = collection.orderBy('createdAt', 'desc');
+
+    if (cursor) {
+      if (cursor.includes('/') || cursor.length > 1500) throw new Error('INVALID_CURSOR');
+      const cursorSnap = await collection.doc(cursor).get();
+      if (!cursorSnap.exists || cursorSnap.get('createdAt') === undefined) throw new Error('INVALID_CURSOR');
+      query = query.startAfter(cursorSnap);
+    }
+
+    const snap = await query.limit(safeLimit + 1).get();
+    const hasMore = snap.docs.length > safeLimit;
+    const pageDocs = snap.docs.slice(0, safeLimit);
+    const entries = pageDocs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
+      } as AdminLeaderboardEntryRecord;
+    });
+
+    return {
+      entries,
+      hasMore,
+      nextCursor: hasMore && pageDocs.length ? pageDocs[pageDocs.length - 1].id : null
+    };
+  }
+
   async softHideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }> {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
