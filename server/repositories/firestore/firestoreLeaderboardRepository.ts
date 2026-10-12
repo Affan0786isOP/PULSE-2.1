@@ -14,39 +14,55 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
       throw new Error('DATABASE_UNAVAILABLE');
     }
 
-    const snap = await db.collection('leaderboardResults')
-      .where('assessmentType', '==', alias)
-      .where('hidden', '==', false)
-      .orderBy('scoreMetric', direction)
-      .limit(limitCount)
-      .get();
-
+    const safeLimit = Number.isInteger(limitCount) ? Math.max(1, Math.min(limitCount, 500)) : 100;
+    const pageSize = Math.min(Math.max(safeLimit, 100), 250);
     const records: LeaderboardEntryRecord[] = [];
-    snap.docs.forEach(docSnap => {
-      const data = docSnap.data();
-      const displayName = String(data?.displayName || '').trim();
-      const safeDisplayName = safeLeaderboardDisplayNameForRead(displayName);
-      const docType = normalizeAssessmentType(String(data?.assessmentType || alias));
+    let cursor: any = undefined;
 
-      const scoreMetric = data && typeof data.scoreMetric === 'number' ? data.scoreMetric : Number.NaN;
-      if (
-        data &&
-        data.hidden !== true &&
-        safeDisplayName !== null &&
-        isValidLeaderboardScoreMetric(docType, scoreMetric)
-      ) {
-        records.push({
-          id: docSnap.id,
-          displayName: safeDisplayName,
-          assessmentType: docType,
-          scoreMetric,
-          ageGroup: String(data.ageGroup || ''),
-          createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || Date.now()),
-          provenanceToken: String(data.provenanceToken || ''),
-          hidden: false
-        });
+    // Continue past invalid names/scores until the requested number of eligible
+    // entries is collected or the alias query is exhausted.
+    while (records.length < safeLimit) {
+      let query = db.collection('leaderboardResults')
+        .where('assessmentType', '==', alias)
+        .where('hidden', '==', false)
+        .orderBy('scoreMetric', direction)
+        .limit(pageSize);
+
+      if (cursor) query = query.startAfter(cursor);
+      const snap = await query.get();
+      if (snap.empty) break;
+      cursor = snap.docs[snap.docs.length - 1];
+
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data();
+        const displayName = String(data?.displayName || '').trim();
+        const safeDisplayName = safeLeaderboardDisplayNameForRead(displayName);
+        const docType = normalizeAssessmentType(String(data?.assessmentType || alias));
+        const scoreMetric = data && typeof data.scoreMetric === 'number' ? data.scoreMetric : Number.NaN;
+
+        if (
+          data &&
+          data.hidden !== true &&
+          safeDisplayName !== null &&
+          isValidLeaderboardScoreMetric(docType, scoreMetric)
+        ) {
+          records.push({
+            id: docSnap.id,
+            displayName: safeDisplayName,
+            assessmentType: docType,
+            scoreMetric,
+            ageGroup: String(data.ageGroup || ''),
+            // A deterministic fallback prevents ties from moving between reads.
+            createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0),
+            provenanceToken: String(data.provenanceToken || ''),
+            hidden: false
+          });
+          if (records.length >= safeLimit) break;
+        }
       }
-    });
+
+      if (snap.size < pageSize) break;
+    }
 
     return records;
   }
@@ -63,7 +79,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
       return {
         id: d.id,
         ...data,
-        createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || Date.now())
+        createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
       };
     });
   }
