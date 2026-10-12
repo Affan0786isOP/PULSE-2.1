@@ -29,7 +29,7 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
     // This deterministic index doc serializes concurrent submissions from the
     // same participant and assessment, even when the owner has no row yet.
     const ownerIndexId = crypto.createHash('sha256')
-      .update(`${input.userId}: ${input.assessmentType}`)
+      .update(`${input.userId}:${input.assessmentType}`)
       .digest('hex');
     const ownerIndexRef = db.collection('leaderboardOwnerIndex').doc(ownerIndexId);
 
@@ -69,7 +69,10 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
 
       // A transactional read makes concurrent first submissions for this same
       // participant/assessment conflict and retry, preventing duplicate rows.
-      await tx.get(ownerIndexRef);
+      const ownerIndexSnap = await tx.get(ownerIndexRef);
+      if (ownerIndexSnap.data()?.deleting === true) {
+        throw new AppError('Participant leaderboard erasure is in progress. Please retry later.', 409);
+      }
 
       // Query only the submitting user's rows. The owner field is private and is
       // deliberately excluded from the public LeaderboardEntryRecord/API shape.
