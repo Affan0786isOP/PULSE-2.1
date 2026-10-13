@@ -45,6 +45,10 @@ export class LeaderboardAppService implements ILeaderboardService {
     const sessions = await this.sessionRepo.findUserConsumedSessions(userId, assessmentType);
     for (const session of sessions) {
       if (!session.leaderboardDocId) continue;
+      // A weaker/tied submission points at the retained best row, not a row
+      // created by this session. Do not let legacy ownership backfill rewrite
+      // the original best entry's source session using that pointer.
+      if (session.leaderboardSubmissionId && session.leaderboardSubmissionId !== session.leaderboardDocId) continue;
       await this.leaderboardRepo.linkOwnerToEntry(session.leaderboardDocId, userId, session.sessionId);
     }
   }
