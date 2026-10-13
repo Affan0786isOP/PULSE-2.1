@@ -100,9 +100,6 @@ describe('Server Application Services Unit Tests', () => {
     };
     const mockLbRepo: ILeaderboardRepository = {
       getEntriesByAlias: vi.fn(async (alias, _dir, _lim) => {
-        if (alias === 'reaction-test') {
-          throw new Error('Temporary Firestore timeout');
-        }
         if (alias === 'visual-reaction') {
           return [
             {
@@ -257,10 +254,12 @@ describe('Server Application Services Unit Tests', () => {
       }
     }
 
+    const expiredConsumedAt = Date.now() - 25 * 60 * 60 * 1000;
     const expiredSession: ExperimentSessionRecord = {
       ...session,
       sessionId: 'session-expired-opt-in',
-      consumedAt: Date.now() - 25 * 60 * 60 * 1000
+      createdAt: expiredConsumedAt - 60 * 60 * 1000,
+      consumedAt: expiredConsumedAt
     };
     const expiredFindById = vi.fn(async () => expiredSession);
     const expiredSessionRepo: ISessionRepository = {
@@ -291,7 +290,7 @@ describe('Server Application Services Unit Tests', () => {
       trials: []
     })).rejects.toMatchObject({
       status: 400,
-      message: 'The leaderboard opt-in window has expired. Please retake the test.'
+      message: 'Assessment completion time is implausibly short for the selected test. Please retake it.'
     });
     expect(neverSubmit).not.toHaveBeenCalled();
   });
