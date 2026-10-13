@@ -11,7 +11,10 @@ export interface SubmitLeaderboardInput {
 }
 
 export interface SubmitLeaderboardResult {
+  /** ID for this submitted attempt, even when the prior best stays on the public board. */
   docId: string;
+  /** Current public-best entry ID; differs from docId when this attempt does not replace it. */
+  leaderboardDocId?: string;
   scoreMetric: number;
   provenanceToken: string;
   trialsDigest: string;
