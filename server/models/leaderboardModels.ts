@@ -43,7 +43,10 @@ export interface LeaderboardSubmissionTxInput {
 
 export interface LeaderboardSubmissionTxResult {
   success: true;
+  /** ID for this submitted attempt, whether or not it replaces the public best row. */
   docId: string;
+  /** ID of the row retained on the public leaderboard (may belong to an earlier session). */
+  leaderboardDocId?: string;
   scoreMetric: number;
   provenanceToken: string;
   trialsDigest: string;
