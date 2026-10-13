@@ -134,14 +134,11 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
           });
           responseDocId = input.leaderboardDocId;
         } else {
-          // Same idempotency key, worse score, or tie: preserve the best existing record.
+          // Same idempotency key, worse score, or tie: retain the existing public-best
+          // row, but keep the returned result bound to this submission attempt.
+          // Its score, digest, token and metrics must never replace this session's
+          // authoritative research result.
           responseDocId = bestExisting.id;
-          responseScore = existingScore;
-          responseToken = String(existingData.provenanceToken || '');
-          responseDigest = String(existingData.trialsDigest || '');
-          responseMetrics = (existingData.derivedMetrics && typeof existingData.derivedMetrics === 'object')
-            ? existingData.derivedMetrics as Record<string, unknown>
-            : {};
           responsePendingReview = existingData.hidden === true;
         }
       }
@@ -150,10 +147,14 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
         leaderboardSubmitted: true,
         leaderboardDocId: responseDocId,
         leaderboardSubmittedAt: input.now,
-        scoreMetric: responseScore,
-        trialsDigest: responseDigest,
-        provenanceToken: responseToken,
-        derivedMetrics: responseMetrics
+        // Preserve the source research fields (scoreMetric, trialsDigest,
+        // provenanceToken and derivedMetrics). Leaderboard data is namespaced
+        // separately so opting in cannot corrupt the assessment result.
+        leaderboardSubmissionId: input.leaderboardDocId,
+        leaderboardSubmissionScoreMetric: input.scoreMetric,
+        leaderboardSubmissionProvenanceToken: input.provenanceToken,
+        leaderboardSubmissionTrialsDigest: input.trialsDigest || '',
+        leaderboardSubmissionDerivedMetrics: input.metrics
       }, { merge: true });
 
       tx.set(ownerIndexRef, {
@@ -165,11 +166,14 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
 
       result = {
         success: true,
-        docId: responseDocId,
-        scoreMetric: responseScore,
-        provenanceToken: responseToken,
-        trialsDigest: responseDigest,
-        derivedMetrics: responseMetrics,
+        // These fields describe the current submitted attempt, not the retained
+        // public-best row from an earlier session.
+        docId: input.leaderboardDocId,
+        leaderboardDocId: responseDocId,
+        scoreMetric: input.scoreMetric,
+        provenanceToken: input.provenanceToken,
+        trialsDigest: input.trialsDigest || '',
+        derivedMetrics: input.metrics,
         pendingReview: responsePendingReview
       };
     });
