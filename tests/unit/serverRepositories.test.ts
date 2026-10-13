@@ -53,6 +53,9 @@ function createMockDb(): Firestore {
             limit(_n: number) {
               return this;
             },
+            startAfter(_cursor: unknown) {
+              return this;
+            },
             async get() {
               const matched: { id: string; data: () => Record<string, unknown> }[] = [];
               for (const [id, data] of col.entries()) {
