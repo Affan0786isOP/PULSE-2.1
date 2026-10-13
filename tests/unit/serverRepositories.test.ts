@@ -3,6 +3,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import { FirestoreSessionRepository } from '../../server/repositories/firestore/firestoreSessionRepository';
 import { FirestoreResearchDatasetRepository } from '../../server/repositories/firestore/firestoreResearchDatasetRepository';
 import { FirestoreLeaderboardRepository } from '../../server/repositories/firestore/firestoreLeaderboardRepository';
+import { FirestoreLeaderboardSubmissionRepository } from '../../server/repositories/firestore/firestoreLeaderboardSubmissionRepository';
 import { FirestoreAdminAuditRepository } from '../../server/repositories/firestore/firestoreAdminAuditRepository';
 
 // Mock in-memory Firestore double for unit testing repositories
@@ -29,8 +30,10 @@ function createMockDb(): Firestore {
                 data: () => (data ? JSON.parse(JSON.stringify(data)) : undefined)
               };
             },
-            async set(data: Record<string, unknown>) {
-              col.set(id, JSON.parse(JSON.stringify(data)));
+            async set(data: Record<string, unknown>, options?: { merge?: boolean }) {
+              const incoming = JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
+              const previous = col.get(id);
+              col.set(id, options?.merge && previous ? { ...previous, ...incoming } : incoming);
             },
             async update(data: Record<string, unknown>) {
               const existing = col.get(id);
@@ -120,6 +123,7 @@ function createMockDb(): Firestore {
 
               const docs = matchingRows.slice(0, maxResults).map(([id, data]) => ({
                 id,
+                ref: db.collection(name).doc(id),
                 data: () => JSON.parse(JSON.stringify(data)) as Record<string, unknown>
               }));
               return { docs, size: docs.length, empty: docs.length === 0 };
@@ -348,4 +352,102 @@ describe('Firestore Repositories Unit Tests', () => {
     expect(logs.length).toBe(1);
     expect(logs[0].target).toBe('user-bad');
   });
+  it('keeps a worse leaderboard attempt separate from the existing best and the research session result', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardSubmissionRepository(() => mockDb);
+
+    const originalResearchMetrics = { averageReactionTime: 240, trialCount: 20 };
+    await mockDb.collection('experimentSessions').doc('sess-worse-score').set({
+      sessionId: 'sess-worse-score',
+      uid: 'user-worse-score',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      createdAt: 1700000000000,
+      expiresAt: 1700000900000,
+      consumed: true,
+      consumedAt: 1700000060000,
+      researchDocId: 'research-current',
+      scoreMetric: 240,
+      derivedMetrics: originalResearchMetrics,
+      trialsDigest: 'research-current-digest',
+      provenanceToken: 'research-current-token',
+      leaderboardSubmitted: false
+    });
+
+    await mockDb.collection('leaderboardResults').doc('leaderboard-existing-best').set({
+      displayName: 'Earlier Best',
+      assessmentType: 'visual-reaction',
+      scoreMetric: 180,
+      ageGroup: 'Young adults (18–25)',
+      provenanceToken: 'leaderboard-best-token',
+      provenanceVersion: 2,
+      hidden: false,
+      createdAt: 1700000000000
+    });
+    await mockDb.collection('leaderboardPrivateMeta').doc('leaderboard-existing-best').set({
+      ownerUid: 'user-worse-score',
+      sessionId: 'sess-earlier-best',
+      assessmentType: 'visual-reaction',
+      scoreMetric: 180,
+      ageGroup: 'Young adults (18–25)',
+      provenanceToken: 'leaderboard-best-token',
+      trialsDigest: 'leaderboard-best-digest',
+      derivedMetrics: { averageReactionTime: 180, trialCount: 20 },
+      hidden: false
+    });
+
+    const currentAttemptMetrics = { averageReactionTime: 240, trialCount: 20, attemptMarker: 'current-attempt' };
+    const result = await repo.executeLeaderboardSubmission({
+      leaderboardDocId: 'leaderboard-attempt-worse',
+      activeSessionId: 'sess-worse-score',
+      userId: 'user-worse-score',
+      displayName: 'New Attempt',
+      assessmentType: 'visual-reaction',
+      scoreMetric: 240,
+      authoritativeAgeGroup: 'Young adults (18–25)',
+      provenanceToken: 'leaderboard-attempt-token',
+      trialsDigest: 'leaderboard-attempt-digest',
+      metrics: currentAttemptMetrics,
+      now: 1700000100000,
+      idempotencyKey: null,
+      requiresModeration: false,
+      qualityFlags: []
+    });
+
+    expect(result).toMatchObject({
+      success: true,
+      docId: 'leaderboard-attempt-worse',
+      leaderboardDocId: 'leaderboard-existing-best',
+      scoreMetric: 240,
+      provenanceToken: 'leaderboard-attempt-token',
+      trialsDigest: 'leaderboard-attempt-digest',
+      derivedMetrics: currentAttemptMetrics
+    });
+
+    const sessionAfter = await mockDb.collection('experimentSessions').doc('sess-worse-score').get();
+    expect(sessionAfter.data()).toMatchObject({
+      scoreMetric: 240,
+      derivedMetrics: originalResearchMetrics,
+      trialsDigest: 'research-current-digest',
+      provenanceToken: 'research-current-token',
+      leaderboardSubmitted: true,
+      leaderboardDocId: 'leaderboard-existing-best',
+      leaderboardSubmissionId: 'leaderboard-attempt-worse',
+      leaderboardSubmissionScoreMetric: 240,
+      leaderboardSubmissionProvenanceToken: 'leaderboard-attempt-token',
+      leaderboardSubmissionTrialsDigest: 'leaderboard-attempt-digest',
+      leaderboardSubmissionDerivedMetrics: currentAttemptMetrics
+    });
+
+    const bestAfter = await mockDb.collection('leaderboardResults').doc('leaderboard-existing-best').get();
+    expect(bestAfter.data()).toMatchObject({
+      scoreMetric: 180,
+      provenanceToken: 'leaderboard-best-token',
+      hidden: false
+    });
+    const unpersistedAttempt = await mockDb.collection('leaderboardResults').doc('leaderboard-attempt-worse').get();
+    expect(unpersistedAttempt.exists).toBe(false);
+  });
+
+
 });
