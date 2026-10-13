@@ -1,4 +1,4 @@
-import { FieldValue, type Firestore } from 'firebase-admin/firestore';
+import { FieldValue, type Firestore, type QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import * as crypto from 'crypto';
 import type { ILeaderboardRepository } from '../interfaces/ILeaderboardRepository';
 import type { LeaderboardEntryRecord, AdminLeaderboardEntryRecord } from '../../models/leaderboardModels';
@@ -17,7 +17,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     const safeLimit = Number.isInteger(limitCount) ? Math.max(1, Math.min(limitCount, 500)) : 100;
     const pageSize = Math.min(Math.max(safeLimit, 100), 250);
     const records: LeaderboardEntryRecord[] = [];
-    let cursor: any = undefined;
+    let cursor: QueryDocumentSnapshot | undefined = undefined;
 
     // Continue past invalid names/scores until the requested number of eligible
     // entries is collected or the alias query is exhausted.
