@@ -42,30 +42,90 @@ function createMockDb(): Firestore {
             }
           };
         },
-        where(field: string, _op: string, val: unknown) {
-          return {
-            where(_f: string, _o: string, _v: unknown) {
-              return this;
+        where(field: string, op: string, val: unknown) {
+          const filters: Array<{ field: string; op: string; value: unknown }> = [
+            { field, op, value: val }
+          ];
+          let orderField: string | undefined;
+          let orderDirection: string = 'asc';
+          let maxResults = Number.POSITIVE_INFINITY;
+          let cursorId: string | undefined;
+
+          const query: {
+            where(field: string, op: string, value: unknown): typeof query;
+            orderBy(field: string, direction?: string): typeof query;
+            limit(count: number): typeof query;
+            startAfter(cursor: unknown): typeof query;
+            get(): Promise<{
+              docs: Array<{ id: string; data: () => Record<string, unknown> }>;
+              size: number;
+              empty: boolean;
+            }>;
+          } = {
+            where(nextField: string, nextOp: string, nextValue: unknown) {
+              filters.push({ field: nextField, op: nextOp, value: nextValue });
+              return query;
             },
-            orderBy(_f: string, _d: string) {
-              return this;
+            orderBy(nextField: string, direction = 'asc') {
+              orderField = nextField;
+              orderDirection = direction;
+              return query;
             },
-            limit(_n: number) {
-              return this;
+            limit(count: number) {
+              maxResults = Math.max(0, Math.floor(count));
+              return query;
             },
-            startAfter(_cursor: unknown) {
-              return this;
+            startAfter(cursor: unknown) {
+              const maybeSnapshot = cursor as { id?: unknown } | null;
+              cursorId = typeof maybeSnapshot?.id === 'string' ? maybeSnapshot.id : undefined;
+              return query;
             },
             async get() {
-              const matched: { id: string; data: () => Record<string, unknown> }[] = [];
-              for (const [id, data] of col.entries()) {
-                if (data[field] === val) {
-                  matched.push({ id, data: () => JSON.parse(JSON.stringify(data)) });
-                }
+              let matchingRows = Array.from(col.entries()).filter(([, data]) =>
+                filters.every(filter => {
+                  const actual = data[filter.field];
+                  switch (filter.op) {
+                    case '==': return actual === filter.value;
+                    case '!=': return actual !== filter.value;
+                    case '<': return typeof actual === 'number' && typeof filter.value === 'number' && actual < filter.value;
+                    case '<=': return typeof actual === 'number' && typeof filter.value === 'number' && actual <= filter.value;
+                    case '>': return typeof actual === 'number' && typeof filter.value === 'number' && actual > filter.value;
+                    case '>=': return typeof actual === 'number' && typeof filter.value === 'number' && actual >= filter.value;
+                    default: return false;
+                  }
+                })
+              );
+
+              if (orderField) {
+                const fieldToSort = orderField;
+                matchingRows.sort((left, right) => {
+                  const leftValue = left[1][fieldToSort];
+                  const rightValue = right[1][fieldToSort];
+                  let comparison = 0;
+
+                  if (typeof leftValue === 'number' && typeof rightValue === 'number') {
+                    comparison = leftValue - rightValue;
+                  } else {
+                    comparison = String(leftValue ?? '').localeCompare(String(rightValue ?? ''));
+                  }
+
+                  return orderDirection === 'desc' ? -comparison : comparison;
+                });
               }
-              return { docs: matched };
+
+              if (cursorId) {
+                const cursorIndex = matchingRows.findIndex(([id]) => id === cursorId);
+                if (cursorIndex >= 0) matchingRows = matchingRows.slice(cursorIndex + 1);
+              }
+
+              const docs = matchingRows.slice(0, maxResults).map(([id, data]) => ({
+                id,
+                data: () => JSON.parse(JSON.stringify(data)) as Record<string, unknown>
+              }));
+              return { docs, size: docs.length, empty: docs.length === 0 };
             }
           };
+          return query;
         },
         orderBy(field: string, dir = 'asc') {
           return {
@@ -74,14 +134,21 @@ function createMockDb(): Firestore {
                 async get() {
                   const arr = Array.from(col.entries()).map(([id, data]) => ({
                     id,
-                    data: () => JSON.parse(JSON.stringify(data))
+                    data: () => JSON.parse(JSON.stringify(data)) as Record<string, unknown>
                   }));
                   arr.sort((a, b) => {
-                    const valA = (a.data() as Record<string, unknown>)[field] as number;
-                    const valB = (b.data() as Record<string, unknown>)[field] as number;
-                    return dir === 'desc' ? (valB > valA ? 1 : -1) : (valA > valB ? 1 : -1);
+                    const valA = (a.data() as Record<string, unknown>)[field];
+                    const valB = (b.data() as Record<string, unknown>)[field];
+                    let comparison = 0;
+                    if (typeof valA === 'number' && typeof valB === 'number') {
+                      comparison = valA - valB;
+                    } else {
+                      comparison = String(valA ?? '').localeCompare(String(valB ?? ''));
+                    }
+                    return dir === 'desc' ? -comparison : comparison;
                   });
-                  return { docs: arr.slice(0, n) };
+                  const docs = arr.slice(0, n);
+                  return { docs, size: docs.length, empty: docs.length === 0 };
                 }
               };
             }
