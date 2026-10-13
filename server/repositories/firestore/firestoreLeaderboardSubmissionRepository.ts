@@ -101,10 +101,6 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       const bestExisting = idempotencyMatch || existingRows[0];
 
       let responseDocId = input.leaderboardDocId;
-      let responseScore = input.scoreMetric;
-      let responseToken = input.provenanceToken;
-      let responseDigest = input.trialsDigest || '';
-      let responseMetrics = input.metrics;
       let responsePendingReview = input.requiresModeration === true;
 
       if (!bestExisting) {
