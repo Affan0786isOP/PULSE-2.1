@@ -73,7 +73,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
 
     const pageSize = 250;
     const records: LeaderboardEntryRecord[] = [];
-    let cursor: any = undefined;
+    let cursor: QueryDocumentSnapshot | undefined = undefined;
 
     // Used only for explicit rank lookups, not the public top-100 endpoint.
     // Continue until Firestore is exhausted so a participant outside the top 100

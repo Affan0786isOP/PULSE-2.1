@@ -290,7 +290,7 @@ describe('Server Application Services Unit Tests', () => {
       trials: []
     })).rejects.toMatchObject({
       status: 400,
-      message: 'Assessment completion time is implausibly short for the selected test. Please retake it.'
+      message: 'The leaderboard opt-in window has expired. Please retake the test.'
     });
     expect(neverSubmit).not.toHaveBeenCalled();
   });

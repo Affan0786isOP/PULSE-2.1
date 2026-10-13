@@ -27,7 +27,7 @@ describe('Server Architecture Boundary & Zero-Any AST Scan', () => {
       const relPath = path.relative(process.cwd(), fullPath).replace(/\\/g, '/');
       
       // Exclude legacy engine and config files from strict zero-any requirement for now
-      if (relPath.includes('server/engines/') || relPath.includes('server/config/') || relPath.includes('provenanceService.ts') || relPath.includes('firestoreLeaderboardRepository.ts')) {
+      if (relPath.includes('server/engines/') || relPath.includes('server/config/') || relPath.includes('provenanceService.ts')) {
         continue;
       }
       
