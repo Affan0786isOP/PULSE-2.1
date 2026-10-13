@@ -67,11 +67,14 @@ export function registerLeaderboardRoutes(
           if (sData && sData.leaderboardDocId) {
             return res.json({
               success: true,
-              docId: sData.leaderboardDocId,
-              scoreMetric: sData.scoreMetric,
-              provenanceToken: sData.provenanceToken,
-              trialsDigest: sData.trialsDigest,
-              derivedMetrics: sData.derivedMetrics,
+              // Return the attempt-specific leaderboard submission metadata.
+              // Legacy fallbacks keep pre-migration sessions replayable.
+              docId: sData.leaderboardSubmissionId || sData.leaderboardDocId,
+              leaderboardDocId: sData.leaderboardDocId,
+              scoreMetric: sData.leaderboardSubmissionScoreMetric ?? sData.scoreMetric,
+              provenanceToken: sData.leaderboardSubmissionProvenanceToken || sData.provenanceToken,
+              trialsDigest: sData.leaderboardSubmissionTrialsDigest || sData.trialsDigest,
+              derivedMetrics: sData.leaderboardSubmissionDerivedMetrics || sData.derivedMetrics,
               alreadySubmitted: true
             });
           }
