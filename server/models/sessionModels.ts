@@ -11,6 +11,12 @@ export interface ExperimentSessionRecord {
   leaderboardSubmitted?: boolean;
   leaderboardDocId?: string;
   leaderboardSubmittedAt?: number;
+  /** Per-attempt leaderboard submission details; never overwrite the authoritative research result fields below. */
+  leaderboardSubmissionId?: string;
+  leaderboardSubmissionScoreMetric?: number | null;
+  leaderboardSubmissionProvenanceToken?: string;
+  leaderboardSubmissionTrialsDigest?: string;
+  leaderboardSubmissionDerivedMetrics?: Record<string, unknown>;
   trialsDigest?: string;
   provenanceToken?: string;
   derivedMetrics?: Record<string, unknown>;
