@@ -230,7 +230,11 @@ describe('Firestore Repositories Unit Tests', () => {
 
     const docAfter = await mockDb.collection('leaderboardResults').doc('lb-1').get();
     expect(docAfter.data().hidden).toBe(true);
-    expect(docAfter.data().hideReason).toBe('Rule violation');
+    // Moderation reasons are private metadata and must not be exposed on the public row.
+    expect(docAfter.data().hideReason).not.toBe('Rule violation');
+
+    const privateMeta = await mockDb.collection('leaderboardPrivateMeta').doc('lb-1').get();
+    expect(privateMeta.data().hideReason).toBe('Rule violation');
   });
 
   it('normalizes legacy assessment aliases and rejects corrupt leaderboard metrics', async () => {
