@@ -386,7 +386,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
 
     const docRef = db.collection('leaderboardResults').doc(entryId);
     const metaRef = db.collection('leaderboardPrivateMeta').doc(entryId);
-    const auditRef = db.collection('adminAuditLogs').doc(\`log-\${Date.now()}-\${crypto.randomUUID().slice(0, 8)}\`);
+    const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
     const timestamp = Date.now();
 
     return db.runTransaction(async tx => {
@@ -452,7 +452,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
 
     const docRef = db.collection('leaderboardResults').doc(entryId);
     const metaRef = db.collection('leaderboardPrivateMeta').doc(entryId);
-    const auditRef = db.collection('adminAuditLogs').doc(\`log-\${Date.now()}-\${crypto.randomUUID().slice(0, 8)}\`);
+    const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
     const timestamp = Date.now();
 
     return db.runTransaction(async tx => {
@@ -522,7 +522,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
           actor: 'admin',
           action: 'UNHIDE_BLOCKED_NOT_BEST',
           target: entryId,
-          note: \`Candidate remains hidden because \${bestVisible.id} is the retained public best. \${reason || ''}\`.trim(),
+          note: `Candidate remains hidden because ${bestVisible.id} is the retained public best. ${reason || ''}`.trim(),
           timestamp
         });
         return { success: true, found: true, alreadyInState: true, notBest: true, retainedEntryId: bestVisible.id };
@@ -598,7 +598,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
 
     const docRef = db.collection('leaderboardResults').doc(entryId);
     const metaRef = db.collection('leaderboardPrivateMeta').doc(entryId);
-    const auditRef = db.collection('adminAuditLogs').doc(\`log-\${Date.now()}-\${crypto.randomUUID().slice(0, 8)}\`);
+    const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
     const timestamp = Date.now();
 
     return db.runTransaction(async tx => {

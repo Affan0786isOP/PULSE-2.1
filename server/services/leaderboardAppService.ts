@@ -433,8 +433,8 @@ export class LeaderboardAppService implements ILeaderboardService {
 
     const sanitizedDisplayName = displayName.replace(/:/g, '_');
     const tokenData = Number(row.provenanceVersion) >= 2
-      ? \`lb:v2:\${normalizedId}:\${assessmentType}:\${ageGroup}:\${scoreMetric.toFixed(2)}:\${sanitizedDisplayName}:\${trialsDigest}\`
-      : \`lb:\${assessmentType}:\${ageGroup}:\${scoreMetric.toFixed(2)}:\${sanitizedDisplayName}:\${trialsDigest}\`;
+      ? `lb:v2:${normalizedId}:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest}`
+      : `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest}`;
 
     try {
       const verified = safeCompareHex(signProvenancePayload(tokenData), provenanceToken);
