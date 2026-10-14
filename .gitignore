@@ -17,3 +17,7 @@ brag-output*
 
 # Vitest cache (created when TEMP is unset)
 vite-cache/
+
+# Audit artifacts
+pulse-leaderboard-audit.zip
+pulse-leaderboard-audit/
