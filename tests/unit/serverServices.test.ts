@@ -295,4 +295,50 @@ describe('Server Application Services Unit Tests', () => {
     expect(neverSubmit).not.toHaveBeenCalled();
   });
 
+  it('allows a replay of an already-submitted session after the 24-hour opt-in deadline', async () => {
+    const oldCompletedAt = Date.now() - 26 * 60 * 60 * 1000;
+    const session: ExperimentSessionRecord = {
+      sessionId: 'session-replay-expired', uid: 'user-replay', assessmentType: 'visual-reaction',
+      ageGroup: 'Adolescents (13–17)', createdAt: oldCompletedAt - 60 * 60 * 1000,
+      expiresAt: oldCompletedAt - 30 * 60 * 1000, consumed: true, consumedAt: oldCompletedAt,
+      leaderboardSubmitted: true, leaderboardSubmissionId: 'attempt-replay', leaderboardDocId: null,
+      leaderboardSubmissionScoreMetric: 205, leaderboardSubmissionProvenanceToken: 'stored-token',
+      leaderboardSubmissionTrialsDigest: 'stored-digest', leaderboardSubmissionDerivedMetrics: { averageReactionTime: 205 }
+    };
+    const sessionRepo: ISessionRepository = {
+      findById: vi.fn(async () => session), create: vi.fn(async r => r as ExperimentSessionRecord),
+      findUserConsumedSessions: vi.fn(async () => [])
+    };
+    const service = new LeaderboardAppService(sessionRepo, {} as ILeaderboardRepository, {} as ILeaderboardSubmissionRepository);
+    await expect(service.submitLeaderboard({
+      sessionId: session.sessionId, userId: session.uid, displayName: 'Player One',
+      assessmentType: 'visual-reaction', ageGroup: session.ageGroup, trials: []
+    })).rejects.toMatchObject({ sessionData: { leaderboardSubmissionId: 'attempt-replay' } });
+  });
+
+  it('resolves private attempt receipts separately from currently visible leaderboard entries', async () => {
+    const getEntryById = vi.fn(async (id: string) => {
+      if (id === 'private-attempt') return {
+        id, ownerUid: 'user-replay', assessmentType: 'visual-reaction', scoreMetric: 240,
+        hidden: false, publicEntry: false, provenanceToken: 'attempt-token'
+      };
+      return null;
+    });
+    const repo = {
+      getEntryById, getEntriesByAlias: vi.fn(async () => []),
+      getAllEntriesForAdmin: vi.fn(async () => []),
+      softHideEntry: vi.fn(async () => ({ success: true, found: true })),
+      unhideEntry: vi.fn(async () => ({ success: true, found: true })),
+      deleteEntry: vi.fn(async () => ({ success: true, found: true }))
+    } as unknown as ILeaderboardRepository;
+    const service = new LeaderboardAppService(
+      { findById: vi.fn(async () => null), create: vi.fn(async r => r as ExperimentSessionRecord), findUserConsumedSessions: vi.fn(async () => []) },
+      repo, {} as ILeaderboardSubmissionRepository
+    );
+    await expect(service.getSubmissionReplayState('private-attempt', 'deleted-public-best', 'user-replay', 'visual-reaction'))
+      .resolves.toEqual({ receiptAvailable: true, entryAvailable: false, leaderboardDocId: null, leaderboardProvenanceToken: null, pendingReview: false });
+    await expect(service.getSubmissionReplayState('erased-attempt', null, 'user-replay', 'visual-reaction'))
+      .resolves.toEqual({ receiptAvailable: false, entryAvailable: false, leaderboardDocId: null, leaderboardProvenanceToken: null, pendingReview: false });
+  });
+
 });

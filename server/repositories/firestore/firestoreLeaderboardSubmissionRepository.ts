@@ -28,11 +28,9 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
 
     const sessionDocRef = db.collection('experimentSessions').doc(input.activeSessionId);
     const requestedLeaderboardDocRef = db.collection('leaderboardResults').doc(input.leaderboardDocId);
-    // Private metadata uses the same document ID, but never lives in the publicly readable collection.
     const requestedPrivateMetaRef = db.collection('leaderboardPrivateMeta').doc(input.leaderboardDocId);
     const ownerIndexRef = db.collection('leaderboardOwnerIndex').doc(ownerIndexDocumentId(input.userId, input.assessmentType));
 
-    // Only fields required to render a public ranking live in leaderboardResults.
     const publicLeaderboardDoc = {
       displayName: input.displayName,
       assessmentType: input.assessmentType,
@@ -44,12 +42,10 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       createdAt: FieldValue.serverTimestamp()
     };
 
-    // This collection is covered by the default-deny Firestore rules. Owner IDs,
-    // session identifiers, raw metrics/digests, idempotency keys and review flags
-    // must not be placed on the publicly-readable leaderboardResults document.
     const privateMetaDoc = {
       ownerUid: input.userId,
       sessionId: input.activeSessionId,
+      displayName: input.displayName,
       assessmentType: input.assessmentType,
       scoreMetric: input.scoreMetric,
       ageGroup: input.authoritativeAgeGroup,
@@ -61,6 +57,8 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       qualityFlags: input.qualityFlags || [],
       moderationReason: (input.qualityFlags || []).join(', '),
       hidden: input.requiresModeration === true,
+      publicEntry: true,
+      submissionReceiptOnly: false,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: input.now
     };
@@ -77,8 +75,7 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       }
       if (sData.leaderboardSubmitted) throw new LeaderboardAlreadySubmittedError(sData);
 
-      // Shared deterministic guard both serializes simultaneous first submissions
-      // and blocks writes while an owner-initiated erasure is running.
+      // The owner index serializes submissions against participant erasure.
       const ownerIndexSnap = await tx.get(ownerIndexRef);
       if (ownerIndexSnap.data()?.deleting === true) {
         throw new AppError('Participant leaderboard erasure is in progress. Please retry later.', 409);
@@ -86,71 +83,130 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
 
       const ownerMetaQuery = db.collection('leaderboardPrivateMeta').where('ownerUid', '==', input.userId);
       const ownerMetaSnap = await tx.get(ownerMetaQuery);
-      const existingRows = ownerMetaSnap.docs
-        .filter(doc => doc.id !== input.leaderboardDocId && doc.data().assessmentType === input.assessmentType)
-        .sort((a, b) => {
-          const aScore = Number(a.data().scoreMetric);
-          const bScore = Number(b.data().scoreMetric);
-          if (aScore === bScore) return a.id.localeCompare(b.id);
-          return isSpeedAssessment(input.assessmentType) ? aScore - bScore : bScore - aScore;
-        });
+      const ownedMetaDocs = ownerMetaSnap.docs.filter(doc =>
+        doc.data().assessmentType === input.assessmentType
+      );
+
+      // Receipt-only records are retained for idempotent replay and provenance
+      // verification, but never participate in best-score comparisons.
+      const persistedRows = ownedMetaDocs.filter(doc => doc.data().publicEntry !== false);
+      const publicSnapshots = await Promise.all(persistedRows.map(doc =>
+        tx.get(db.collection('leaderboardResults').doc(doc.id))
+      ));
+      const ownedRows = persistedRows.map((doc, index) => ({
+        id: doc.id,
+        ref: doc.ref,
+        meta: doc.data() as Record<string, unknown>,
+        publicSnap: publicSnapshots[index],
+        publicData: publicSnapshots[index].exists ? (publicSnapshots[index].data() || {}) as Record<string, unknown> : null
+      })).filter(row => row.publicData !== null);
+
+      const sortByScore = <T extends { id: string; meta: Record<string, unknown>; publicData: Record<string, unknown> | null }>(rows: T[]) => rows.sort((a, b) => {
+        const aScore = Number(a.meta.scoreMetric ?? a.publicData?.scoreMetric);
+        const bScore = Number(b.meta.scoreMetric ?? b.publicData?.scoreMetric);
+        if (aScore === bScore) return a.id.localeCompare(b.id);
+        return isSpeedAssessment(input.assessmentType) ? aScore - bScore : bScore - aScore;
+      });
+
+      const visibleRows = sortByScore(ownedRows.filter(row =>
+        row.publicData?.hidden === false
+      ));
+      const currentVisibleBest = visibleRows[0] || null;
 
       const idempotencyMatch = input.idempotencyKey
-        ? existingRows.find(doc => doc.data().idempotencyKey === input.idempotencyKey)
+        ? ownedMetaDocs
+            .filter(doc => doc.data().idempotencyKey === input.idempotencyKey)
+            .sort((a, b) => {
+              const aTime = Number(a.data().updatedAt) || 0;
+              const bTime = Number(b.data().updatedAt) || 0;
+              return aTime - bTime || a.id.localeCompare(b.id);
+            })[0]
         : undefined;
-      const bestExisting = idempotencyMatch || existingRows[0];
 
-      let responseDocId = input.leaderboardDocId;
+      let attemptId = input.leaderboardDocId;
+      let scoreMetric = input.scoreMetric;
+      let provenanceToken = input.provenanceToken;
+      let trialsDigest = input.trialsDigest || '';
+      let metrics = input.metrics;
       let responsePendingReview = input.requiresModeration === true;
+      let responseDocId: string | null = currentVisibleBest?.id || null;
 
-      if (!bestExisting) {
+      if (idempotencyMatch) {
+        // Reusing a key returns the original immutable attempt receipt rather
+        // than inventing a second ID/token for a row that was never written.
+        const prior = idempotencyMatch.data();
+        attemptId = idempotencyMatch.id;
+        scoreMetric = Number(prior.scoreMetric);
+        provenanceToken = String(prior.provenanceToken || '');
+        trialsDigest = String(prior.trialsDigest || '');
+        metrics = (prior.derivedMetrics || {}) as Record<string, unknown>;
+        responsePendingReview = prior.hidden === true;
+      } else if (input.requiresModeration === true) {
+        // Keep the approved best visible while a better-but-suspicious candidate
+        // is pending review. Pending candidates remain in the admin queue.
         tx.set(requestedLeaderboardDocRef, publicLeaderboardDoc);
         tx.set(requestedPrivateMetaRef, privateMetaDoc);
-      } else {
-        const existingData = bestExisting.data();
-        const existingScore = Number(existingData.scoreMetric);
-        if (
-          !idempotencyMatch &&
-          Number.isFinite(existingScore) &&
-          isBetterScore(input.assessmentType, input.scoreMetric, existingScore)
-        ) {
-          const oldPublicRowRef = db.collection('leaderboardResults').doc(bestExisting.id);
-          tx.delete(oldPublicRowRef);
-          tx.delete(bestExisting.ref);
-
-          responsePendingReview = existingData.hidden === true || input.requiresModeration === true;
-          tx.set(requestedLeaderboardDocRef, {
-            ...publicLeaderboardDoc,
-            hidden: responsePendingReview
-          });
-          tx.set(requestedPrivateMetaRef, {
-            ...privateMetaDoc,
-            hidden: responsePendingReview,
-            updatedAt: input.now
-          });
+      } else if (currentVisibleBest) {
+        const existingScore = Number(currentVisibleBest.meta.scoreMetric ?? currentVisibleBest.publicData?.scoreMetric);
+        if (Number.isFinite(existingScore) && isBetterScore(input.assessmentType, input.scoreMetric, existingScore)) {
+          // Keep the old receipt privately so earlier session retries can be
+          // resolved without returning a dead document ID. Remove duplicate
+          // legacy visible rows too; migration will have already normalized them
+          // in ordinary deployments, but this keeps writes self-healing.
+          for (const oldRow of visibleRows) {
+            tx.delete(db.collection('leaderboardResults').doc(oldRow.id));
+            tx.set(oldRow.ref, {
+              ...oldRow.meta,
+              publicEntry: false,
+              submissionReceiptOnly: true,
+              supersededBy: input.leaderboardDocId,
+              hidden: false,
+              updatedAt: input.now
+            }, { merge: true });
+          }
+          tx.set(requestedLeaderboardDocRef, { ...publicLeaderboardDoc, hidden: false });
+          tx.set(requestedPrivateMetaRef, { ...privateMetaDoc, hidden: false });
           responseDocId = input.leaderboardDocId;
         } else {
-          // Same idempotency key, worse score, or tie: retain the existing public-best
-          // row, but keep the returned result bound to this submission attempt.
-          // Its score, digest, token and metrics must never replace this session's
-          // authoritative research result.
-          responseDocId = bestExisting.id;
-          responsePendingReview = existingData.hidden === true;
+          // Persist the attempt receipt privately, but do not pretend it is a
+          // separate public leaderboard entry.
+          tx.set(requestedPrivateMetaRef, {
+            ...privateMetaDoc,
+            publicEntry: false,
+            submissionReceiptOnly: true,
+            hidden: false,
+            supersededBy: currentVisibleBest.id
+          });
         }
+      } else {
+        // No approved visible best exists. A non-flagged candidate can be
+        // published; any older pending records remain available for review.
+        tx.set(requestedLeaderboardDocRef, { ...publicLeaderboardDoc, hidden: false });
+        tx.set(requestedPrivateMetaRef, { ...privateMetaDoc, hidden: false });
+        responseDocId = input.leaderboardDocId;
       }
+
+      const leaderboardProvenanceToken = responseDocId
+        ? (responseDocId === input.leaderboardDocId && !idempotencyMatch && input.requiresModeration !== true
+          ? input.provenanceToken
+          : String(
+              ownedRows.find(row => row.id === responseDocId)?.publicData?.provenanceToken ||
+              (idempotencyMatch?.id === responseDocId ? idempotencyMatch.data().provenanceToken : '') ||
+              ''
+            ))
+        : null;
 
       tx.set(sessionDocRef, {
         leaderboardSubmitted: true,
         leaderboardDocId: responseDocId,
         leaderboardSubmittedAt: input.now,
-        // Preserve the source research fields (scoreMetric, trialsDigest,
-        // provenanceToken and derivedMetrics). Leaderboard data is namespaced
-        // separately so opting in cannot corrupt the assessment result.
-        leaderboardSubmissionId: input.leaderboardDocId,
-        leaderboardSubmissionScoreMetric: input.scoreMetric,
-        leaderboardSubmissionProvenanceToken: input.provenanceToken,
-        leaderboardSubmissionTrialsDigest: input.trialsDigest || '',
-        leaderboardSubmissionDerivedMetrics: input.metrics
+        leaderboardSubmissionId: attemptId,
+        leaderboardSubmissionEntryId: responseDocId,
+        leaderboardSubmissionPendingReview: responsePendingReview,
+        leaderboardSubmissionScoreMetric: scoreMetric,
+        leaderboardSubmissionProvenanceToken: provenanceToken,
+        leaderboardSubmissionTrialsDigest: trialsDigest,
+        leaderboardSubmissionDerivedMetrics: metrics
       }, { merge: true });
 
       tx.set(ownerIndexRef, {
@@ -162,14 +218,18 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
 
       result = {
         success: true,
-        // These fields describe the current submitted attempt, not the retained
-        // public-best row from an earlier session.
-        docId: input.leaderboardDocId,
+        docId: attemptId,
+        attemptId,
         leaderboardDocId: responseDocId,
-        scoreMetric: input.scoreMetric,
-        provenanceToken: input.provenanceToken,
-        trialsDigest: input.trialsDigest || '',
-        derivedMetrics: input.metrics,
+        leaderboardEntryId: responseDocId,
+        entryAvailable: responseDocId !== null,
+        receiptAvailable: true,
+        scoreMetric,
+        provenanceToken,
+        attemptProvenanceToken: provenanceToken,
+        leaderboardProvenanceToken,
+        trialsDigest,
+        derivedMetrics: metrics,
         pendingReview: responsePendingReview
       };
     });

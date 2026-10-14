@@ -13,8 +13,15 @@ export interface SubmitLeaderboardInput {
 export interface SubmitLeaderboardResult {
   /** ID for this submitted attempt, even when the prior best stays on the public board. */
   docId: string;
-  /** Current public-best entry ID; differs from docId when this attempt does not replace it. */
-  leaderboardDocId?: string;
+  /** Stable attempt receipt ID; not necessarily a ranked public entry. */
+  attemptId?: string;
+  /** Current public-best entry ID, null when no visible best exists. */
+  leaderboardDocId?: string | null;
+  leaderboardEntryId?: string | null;
+  entryAvailable?: boolean;
+  receiptAvailable?: boolean;
+  attemptProvenanceToken?: string;
+  leaderboardProvenanceToken?: string | null;
   scoreMetric: number;
   provenanceToken: string;
   trialsDigest: string;
@@ -27,6 +34,14 @@ export interface ILeaderboardService {
   submitLeaderboard(input: SubmitLeaderboardInput): Promise<SubmitLeaderboardResult>;
   getPublicLeaderboard(assessmentType?: string | null): Promise<LeaderboardEntryRecord[]>;
   verifyPublicEntryProvenance?(entryId: string): Promise<{ verified: boolean; reason?: string }>;
+  verifySubmissionProvenance?(attemptId: string): Promise<{ verified: boolean; publiclyVisible: boolean; pendingReview: boolean; reason?: string }>;
+  getSubmissionReplayState?(attemptId: string, retainedEntryId: string | null, userId: string, assessmentType: string): Promise<{
+    receiptAvailable: boolean;
+    entryAvailable: boolean;
+    leaderboardDocId: string | null;
+    leaderboardProvenanceToken: string | null;
+    pendingReview: boolean;
+  }>;
   getMyLeaderboardRank?(userId: string, assessmentType: string): Promise<{
     rank: number | null;
     scoreMetric: number | null;

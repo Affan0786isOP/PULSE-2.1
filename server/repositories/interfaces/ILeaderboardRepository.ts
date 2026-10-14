@@ -14,6 +14,6 @@ export interface ILeaderboardRepository {
     hasMore: boolean;
   }>;
   softHideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }>;
-  unhideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }>;
+  unhideEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean; notBest?: boolean; erasureInProgress?: boolean; retainedEntryId?: string }>;
   deleteEntry(entryId: string, reason?: string): Promise<{ success: boolean; found: boolean; alreadyInState?: boolean }>;
 }

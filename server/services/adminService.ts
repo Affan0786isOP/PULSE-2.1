@@ -28,9 +28,21 @@ export class AdminService implements IAdminService {
       : { success: true, alreadyInState: false, message: 'Leaderboard entry hidden and audit record written.' };
   }
 
-  async unhideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string; alreadyInState?: boolean }> {
+  async unhideLeaderboardEntry(id: string, reason?: string): Promise<{ success: boolean; message: string; alreadyInState?: boolean; notBest?: boolean; retainedEntryId?: string }> {
     const result = await this.leaderboardRepo.unhideEntry(id, reason);
+    if (result.erasureInProgress) {
+      throw new AppError('Participant leaderboard erasure is in progress. Please retry later.', 409);
+    }
     this.ensureModerationSucceeded(result);
+    if (result.notBest) {
+      return {
+        success: true,
+        alreadyInState: true,
+        notBest: true,
+        retainedEntryId: result.retainedEntryId,
+        message: `Entry remains hidden because ${result.retainedEntryId || 'another entry'} is the retained public best.`
+      };
+    }
     return result.alreadyInState
       ? { success: true, alreadyInState: true, message: 'Leaderboard entry was already visible; no duplicate audit record was created.' }
       : { success: true, alreadyInState: false, message: 'Leaderboard entry restored and audit record written.' };

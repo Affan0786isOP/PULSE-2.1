@@ -42,7 +42,7 @@ This document outlines the security controls, cryptographic attestation mechanis
 PULSE operates in compliance with international privacy mandates:
 - **GDPR (Art. 33):** 72-hour supervisory authority notification for confirmed breaches affecting pseudonymous data.
 - **FTC Health Breach Notification Rule (16 CFR 318):** 60-day individual notification window for cognitive telemetry.
-- **Leaderboard data subject requests:** Authenticated participants can request removal of their leaderboard entries through `DELETE /api/leaderboard/mine?assessmentType=<canonical-id|all>`. Legacy entries are linked only when a server-owned session references that exact row; orphaned legacy rows may still require moderator handling.
+- **Leaderboard data subject requests:** Authenticated participants can request removal of their leaderboard entries and private attempt receipts through `DELETE /api/leaderboard/mine?assessmentType=<canonical-id|all>`. Legacy entries are linked only when a server-owned session references that exact row; orphaned legacy rows may still require moderator handling. Session replay responds without dangling identifiers when the corresponding receipt has been erased.
 - **Research-record erasure:** No complete cross-collection erasure workflow or 45-day deletion service is implemented here. Do not represent a statutory execution window as an automated guarantee.
 - Detailed emergency procedures and secret rotation checklists are maintained in [`docs/breach-runbook.md`](breach-runbook.md).
 

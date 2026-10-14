@@ -21,6 +21,10 @@ export interface AdminLeaderboardEntryRecord {
   hiddenAt?: number;
   hiddenBy?: string;
   hideReason?: string;
+  /** True when the matching leaderboardResults document exists. */
+  publicEntry?: boolean;
+  submissionReceiptOnly?: boolean;
+  supersededBy?: string;
   [key: string]: unknown;
 }
 
@@ -45,8 +49,16 @@ export interface LeaderboardSubmissionTxResult {
   success: true;
   /** ID for this submitted attempt, whether or not it replaces the public best row. */
   docId: string;
-  /** ID of the row retained on the public leaderboard (may belong to an earlier session). */
-  leaderboardDocId?: string;
+  /** Legacy alias for attemptId. The attempt receipt may be private-only. */
+  attemptId?: string;
+  /** Current public-best entry ID; null when no visible entry exists. */
+  leaderboardDocId?: string | null;
+  leaderboardEntryId?: string | null;
+  entryAvailable?: boolean;
+  receiptAvailable?: boolean;
+  attemptProvenanceToken?: string;
+  leaderboardProvenanceToken?: string | null;
+  pendingReview?: boolean;
   scoreMetric: number;
   provenanceToken: string;
   trialsDigest: string;

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import * as crypto from 'crypto';
 import type { Firestore } from 'firebase-admin/firestore';
 import { FirestoreSessionRepository } from '../../server/repositories/firestore/firestoreSessionRepository';
 import { FirestoreResearchDatasetRepository } from '../../server/repositories/firestore/firestoreResearchDatasetRepository';
@@ -449,5 +450,121 @@ describe('Firestore Repositories Unit Tests', () => {
     expect(unpersistedAttempt.exists).toBe(false);
   });
 
+
+  it('keeps the approved best visible while a better candidate awaits moderation', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardSubmissionRepository(() => mockDb);
+    await mockDb.collection('experimentSessions').doc('sess-flagged').set({
+      sessionId: 'sess-flagged', uid: 'owner-flagged', assessmentType: 'visual-reaction',
+      ageGroup: 'Adults (26–40)', createdAt: 1700000000000, consumed: true,
+      consumedAt: 1700000060000, leaderboardSubmitted: false
+    });
+    await mockDb.collection('leaderboardResults').doc('approved-best').set({
+      displayName: 'Approved Player', assessmentType: 'visual-reaction', scoreMetric: 180,
+      ageGroup: 'Adults (26–40)', provenanceToken: 'approved-token', provenanceVersion: 2,
+      hidden: false, createdAt: 1700000000000
+    });
+    await mockDb.collection('leaderboardPrivateMeta').doc('approved-best').set({
+      ownerUid: 'owner-flagged', sessionId: 'sess-old', displayName: 'Approved Player',
+      assessmentType: 'visual-reaction', scoreMetric: 180, provenanceToken: 'approved-token',
+      trialsDigest: 'approved-digest', derivedMetrics: { averageReactionTime: 180 },
+      hidden: false, publicEntry: true
+    });
+    const result = await repo.executeLeaderboardSubmission({
+      leaderboardDocId: 'pending-better', activeSessionId: 'sess-flagged',
+      userId: 'owner-flagged', displayName: 'New Candidate', assessmentType: 'visual-reaction',
+      scoreMetric: 150, authoritativeAgeGroup: 'Adults (26–40)', provenanceToken: 'pending-token',
+      trialsDigest: 'pending-digest', metrics: { averageReactionTime: 150 }, now: 1700000100000,
+      idempotencyKey: 'pending-key', requiresModeration: true, qualityFlags: ['EXTREME_SPEED_SCORE']
+    });
+    expect(result).toMatchObject({
+      docId: 'pending-better', attemptId: 'pending-better', leaderboardDocId: 'approved-best',
+      pendingReview: true, entryAvailable: true, receiptAvailable: true, leaderboardProvenanceToken: 'approved-token'
+    });
+    expect((await mockDb.collection('leaderboardResults').doc('approved-best').get()).data()).toMatchObject({ hidden: false, scoreMetric: 180 });
+    expect((await mockDb.collection('leaderboardResults').doc('pending-better').get()).data()).toMatchObject({ hidden: true, scoreMetric: 150 });
+  });
+
+  it('persists a private receipt for a worse attempt without creating a second public row', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardSubmissionRepository(() => mockDb);
+    await mockDb.collection('experimentSessions').doc('sess-worse-receipt').set({
+      sessionId: 'sess-worse-receipt', uid: 'owner-receipt', assessmentType: 'visual-reaction',
+      ageGroup: 'Adults (26–40)', createdAt: 1700000000000, consumed: true,
+      consumedAt: 1700000060000, leaderboardSubmitted: false
+    });
+    await mockDb.collection('leaderboardResults').doc('retained-best').set({
+      displayName: 'Best Player', assessmentType: 'visual-reaction', scoreMetric: 180,
+      ageGroup: 'Adults (26–40)', provenanceToken: 'best-token', hidden: false, createdAt: 1700000000000
+    });
+    await mockDb.collection('leaderboardPrivateMeta').doc('retained-best').set({
+      ownerUid: 'owner-receipt', sessionId: 'sess-best', displayName: 'Best Player',
+      assessmentType: 'visual-reaction', scoreMetric: 180, provenanceToken: 'best-token',
+      trialsDigest: 'best-digest', derivedMetrics: { averageReactionTime: 180 }, hidden: false, publicEntry: true
+    });
+    const result = await repo.executeLeaderboardSubmission({
+      leaderboardDocId: 'worse-attempt', activeSessionId: 'sess-worse-receipt',
+      userId: 'owner-receipt', displayName: 'New Player', assessmentType: 'visual-reaction',
+      scoreMetric: 240, authoritativeAgeGroup: 'Adults (26–40)', provenanceToken: 'attempt-token',
+      trialsDigest: 'attempt-digest', metrics: { averageReactionTime: 240 }, now: 1700000100000,
+      idempotencyKey: 'worse-key', requiresModeration: false, qualityFlags: []
+    });
+    expect(result).toMatchObject({
+      docId: 'worse-attempt', attemptId: 'worse-attempt', leaderboardDocId: 'retained-best',
+      entryAvailable: true, receiptAvailable: true, provenanceToken: 'attempt-token',
+      attemptProvenanceToken: 'attempt-token', leaderboardProvenanceToken: 'best-token'
+    });
+    expect((await mockDb.collection('leaderboardResults').doc('worse-attempt').get()).exists).toBe(false);
+    expect((await mockDb.collection('leaderboardPrivateMeta').doc('worse-attempt').get()).data()).toMatchObject({
+      ownerUid: 'owner-receipt', publicEntry: false, submissionReceiptOnly: true,
+      supersededBy: 'retained-best', provenanceToken: 'attempt-token'
+    });
+  });
+
+  it('replaces the public best while retaining the superseded attempt receipt', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardSubmissionRepository(() => mockDb);
+    await mockDb.collection('experimentSessions').doc('sess-better').set({
+      sessionId: 'sess-better', uid: 'owner-better', assessmentType: 'visual-reaction',
+      ageGroup: 'Adults (26–40)', createdAt: 1700000000000, consumed: true,
+      consumedAt: 1700000060000, leaderboardSubmitted: false
+    });
+    await mockDb.collection('leaderboardResults').doc('old-best').set({
+      displayName: 'Old Best', assessmentType: 'visual-reaction', scoreMetric: 200,
+      ageGroup: 'Adults (26–40)', provenanceToken: 'old-token', hidden: false, createdAt: 1700000000000
+    });
+    await mockDb.collection('leaderboardPrivateMeta').doc('old-best').set({
+      ownerUid: 'owner-better', sessionId: 'sess-old', displayName: 'Old Best',
+      assessmentType: 'visual-reaction', scoreMetric: 200, provenanceToken: 'old-token',
+      trialsDigest: 'old-digest', derivedMetrics: { averageReactionTime: 200 }, hidden: false, publicEntry: true
+    });
+    const result = await repo.executeLeaderboardSubmission({
+      leaderboardDocId: 'new-best', activeSessionId: 'sess-better', userId: 'owner-better',
+      displayName: 'Better Player', assessmentType: 'visual-reaction', scoreMetric: 160,
+      authoritativeAgeGroup: 'Adults (26–40)', provenanceToken: 'new-token', trialsDigest: 'new-digest',
+      metrics: { averageReactionTime: 160 }, now: 1700000100000, idempotencyKey: 'better-key',
+      requiresModeration: false, qualityFlags: []
+    });
+    expect(result).toMatchObject({ docId: 'new-best', leaderboardDocId: 'new-best', pendingReview: false });
+    expect((await mockDb.collection('leaderboardResults').doc('old-best').get()).exists).toBe(false);
+    expect((await mockDb.collection('leaderboardPrivateMeta').doc('old-best').get()).data()).toMatchObject({
+      publicEntry: false, submissionReceiptOnly: true, supersededBy: 'new-best'
+    });
+    expect((await mockDb.collection('leaderboardResults').doc('new-best').get()).data()).toMatchObject({ scoreMetric: 160, hidden: false });
+  });
+
+  it('does not backfill a legacy owner link while participant erasure is locked', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardRepository(() => mockDb);
+    const ownerUid = 'owner-erasing';
+    const assessmentType = 'visual-reaction';
+    const indexId = crypto.createHash('sha256').update(ownerUid + ':' + assessmentType).digest('hex');
+    await mockDb.collection('leaderboardResults').doc('legacy-ownerless').set({
+      displayName: 'Legacy Player', assessmentType, scoreMetric: 210, hidden: false
+    });
+    await mockDb.collection('leaderboardOwnerIndex').doc(indexId).set({ ownerUid, assessmentType, deleting: true });
+    await expect(repo.linkOwnerToEntry('legacy-ownerless', ownerUid, 'session-legacy')).resolves.toBe(false);
+    expect((await mockDb.collection('leaderboardPrivateMeta').doc('legacy-ownerless').get()).exists).toBe(false);
+  });
 
 });

@@ -58,7 +58,8 @@ sequenceDiagram
 
 ## 5. Ranking, identity, and tie policy
 
-- **Leaderboard scope:** Public rankings contain all eligible, voluntarily opted-in attempts, up to the top 100 for each assessment. The current implementation does not deduplicate by participant or keep only a participant's best score.
-- **Display names:** Aliases are not verified identities and are not unique participant identifiers. Different participants can choose the same alias, and a participant can appear more than once after multiple eligible attempts.
+- **Leaderboard scope:** Each participant contributes at most one visible, approved best score per canonical assessment. Worse or tied attempts are stored as private submission receipts and are not ranked. A flagged candidate is retained as a hidden moderation row while the approved best remains visible; it becomes the public best only if moderation approves it and it outperforms the current best.
+- **Legacy data:** Historical duplicate visible rows are not deduplicated by ordinary API requests. Run the best-per-owner migration during a maintenance window after the privacy migration. Rows without a trusted private owner mapping and hidden moderation cases are intentionally left unchanged for manual review.
+- **Display names:** Aliases are not verified identities and are not unique participant identifiers. Different participants may choose the same alias, but normalized new data exposes only one current approved best row per owner/assessment.
 - **Ordering:** Speed assessments sort by lower score first; memory assessments sort by higher score first. Full precision determines server ordering. Rows whose displayed scores are identical share a displayed rank; sorting within an equal-score group is deterministic by completion time and entry ID.
-- **Refresh:** The public response is cached briefly in-process (five seconds); it is not a live push stream.
+- **Refresh:** Concurrent in-flight reads for the same assessment share one Firestore request. Completed reads are not cached for five seconds; HTTP caching is disabled on the public endpoint, so the next request reloads data. Rankings are not a live push stream.

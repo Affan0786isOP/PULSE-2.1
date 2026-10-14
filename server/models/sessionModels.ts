@@ -9,10 +9,13 @@ export interface ExperimentSessionRecord {
   consumedAt?: number;
   researchDocId?: string;
   leaderboardSubmitted?: boolean;
-  leaderboardDocId?: string;
+  /** Current public-best row at the time of submission; null if none is currently visible. */
+  leaderboardDocId?: string | null;
   leaderboardSubmittedAt?: number;
-  /** Per-attempt leaderboard submission details; never overwrite the authoritative research result fields below. */
+  /** Stable attempt receipt; distinct from the replaceable public-best row. */
   leaderboardSubmissionId?: string;
+  leaderboardSubmissionEntryId?: string | null;
+  leaderboardSubmissionPendingReview?: boolean;
   leaderboardSubmissionScoreMetric?: number | null;
   leaderboardSubmissionProvenanceToken?: string;
   leaderboardSubmissionTrialsDigest?: string;

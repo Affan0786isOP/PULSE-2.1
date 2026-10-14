@@ -77,18 +77,24 @@ export class LeaderboardAppService implements ILeaderboardService {
       throw new AppError('Failed to retrieve your leaderboard entry', 500);
     }
 
-    const rows = ownedRows
-      .filter(row => normalizeAssessmentType(String(row.assessmentType || '')) === rawType)
-      .sort((a, b) => {
-        const as = Number(a.scoreMetric);
-        const bs = Number(b.scoreMetric);
-        if (as !== bs) {
-          const speed = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
-          return speed ? as - bs : bs - as;
-        }
-        return (Number(a.createdAt) || 0) - (Number(b.createdAt) || 0);
-      });
-    const ownedBest = rows[0];
+    const rows = ownedRows.filter(row =>
+      normalizeAssessmentType(String(row.assessmentType || '')) === rawType
+    );
+    const speedAssessment = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
+    const compareScore = (a: AdminLeaderboardEntryRecord, b: AdminLeaderboardEntryRecord) => {
+      const as = Number(a.scoreMetric);
+      const bs = Number(b.scoreMetric);
+      if (as !== bs) return speedAssessment ? as - bs : bs - as;
+      return (Number(a.createdAt) || 0) - (Number(b.createdAt) || 0) || a.id.localeCompare(b.id);
+    };
+    // A pending-review candidate must never mask the approved visible best.
+    const visibleRows = rows.filter(row =>
+      row.hidden === false &&
+      safeLeaderboardDisplayNameForRead(row.displayName) !== null &&
+      isValidLeaderboardScoreMetric(rawType, Number(row.scoreMetric))
+    ).sort(compareScore);
+    const pendingRows = rows.filter(row => row.hidden === true).sort(compareScore);
+    const ownedBest = visibleRows[0] || pendingRows[0] || rows.sort(compareScore)[0];
     if (!ownedBest) {
       return { rank: null, scoreMetric: null, displayName: null, pendingReview: false };
     }
@@ -253,15 +259,13 @@ export class LeaderboardAppService implements ILeaderboardService {
     if (!sData.consumedAt && typeof sData.expiresAt === 'number' && Date.now() > sData.expiresAt + 60000) {
       throw new AppError('Experiment session has expired. Please retake the test.', 400);
     }
-    if (sData.consumedAt && Date.now() > sData.consumedAt + 24 * 60 * 60 * 1000) {
-      throw new AppError('The leaderboard opt-in window has expired. Please retake the test.', 400);
+    if (sData.leaderboardSubmitted) {
+      // A successful operation remains replayable after the opt-in window closes.
+      throw new LeaderboardAlreadySubmittedError(sData);
     }
 
-    if (sData.leaderboardSubmitted) {
-      if (sData.leaderboardDocId) {
-        throw new LeaderboardAlreadySubmittedError(sData);
-      }
-      throw new AppError('Leaderboard score has already been submitted for this session', 400);
+    if (sData.consumedAt && Date.now() > sData.consumedAt + 24 * 60 * 60 * 1000) {
+      throw new AppError('The leaderboard opt-in window has expired. Please retake the test.', 400);
     }
 
     const authoritativeAgeGroup = sData.ageGroup;
@@ -328,27 +332,87 @@ export class LeaderboardAppService implements ILeaderboardService {
     return result;
   }
 
-  async verifyPublicEntryProvenance(entryId: string): Promise<{ verified: boolean; reason?: string }> {
-    const normalizedId = entryId.trim();
+  async getSubmissionReplayState(attemptId: string, retainedEntryId: string | null, userId: string, assessmentType: string): Promise<{
+    receiptAvailable: boolean;
+    entryAvailable: boolean;
+    leaderboardDocId: string | null;
+    leaderboardProvenanceToken: string | null;
+    pendingReview: boolean;
+  }> {
+    const rawType = normalizeAssessmentType(assessmentType);
+    if (!VALID_ASSESSMENT_TYPES.includes(rawType)) throw new AppError('Unknown assessmentType', 400);
+    if (!this.leaderboardRepo.getEntryById) throw new AppError('Submission receipt lookup is unavailable', 503);
+
+    let receipt: AdminLeaderboardEntryRecord | null;
+    try {
+      receipt = await this.leaderboardRepo.getEntryById(attemptId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message === 'DATABASE_UNAVAILABLE') throw new AppError('DATABASE_UNAVAILABLE', 503);
+      throw new AppError('Failed to retrieve leaderboard submission receipt', 500);
+    }
+
+    if (
+      !receipt ||
+      (typeof receipt.ownerUid === 'string' && receipt.ownerUid !== userId) ||
+      normalizeAssessmentType(String(receipt.assessmentType || '')) !== rawType
+    ) {
+      return { receiptAvailable: false, entryAvailable: false, leaderboardDocId: null, leaderboardProvenanceToken: null, pendingReview: false };
+    }
+
+    let visibleEntryId: string | null = null;
+    let visibleEntryToken: string | null = null;
+    if (retainedEntryId && this.leaderboardRepo.getEntryById) {
+      try {
+        const retained = await this.leaderboardRepo.getEntryById(retainedEntryId);
+        if (
+          retained &&
+          retained.publicEntry === true &&
+          retained.hidden === false &&
+          normalizeAssessmentType(String(retained.assessmentType || '')) === rawType
+        ) {
+          visibleEntryId = retainedEntryId;
+          visibleEntryToken = typeof retained.provenanceToken === 'string' ? retained.provenanceToken : null;
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (message === 'DATABASE_UNAVAILABLE') throw new AppError('DATABASE_UNAVAILABLE', 503);
+        throw new AppError('Failed to retrieve retained leaderboard entry', 500);
+      }
+    }
+
+    return {
+      receiptAvailable: true,
+      entryAvailable: visibleEntryId !== null,
+      leaderboardDocId: visibleEntryId,
+      leaderboardProvenanceToken: visibleEntryToken,
+      pendingReview: receipt.hidden === true
+    };
+  }
+
+  async verifySubmissionProvenance(attemptId: string): Promise<{
+    verified: boolean;
+    publiclyVisible: boolean;
+    pendingReview: boolean;
+    reason?: string;
+  }> {
+    const normalizedId = attemptId.trim();
     if (!normalizedId || normalizedId.includes('/') || normalizedId.length > 1500) {
-      throw new AppError('Invalid leaderboard entry id', 400);
+      throw new AppError('Invalid leaderboard attempt id', 400);
     }
+    if (!this.leaderboardRepo.getEntryById) throw new AppError('Submission verification is unavailable', 503);
 
-    if (!this.leaderboardRepo.getEntryById) {
-      throw new AppError('Provenance verification is unavailable', 503);
-    }
-
-    let row: import('../models/leaderboardModels').AdminLeaderboardEntryRecord | null;
+    let row: AdminLeaderboardEntryRecord | null;
     try {
       row = await this.leaderboardRepo.getEntryById(normalizedId);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       if (message === 'DATABASE_UNAVAILABLE') throw new AppError('DATABASE_UNAVAILABLE', 503);
-      throw new AppError('Failed to retrieve leaderboard entry for provenance verification', 500);
+      throw new AppError('Failed to retrieve submission receipt for verification', 500);
     }
 
-    if (!row || row.hidden !== false) {
-      return { verified: false, reason: 'Entry does not exist or is not publicly visible.' };
+    if (!row) {
+      return { verified: false, publiclyVisible: false, pendingReview: false, reason: 'Submission receipt does not exist.' };
     }
 
     const displayName = safeLeaderboardDisplayNameForRead(row.displayName);
@@ -357,20 +421,30 @@ export class LeaderboardAppService implements ILeaderboardService {
     const ageGroup = String(row.ageGroup || '');
     const trialsDigest = String(row.trialsDigest || '');
     const provenanceToken = String(row.provenanceToken || '');
-    if (!displayName || !VALID_ASSESSMENT_TYPES.includes(assessmentType) ||
-        !Number.isFinite(scoreMetric) || !ageGroup || !provenanceToken) {
-      return { verified: false, reason: 'Stored leaderboard entry has invalid provenance fields.' };
+    if (
+      !displayName ||
+      !VALID_ASSESSMENT_TYPES.includes(assessmentType) ||
+      !isValidLeaderboardScoreMetric(assessmentType, scoreMetric) ||
+      !ageGroup ||
+      !provenanceToken
+    ) {
+      return { verified: false, publiclyVisible: false, pendingReview: row.hidden === true, reason: 'Stored submission receipt has invalid provenance fields.' };
     }
 
     const sanitizedDisplayName = displayName.replace(/:/g, '_');
-    // V2 tokens include the stored entry ID. Legacy tokens are accepted only for
-    // a matching existing visible row, not as standalone HMAC proofs.
     const tokenData = Number(row.provenanceVersion) >= 2
-      ? `lb:v2:${normalizedId}:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest}`
-      : `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest}`;
+      ? \`lb:v2:\${normalizedId}:\${assessmentType}:\${ageGroup}:\${scoreMetric.toFixed(2)}:\${sanitizedDisplayName}:\${trialsDigest}\`
+      : \`lb:\${assessmentType}:\${ageGroup}:\${scoreMetric.toFixed(2)}:\${sanitizedDisplayName}:\${trialsDigest}\`;
 
     try {
-      return { verified: safeCompareHex(signProvenancePayload(tokenData), provenanceToken) };
+      const verified = safeCompareHex(signProvenancePayload(tokenData), provenanceToken);
+      const publiclyVisible = row.publicEntry === true && row.hidden === false;
+      return {
+        verified,
+        publiclyVisible,
+        pendingReview: row.hidden === true,
+        ...(verified ? {} : { reason: 'The stored provenance token does not match this submission receipt.' })
+      };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       if (message.includes('PULSE_PROVENANCE_SECRET')) {
@@ -378,6 +452,16 @@ export class LeaderboardAppService implements ILeaderboardService {
       }
       throw err;
     }
+  }
+
+  async verifyPublicEntryProvenance(entryId: string): Promise<{ verified: boolean; reason?: string }> {
+    const result = await this.verifySubmissionProvenance(entryId);
+    if (!result.publiclyVisible) {
+      return { verified: false, reason: 'Entry does not exist or is not publicly visible.' };
+    }
+    return result.verified
+      ? { verified: true }
+      : { verified: false, reason: result.reason || 'Stored leaderboard provenance is invalid.' };
   }
 
   async getPublicLeaderboard(assessmentType?: string | null): Promise<LeaderboardEntryRecord[]> {

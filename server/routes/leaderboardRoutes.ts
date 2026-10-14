@@ -64,21 +64,56 @@ export function registerLeaderboardRoutes(
       } catch (submitErr: unknown) {
         if (submitErr instanceof LeaderboardAlreadySubmittedError) {
           const sData = submitErr.sessionData;
-          if (sData && sData.leaderboardDocId) {
+          const attemptId = sData?.leaderboardSubmissionId || sData?.leaderboardDocId || null;
+          if (!sData || !sData.leaderboardSubmitted || !attemptId || !services.leaderboardService.getSubmissionReplayState) {
+            // The action may have been completed by a legacy version or its
+            // receipt erased. Never manufacture an ID for an absent record.
             return res.json({
               success: true,
-              // Return the attempt-specific leaderboard submission metadata.
-              // Legacy fallbacks keep pre-migration sessions replayable.
-              docId: sData.leaderboardSubmissionId || sData.leaderboardDocId,
-              leaderboardDocId: sData.leaderboardDocId,
-              scoreMetric: sData.leaderboardSubmissionScoreMetric ?? sData.scoreMetric,
-              provenanceToken: sData.leaderboardSubmissionProvenanceToken || sData.provenanceToken,
-              trialsDigest: sData.leaderboardSubmissionTrialsDigest || sData.trialsDigest,
-              derivedMetrics: sData.leaderboardSubmissionDerivedMetrics || sData.derivedMetrics,
-              alreadySubmitted: true
+              alreadySubmitted: true,
+              receiptAvailable: false,
+              entryAvailable: false,
+              leaderboardDocId: null,
+              leaderboardEntryId: null,
+              pendingReview: false
             });
           }
-          return res.status(400).json({ success: false, error: 'Leaderboard score has already been submitted for this session' });
+
+          const replayState = await services.leaderboardService.getSubmissionReplayState(
+            attemptId,
+            sData.leaderboardSubmissionEntryId ?? sData.leaderboardDocId ?? null,
+            verifiedUser.uid,
+            sData.assessmentType
+          );
+          if (!replayState.receiptAvailable) {
+            return res.json({
+              success: true,
+              alreadySubmitted: true,
+              receiptAvailable: false,
+              entryAvailable: false,
+              leaderboardDocId: null,
+              leaderboardEntryId: null,
+              pendingReview: false
+            });
+          }
+
+          return res.json({
+            success: true,
+            docId: attemptId,
+            attemptId,
+            leaderboardDocId: replayState.leaderboardDocId,
+            leaderboardEntryId: replayState.leaderboardDocId,
+            entryAvailable: replayState.entryAvailable,
+            receiptAvailable: true,
+            scoreMetric: sData.leaderboardSubmissionScoreMetric ?? sData.scoreMetric,
+            provenanceToken: sData.leaderboardSubmissionProvenanceToken || sData.provenanceToken,
+            attemptProvenanceToken: sData.leaderboardSubmissionProvenanceToken || sData.provenanceToken,
+            leaderboardProvenanceToken: replayState.leaderboardProvenanceToken,
+            trialsDigest: sData.leaderboardSubmissionTrialsDigest || sData.trialsDigest,
+            derivedMetrics: sData.leaderboardSubmissionDerivedMetrics || sData.derivedMetrics,
+            pendingReview: replayState.pendingReview,
+            alreadySubmitted: true
+          });
         }
 
         const errMsg = submitErr instanceof Error ? submitErr.message : String(submitErr);
@@ -114,7 +149,31 @@ export function registerLeaderboardRoutes(
     }
   });
 
-  // Verification is bound to a real stored row and its current visibility.
+  // Verify an immutable stored attempt receipt, even when that attempt was not
+  // the participant's public best. This is distinct from public-entry verification.
+  app.post('/api/leaderboard/verify-submission', async (req, res) => {
+    const attemptId = typeof req.body?.attemptId === 'string' ? req.body.attemptId.trim() : '';
+    if (!attemptId) {
+      return res.status(400).json({ verified: false, publiclyVisible: false, pendingReview: false, reason: 'attemptId is required' });
+    }
+    try {
+      if (!services.leaderboardService.verifySubmissionProvenance) {
+        return res.status(503).json({ verified: false, publiclyVisible: false, pendingReview: false, reason: 'Submission verification is unavailable' });
+      }
+      return res.json(await services.leaderboardService.verifySubmissionProvenance(attemptId));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status = err instanceof AppError ? err.status : (message === 'DATABASE_UNAVAILABLE' ? 503 : 500);
+      return res.status(status).json({
+        verified: false,
+        publiclyVisible: false,
+        pendingReview: false,
+        reason: status === 400 ? message : status === 503 ? 'Submission verification is unavailable' : 'Failed to verify submission provenance'
+      });
+    }
+  });
+
+  // Public-entry verification only succeeds for a currently visible public row.
   app.post('/api/leaderboard/verify-provenance', async (req, res) => {
     const entryId = typeof req.body?.entryId === 'string' ? req.body.entryId.trim() : '';
     if (!entryId) {
