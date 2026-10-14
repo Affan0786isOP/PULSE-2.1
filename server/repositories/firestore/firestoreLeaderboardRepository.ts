@@ -28,7 +28,6 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     while (records.length < safeLimit) {
       let query = db.collection('leaderboardResults')
         .where('assessmentType', '==', alias)
-        .where('hidden', '==', false)
         .orderBy('scoreMetric', direction)
         .limit(pageSize);
 
@@ -85,7 +84,6 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     while (true) {
       let query = db.collection('leaderboardResults')
         .where('assessmentType', '==', alias)
-        .where('hidden', '==', false)
         .orderBy('scoreMetric', direction)
         .limit(pageSize);
       if (cursor) query = query.startAfter(cursor);
