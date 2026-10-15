@@ -12,7 +12,9 @@ This document defines the data structures, Firestore collections, TypeScript typ
 | **`assessmentTrials`** | Granular millisecond-level trial telemetry | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
 | **`assessmentResults`** | Aggregated assessment outcome summaries | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
 | **`publicDataset`** | Anonymized open research benchmark records | Authenticated Users (`auth != null`) | Server Backend Only | **Indefinite** (Open science) |
-| **`leaderboardResults`** | Voluntary opted-in public rank records | Public (`hidden == false`) | Server Backend Only | **Not automatically enforced**; no TTL/deletion job was found in the reviewed repository. Admins can hide/delete records. |
+| **`leaderboardResults`** | Voluntary opted-in public rank records (one best score per owner) | Server Backend Only (`/api/leaderboard` returns sanitized display view) | Server Backend Only | Not automatically purged; participant GDPR erasure supported via `DELETE /api/leaderboard/mine`. |
+| **`leaderboardPrivateMeta`** | Private submission receipts, trial digests, owner UIDs, and moderation metadata | Server Backend Only (Client read denied) | Server Backend Only | Retained with assessment lifespan or purged upon participant erasure. |
+| **`leaderboardOwnerIndex`** | Pseudonymous owner best-score index and transaction locking | Server Backend Only (Client read denied) | Server Backend Only | Updated transactional state tracking participant best scores. |
 | **`adminAuditLogs`** | Immutable administrator moderation log | Server Admin Only (Client read denied) | Server Backend Only | **7 years** (Statutory audit) |
 
 ---

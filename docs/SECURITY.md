@@ -22,19 +22,18 @@ This document outlines the security controls, cryptographic attestation mechanis
 
 ### 1.3 Rate Limiting & Denial of Service Protection
 - API endpoints use a Firestore-backed shared counter store so limits are shared across serverless instances. Authenticated session/research/leaderboard endpoints are partitioned by decoded UID + IP for accounting; the route still performs authoritative Firebase token verification. A separate per-IP aggregate limit caps unauthenticated traffic.
-  - Admin login: 10 requests per 15 minutes.
-  - Session start, research submit and leaderboard submit: 30 requests per 15 minutes per identity key.
-  - Session APIs: 60 requests per 15 minutes.
+  - Session start, research submit and leaderboard submit: 30 requests per 15 minutes per identity key (`uid:ip`).
+  - Session APIs: 60 requests per 15 minutes per identity key.
   - Public leaderboard GET: 600 requests per 15 minutes per IP.
   - Provenance verification: 60 requests per 15 minutes per IP.
   - General API aggregate: 2,000 requests per 15 minutes per IP.
 - The counter collection `_rateLimitCounters` uses hashed document IDs and a Firestore TTL policy on `resetAt`; deploy the updated Firestore index/TTL configuration for automatic cleanup.
 
-### 1.4 Admin Console Access Control
-- Administrative routes require the `ADMIN_PASSCODE` (or `PULSE_ADMIN_PASSCODE`) environment variable; there is no hard-coded fallback.
-- Admin session tokens require the independent `PULSE_ADMIN_SESSION_SECRET`; leaderboard/research provenance requires a separate `PULSE_PROVENANCE_SECRET`. Both are mandatory and must be different strong random values.
-- Missing required admin configuration fails closed. Deployments using the old shared-secret fallback must configure the new variables and rotate the admin passcode before enabling the updated routes.
-- Moderation operations (hide/unhide/delete leaderboard entries) are logged to `adminAuditLogs`. New audit timestamps use numeric milliseconds; run the documented migration for historical string timestamps.
+### 1.4 Administrative & Operational Access Control
+- Web-facing admin routes (`/api/admin/*`) and browser admin UI pages have been audited and removed to minimize attack surface.
+- Provenance and session attestation require the server-side secret `PULSE_PROVENANCE_SECRET`.
+- Sensitive operations, data migration, and moderation tasks are restricted to operator scripts running directly with `FIREBASE_SERVICE_ACCOUNT` credentials using the Firebase Admin SDK.
+- Historical moderation operations remain preserved in `adminAuditLogs` with immutable server-authoritative timestamps.
 
 ---
 
@@ -58,7 +57,7 @@ PULSE operates in compliance with international privacy mandates:
 | 4 | Synthetic/automated reaction and memory scores | Plausibility floors and suspicious-score moderation; no server-secret per-trial challenge yet | **MITIGATED; RESIDUAL RISK** |
 | 5 | Direct leaderboard-document reads or writes | Firestore rules deny client access; public data goes through the display-only API | **BLOCKED BY RULES** |
 | 6 | Identity leakage in open research data | Dataset schema minimization and separate private leaderboard metadata | **MITIGATED; VERIFY DEPLOYED DATA** |
-| 7 | Brute-force admin login attempts | Shared Firestore-backed counters and a separate admin-login limiter | **MITIGATED** |
+| 7 | Attack surface on administrative interfaces | Web admin console and login endpoints audited and completely removed; operations restricted to backend service scripts | **REMOVED / ELIMINATED** |
 
 ---
 

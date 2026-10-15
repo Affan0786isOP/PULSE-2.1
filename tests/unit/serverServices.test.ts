@@ -116,7 +116,6 @@ describe('Server Application Services Unit Tests', () => {
         }
         return [];
       }),
-      getAllEntriesForAdmin: vi.fn(async () => []),
       softHideEntry: vi.fn(async () => ({ success: true, found: true })),
       unhideEntry: vi.fn(async () => ({ success: true, found: true })),
       deleteEntry: vi.fn(async () => ({ success: true, found: true }))

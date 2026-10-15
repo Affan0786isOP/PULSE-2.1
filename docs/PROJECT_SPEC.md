@@ -134,7 +134,7 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 | **Global Leaderboard** | `/leaderboard` | `IMPLEMENTED` | Top 100 rankings per assessment type, verified server HMAC tokens, strict opt-in alias validation. |
 | **Leaderboard Opt-In** | Modal UI | `IMPLEMENTED` | Self-selected public alias modal with profanity filter; guest/anonymous submissions excluded from public rank. |
 | **Cognitive Guidance** | `/improve` | `IMPLEMENTED` | Sleep, circadian timing, caffeine, and reaction training educational cards backed by scientific literature. |
-| **Admin Console** | `/admin/*` | `IMPLEMENTED` | Passcode-protected overview, leaderboard moderation (hide, restore/unhide, or delete with reason notes), and audit trail viewer. |
+| **Admin Console** | `/admin/*` | `DEPRECATED / REMOVED` | Web admin routes and UI were audited and removed; administration and moderation actions are executed via direct CLI scripts with Firebase Admin credentials. |
 | **Privacy Policy & Terms** | `/privacy` | `IMPLEMENTED` | Discloses research records, optional public leaderboard aliases, and current data-removal and retention limitations. |
 | **Multiplayer / Live Duels** | — | `PLANNED` | Real-time peer-to-peer cognitive reaction duels (Not implemented in v2.2). |
 | **Native Mobile App (iOS/Android)**| App Stores | `PLANNED` | Capacitor/React Native native wrapper (Web PWA active in v2.2). |

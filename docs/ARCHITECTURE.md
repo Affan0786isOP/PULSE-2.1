@@ -88,17 +88,19 @@ State is partitioned across four clear tiers:
 
 ## 5. Server Subsystem & API Routing (`server/`)
 
-The Express server handles five core operational domains:
+The Express server handles four core operational domains:
 
 ```
 [Express Server (server/index.ts)]
   │
   ├── 1. Rate Limiting Middleware
-  │     ├── /api/admin/*              ──► generalApiLimiter (200 req / 15 min)
-  │     ├── /api/admin/login          ──► adminLoginLimiter (10 req / 15 min)
-  │     ├── /api/research/session/*   ──► sessionStartLimiter (30 req / 15 min)
-  │     ├── /api/research/submit      ──► sessionSubmitLimiter (30 req / 15 min)
-  │     └── /api/leaderboard/submit   ──► leaderboardSubmitLimiter (30 req / 15 min)
+  │     ├── /api/leaderboard          ──► leaderboardReadLimiter (600 req / 15 min per IP)
+  │     ├── /api/research/session/*   ──► sessionStartLimiter (30 req / 15 min per UID+IP)
+  │     ├── /api/sessions/*           ──► generalSessionsLimiter (60 req / 15 min per UID+IP)
+  │     ├── /api/research/submit      ──► sessionSubmitLimiter (30 req / 15 min per UID+IP)
+  │     ├── /api/leaderboard/submit   ──► leaderboardSubmitLimiter (30 req / 15 min per UID+IP)
+  │     ├── /api/*/verify-provenance  ──► verificationLimiter (60 req / 15 min per IP)
+  │     └── /api/*                    ──► generalApiLimiter (2000 req / 15 min per IP)
   │
   ├── 2. Provenance & Attestation Engine
   │     ├── /api/research/session/start ──► Session initialization
@@ -110,15 +112,11 @@ The Express server handles five core operational domains:
   │     ├── /api/research/dataset       ──► Filtered public benchmark queries
   │     └── /api/research/dataset/summary ──► Cohort summary statistics
   │
-  ├── 4. Leaderboard API
-  │     ├── /api/leaderboard            ──► Opted-in top 100 entries per protocol
-  │     └── /api/leaderboard/submit     ──► Alias validation & leaderboard write
-  │
-  └── 5. Admin Console API
-        ├── /api/admin/login            ──► Passcode verification & session token
-        ├── /api/admin/leaderboard/hide ──► Soft-hide flagged submission
-        ├── /api/admin/leaderboard/delete ──► Hard-delete fraudulent submission
-        └── /api/admin/audit-logs       ──► Immutable moderation log retrieval
+  └── 4. Leaderboard API
+        ├── /api/leaderboard            ──► Opted-in top 100 entries per protocol
+        ├── /api/leaderboard/submit     ──► Alias validation, best-score checks & leaderboard write
+        ├── /api/leaderboard/mine       ──► Participant GDPR data erasure
+        └── /api/leaderboard/verify-provenance ──► Token signature verification
 ```
 
 ### 5.1 Module Layout
@@ -128,24 +126,29 @@ The Express server handles five core operational domains:
 ```
 server/
 ├── index.ts                     App bootstrap: middleware order, route registration, listen
+├── container.ts                 Dependency injection container wiring repositories to services
 ├── config/
 │   ├── constants.ts             Valid age groups / assessment types, trial + idempotency limits
 │   ├── firebaseAdmin.ts         Admin SDK initialisation, Firestore accessor, diagnostics
-│   └── rateLimits.ts            Route-scoped rate limiters (in-memory store, see SECURITY.md §4)
+│   ├── firestoreRateLimitStore.ts Firestore-backed distributed rate limit store
+│   └── rateLimits.ts            Route-scoped rate limiters (Firestore-backed distributed counters)
 ├── middleware/
 │   ├── security.ts              /api prefix normalisation, security headers, CSP
-│   ├── auth.ts                  Firebase ID-token verification, admin passcode + signed admin sessions
 │   └── deviceRouting.ts         Cookie/UA helpers, staging noindex, desktop <-> /mobile redirection
 ├── routes/
 │   ├── researchRoutes.ts        session/start, submit, personal-best, verify-provenance, dataset (+summary)
-│   ├── leaderboardRoutes.ts     leaderboard read, submit, verify-provenance
-│   ├── adminRoutes.ts           login, audit log, moderation (hide / delete / list)
+│   ├── leaderboardRoutes.ts     leaderboard read, submit, mine (erasure), verify-provenance
 │   └── staticRoutes.ts          Vite dev middleware or dist/ static serving + SPA/PWA fallbacks
+├── repositories/
+│   ├── firestore/               Firestore persistence implementations (sessions, submissions, leaderboards)
+│   └── interfaces/              Repository contracts enabling test mock injection
 ├── services/
 │   ├── provenanceService.ts     HMAC-SHA256 signing, constant-time compare, canonical trials digest
 │   ├── sessionService.ts        Firestore-backed experiment session lookup and validation
+│   ├── researchService.ts       Dataset query filtering, trial validation, and aggregation
+│   ├── personalBestService.ts   Personal best retrieval and ranking derivation
 │   ├── idempotencyService.ts    Bounded process-local idempotency cache
-│   └── leaderboardService.ts    Opt-in rules and score-metric validation
+│   └── leaderboardAppService.ts Opt-in rules, best-per-owner filtering, and score-metric validation
 └── engines/                     Pure functions: no Express, no Firestore
     ├── assessmentEngine.ts      Structural / chronological / physiological trial checks + protocol dispatch
     ├── reactionCalculator.ts    Visual reaction time, foreperiod generation, temporal dynamics
@@ -171,5 +174,7 @@ The Firestore database enforces strict role isolation via [`firestore.rules`](..
 | `assessmentTrials` | Authenticated Owner (`participantId == auth.uid`) | **DENIED** (`false`) | Full Read/Write |
 | `assessmentResults` | Authenticated Owner (`participantId == auth.uid`) | **DENIED** (`false`) | Full Read/Write |
 | `publicDataset` | Authenticated Users (`auth != null`) | **DENIED** (`false`) | Full Read/Write |
-| `leaderboardResults` | Public (where `hidden == false`) | **DENIED** (`false`) | Full Read/Write |
+| `leaderboardResults` | **DENIED** (`false`, API-only) | **DENIED** (`false`) | Full Read/Write |
+| `leaderboardPrivateMeta` | **DENIED** (`false`) | **DENIED** (`false`) | Full Read/Write |
+| `leaderboardOwnerIndex` | **DENIED** (`false`) | **DENIED** (`false`) | Full Read/Write |
 | `adminAuditLogs` | **DENIED** (`false`) | **DENIED** (`false`) | Full Read/Write |

@@ -80,4 +80,4 @@ import { PulseLogo, StimulusReticle } from '@/components/brand';
 <StimulusReticle state="idle" size={32} />
 ```
 
-All navigation bars (`Navbar.tsx`, `mobile/src/components/Navbar.tsx`, `mobile/src/components/Home.tsx`, `WelcomeModal.tsx`, `AdminLayout.tsx`) now use the unified `PulseLogo` component.
+All primary navigation bars and modals (`Navbar.tsx`, `mobile/src/components/Navbar.tsx`, `mobile/src/components/Home.tsx`, `WelcomeModal.tsx`) use the unified `PulseLogo` component.

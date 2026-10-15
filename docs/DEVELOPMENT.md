@@ -41,12 +41,7 @@ VITE_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
 VITE_FIREBASE_APP_ID="your-app-id"
 
 # Server Secrets (required for the corresponding production APIs; never prefix with VITE_)
-ADMIN_PASSCODE="replace-with-a-strong-random-passcode"
-PULSE_ADMIN_SESSION_SECRET="replace-with-a-different-random-signing-key"
-PULSE_PROVENANCE_SECRET="replace-with-another-different-random-signing-key"
-
-# These three values must be independent. There is no built-in admin passcode fallback.
-# Configure them in both local secrets and your hosting provider's server-only environment.
+PULSE_PROVENANCE_SECRET="replace-with-a-strong-random-signing-key"
 
 # Server-Side Firebase Admin Credentials (Optional for offline preview, required for production writes)
 FIREBASE_SERVICE_ACCOUNT='{"type":"service_account","project_id":"pulse-lab-36920",...}'
@@ -77,9 +72,9 @@ All commands below are verified directly against [`package.json`](../package.jso
 
 ## 5. Deployment notes for the leaderboard backend
 
-1. Set `ADMIN_PASSCODE`, `PULSE_ADMIN_SESSION_SECRET`, `PULSE_PROVENANCE_SECRET`, and `FIREBASE_SERVICE_ACCOUNT` in the server/host environment. Never reuse one signing key for both admin sessions and provenance. Existing deployments that only used the former `SESSION_SECRET` fallback must configure `PULSE_PROVENANCE_SECRET`; old tokens signed only with the fallback will no longer verify.
+1. Set `PULSE_PROVENANCE_SECRET` and `FIREBASE_SERVICE_ACCOUNT` in the server/host environment. Web administration routes and admin passcode sessions have been deprecated/removed; moderation and administrative tasks are managed via direct server-side operator scripts utilizing the Firebase Admin SDK.
 2. Deploy `firestore.rules` and `firestore.indexes.json` before switching traffic. Leaderboard reads must go through the API; direct client Firestore reads of `leaderboardResults` are intentionally denied.
-3. Back up the relevant Firestore collections, then run `npm run migrate:leaderboard-privacy` once to scrub legacy private fields from public rows and normalize historic string audit timestamps. Verify the migration summary and spot-check admin moderation/provenance before considering cutover complete.
+3. Back up the relevant Firestore collections, then run `npm run migrate:leaderboard-privacy` once to scrub legacy private fields from public rows and normalize historic string audit timestamps. Verify the migration summary and spot-check provenance before considering cutover complete.
 4. The migration script is **not** run against live Firestore by the development workflow. Running it requires valid Firebase Admin credentials and explicit operator action.
 
 ## 6. Development Workflows

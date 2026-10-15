@@ -29,12 +29,9 @@ If server credentials or administrative keys are suspected to be leaked:
    - Navigate to Google Cloud Console > IAM & Admin > Service Accounts.
    - Delete compromised key ID.
    - Generate a new JSON key file, base64 encode or format into `FIREBASE_SERVICE_ACCOUNT` environment variable.
-2. **Rotate Admin Master Passcode:**
-   - Update `ADMIN_PASSCODE` in server environment variables (e.g., Cloud Run, Vercel).
-   - This immediately invalidates all active admin sessions (`verifyAdminSession` validates against current secret).
-3. **Rotate Provenance HMAC Secret:**
-   - Change `PULSE_PROVENANCE_SECRET` in server environment variables.
-   - Prevents attackers from signing counterfeit assessment trials or leaderboard records.
+2. **Audit & Rotate Secrets:**
+   - Rotate `PULSE_PROVENANCE_SECRET` in server environment variables (e.g., Cloud Run, Vercel). This prevents attackers from signing counterfeit assessment trials or leaderboard records.
+   - Note: The web administration UI/console and `/api/admin/*` endpoints have been removed from the application surface. Administrative and moderation capabilities are strictly scoped to operator CLI/scripts with direct Firebase Admin credentials (`FIREBASE_SERVICE_ACCOUNT`).
 4. **Redeploy Application:**
    - Trigger deployment to purge in-memory state and reload rotated secrets.
 

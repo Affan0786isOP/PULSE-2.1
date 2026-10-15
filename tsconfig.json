@@ -38,6 +38,7 @@
     "dist",
     "node_modules",
     "mobile",
-    "scratch"
+    "scratch",
+    "pulse-leaderboard-audit"
   ]
 }
