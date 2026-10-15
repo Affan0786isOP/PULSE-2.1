@@ -193,7 +193,9 @@ export function Navbar({
       ref={navRef}
       role="banner"
       aria-label="Global Navigation"
-      className="relative z-30 w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-14 h-16 sm:h-20 flex items-center justify-between shrink-0 border-b border-transparent transition-colors duration-200"
+      className={`relative z-30 w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto px-6 sm:px-10 lg:px-14 min-[2560px]:px-20 ${
+        isLight ? 'h-14 sm:h-16 min-[2560px]:h-20' : 'h-16 sm:h-20'
+      } flex items-center justify-between shrink-0 border-b border-transparent transition-colors duration-200`}
       style={{ 
         paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))', 
         paddingLeft: 'max(1.5rem, env(safe-area-inset-left, 0px))', 
@@ -228,7 +230,7 @@ export function Navbar({
       </div>
 
       {/* Center Main Links */}
-      <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8">
+      <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8 min-[2560px]:gap-10">
         {navItems.map(item => {
           const isActive = activeId === item.id;
           return (
@@ -239,7 +241,7 @@ export function Navbar({
               onClick={() => {
                 if (onNavigate) onNavigate(item.id);
               }}
-              className={`relative text-[13.5px] lg:text-[14.5px] font-medium transition-colors ${
+              className={`relative text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium transition-colors ${
                 isLight 
                   ? (isActive ? 'text-[#0066FF] font-semibold' : 'text-[#475569] hover:text-[#090D1A]')
                   : (isActive ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]')
@@ -274,9 +276,12 @@ export function Navbar({
               }
             }}
             aria-label="Install App"
-            className="flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-[var(--border-subtle)] bg-[var(--accent-subtle)] hover:bg-[var(--accent)]/15 text-[var(--accent)] text-xs sm:text-[13px] font-medium active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0"
+            className={isLight
+              ? "flex items-center gap-2 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-sky-200/90 bg-sky-50/70 hover:bg-sky-100/90 text-[#0066FF] text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,102,255,0.06)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] shrink-0"
+              : "flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-[var(--border-subtle)] bg-[var(--accent-subtle)] hover:bg-[var(--accent)]/15 text-[var(--accent)] text-xs sm:text-[13px] font-medium active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0"
+            }
           >
-            <Download size={14} strokeWidth={2.4} className="text-[var(--accent)] shrink-0" />
+            <Download size={14} strokeWidth={2.4} className={isLight ? "text-[#0066FF] shrink-0" : "text-[var(--accent)] shrink-0"} />
             <span className="hidden sm:inline">Install App</span>
           </button>
         )}
@@ -286,13 +291,14 @@ export function Navbar({
           id="navbar-info-btn"
           onClick={() => setIsWelcomeOpen(true)}
           aria-label="Platform Information"
-          title="Welcome & Info"
+          title="Platform Information"
           className={isLight 
-            ? "w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+            ? "flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
             : "w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] flex items-center justify-center active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           }
         >
-          <Info size={17} strokeWidth={2.2} />
+          <Info size={15} strokeWidth={2.2} />
+          <span className="hidden sm:inline">Info</span>
         </button>
 
         <button
@@ -304,17 +310,17 @@ export function Navbar({
           disabled={isAssessmentActive}
           aria-disabled={isAssessmentActive}
           aria-label="Settings"
-          title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings & Calibration"}
-          className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-medium active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 ${
+          title={isAssessmentActive ? "Settings unavailable during active assessment" : "Application Settings"}
+          className={`flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 ${
             isLight
-              ? 'border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] shadow-xs focus-visible:ring-[#0066FF]'
+              ? 'border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm focus-visible:ring-[#0066FF]'
               : 'border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]'
           } ${
             isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
           }`}
         >
           <Settings size={15} strokeWidth={2.2} />
-          <span className="hidden sm:inline">Settings</span>
+          <span>Settings</span>
         </button>
 
         {/* Hamburger Menu Toggle for mobile / tablets (< md) */}
