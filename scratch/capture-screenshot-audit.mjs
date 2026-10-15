@@ -170,11 +170,32 @@ async function captureRoute(page, surface, route, baseUrl, outputDir, telemetry)
     result.title = pageState.title;
     result.errorBoundary = pageState.isErrorBoundary;
     result.ready = pageState.hasContent && !pageState.isLoading && !pageState.isErrorBoundary;
+    if (pageState.isNotFoundPage && route !== '/__audit_not_found__') {
+      throw new Error('A declared route unexpectedly rendered the Not Found page: ' + route);
+    }
     if (route === '/__audit_not_found__' && !pageState.isNotFoundPage) {
       throw new Error('Not-found probe did not render the expected 404 page: ' + JSON.stringify(pageState));
     }
     if (!result.ready) {
       throw new Error('Route did not reach a content-ready state: ' + JSON.stringify(pageState));
+    }
+
+    // Capture both first-run onboarding and the unobstructed mobile home. Keeping only
+    // the first-run state would hide the actual Home UI behind the welcome overlay.
+    if (surface === 'mobile' && route === '/') {
+      const welcomeDialog = page.getByRole('dialog').filter({ hasText: /Welcome to PULSE/i }).first();
+      if (await welcomeDialog.count() > 0) {
+        const welcomePath = path.join(outputDir, 'mobile_home_welcome.png');
+        await page.screenshot({ path: welcomePath, fullPage: true, animations: 'disabled' });
+        telemetry.interactions.push({
+          surface: 'mobile', interaction: 'first-run welcome dialog',
+          screenshot: path.relative(repoRoot, welcomePath), ok: true,
+        });
+        const close = welcomeDialog.getByRole('button', { name: /^close(?: dialog)?$/i }).first();
+        if (await close.count() === 0) throw new Error('Welcome dialog has no accessible Close button');
+        await close.click({ timeout: 4000 });
+        await welcomeDialog.waitFor({ state: 'hidden', timeout: 4000 });
+      }
     }
 
     await page.screenshot({ path: screenshotPath, fullPage: true, animations: 'disabled' });
