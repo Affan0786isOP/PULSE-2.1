@@ -1,35 +1,176 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { getLeaderboardResults, LeaderboardEntry, AssessmentType, isOptedInLeaderboardUser } from '../lib/firestore';
-import { Trophy, Award, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
-import { SkeletonTable } from './ui/Skeleton';
+import { Trophy, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
 import { SEO } from './SEO';
 import { getDisplayedLeaderboardRank } from '../../shared/domain/leaderboardRanking';
-const PROTOCOLS: { id: AssessmentType; route: string; name: string; unit: string; logo: string }[] = [
-  { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', unit: 'ms', logo: '/brand/assessments/visual-reaction.png' },
-  { id: 'direction', route: 'direction-test', name: 'DIRECTION', unit: 'ms', logo: '/brand/assessments/directional-choice.png' },
-  { id: 'color-recognition', route: 'colour-recognition', name: 'COLOUR RECOGNITION', unit: 'ms', logo: '/brand/assessments/colour-recognition.png' },
-  { id: 'block-memory', route: 'block-memory', name: 'BLOCK MEMORY', unit: 'Blocks', logo: '/brand/assessments/block-memory.png' },
-  { id: 'number-memory', route: 'number-memory', name: 'NUMBER MEMORY', unit: 'Digits', logo: '/brand/assessments/number-memory.png' },
+import { LeaderboardSideWaves } from './leaderboard/LeaderboardSideWaves';
+
+type ColumnKey = 'rank' | 'name' | 'time' | 'accuracy' | 'age';
+
+interface ColumnDef {
+  key: ColumnKey;
+  label: string;
+  align?: 'left' | 'center' | 'right';
+}
+
+interface ProtocolDef {
+  id: AssessmentType;
+  canonicalId: AssessmentType;
+  route: string;
+  name: string;
+  shortLabel: string;
+  unit: string;
+  logo: string;
+  columns: ColumnDef[];
+}
+
+const PROTOCOLS: ProtocolDef[] = [
+  {
+    id: 'visual-reaction',
+    canonicalId: 'visual-reaction',
+    route: 'reaction-test',
+    name: 'VISUAL REACTION',
+    shortLabel: 'Visual Reaction',
+    unit: 'ms',
+    logo: '/brand/assessments/visual-reaction.png',
+    columns: [
+      { key: 'rank', label: 'Rank', align: 'left' },
+      { key: 'name', label: 'Name', align: 'left' },
+      { key: 'time', label: 'Time', align: 'right' },
+      { key: 'age', label: 'Age', align: 'right' },
+    ],
+  },
+  {
+    id: 'direction',
+    canonicalId: 'direction',
+    route: 'direction-test',
+    name: 'DIRECTION',
+    shortLabel: 'Direction',
+    unit: 'ms',
+    logo: '/brand/assessments/directional-choice.png',
+    columns: [
+      { key: 'rank', label: 'Rank', align: 'left' },
+      { key: 'name', label: 'Name', align: 'left' },
+      { key: 'time', label: 'Time', align: 'right' },
+      { key: 'accuracy', label: 'Accuracy', align: 'right' },
+      { key: 'age', label: 'Age', align: 'right' },
+    ],
+  },
+  {
+    id: 'color-recognition',
+    canonicalId: 'color-recognition',
+    route: 'colour-recognition',
+    name: 'COLOUR RECOGNITION',
+    shortLabel: 'Colour Recognition',
+    unit: 'ms',
+    logo: '/brand/assessments/colour-recognition.png',
+    columns: [
+      { key: 'rank', label: 'Rank', align: 'left' },
+      { key: 'name', label: 'Name', align: 'left' },
+      { key: 'time', label: 'Time', align: 'right' },
+      { key: 'accuracy', label: 'Accuracy', align: 'right' },
+      { key: 'age', label: 'Age', align: 'right' },
+    ],
+  },
+  {
+    id: 'block-memory',
+    canonicalId: 'block-memory',
+    route: 'block-memory',
+    name: 'BLOCK MEMORY',
+    shortLabel: 'Block Memory',
+    unit: 'Blocks',
+    logo: '/brand/assessments/block-memory.png',
+    columns: [
+      { key: 'rank', label: 'Rank', align: 'left' },
+      { key: 'name', label: 'Name', align: 'left' },
+      { key: 'accuracy', label: 'Accuracy', align: 'right' },
+      { key: 'age', label: 'Age', align: 'right' },
+    ],
+  },
+  {
+    id: 'number-memory',
+    canonicalId: 'number-memory',
+    route: 'number-memory',
+    name: 'NUMBER MEMORY',
+    shortLabel: 'Number Memory',
+    unit: 'Digits',
+    logo: '/brand/assessments/number-memory.png',
+    columns: [
+      { key: 'rank', label: 'Rank', align: 'left' },
+      { key: 'name', label: 'Name', align: 'left' },
+      { key: 'accuracy', label: 'Accuracy', align: 'right' },
+      { key: 'age', label: 'Age', align: 'right' },
+    ],
+  },
 ];
 
 function formatLeaderboardScore(score: number, unit: string): string {
   if (unit !== 'ms') {
     return String(score);
   }
-  return score.toFixed(2);
+  return score.toFixed(1);
+}
+
+const AVATAR_GRADIENTS = [
+  'from-sky-400 to-blue-600',
+  'from-indigo-400 to-indigo-600',
+  'from-cyan-400 to-teal-600',
+  'from-blue-400 to-sky-600',
+  'from-violet-400 to-purple-600',
+  'from-emerald-400 to-teal-600',
+  'from-amber-400 to-orange-500',
+  'from-rose-400 to-pink-600',
+];
+
+function getAvatarInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return (name.slice(0, 2) || 'P').toUpperCase();
+}
+
+function getAvatarGradient(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AVATAR_GRADIENTS.length;
+  return AVATAR_GRADIENTS[index];
+}
+
+function formatRelativeTime(date: Date | null): string {
+  if (!date) return 'Updated just now';
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return 'Last updated just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes === 1) return 'Last updated 1 minute ago';
+  if (minutes < 60) return `Last updated ${minutes} minutes ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours === 1) return 'Last updated 1 hour ago';
+  return `Last updated ${hours} hours ago`;
 }
 
 export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialProtocol = PROTOCOLS.find(p => p.id === searchParams.get('assessmentType'))?.id || 'visual-reaction';
+  const rawTypeParam = searchParams.get('assessmentType');
+
+  // Handle canonical resolution and aliases like colour-recognition -> color-recognition
+  const initialProtocol = useMemo(() => {
+    if (!rawTypeParam) return 'visual-reaction';
+    if (rawTypeParam === 'colour-recognition' || rawTypeParam === 'color-test') return 'color-recognition';
+    return PROTOCOLS.find(p => p.id === rawTypeParam)?.id || 'visual-reaction';
+  }, [rawTypeParam]);
+
   const [selectedProtocol, setSelectedProtocol] = useState<AssessmentType>(initialProtocol);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const activeFetchIdRef = useRef(0);
 
   useEffect(() => {
@@ -63,6 +204,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
       if (fetchId !== activeFetchIdRef.current) return;
       const valid = (Array.isArray(data) ? data : []).filter(e => isOptedInLeaderboardUser(e?.displayName));
       setEntries(valid);
+      setLastUpdated(new Date());
     } catch (err: any) {
       if (fetchId !== activeFetchIdRef.current) return;
       console.error("Leaderboard fetch error:", err);
@@ -86,7 +228,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   }, [selectedProtocol, fetchLeaderboard]);
 
   const currentIndex = PROTOCOLS.findIndex(p => p.id === selectedProtocol);
-  const currentProto = PROTOCOLS[currentIndex] || PROTOCOLS[0];
+  const currentProto = PROTOCOLS[currentIndex >= 0 ? currentIndex : 0];
   const displayedEntries = useMemo(() => entries.filter(e => isOptedInLeaderboardUser(e?.displayName)), [entries]);
 
   const handlePrevProtocol = () => {
@@ -100,46 +242,74 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   };
 
   return (
-    <div className="bg-[var(--bg-base)] text-[var(--text-primary)] font-sans min-h-[100dvh] w-full flex flex-col selection:bg-[var(--accent-subtle)]">
+    <div 
+      data-theme="light" 
+      className="min-h-[100dvh] w-full bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] font-sans selection:bg-[#0066FF]/20 overflow-x-hidden relative flex flex-col"
+    >
       <SEO 
         title="Verified Leaderboard & Cohort Rankings | PULSE"
         description="Compare participant-selected display names against age-cohort results across five cognitive assessments."
       />
-      <Navbar currentView="leaderboard" onNavigate={onNavigate} />
 
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex flex-col">
+      {/* Decorative Fluid Blue Waves along edges + subtle dot grid identical to Home */}
+      <LeaderboardSideWaves />
+
+      {/* Primary Desktop Navigation Bar */}
+      <Navbar currentView="leaderboard" onNavigate={onNavigate} theme="light" />
+
+      <main 
+        id="main-content"
+        tabIndex={-1}
+        className="flex-1 w-full max-w-[1040px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 flex flex-col relative z-10 focus-visible:outline-none"
+      >
         {/* Header Section */}
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-                <Trophy size={20} />
-              </div>
-              <h1 className="font-heading font-bold text-2xl md:text-3xl text-[var(--text-primary)] tracking-tight">
+        <header className="mb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            {/* Trophy Icon Square Badge */}
+            <div 
+              aria-hidden="true"
+              className="w-12 h-12 rounded-2xl bg-[#EAF5FF] border border-[#D0E7FF] flex items-center justify-center text-[#0066FF] shrink-0 shadow-sm"
+            >
+              <Trophy size={24} className="stroke-[2.2]" />
+            </div>
+
+            {/* Title & Description */}
+            <div>
+              <h1 className="font-sans font-bold text-2xl sm:text-3xl text-slate-900 tracking-tight">
                 Global Cohort Leaderboard
               </h1>
+              <p className="text-slate-500 text-xs sm:text-[13px] leading-relaxed mt-1 max-w-xl">
+                Verified, opted-in rankings across reaction, choice, and memory assessments.
+                <br />
+                Refresh to load the latest available results.
+              </p>
             </div>
-            <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-xl leading-relaxed">
-              Verified, opted-in rankings across reaction, choice, and memory assessments. Refresh to load the latest available results.
-            </p>
           </div>
-          <button 
-            type="button"
-            id="leaderboard-refresh-btn"
-            onClick={() => fetchLeaderboard()}
-            disabled={loading}
-            aria-label="Refresh Leaderboard"
-            title="Refresh Leaderboard Data"
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] transition-all cursor-pointer disabled:opacity-50 self-start md:self-auto"
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin text-[var(--accent)]' : ''} />
-            <span className="font-mono text-xs uppercase tracking-wider font-medium">Sync Data</span>
-          </button>
+
+          {/* Sync Button & Relative Timestamp */}
+          <div className="flex flex-col items-start sm:items-end gap-1.5 self-start sm:self-auto shrink-0">
+            <button 
+              type="button"
+              id="leaderboard-refresh-btn"
+              onClick={() => fetchLeaderboard()}
+              disabled={loading}
+              aria-label="Refresh Leaderboard"
+              title="Refresh Leaderboard Data"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#EAF5FF] hover:bg-[#DDF0FF] border border-[#CDE5FF] text-[#0066FF] font-semibold text-xs sm:text-[13px] active:scale-95 transition-all cursor-pointer disabled:opacity-60 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              <span>Sync Data</span>
+            </button>
+            <span className="text-[11.5px] text-slate-400 font-medium tracking-tight">
+              {formatRelativeTime(lastUpdated)}
+            </span>
+          </div>
         </header>
 
-        {/* Protocol Selector Tabs */}
+        {/* Assessment Carousel / Protocol Selector */}
         <div 
-          className="flex items-center justify-between gap-3 mb-6 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl p-2 sm:p-2.5"
+          role="region"
+          className="flex items-center justify-between gap-2 sm:gap-4 mb-6 bg-white/95 backdrop-blur-xs border border-slate-200/80 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-[0_4px_20px_rgba(0,102,255,0.03)]"
           onKeyDown={(e) => {
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
@@ -163,83 +333,130 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
           tabIndex={0}
           aria-label="Protocol Selector - Use arrow keys to cycle between assessment batteries"
         >
+          {/* Previous Arrow Button */}
           <button 
             type="button"
             id="leaderboard-prev-btn"
             onClick={handlePrevProtocol}
             aria-label="Previous Protocol"
-            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] transition-all cursor-pointer shrink-0"
+            className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200/80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] transition-all cursor-pointer shrink-0"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={18} strokeWidth={2.4} />
           </button>
 
-          <div className="flex flex-col items-center justify-center min-w-0 px-2 sm:px-4 select-none">
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={currentProto.id}
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 4 }}
-                transition={{ duration: 0.15 }}
-                className="flex items-center gap-2 sm:gap-2.5"
-              >
-                <img src={currentProto.logo} alt={currentProto.name} className="w-6 h-6 object-contain shrink-0" />
-                <span className="font-heading font-bold text-sm sm:text-base text-[var(--text-primary)] tracking-wide uppercase truncate">
-                  {currentProto.name}
-                </span>
-              </motion.div>
-            </AnimatePresence>
-            <div className="flex items-center gap-1.5 sm:gap-2 mt-2" role="tablist" aria-label="Protocols">
-              {PROTOCOLS.map((p) => (
-                <button 
-                  type="button"
-                  key={p.id}
-                  onClick={() => selectProtocol(p.id)}
-                  aria-label={`Select ${p.name}`}
-                  id={`leaderboard-tab-${p.id}`}
-                  role="tab"
-                  aria-controls="leaderboard-panel"
-                  tabIndex={p.id === selectedProtocol ? 0 : -1}
-                  aria-selected={p.id === selectedProtocol}
-                  className="min-w-[32px] min-h-[44px] flex items-center justify-center rounded-md bg-transparent p-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]">
-                  <span aria-hidden="true" className={`block rounded-full transition-[color,background-color,transform] ${p.id === selectedProtocol ? 'h-2 sm:h-2 w-7 sm:w-8 bg-[var(--accent)]' : 'h-2 sm:h-2 w-2 sm:w-2.5 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'}`}/>
-                </button>
-              ))}
-            </div>
+          {/* Tab List */}
+          <div 
+            className="flex-1 flex items-center justify-around gap-1 sm:gap-2 px-1 select-none overflow-x-auto" 
+            role="tablist" 
+            aria-label="Protocols"
+          >
+            {PROTOCOLS.map((p, idx) => {
+              const isSelected = p.id === selectedProtocol;
+              return (
+                <React.Fragment key={p.id}>
+                  {idx > 0 && (
+                    <div className="h-8 w-px bg-slate-200/60 hidden sm:block shrink-0" aria-hidden="true" />
+                  )}
+                  <button 
+                    type="button"
+                    onClick={() => selectProtocol(p.id)}
+                    aria-label={`Select ${p.name}`}
+                    id={`leaderboard-tab-${p.id}`}
+                    role="tab"
+                    aria-controls="leaderboard-panel"
+                    tabIndex={isSelected ? 0 : -1}
+                    aria-selected={isSelected}
+                    className={`relative flex flex-col items-center justify-center py-2 px-3 sm:px-5 rounded-2xl cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] min-w-[72px] sm:min-w-[110px] ${
+                      isSelected 
+                        ? 'bg-[#EBF5FF] shadow-xs' 
+                        : 'hover:bg-slate-50/80'
+                    }`}
+                  >
+                    <img 
+                      src={p.logo} 
+                      alt="" 
+                      className={`w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 mb-1 transition-transform ${
+                        isSelected ? 'scale-105' : 'opacity-85'
+                      }`}
+                    />
+                    <span className={`text-xs sm:text-[13px] font-medium tracking-tight whitespace-nowrap ${
+                      isSelected ? 'text-slate-900 font-semibold' : 'text-slate-600'
+                    }`}>
+                      {p.shortLabel}
+                    </span>
+                    {isSelected && (
+                      <span 
+                        aria-hidden="true"
+                        className="h-[2.5px] w-8 bg-[#0066FF] rounded-full mt-1.5 transition-all"
+                      />
+                    )}
+                  </button>
+                </React.Fragment>
+              );
+            })}
           </div>
 
+          {/* Next Arrow Button */}
           <button 
             type="button"
             id="leaderboard-next-btn"
             onClick={handleNextProtocol}
             aria-label="Next Protocol"
-            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-[var(--surface-2)] hover:bg-[var(--surface-3)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] transition-all cursor-pointer shrink-0"
+            className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200/80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] transition-all cursor-pointer shrink-0"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={18} strokeWidth={2.4} />
           </button>
         </div>
 
-        {/* Leaderboard Table Slot */}
-        <div id="leaderboard-panel" role="tabpanel" aria-labelledby={`leaderboard-tab-${selectedProtocol}`} aria-busy={loading} className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 sm:p-6 flex-1 flex flex-col">
+        {/* Leaderboard Table Card */}
+        <div 
+          id="leaderboard-panel" 
+          role="tabpanel" 
+          aria-labelledby={`leaderboard-tab-${selectedProtocol}`} 
+          aria-busy={loading} 
+          className="rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-8 flex-1 flex flex-col shadow-[0_4px_24px_rgba(0,102,255,0.03)]"
+        >
           {loading ? (
-            <div className="py-6" role="status" aria-live="polite" aria-label="Loading leaderboard">
-              <SkeletonTable rows={7} cols={5} />
+            <div className="py-8" role="status" aria-live="polite" aria-label="Loading leaderboard">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                {currentProto.columns.map((col) => (
+                  <div key={col.key} className="h-4 bg-slate-200/70 rounded w-16 animate-pulse" />
+                ))}
+              </div>
+              <div className="space-y-4">
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between py-2.5 border-b border-slate-100/60 last:border-none">
+                    <div className="h-4 bg-slate-200/60 rounded w-6 animate-pulse" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-200/60 animate-pulse" />
+                      <div className="h-4 bg-slate-200/60 rounded w-28 animate-pulse" />
+                    </div>
+                    <div className="h-4 bg-slate-200/60 rounded w-16 animate-pulse" />
+                    {currentProto.columns.length >= 4 && (
+                      <div className="h-4 bg-slate-200/60 rounded w-12 animate-pulse" />
+                    )}
+                    {currentProto.columns.length >= 5 && (
+                      <div className="h-4 bg-slate-200/60 rounded w-12 animate-pulse" />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           ) : error ? (
             <div role="alert" className="py-16 flex flex-col items-center justify-center text-center max-w-md mx-auto my-auto">
-              <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4">
-                <AlertCircle size={22} />
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-500 mb-4 shadow-xs">
+                <AlertCircle size={24} />
               </div>
-              <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">
+              <h3 className="text-base font-bold text-slate-900 mb-1">
                 Unable to Load Leaderboard
               </h3>
-              <p className="text-xs font-mono text-[var(--text-secondary)] mb-5">
+              <p className="text-xs font-mono text-slate-500 mb-5 leading-relaxed">
                 {error}
               </p>
               <button
                 type="button"
                 onClick={() => fetchLeaderboard()}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-primary)] hover:border-[var(--accent)] transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs shadow-sm hover:shadow transition-all cursor-pointer active:scale-95"
               >
                 <RefreshCw size={14} />
                 <span>Retry</span>
@@ -247,19 +464,19 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             </div>
           ) : displayedEntries.length === 0 ? (
             <div className="py-16 flex flex-col items-center justify-center text-center max-w-md mx-auto my-auto">
-              <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] mb-4">
-                <Inbox size={22} />
+              <div className="w-12 h-12 rounded-2xl bg-[#EAF5FF] border border-[#D0E7FF] flex items-center justify-center text-[#0066FF] mb-4 shadow-xs">
+                <Inbox size={24} />
               </div>
-              <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">
+              <h3 className="text-base font-bold text-slate-900 mb-1">
                 No telemetry recorded
               </h3>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-6">
+              <p className="text-xs text-slate-500 leading-relaxed mb-6">
                 Be the first participant to complete the {currentProto.name} battery and submit your verified result to the public demographic dataset.
               </p>
               <button
                 type="button"
                 onClick={() => onNavigate(currentProto.route)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-semibold text-xs cursor-pointer active:scale-[0.98] transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0066FF] hover:bg-[#0052CC] text-white font-semibold text-xs cursor-pointer active:scale-[0.98] transition-all shadow-[0_2px_8px_rgba(0,102,255,0.25)]"
               >
                 <Play size={14} className="fill-current" />
                 <span>Take Test</span>
@@ -269,54 +486,114 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[var(--border-subtle)] text-[11px] font-mono text-[var(--text-muted)] uppercase tracking-widest">
-                    <th className="py-3 px-4 w-16">Rank</th>
-                    <th className="py-3 px-4">Subject Alias</th>
-                    <th className="py-3 px-4">Battery</th>
-                    <th className="py-3 px-4 text-right">Metric</th>
-                    <th className="py-3 px-4 text-right">Cohort</th>
+                  <tr className="border-b border-slate-100 text-slate-400 font-medium text-xs sm:text-[13px]">
+                    {currentProto.columns.map((col) => (
+                      <th 
+                        key={col.key} 
+                        className={`py-3 px-4 ${
+                          col.align === 'right' 
+                            ? 'text-right' 
+                            : col.align === 'center' 
+                            ? 'text-center' 
+                            : 'text-left'
+                        } ${col.key === 'rank' ? 'w-16' : ''}`}
+                      >
+                        {col.label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border-subtle)] font-mono text-sm">
+                <tbody className="divide-y divide-slate-100/70 font-sans text-sm">
                   {displayedEntries.map((entry, idx) => {
                     const rank = getDisplayedLeaderboardRank(displayedEntries, entry);
-                    const proto = PROTOCOLS.find(p => p.id === entry.assessmentType);
-                    const unit = proto?.unit || '';
-                    const formattedScore = formatLeaderboardScore(entry.scoreMetric, unit);
+                    const formattedScore = formatLeaderboardScore(entry.scoreMetric, currentProto.unit);
+                    const isFirst = rank === 1;
 
                     return (
                       <motion.tr 
                         key={entry.id}
-                        initial={{ opacity: 0, y: 6 }}
+                        initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2, delay: Math.min(idx * 0.02, 0.2) }}
-                        className="hover:bg-[var(--surface-2)]/60 transition-colors"
+                        transition={{ duration: 0.15, delay: Math.min(idx * 0.015, 0.15) }}
+                        className={`transition-colors ${
+                          isFirst 
+                            ? 'bg-sky-50/50 hover:bg-sky-50/80 rounded-xl' 
+                            : 'hover:bg-slate-50/60'
+                        }`}
                       >
-                        <td className="py-3.5 px-4">
-                          <span role="img" aria-label={`Rank ${rank}`} className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold ${
-                            rank === 1
-                              ? 'bg-amber-400/15 text-amber-500 border border-amber-400/30'
-                              : rank === 2
-                              ? 'bg-slate-300/15 text-slate-300 border border-slate-300/30'
-                              : rank === 3
-                              ? 'bg-amber-700/15 text-amber-600 border border-amber-700/30'
-                              : 'text-[var(--text-muted)]'
-                          }`}>
-                            {rank <= 3 ? <Award size={14} /> : `#${rank}`}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 font-semibold text-[var(--text-primary)]">
-                          {entry.displayName}
-                        </td>
-                        <td className="py-3.5 px-4 text-xs text-[var(--text-muted)] uppercase">
-                          {proto?.name || entry.assessmentType}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-bold text-[var(--accent)] tabular-nums">
-                          {formattedScore} <span className="text-xs text-[var(--text-muted)] font-normal">{unit}</span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right text-xs text-[var(--text-muted)]">
-                          {entry.ageGroup}
-                        </td>
+                        {currentProto.columns.map((col) => {
+                          if (col.key === 'rank') {
+                            return (
+                              <td key={col.key} className="py-3.5 px-4 font-semibold text-slate-800 text-[14px]">
+                                {rank}
+                              </td>
+                            );
+                          }
+
+                          if (col.key === 'name') {
+                            const initials = getAvatarInitials(entry.displayName);
+                            const gradient = getAvatarGradient(entry.displayName);
+
+                            return (
+                              <td key={col.key} className="py-3.5 px-4">
+                                <div className="flex items-center gap-3">
+                                  {/* Avatar Circle with pleasant deterministic gradient */}
+                                  <div 
+                                    aria-hidden="true"
+                                    className={`w-9 h-9 rounded-full bg-gradient-to-tr ${gradient} flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-xs`}
+                                  >
+                                    {initials}
+                                  </div>
+                                  {/* Safely truncated Display Name with title tooltip */}
+                                  <span 
+                                    className="font-semibold text-slate-900 text-[14.5px] truncate max-w-[200px] lg:max-w-[300px]"
+                                    title={entry.displayName}
+                                  >
+                                    {entry.displayName}
+                                  </span>
+                                </div>
+                              </td>
+                            );
+                          }
+
+                          if (col.key === 'time') {
+                            return (
+                              <td key={col.key} className="py-3.5 px-4 text-right font-semibold text-slate-900 tabular-nums text-[14.5px]">
+                                {formattedScore}
+                              </td>
+                            );
+                          }
+
+                          if (col.key === 'accuracy') {
+                            const rawAcc = (entry as any).accuracy;
+                            if (typeof rawAcc === 'number' && Number.isFinite(rawAcc)) {
+                              const pct = rawAcc <= 1 ? Math.round(rawAcc * 100) : Math.round(rawAcc);
+                              return (
+                                <td key={col.key} className="py-3.5 px-4 text-right">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200/60">
+                                    {pct}%
+                                  </span>
+                                </td>
+                              );
+                            }
+                            // Safe missing-field representation without fabricating values
+                            return (
+                              <td key={col.key} className="py-3.5 px-4 text-right text-slate-400 font-normal">
+                                —
+                              </td>
+                            );
+                          }
+
+                          if (col.key === 'age') {
+                            return (
+                              <td key={col.key} className="py-3.5 px-4 text-right text-slate-600 text-xs sm:text-[13px] font-medium">
+                                {entry.ageGroup || '—'}
+                              </td>
+                            );
+                          }
+
+                          return null;
+                        })}
                       </motion.tr>
                     );
                   })}

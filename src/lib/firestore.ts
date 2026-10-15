@@ -173,6 +173,7 @@ export type LeaderboardEntry = {
   createdAt: any;
   source: 'cloud';
   hidden?: boolean;
+  accuracy?: number | null;
 };
 
 export type VrtTrialObservation = {
@@ -443,7 +444,8 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
               scoreMetric: e.scoreMetric,
               ageGroup: String(e.ageGroup || ''),
               createdAt: e.createdAt,
-              source: 'cloud'
+              source: 'cloud',
+              accuracy: typeof e.accuracy === 'number' ? e.accuracy : typeof e.derivedMetrics?.accuracy === 'number' ? e.derivedMetrics.accuracy : null
             });
           }
         });
@@ -473,14 +475,27 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
           const aliasDirection: 'asc' | 'desc' = aliasIsSpeed ? 'asc' : 'desc';
 
           try {
-            const q = query(
-              colRef,
-              where('assessmentType', '==', alias),
-              where('hidden', '==', false),
-              orderBy('scoreMetric', aliasDirection),
-              limit(100)
-            );
-            const snapshot = await getDocsFromServer(q);
+            let snapshot;
+            try {
+              const q = query(
+                colRef,
+                where('assessmentType', '==', alias),
+                where('hidden', '==', false),
+                orderBy('scoreMetric', aliasDirection),
+                limit(100)
+              );
+              snapshot = await getDocsFromServer(q);
+            } catch (indexErr: any) {
+              // If the composite index including hidden==false has not been built in Firestore console yet,
+              // fall back to the existing assessmentType + scoreMetric index and filter hidden in memory.
+              const fallbackQuery = query(
+                colRef,
+                where('assessmentType', '==', alias),
+                orderBy('scoreMetric', aliasDirection),
+                limit(100)
+              );
+              snapshot = await getDocsFromServer(fallbackQuery);
+            }
             querySuccessCount++;
 
             snapshot.docs.forEach(docSnap => {
@@ -507,7 +522,8 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
                   scoreMetric: score,
                   ageGroup: String(data.ageGroup || ''),
                   createdAt: data.createdAt,
-                  source: 'cloud'
+                  source: 'cloud',
+                  accuracy: typeof data.accuracy === 'number' ? data.accuracy : typeof data.derivedMetrics?.accuracy === 'number' ? data.derivedMetrics.accuracy : null
                 });
               }
             });

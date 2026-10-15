@@ -31,7 +31,8 @@ export function Navbar({
   onBack, 
   title, 
   rightContent,
-  isAssessmentActive = false
+  isAssessmentActive = false,
+  theme
 }: { 
   onNavigate?: (view: string) => void;
   currentView: string;
@@ -39,6 +40,7 @@ export function Navbar({
   title?: string;
   rightContent?: React.ReactNode;
   isAssessmentActive?: boolean;
+  theme?: 'light' | 'dark';
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -184,6 +186,8 @@ export function Navbar({
     }
   };
 
+  const isLight = theme === 'light';
+
   return (
     <header 
       ref={navRef}
@@ -200,16 +204,23 @@ export function Navbar({
       <div className="flex items-center gap-3">
         <Link 
           to="/"
-          className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg"
+          className={`flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 rounded-lg ${
+            isLight ? 'focus-visible:ring-[#0066FF]' : 'focus-visible:ring-[var(--accent)]'
+          }`}
           aria-label="PULSE Home"
         >
-          <PulseLogo variant="horizontal" size={30} color="var(--accent)" textColor="var(--text-primary)" />
+          <PulseLogo 
+            variant="horizontal" 
+            size={30} 
+            color={isLight ? '#0066FF' : 'var(--accent)'} 
+            textColor={isLight ? '#090D1A' : 'var(--text-primary)'} 
+          />
         </Link>
 
         {title && (
           <>
-            <div className="h-4 w-px bg-[var(--border-subtle)] hidden sm:block mx-2" aria-hidden="true" />
-            <span className="text-xs text-[var(--text-secondary)] font-medium hidden sm:block">
+            <div className={`h-4 w-px hidden sm:block mx-2 ${isLight ? 'bg-slate-200' : 'bg-[var(--border-subtle)]'}`} aria-hidden="true" />
+            <span className={`text-xs font-medium hidden sm:block ${isLight ? 'text-slate-500' : 'text-[var(--text-secondary)]'}`}>
               {title}
             </span>
           </>
@@ -218,23 +229,29 @@ export function Navbar({
 
       {/* Center Main Links */}
       <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8">
-        {navItems.map(item => (
-          <Link
-            key={item.id}
-            to={item.to}
-            aria-current={activeId === item.id ? 'page' : undefined}
-            onClick={() => {
-              if (onNavigate) onNavigate(item.id);
-            }}
-            className={`text-[13.5px] lg:text-[14.5px] font-medium transition-colors ${
-              activeId === item.id 
-                ? 'text-[var(--accent)] font-semibold' 
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
+        {navItems.map(item => {
+          const isActive = activeId === item.id;
+          return (
+            <Link
+              key={item.id}
+              to={item.to}
+              aria-current={isActive ? 'page' : undefined}
+              onClick={() => {
+                if (onNavigate) onNavigate(item.id);
+              }}
+              className={`relative text-[13.5px] lg:text-[14.5px] font-medium transition-colors ${
+                isLight 
+                  ? (isActive ? 'text-[#0066FF] font-semibold' : 'text-[#475569] hover:text-[#090D1A]')
+                  : (isActive ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]')
+              }`}
+            >
+              {item.label}
+              {isActive && isLight && (
+                <span className="absolute -bottom-1.5 left-0 right-0 h-[2.5px] bg-[#0066FF] rounded-full" />
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Right Info, Settings & Install Actions */}
@@ -270,7 +287,10 @@ export function Navbar({
           onClick={() => setIsWelcomeOpen(true)}
           aria-label="Platform Information"
           title="Welcome & Info"
-          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] flex items-center justify-center active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          className={isLight 
+            ? "w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+            : "w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] flex items-center justify-center active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          }
         >
           <Info size={17} strokeWidth={2.2} />
         </button>
@@ -285,7 +305,11 @@ export function Navbar({
           aria-disabled={isAssessmentActive}
           aria-label="Settings"
           title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings & Calibration"}
-          className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs sm:text-[13px] font-medium active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-medium active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 ${
+            isLight
+              ? 'border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] shadow-xs focus-visible:ring-[#0066FF]'
+              : 'border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]'
+          } ${
             isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
           }`}
         >
