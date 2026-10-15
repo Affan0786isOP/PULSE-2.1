@@ -44,3 +44,17 @@ Audited `Affan0786isOP/PULSE-2.1` across the full frontend (desktop and mobile S
    - Full route inspection at 1280x800 (Desktop) and 393x851 (Mobile Pixel 5).
    - Verified active routes: `/`, `/about`, `/assessments`, `/leaderboard`, `/dataset`, `/improve`, `/reaction-test`, `/direction-test`, `/block-memory`, `/number-memory`, `/color-test`, `/privacy`.
    - Modals inspected: Settings modal (tabs: General, Feedback, System/Calibration), Welcome modal, and AddToHomeScreen/PWA modal.
+
+
+## Screenshot Harness Follow-up
+
+The follow-up hardening changes are maintained in the audit-harness fix branch and require a fresh local run before their results can be claimed:
+
+- Shared runner for baseline and after captures, so route discovery, readiness handling, telemetry, and capture behavior stay consistent.
+- Discovers route paths from both SPA route declarations and the shared route registry (including aliases), plus a not-found probe.
+- Uses a dedicated configurable port (`PULSE_AUDIT_PORT`, default 4317), verifies the port is available before starting the built server, and aborts if the spawned server exits before its health check succeeds.
+- Uses a configurable output directory (`PULSE_AUDIT_SCREENSHOT_DIR`) or repository-local `artifacts/screenshots/{before,after}`; no user-specific absolute paths.
+- Waits for route content/fonts, captures full-page screenshots, records console/page/network/HTTP errors, and exits nonzero for route-capture failures or uncaught page errors.
+- Removed the obsolete `fullscreenPromptEnabled` property from desktop and mobile settings types/defaults/sanitizers/comparison logic; legacy stored keys are ignored by the existing whitelist-style sanitizer.
+
+**Validation caveat:** These harness edits have not been run in this remote GitHub editing session. Run `npm run build`, then `node scratch/capture-screenshots.mjs` for the baseline at the appropriate pre-change revision and `node scratch/capture-after-screenshots.mjs` after the cleanup build. Review each generated `telemetry.json` and screenshot directory before claiming a clean visual audit.
