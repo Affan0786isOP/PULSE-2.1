@@ -74,3 +74,10 @@ Additional screenshot-harness hardening:
 - The Settings-modal interaction is required; an absent or inaccessible Settings control is recorded as a capture failure rather than silently skipped.
 
 The shared runner and the new privacy alias have not been built or exercised in a local checkout in this connector-only editing session. Re-run type checks, production build, and screenshot captures on both desktop and mobile before merging; inspect the telemetry for warnings and visually inspect baseline/after screenshots.
+
+- The mobile homepage capture now saves the first-run Welcome overlay separately as `mobile_home_welcome.png`, then closes it and captures the unobstructed home page as `mobile_home.png`.
+- Any registry-declared route that renders the Not Found UI is now a capture failure, even if React Router served the SPA shell with HTTP 200.
+
+### Reproducing before/after captures
+
+Build the app in each checkout before running the shared harness. To use the runner in the fix branch against a baseline worktree, set `PULSE_AUDIT_APP_ROOT` to the baseline worktree and `PULSE_AUDIT_SCREENSHOT_DIR` to a separate output folder, then invoke the fix-branch script. Repeat with `PULSE_AUDIT_APP_ROOT` unset (or set to the updated checkout) for the after screenshots. This makes both passes use identical route discovery and screenshot logic while testing the correct build.
