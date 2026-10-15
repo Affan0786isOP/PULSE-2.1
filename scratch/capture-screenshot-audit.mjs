@@ -201,6 +201,19 @@ async function captureSettingsModal(page, surface, baseUrl, outputDir, telemetry
   try {
     await page.goto(homeUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
     await page.waitForLoadState('networkidle', { timeout: 4000 }).catch(() => {});
+
+    // A clean mobile context presents the first-run Welcome dialog, which blocks Settings.
+    // Dismiss only that onboarding dialog; retain the normal fresh-user state in route captures.
+    const welcomeDialog = page.getByRole('dialog').filter({ hasText: /Welcome to PULSE/i }).first();
+    if (await welcomeDialog.count() > 0) {
+      const welcomeClose = welcomeDialog.getByRole('button', { name: /^close(?: dialog)?$/i }).first();
+      if (await welcomeClose.count() === 0) {
+        throw new Error('Welcome dialog is open but has no accessible Close button');
+      }
+      await welcomeClose.click({ timeout: 4000 });
+      await welcomeDialog.waitFor({ state: 'hidden', timeout: 4000 });
+    }
+
     const settingsButton = page.getByRole('button', { name: /settings/i }).first();
     if (await settingsButton.count() === 0) {
       const failure = { surface, route: '/ (settings modal)', error: 'No accessible Settings button found' };
@@ -260,13 +273,23 @@ export async function runAudit(mode) {
   ]);
 
   const registryRoutes = pathsFromRegistry(routeRegistry);
+  const desktopDeclaredRoutes = [...new Set(pathsFromApp(desktopApp).filter((route) => !route.startsWith('/mobile')))];
+  const mobileDeclaredRoutes = [...new Set(pathsFromApp(mobileApp).filter((route) => !route.startsWith('/mobile')))];
+  const routeRegistryMismatches = [
+    ...registryRoutes.filter((route) => !desktopDeclaredRoutes.includes(route)).map((route) => ({
+      surface: 'desktop', route, error: 'Route registry declares this path/alias, but the desktop SPA has no matching Route declaration',
+    })),
+    ...registryRoutes.filter((route) => !mobileDeclaredRoutes.includes(route)).map((route) => ({
+      surface: 'mobile', route, error: 'Route registry declares this path/alias, but the mobile SPA has no matching Route declaration',
+    })),
+  ];
   const desktopRoutes = [...new Set([
-    ...pathsFromApp(desktopApp).filter((route) => !route.startsWith('/mobile')),
+    ...desktopDeclaredRoutes,
     ...registryRoutes,
     '/__audit_not_found__',
   ])].sort();
   const mobileRoutes = [...new Set([
-    ...pathsFromApp(mobileApp),
+    ...mobileDeclaredRoutes,
     ...registryRoutes,
     '/__audit_not_found__',
   ])].sort();
@@ -280,6 +303,7 @@ export async function runAudit(mode) {
     viewports: { desktop: { width: 1280, height: 800 }, mobile: 'Playwright Pixel 5 profile' },
     routeSources: ['src/App.tsx', 'mobile/src/App.tsx', 'shared/registries/routeRegistry.ts'],
     discoveredRouteCounts: { desktop: desktopRoutes.length, mobile: mobileRoutes.length },
+    routeRegistryMismatches,
     routes: [],
     interactions: [],
     skippedInteractions: [],
@@ -288,8 +312,11 @@ export async function runAudit(mode) {
     failedRequests: [],
     httpErrors: [],
     fatalHttpErrors: [],
-    captureFailures: [],
+    captureFailures: routeRegistryMismatches.map((mismatch) => ({ ...mismatch, type: 'route-registry-mismatch' })),
   };
+  for (const mismatch of routeRegistryMismatches) {
+    console.error('ROUTE REGISTRY MISMATCH [' + mismatch.surface + '] ' + mismatch.route + ': ' + mismatch.error);
+  }
 
   let server;
   let browser;
@@ -363,6 +390,7 @@ export async function runAudit(mode) {
     telemetry.summary = {
       routeCaptures: telemetry.routes.filter((route) => route.ok).length,
       routeFailures: telemetry.captureFailures.length,
+      routeRegistryMismatches: telemetry.routeRegistryMismatches.length,
       pageErrors: telemetry.pageErrors.length,
       consoleErrors: telemetry.consoleErrors.length,
       httpErrorResponses: telemetry.httpErrors.length,
