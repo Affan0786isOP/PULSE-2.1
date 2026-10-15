@@ -602,8 +602,6 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
           )}
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }
