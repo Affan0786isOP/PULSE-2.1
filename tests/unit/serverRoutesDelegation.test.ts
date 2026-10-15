@@ -4,18 +4,13 @@ import * as http from 'http';
 import type * as net from 'net';
 import { registerResearchRoutes } from '../../server/routes/researchRoutes';
 import { registerLeaderboardRoutes } from '../../server/routes/leaderboardRoutes';
-import { registerAdminRoutes } from '../../server/routes/adminRoutes';
 import type { ISessionService } from '../../server/services/interfaces/ISessionService';
 import type { IPersonalBestService } from '../../server/services/interfaces/IPersonalBestService';
 import type { IResearchService } from '../../server/services/interfaces/IResearchService';
 import type { ILeaderboardService } from '../../server/services/interfaces/ILeaderboardService';
-import type { IAdminService } from '../../server/services/interfaces/IAdminService';
 
 vi.mock('../../server/middleware/auth', () => ({
-  verifyFirebaseUserToken: async () => ({ uid: 'user-delegation-1' }),
-  verifyAdminSession: () => true,
-  getAdminPasscode: () => 'pulse-admin-2026-master-key',
-  createAdminSessionToken: () => ({ token: 'mock:token', expiresAt: Date.now() + 10000 })
+  verifyFirebaseUserToken: async () => ({ uid: 'user-delegation-1' })
 }));
 
 function makeRequest(server: http.Server, method: string, pathUrl: string, body?: unknown): Promise<{ status: number; body: Record<string, unknown> }> {
@@ -97,15 +92,6 @@ describe('Server Route Delegation Tests', () => {
       getPublicLeaderboard: vi.fn(async () => [])
     };
 
-    const mockAdminService: IAdminService = {
-      recordAuditLog: vi.fn(async input => ({ id: 'log-1', ...input })),
-      hideLeaderboardEntry: vi.fn(async () => ({ success: true, message: 'Leaderboard entry hidden successfully' })),
-      unhideLeaderboardEntry: vi.fn(async () => ({ success: true, message: 'Leaderboard entry restored successfully' })),
-      deleteLeaderboardEntry: vi.fn(async () => ({ success: true, message: 'Leaderboard entry deleted permanently' })),
-      getAuditLogs: vi.fn(async () => []),
-      getAllLeaderboardEntries: vi.fn(async () => [])
-    };
-
     const app = express();
     app.use(express.json());
 
@@ -116,9 +102,6 @@ describe('Server Route Delegation Tests', () => {
     });
     registerLeaderboardRoutes(app, {
       leaderboardService: mockLeaderboardService
-    });
-    registerAdminRoutes(app, {
-      adminService: mockAdminService
     });
 
     const server = await new Promise<http.Server>(resolve => {
@@ -139,14 +122,6 @@ describe('Server Route Delegation Tests', () => {
       expect(pbRes.status).toBe(200);
       expect(pbRes.body['personalBest']).toBe(199.5);
       expect(mockPbService.getPersonalBest).toHaveBeenCalledTimes(1);
-
-      // 3. Admin audit log delegates to adminService
-      const adminRes = await makeRequest(server, 'POST', '/api/admin/audit-log', {
-        action: 'BAN',
-        target: 'bad-actor'
-      });
-      expect(adminRes.status).toBe(200);
-      expect(mockAdminService.recordAuditLog).toHaveBeenCalledTimes(1);
     } finally {
       await new Promise<void>(resolve => server.close(() => resolve()));
     }

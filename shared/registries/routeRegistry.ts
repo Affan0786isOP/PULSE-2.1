@@ -149,49 +149,8 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     seoBehavior: { index: true },
     isAdministrative: false,
   },
-
-  // Administrative Routes (Desktop only, isAdministrative: true)
-  {
-    routeId: 'admin-login',
-    path: '/admin/login',
-    domain: 'administration',
-    navigationLabel: 'Admin Login',
-    aliases: [],
-    deviceAvailability: 'desktop-only',
-    seoBehavior: { index: false },
-    isAdministrative: true,
-  },
-  {
-    routeId: 'admin-dashboard',
-    path: '/admin',
-    domain: 'administration',
-    navigationLabel: 'Admin Dashboard',
-    aliases: ['/admin/overview', '/admin/quality'],
-    deviceAvailability: 'desktop-only',
-    seoBehavior: { index: false },
-    isAdministrative: true,
-  },
-  {
-    routeId: 'admin-moderation',
-    path: '/admin/moderation',
-    domain: 'administration',
-    navigationLabel: 'Moderation',
-    aliases: [],
-    deviceAvailability: 'desktop-only',
-    seoBehavior: { index: false },
-    isAdministrative: true,
-  },
-  {
-    routeId: 'admin-audit',
-    path: '/admin/audit',
-    domain: 'administration',
-    navigationLabel: 'Audit Logs',
-    aliases: ['/admin/export-audit'],
-    deviceAvailability: 'desktop-only',
-    seoBehavior: { index: false },
-    isAdministrative: true,
-  },
 ];
+
 
 const ROUTE_LOOKUP_MAP: Map<string, RouteDefinition> = new Map();
 

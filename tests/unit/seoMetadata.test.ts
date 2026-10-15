@@ -28,7 +28,7 @@ describe('SEO route registry', () => {
 
     expect(metadata.routes['/dataset'].indexable).toBe(false);
     expect(metadata.routes['/analytics'].indexable).toBe(false);
-    expect(Object.keys(metadata.routes).filter(pathname => pathname.startsWith('/admin')).every(pathname => !metadata.routes[pathname].indexable)).toBe(true);
+    expect(Object.keys(metadata.routes).some(pathname => pathname.startsWith('/admin'))).toBe(false);
   });
 
   it('gives dynamic assessment routes a client metadata fallback', () => {

@@ -117,18 +117,10 @@ export const generalApiLimiter = rateLimit({
   message: { success: false, error: 'Too many API requests' }
 });
 
-export const adminLoginLimiter = rateLimit({
-  windowMs,
-  max: 10,
-  keyGenerator: createLimiterKey('admin-login', false),
-  store: createSharedStore(),
-  message: { success: false, error: 'Too many admin login attempts. Please try again in 15 minutes.' }
-});
 
 /** Registers the route-scoped rate limiters. Order is significant and preserved from the original server. */
 export function applyRateLimits(app: Express): void {
   app.use('/api/leaderboard', leaderboardReadLimiter);
-  app.use('/api/admin', generalApiLimiter);
   app.use('/api/research/session', sessionStartLimiter);
   app.use('/api/sessions', generalSessionsLimiter);
   app.use('/api/research/submit', sessionSubmitLimiter);

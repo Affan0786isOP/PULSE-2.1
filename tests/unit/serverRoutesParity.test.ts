@@ -184,19 +184,13 @@ vi.mock('../../server/config/firebaseAdmin', () => ({
 }));
 
 let activeAuthUser: { uid: string; email?: string } | null = { uid: 'user-default-123', email: 'test@example.com' };
-let activeAdminAuthorized = true;
-
 vi.mock('../../server/middleware/auth', () => ({
-  verifyFirebaseUserToken: async () => activeAuthUser,
-  verifyAdminSession: () => activeAdminAuthorized,
-  getAdminPasscode: () => 'pulse-admin-2026-master-key',
-  createAdminSessionToken: () => ({ token: 'mock-admin-token:1700000000000:nonce:sig', expiresAt: 1700000000000 + 28800000 })
+  verifyFirebaseUserToken: async () => activeAuthUser
 }));
 
 import { createServerContainer } from '../../server/container';
 import { registerResearchRoutes } from '../../server/routes/researchRoutes';
 import { registerLeaderboardRoutes } from '../../server/routes/leaderboardRoutes';
-import { registerAdminRoutes } from '../../server/routes/adminRoutes';
 
 function makeRequest(server: http.Server, method: string, pathUrl: string, body?: unknown): Promise<{ status: number; body: Record<string, unknown> }> {
   return new Promise((resolve, reject) => {
@@ -253,9 +247,6 @@ describe('Server Route Parity Suite (against Golden Baseline)', () => {
     });
     registerLeaderboardRoutes(app, {
       leaderboardService: container.leaderboardService
-    });
-    registerAdminRoutes(app, {
-      adminService: container.adminService
     });
 
     await new Promise<void>(resolve => {
@@ -445,21 +436,5 @@ describe('Server Route Parity Suite (against Golden Baseline)', () => {
     res = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=not-a-real-assessment');
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ success: false, error: 'Unknown assessmentType', entries: [] });
-
-    // 7. Admin Moderation
-    // 7.1 Hide DB Null -> 503
-    res = await makeRequest(server, 'POST', '/api/admin/leaderboard/hide', { id: 'entry-123' });
-    expect(res.status).toBe(goldenResponses['POST /api/admin/leaderboard/hide [db_null]'].status);
-    expect(res.body).toEqual(goldenResponses['POST /api/admin/leaderboard/hide [db_null]'].body);
-
-    // 7.2 Delete DB Null -> 503
-    res = await makeRequest(server, 'POST', '/api/admin/leaderboard/delete', { id: 'entry-123' });
-    expect(res.status).toBe(goldenResponses['POST /api/admin/leaderboard/delete [db_null]'].status);
-    expect(res.body).toEqual(goldenResponses['POST /api/admin/leaderboard/delete [db_null]'].body);
-
-    // 7.3 Audit logs DB Null -> 503
-    res = await makeRequest(server, 'GET', '/api/admin/audit-logs');
-    expect(res.status).toBe(goldenResponses['GET /api/admin/audit-logs [db_null]'].status);
-    expect(res.body).toEqual(goldenResponses['GET /api/admin/audit-logs [db_null]'].body);
   });
 });

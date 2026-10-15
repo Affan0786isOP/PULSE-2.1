@@ -47,7 +47,6 @@ describe('Vercel technical SEO routing', () => {
     const serialized = JSON.stringify(headers);
     expect(serialized).toContain('noindex');
     expect(serialized).toContain('/api/:path*');
-    expect(serialized).toContain('/admin/:path*');
 
     // Base rule sets noindex, nofollow for all environments
     const baseRule = headers.find(h => h.source === '/:path*' && !h.has);

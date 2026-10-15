@@ -3,13 +3,11 @@ import express from 'express';
 import { applySecurityMiddleware } from './middleware/security';
 import { applyRateLimits } from './config/rateLimits';
 import { applyDeviceRoutingMiddleware } from './middleware/deviceRouting';
-import { registerAdminRoutes } from './routes/adminRoutes';
 import { registerResearchRoutes } from './routes/researchRoutes';
 import { registerLeaderboardRoutes } from './routes/leaderboardRoutes';
 import { registerStaticRoutes } from './routes/staticRoutes';
 import { createServerContainer } from './container';
 
-export { getAdminDiagnosticMessage } from './config/firebaseAdmin';
 
 export const app = express();
 
@@ -34,9 +32,6 @@ async function startServer() {
 
   const container = createServerContainer();
 
-  registerAdminRoutes(app, {
-    adminService: container.adminService
-  });
   registerResearchRoutes(app, {
     sessionService: container.sessionService,
     personalBestService: container.personalBestService,

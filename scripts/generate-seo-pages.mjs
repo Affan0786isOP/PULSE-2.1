@@ -27,7 +27,7 @@ function mobilePathFor(pathname) {
 }
 
 const indexedPublicRoutes = Object.entries(metadata.routes)
-  .filter(([pathname, route]) => route.indexable && !pathname.startsWith('/admin'));
+  .filter(([_, route]) => route.indexable);
 
 const navigationHtml = indexedPublicRoutes
   .map(([pathname, route]) => {

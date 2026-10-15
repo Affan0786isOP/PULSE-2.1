@@ -6,8 +6,8 @@ import {
 } from '@shared/registries/routeRegistry';
 
 describe('Route Registry', () => {
-  it('registers all established public and administrative routes', () => {
-    expect(ROUTE_REGISTRY.length).toBeGreaterThanOrEqual(16);
+  it('registers all established public routes', () => {
+    expect(ROUTE_REGISTRY.length).toBeGreaterThanOrEqual(12);
   });
 
   describe('resolveRoute and alias resolution', () => {
@@ -35,9 +35,6 @@ describe('Route Registry', () => {
       expect(resolveRoute('/number-memory-test')?.path).toBe('/number-memory');
       expect(resolveRoute('/research-privacy')?.path).toBe('/privacy');
       expect(resolveRoute('/index.html')?.path).toBe('/');
-      expect(resolveRoute('/admin/overview')?.path).toBe('/admin');
-      expect(resolveRoute('/admin/quality')?.path).toBe('/admin');
-      expect(resolveRoute('/admin/export-audit')?.path).toBe('/admin/audit');
     });
 
     it('handles mobile prefix paths transparently', () => {
@@ -65,7 +62,6 @@ describe('Route Registry', () => {
       expect(resolveRoute('/leaderboard')?.domain).toBe('leaderboard');
       expect(resolveRoute('/dataset')?.domain).toBe('research');
       expect(resolveRoute('/analytics')?.domain).toBe('analytics');
-      expect(resolveRoute('/admin')?.domain).toBe('administration');
     });
 
     it('leaves unassigned domains as undefined (deferred)', () => {
@@ -75,30 +71,14 @@ describe('Route Registry', () => {
     });
   });
 
-  describe('administrative route separation and SEO behavior', () => {
-    it('distinguishes administrative routes from public routes', () => {
-      expect(isAdministrativeRoute('/admin')).toBe(true);
-      expect(isAdministrativeRoute('/admin/login')).toBe(true);
-      expect(isAdministrativeRoute('/admin/moderation')).toBe(true);
-      expect(isAdministrativeRoute('/admin/audit')).toBe(true);
-
+  describe('isAdministrativeRoute', () => {
+    it('returns false for all public routes', () => {
       expect(isAdministrativeRoute('/')).toBe(false);
       expect(isAdministrativeRoute('/assessments')).toBe(false);
       expect(isAdministrativeRoute('/leaderboard')).toBe(false);
       expect(isAdministrativeRoute('/dataset')).toBe(false);
       expect(isAdministrativeRoute('/unknown')).toBe(false);
     });
-
-    it('sets desktop-only and index=false for administrative routes', () => {
-      const adminRoute = resolveRoute('/admin');
-      expect(adminRoute?.isAdministrative).toBe(true);
-      expect(adminRoute?.deviceAvailability).toBe('desktop-only');
-      expect(adminRoute?.seoBehavior.index).toBe(false);
-
-      const publicRoute = resolveRoute('/reaction-test');
-      expect(publicRoute?.isAdministrative).toBe(false);
-      expect(publicRoute?.deviceAvailability).toBe('all');
-      expect(publicRoute?.seoBehavior.index).toBe(true);
-    });
   });
 });
+

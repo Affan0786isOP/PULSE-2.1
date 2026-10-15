@@ -85,9 +85,7 @@ const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({
 const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
-const AdminLogin = React.lazy(() => import('./components/admin/AdminLogin').then(m => ({ default: m.AdminLogin })));
-const AdminRoute = React.lazy(() => import('./components/admin/AdminRoute').then(m => ({ default: m.AdminRoute })));
-const AdminLayout = React.lazy(() => import('./components/admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
+
 
 const RouteFallback = () => (
   <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center font-sans">
@@ -208,15 +206,7 @@ function App() {
                 <Route path="/privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
                 <Route path="/research-privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
                 
-                {/* Admin Routes (Unlisted) */}
-                <Route path="/admin/login" element={<AdminLogin onNavigate={handleNavigate} />} />
-                <Route path="/admin" element={<AdminRoute><AdminLayout initialTab="overview" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/overview" element={<AdminRoute><AdminLayout initialTab="overview" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/moderation" element={<AdminRoute><AdminLayout initialTab="moderation" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/quality" element={<AdminRoute><AdminLayout initialTab="overview" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/export-audit" element={<AdminRoute><AdminLayout initialTab="export-audit" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                <Route path="/admin/audit" element={<AdminRoute><AdminLayout initialTab="export-audit" onNavigateApp={handleNavigate} /></AdminRoute>} />
-                
+
                 {/* Mobile PWA Routes */}
                 <Route path="/mobile" element={<RedirectToMobile />} />
                 <Route path="/mobile/*" element={<RedirectToMobile />} />

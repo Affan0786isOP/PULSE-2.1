@@ -316,11 +316,6 @@
       "statusCode": 301
     },
     {
-      "source": "/admin/",
-      "destination": "/admin",
-      "statusCode": 301
-    },
-    {
       "source": "/privacy-policy",
       "destination": "/privacy",
       "statusCode": 301
@@ -399,24 +394,6 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, follow"
-        }
-      ]
-    },
-    {
-      "source": "/admin",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
-        }
-      ]
-    },
-    {
-      "source": "/admin/:path*",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
         }
       ]
     },
@@ -579,34 +556,6 @@
     {
       "source": "/number-memory",
       "destination": "/seo/number-memory.html"
-    },
-    {
-      "source": "/admin/login",
-      "destination": "/seo/admin--login.html"
-    },
-    {
-      "source": "/admin",
-      "destination": "/seo/admin.html"
-    },
-    {
-      "source": "/admin/overview",
-      "destination": "/seo/admin--overview.html"
-    },
-    {
-      "source": "/admin/moderation",
-      "destination": "/seo/admin--moderation.html"
-    },
-    {
-      "source": "/admin/quality",
-      "destination": "/seo/admin--quality.html"
-    },
-    {
-      "source": "/admin/export-audit",
-      "destination": "/seo/admin--export-audit.html"
-    },
-    {
-      "source": "/admin/audit",
-      "destination": "/seo/admin--audit.html"
     }
   ]
 }

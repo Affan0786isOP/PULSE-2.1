@@ -5,7 +5,7 @@ import { FirestoreSessionRepository } from '../../server/repositories/firestore/
 import { FirestoreResearchDatasetRepository } from '../../server/repositories/firestore/firestoreResearchDatasetRepository';
 import { FirestoreLeaderboardRepository } from '../../server/repositories/firestore/firestoreLeaderboardRepository';
 import { FirestoreLeaderboardSubmissionRepository } from '../../server/repositories/firestore/firestoreLeaderboardSubmissionRepository';
-import { FirestoreAdminAuditRepository } from '../../server/repositories/firestore/firestoreAdminAuditRepository';
+
 
 // Mock in-memory Firestore double for unit testing repositories
 function createMockDb(): Firestore {
@@ -334,25 +334,6 @@ describe('Firestore Repositories Unit Tests', () => {
     expect(audit.docs).toHaveLength(2);
   });
 
-  it('AdminAuditRepository writes and retrieves audit logs', async () => {
-    const mockDb = createMockDb();
-    const repo = new FirestoreAdminAuditRepository(() => mockDb);
-
-    const written = await repo.writeLog({
-      actor: 'admin',
-      action: 'BAN_USER',
-      target: 'user-bad',
-      timestamp: '2026-09-30T12:00:00.000Z',
-      note: 'Cheating'
-    });
-
-    expect(written.id).toBeDefined();
-    expect(written.action).toBe('BAN_USER');
-
-    const logs = await repo.getRecentLogs(10);
-    expect(logs.length).toBe(1);
-    expect(logs[0].target).toBe('user-bad');
-  });
   it('keeps a worse leaderboard attempt separate from the existing best and the research session result', async () => {
     const mockDb = createMockDb();
     const repo = new FirestoreLeaderboardSubmissionRepository(() => mockDb);

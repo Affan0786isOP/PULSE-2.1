@@ -180,21 +180,16 @@ vi.mock('../../server/config/firebaseAdmin', () => {
 
 // Mock Auth
 let activeAuthUser: { uid: string; email?: string } | null = { uid: 'user-default-123', email: 'test@example.com' };
-let activeAdminAuthorized = true;
 
 vi.mock('../../server/middleware/auth', () => {
   return {
     verifyFirebaseUserToken: async () => activeAuthUser,
-    verifyAdminSession: () => activeAdminAuthorized,
-    getAdminPasscode: () => 'pulse-admin-2026-master-key',
-    createAdminSessionToken: () => ({ token: 'mock-admin-token:1700000000000:nonce:sig', expiresAt: 1700000000000 + 28800000 }),
   };
 });
 
 import { createServerContainer } from '../../server/container';
 import { registerResearchRoutes } from '../../server/routes/researchRoutes';
 import { registerLeaderboardRoutes } from '../../server/routes/leaderboardRoutes';
-import { registerAdminRoutes } from '../../server/routes/adminRoutes';
 
 function makeRequest(server: http.Server, method: string, pathUrl: string, body?: any, headers?: Record<string, string>): Promise<{ status: number; headers: http.IncomingHttpHeaders; body: any }> {
   return new Promise((resolve, reject) => {
@@ -243,7 +238,6 @@ describe('Record Golden Baseline', () => {
     const container = createServerContainer();
     registerResearchRoutes(app, { sessionService: container.sessionService, personalBestService: container.personalBestService, researchService: container.researchService });
     registerLeaderboardRoutes(app, { leaderboardService: container.leaderboardService });
-    registerAdminRoutes(app, { adminService: container.adminService });
 
     await new Promise<void>(resolve => {
       server = app.listen(0, '127.0.0.1', () => resolve());
@@ -484,57 +478,6 @@ describe('Record Golden Baseline', () => {
     activeMockDb = new MockFirestore();
     res = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=visual-reaction');
     capturedResponses['GET /api/leaderboard [empty]'] = { status: res.status, body: res.body };
-
-    // 8. Admin Routes
-    // 8.1 POST /api/admin/audit-log [unauthorized]
-    activeAdminAuthorized = false;
-    res = await makeRequest(server, 'POST', '/api/admin/audit-log', { action: 'TEST', target: 'TARGET' });
-    capturedResponses['POST /api/admin/audit-log [unauthorized]'] = { status: res.status, body: res.body };
-
-    // 8.2 POST /api/admin/audit-log [db_null]
-    activeAdminAuthorized = true;
-    activeMockDb = null;
-    res = await makeRequest(server, 'POST', '/api/admin/audit-log', { action: 'TEST', target: 'TARGET' });
-    capturedResponses['POST /api/admin/audit-log [db_null]'] = { status: res.status, body: res.body };
-
-    // 8.3 POST /api/admin/audit-log [success]
-    activeMockDb = new MockFirestore();
-    res = await makeRequest(server, 'POST', '/api/admin/audit-log', { action: 'TEST_ACTION', target: 'TARGET_1' });
-    capturedResponses['POST /api/admin/audit-log [success]'] = {
-      status: res.status,
-      body: {
-        success: res.body.success,
-        hasLogId: typeof res.body.log?.id === 'string',
-        action: res.body.log?.action,
-        target: res.body.log?.target,
-      }
-    };
-
-    // 8.4 POST /api/admin/leaderboard/hide [db_null] -> returns 503
-    activeMockDb = null;
-    res = await makeRequest(server, 'POST', '/api/admin/leaderboard/hide', { id: 'entry-123' });
-    capturedResponses['POST /api/admin/leaderboard/hide [db_null]'] = { status: res.status, body: res.body };
-
-    // 8.5 POST /api/admin/leaderboard/hide [missing_doc] -> returns 404 without a false-success audit entry
-    activeMockDb = new MockFirestore();
-    res = await makeRequest(server, 'POST', '/api/admin/leaderboard/hide', { id: 'entry-missing' });
-    capturedResponses['POST /api/admin/leaderboard/hide [missing_doc]'] = { status: res.status, body: res.body };
-    capturedSideEffects['POST /api/admin/leaderboard/hide [missing_doc]'] = {
-      adminAuditLogsCount: activeMockDb.getCollection('adminAuditLogs').size,
-    };
-
-    // 8.6 POST /api/admin/leaderboard/delete [db_null] -> returns 503
-    activeMockDb = null;
-    res = await makeRequest(server, 'POST', '/api/admin/leaderboard/delete', { id: 'entry-123' });
-    capturedResponses['POST /api/admin/leaderboard/delete [db_null]'] = { status: res.status, body: res.body };
-
-    // 8.7 GET /api/admin/audit-logs [db_null] -> 503
-    res = await makeRequest(server, 'GET', '/api/admin/audit-logs');
-    capturedResponses['GET /api/admin/audit-logs [db_null]'] = { status: res.status, body: res.body };
-
-    // 8.8 GET /api/admin/leaderboard/all [db_null] -> 503
-    res = await makeRequest(server, 'GET', '/api/admin/leaderboard/all');
-    capturedResponses['GET /api/admin/leaderboard/all [db_null]'] = { status: res.status, body: res.body };
 
     // Write golden baseline fixtures
     fs.writeFileSync(httpResponsesPath, JSON.stringify(capturedResponses, null, 2), 'utf-8');

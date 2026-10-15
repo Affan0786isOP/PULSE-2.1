@@ -85,48 +85,6 @@
       "description": "Measure working memory capacity with PULSE's forward digit span assessment.",
       "indexable": true,
       "clientFallback": true
-    },
-    "/admin/login": {
-      "title": "Admin Login | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin": {
-      "title": "PULSE Administration | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/overview": {
-      "title": "PULSE Administration | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/moderation": {
-      "title": "PULSE Moderation | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/quality": {
-      "title": "PULSE Quality | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/export-audit": {
-      "title": "PULSE Audit | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
-    },
-    "/admin/audit": {
-      "title": "PULSE Audit | PULSE",
-      "description": "Private PULSE administration area.",
-      "indexable": false,
-      "clientFallback": true
     }
   }
 }
