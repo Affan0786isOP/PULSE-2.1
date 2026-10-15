@@ -5,7 +5,10 @@ import path from 'node:path';
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// Set PULSE_AUDIT_APP_ROOT to audit another checkout (e.g. the pre-cleanup baseline)
+// while using this shared runner from the current branch.
+const repoRoot = path.resolve(process.env.PULSE_AUDIT_APP_ROOT || scriptRoot);
 const defaultPort = 4317;
 
 function normalizeRoutePath(route) {
@@ -94,7 +97,7 @@ function safeFilename(route) {
   return route === '/' ? 'home' : route.replace(/^\/+|\/+$/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_');
 }
 
-function attachTelemetry(page, surface, telemetry) {
+function attachTelemetry(page, surface, telemetry, expectedOrigin) {
   page.on('console', (message) => {
     if (message.type() === 'error') {
       telemetry.consoleErrors.push({ surface, url: page.url(), message: message.text() });
@@ -113,13 +116,23 @@ function attachTelemetry(page, surface, telemetry) {
   });
   page.on('response', (response) => {
     if (response.status() >= 400) {
-      telemetry.httpErrors.push({
+      const errorRecord = {
         surface,
         url: page.url(),
         requestUrl: response.url(),
         status: response.status(),
         resourceType: response.request().resourceType(),
-      });
+      };
+      telemetry.httpErrors.push(errorRecord);
+      // Same-origin document/JS/CSS failures can leave a seemingly captured but broken SPA.
+      try {
+        if (new URL(response.url()).origin === expectedOrigin &&
+            ['document', 'script', 'stylesheet'].includes(errorRecord.resourceType)) {
+          telemetry.fatalHttpErrors.push(errorRecord);
+        }
+      } catch {
+        // Invalid resource URLs remain in the ordinary telemetry only.
+      }
     }
   });
 }
@@ -150,10 +163,16 @@ async function captureRoute(page, surface, route, baseUrl, outputDir, telemetry)
     const pageState = await page.evaluate(() => {
       const bodyText = document.body?.innerText?.trim() ?? '';
       const isLoading = /Loading (?:Module|Mobile Experience)\.\.\./.test(bodyText);
-      return { hasContent: bodyText.length > 0, isLoading, title: document.title, bodyText: bodyText.slice(0, 240) };
+      const isErrorBoundary = bodyText.includes('Something went wrong') && bodyText.includes('PULSE encountered an error');
+      const isNotFoundPage = /\b404\b/.test(bodyText) && /Page not found/i.test(bodyText);
+      return { hasContent: bodyText.length > 0, isLoading, isErrorBoundary, isNotFoundPage, title: document.title, bodyText: bodyText.slice(0, 240) };
     });
     result.title = pageState.title;
-    result.ready = pageState.hasContent && !pageState.isLoading;
+    result.errorBoundary = pageState.isErrorBoundary;
+    result.ready = pageState.hasContent && !pageState.isLoading && !pageState.isErrorBoundary;
+    if (route === '/__audit_not_found__' && !pageState.isNotFoundPage) {
+      throw new Error('Not-found probe did not render the expected 404 page: ' + JSON.stringify(pageState));
+    }
     if (!result.ready) {
       throw new Error('Route did not reach a content-ready state: ' + JSON.stringify(pageState));
     }
@@ -184,7 +203,10 @@ async function captureSettingsModal(page, surface, baseUrl, outputDir, telemetry
     await page.waitForLoadState('networkidle', { timeout: 4000 }).catch(() => {});
     const settingsButton = page.getByRole('button', { name: /settings/i }).first();
     if (await settingsButton.count() === 0) {
-      telemetry.skippedInteractions.push({ surface, interaction: 'settings modal', reason: 'No accessible Settings button found' });
+      const failure = { surface, route: '/ (settings modal)', error: 'No accessible Settings button found' };
+      telemetry.captureFailures.push(failure);
+      telemetry.interactions.push({ surface, interaction: 'settings modal', ok: false, error: failure.error });
+      console.error('FAILED [' + surface + '] settings modal: ' + failure.error);
       return;
     }
 
@@ -265,6 +287,7 @@ export async function runAudit(mode) {
     pageErrors: [],
     failedRequests: [],
     httpErrors: [],
+    fatalHttpErrors: [],
     captureFailures: [],
   };
 
@@ -301,6 +324,7 @@ export async function runAudit(mode) {
     const baseUrl = 'http://127.0.0.1:' + port;
     await waitForServer(server, baseUrl + '/api/health');
     console.log('Audit server healthy at ' + baseUrl);
+    const expectedOrigin = new URL(baseUrl).origin;
 
     browser = await chromium.launch({ headless: true });
     const desktopContext = await browser.newContext({
@@ -308,7 +332,7 @@ export async function runAudit(mode) {
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     });
     const desktopPage = await desktopContext.newPage();
-    attachTelemetry(desktopPage, 'desktop', telemetry);
+    attachTelemetry(desktopPage, 'desktop', telemetry, expectedOrigin);
     for (const route of desktopRoutes) {
       await captureRoute(desktopPage, 'desktop', route, baseUrl, outputDir, telemetry);
     }
@@ -322,7 +346,7 @@ export async function runAudit(mode) {
       hasTouch: true,
     });
     const mobilePage = await mobileContext.newPage();
-    attachTelemetry(mobilePage, 'mobile', telemetry);
+    attachTelemetry(mobilePage, 'mobile', telemetry, expectedOrigin);
     for (const route of mobileRoutes) {
       await captureRoute(mobilePage, 'mobile', route, baseUrl, outputDir, telemetry);
     }
@@ -342,6 +366,7 @@ export async function runAudit(mode) {
       pageErrors: telemetry.pageErrors.length,
       consoleErrors: telemetry.consoleErrors.length,
       httpErrorResponses: telemetry.httpErrors.length,
+      fatalSameOriginResourceErrors: telemetry.fatalHttpErrors.length,
       failedRequests: telemetry.failedRequests.length,
     };
     const telemetryPath = path.join(outputDir, 'telemetry.json');
@@ -354,5 +379,5 @@ export async function runAudit(mode) {
   }
 
   // Captured route/navigation failures or uncaught page errors must fail the command.
-  return runError || telemetry.captureFailures.length > 0 || telemetry.pageErrors.length > 0 ? 1 : 0;
+  return runError || telemetry.captureFailures.length > 0 || telemetry.pageErrors.length > 0 || telemetry.fatalHttpErrors.length > 0 ? 1 : 0;
 }
