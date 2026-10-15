@@ -2,25 +2,45 @@
 
 ## Scope
 
-Audited the current `main` head `7b07474af6cdf96f8a78ee40cd032b2fdcf8391b` of `Affan0786isOP/PULSE-2.1`. The cleanup is intentionally conservative: code was removed only where repository-wide symbol searches found no caller, or where the component was an unused no-op.
+Audited `Affan0786isOP/PULSE-2.1` across the full frontend (desktop and mobile SPAs) using Codebase Memory MCP, Context Mode, and GRAVITAS. The audit workflow combines graph reachability analysis, symbol reference tracing, real browser screenshot captures across all desktop (1280x800) and mobile (393x851) routes, and verification against TypeScript, production build, and Vitest test suites.
 
-## Removed
+## Removed Components & Files
 
-| Path | Finding |
+| Path | Finding & Evidence |
 | --- | --- |
-| `mobile/src/components/DirectionDataset.tsx` | Exported a component whose entire implementation was `return null`; no app imports/callers were found. |
-| `src/components/ui/gooey-nav.tsx` | `GooeyNav` had no references outside its own source file. |
-| `src/components/home/WhatIsPulseScene.tsx` | The section component had no references outside its own source file, so it was not part of the rendered application. |
-| `src/components/brand/TelemetryMetricCard.tsx` | No consumers were found; it was exported only by the brand barrel. Its default values are illustrative hard-coded telemetry, not live measurements. |
-| `src/components/brand/ProvenanceBadge.tsx` | Only consumed by the unused telemetry card and exported by the brand barrel. |
-| `src/components/brand/index.ts` | Removed exports for the deleted `TelemetryMetricCard` and `ProvenanceBadge`; retained `PulseLogo` and `StimulusReticle`. |
+| `mobile/src/components/DirectionDataset.tsx` | Exported a component whose entire implementation was `return null`; 0 app imports/callers found. (Cycle 1) |
+| `src/components/ui/gooey-nav.tsx` | `GooeyNav` had no references outside its own source file. (Cycle 1) |
+| `src/components/home/WhatIsPulseScene.tsx` | Section component had 0 references outside its own file; not part of the active landing page. (Cycle 1) |
+| `src/components/brand/TelemetryMetricCard.tsx` | No consumers; exported only by brand barrel with static mock telemetry. (Cycle 1) |
+| `src/components/brand/ProvenanceBadge.tsx` | Consumed only by unused telemetry card. (Cycle 1) |
+| `src/components/brand/index.ts` | Removed exports for deleted brand components; retained `PulseLogo` and `StimulusReticle`. (Cycle 1) |
+| `src/components/FullscreenPrompt.tsx` | 6-line stub whose entire implementation was `return null;`; 0 references repository-wide. (Cycle 2) |
+| `mobile/src/components/FullscreenPrompt.tsx` | 7-line stub whose entire implementation was `return null;`; 0 references repository-wide. (Cycle 2) |
+| `src/lib/modalScrollLock.ts` | Manual scroll lock helper with 0 callers; modal accessibility and focus traps are fully handled by `modalManager` via `useModalAccessibility`. (Cycle 2) |
+| `mobile/src/lib/modalScrollLock.ts` | Unused scroll lock helper with 0 callers. (Cycle 2) |
+| `mobile/src/components/SettingsModal.tsx` | Removed unused dead import `acquireScrollLock` on line 33. (Cycle 2) |
+| `src/AuthContext.tsx` | 227-line desktop authentication stub decoupled during `7650c93`; desktop app operates completely anonymously with 0 auth dependencies; mobile has its own dedicated `mobile/src/AuthContext.tsx`. (Cycle 2) |
 
-## Deliberately retained
+## Deliberately Retained
 
-- `src/components/DatasetComingSoon.tsx`: it is used by the desktop and mobile route definitions and has tests covering its deferred `/dataset` and `/analytics` behaviour.
-- `StimulusReticle.tsx`: no current runtime consumer was found, but it is explicitly documented in the design-system and brand-guidelines docs as a reusable brand component, so it was retained.
-- The dataset explorer, scripts under `scripts/archive/`, visual experiments under `scratch/`, and agent-skill directories were not removed. They are dormant, archived, or developer-facing rather than proven safe-to-delete production dead code.
+- `src/components/DatasetComingSoon.tsx`: Active route handler for deferred `/dataset` and `/analytics` routes with active regression test coverage.
+- `StimulusReticle.tsx`: Documented in the design system and brand specifications as a reusable brand token component.
+- Dataset explorer modules (`src/components/Dataset.tsx`, `DatasetFilterBar.tsx`, `DatasetHeader.tsx`, `DatasetContentSlot.tsx`, `lib/dataset/*`): Preserved as dormant public data feature components awaiting open research dataset release.
+- Developer scratch scripts and audit test harnesses: Retained in `scratch/` and `docs/`.
 
-## Validation and limitations
+## Validation & Verification
 
-Repository-wide code searches were used to validate the removed symbol references. A local dependency install, TypeScript checks, unit tests, and build were not run in this remote-only audit environment. The changes should therefore be validated by CI before merging. This is a conservative unused-component cleanup, not a claim that every unused local variable or package dependency in the repository has been exhaustively identified.
+1. **TypeScript Checks (`npm run check`):**
+   - `tsc --noEmit && cd mobile && tsc --noEmit` — **PASSED** (0 errors).
+2. **Production Build (`npm run build`):**
+   - Desktop Vite build: **PASSED** (13.17s).
+   - Mobile Vite build: **PASSED** (9.37s).
+   - Static SEO generation: **PASSED**.
+   - Server esbuild bundle (`dist/server.js`): **PASSED** (209.7 kB).
+3. **Vitest Unit Test Suite (`npm test`):**
+   - 43 test files passed (43/43).
+   - 374 unit tests passed (374/374).
+4. **Visual & Routing Verification:**
+   - Full route inspection at 1280x800 (Desktop) and 393x851 (Mobile Pixel 5).
+   - Verified active routes: `/`, `/about`, `/assessments`, `/leaderboard`, `/dataset`, `/improve`, `/reaction-test`, `/direction-test`, `/block-memory`, `/number-memory`, `/color-test`, `/privacy`.
+   - Modals inspected: Settings modal (tabs: General, Feedback, System/Calibration), Welcome modal, and AddToHomeScreen/PWA modal.

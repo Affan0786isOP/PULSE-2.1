@@ -30,7 +30,6 @@ import {
 } from '../lib/settingsStore';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { AddToHomeScreenModal } from './AddToHomeScreenModal';
-import { acquireScrollLock } from '../lib/modalScrollLock';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 
 interface SettingsModalProps {
