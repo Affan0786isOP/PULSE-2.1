@@ -58,3 +58,19 @@ The follow-up hardening changes are maintained in the audit-harness fix branch a
 - Removed the obsolete `fullscreenPromptEnabled` property from desktop and mobile settings types/defaults/sanitizers/comparison logic; legacy stored keys are ignored by the existing whitelist-style sanitizer.
 
 **Validation caveat:** These harness edits have not been run in this remote GitHub editing session. Run `npm run build`, then `node scratch/capture-screenshots.mjs` for the baseline at the appropriate pre-change revision and `node scratch/capture-after-screenshots.mjs` after the cleanup build. Review each generated `telemetry.json` and screenshot directory before claiming a clean visual audit.
+
+
+## Second-Pass Audit Findings
+
+A second review found that the shared route registry declared `/privacy-policy` as a privacy alias, but neither SPA had a matching React Router declaration. Added the alias in desktop and mobile routing so the declared URL renders the privacy page instead of the not-found page.
+
+Additional screenshot-harness hardening:
+
+- The runner accepts `PULSE_AUDIT_APP_ROOT`, allowing the same shared runner to capture a separate baseline worktree and the updated checkout without copying user-specific paths into the script.
+- It compares every route/alias in the shared registry with each SPA's declared routes and records a fatal mismatch if the registry and router drift apart.
+- It verifies the explicit not-found probe renders the expected 404 UI, and treats the app's ErrorBoundary screen as a failed route rather than a successful screenshot.
+- It fails on same-origin document, JavaScript, and stylesheet HTTP errors, in addition to route-capture failures and uncaught page errors.
+- It dismisses the first-run Welcome dialog only before capturing the Settings modal, because the fresh mobile experience displays that dialog above the Settings control.
+- The Settings-modal interaction is required; an absent or inaccessible Settings control is recorded as a capture failure rather than silently skipped.
+
+The shared runner and the new privacy alias have not been built or exercised in a local checkout in this connector-only editing session. Re-run type checks, production build, and screenshot captures on both desktop and mobile before merging; inspect the telemetry for warnings and visually inspect baseline/after screenshots.
