@@ -140,7 +140,7 @@ async function captureRoute(page, surface, route, baseUrl, outputDir, telemetry)
 
     // Let lazy chunks, data requests, and fonts settle; never depend on networkidle alone.
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-    await page.evaluate(() => document.fonts?.ready ?? Promise.resolve());
+    await page.evaluate(() => document.fonts?.ready.then(() => true) ?? Promise.resolve(true));
     await page.waitForFunction(
       () => !/Loading (?:Module|Mobile Experience)\.\.\./.test(document.body?.innerText ?? ''),
       undefined,
@@ -273,6 +273,7 @@ export async function runAudit(mode) {
   let runError = null;
 
   try {
+    await mkdir(outputDir, { recursive: true });
     // Fail fast rather than accidentally reusing an unrelated app already listening on this port.
     await assertPortAvailable(port);
     const child = spawn('node', [serverPath], {
