@@ -1,11 +1,7 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Info, 
-  Settings, 
-  ArrowRight, 
-  RefreshCw,
-  Download
+  ArrowRight
 } from 'lucide-react';
 import { SEO } from './SEO';
 import { useReducedMotionPreference } from '../lib/settingsStore';
@@ -14,6 +10,7 @@ import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { DesktopWaveGraphic } from './home/DesktopWaveGraphic';
 import { PulseLogo } from './brand';
+import { Navbar } from './Navbar';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -74,24 +71,10 @@ const HOME_SCHEMA = {
   ]
 };
 
-const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
-const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
-const AddToHomeScreenModal = React.lazy(() => import('./AddToHomeScreenModal').then(m => ({ default: m.AddToHomeScreenModal })));
-
-const ModalLoadingFallback = () => (
-  <div role="status" aria-live="polite" className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-    <div className="p-3 rounded-xl bg-white/95 backdrop-blur-md border border-slate-200 flex items-center gap-2.5 text-xs text-slate-700 font-mono pointer-events-auto shadow-lg">
-      <RefreshCw size={14} className="animate-spin text-[#0066FF]" aria-hidden="true" />
-      <span>Loading dialog...</span>
-    </div>
-  </div>
-);
 
 export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
   const pwa = usePwaInstall();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
 
   // Pixel-perfect uniform scaling based on 1280x720 baseline for screens >= 768px
@@ -152,93 +135,8 @@ export function Home() {
       />
 
       {/* Top Navigation Bar */}
-      <header className="relative z-30 w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto px-6 sm:px-10 lg:px-14 min-[2560px]:px-20 h-14 sm:h-16 min-[2560px]:h-20 flex items-center justify-between shrink-0">
-        {/* Brand Lockup */}
-        <Link 
-          to="/"
-          className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] rounded-lg"
-          aria-label="PULSE Home"
-        >
-          <PulseLogo variant="horizontal" size={30} color="#0066FF" textColor="#090D1A" />
-        </Link>
+      <Navbar currentView="home" />
 
-        {/* Center Main Links */}
-        <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8 min-[2560px]:gap-10">
-          <Link 
-            to="/assessments" 
-            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
-          >
-            Assessments
-          </Link>
-          <Link 
-            to="/leaderboard" 
-            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
-          >
-            Leaderboard
-          </Link>
-          <Link 
-            to="/dataset" 
-            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
-          >
-            Dataset
-          </Link>
-          <Link 
-            to="/analytics" 
-            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
-          >
-            Analytics
-          </Link>
-          <Link 
-            to="/about" 
-            className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-[#475569] hover:text-[#090D1A] transition-colors"
-          >
-            About
-          </Link>
-        </nav>
-
-        {/* Right Info, Settings & Install Actions */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          {pwa.isInstallable && (
-            <button
-              type="button"
-              id="desktop-install-app-btn"
-              onClick={() => {
-                if (pwa.hasNativePrompt) {
-                  pwa.promptInstall();
-                } else {
-                  pwa.openInstallGuide();
-                }
-              }}
-              aria-label="Install App"
-              className="flex items-center gap-2 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-sky-200/90 bg-sky-50/70 hover:bg-sky-100/90 text-[#0066FF] text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,102,255,0.06)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] shrink-0"
-            >
-              <Download size={14} strokeWidth={2.4} className="text-[#0066FF] shrink-0" />
-              <span className="hidden sm:inline">Install App</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setIsWelcomeOpen(true)}
-            aria-label="Platform Information"
-            title="Platform Information"
-            className="flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
-          >
-            <Info size={15} strokeWidth={2.2} />
-            <span className="hidden sm:inline">Info</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsSettingsOpen(true)}
-            aria-label="Settings"
-            title="Application Settings"
-            className="flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
-          >
-            <Settings size={15} strokeWidth={2.2} />
-            <span>Settings</span>
-          </button>
-        </div>
-      </header>
 
       {/* Main Viewport Container - Perfectly Centered on Shared Visual Axis */}
       <main 
@@ -351,30 +249,6 @@ export function Home() {
 
       {/* Flowing Layered Wave Graphic along lower edge */}
       <DesktopWaveGraphic />
-
-      {/* Modals Container */}
-      <Suspense fallback={<ModalLoadingFallback />}>
-        {isSettingsOpen && <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
-        {isWelcomeOpen && <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />}
-        {pwa.isGuideOpen && (
-          <AddToHomeScreenModal
-            isOpen={pwa.isGuideOpen}
-            onClose={pwa.closeInstallGuide}
-            isInstalled={pwa.isInstalled}
-            isIos={pwa.isIos}
-            isSafari={pwa.isSafari}
-            isIosSafari={pwa.isIosSafari}
-            isIosChrome={pwa.isIosChrome}
-            isIosOtherBrowser={pwa.isIosOtherBrowser}
-            isInstallable={pwa.isInstallable}
-            hasNativePrompt={pwa.hasNativePrompt}
-            isInstallPromptSupported={pwa.isInstallPromptSupported}
-            isUnsupportedBrowser={pwa.isUnsupportedBrowser}
-            isOffline={pwa.isOffline}
-            onPromptInstall={pwa.promptInstall}
-          />
-        )}
-      </Suspense>
     </div>
   );
 }

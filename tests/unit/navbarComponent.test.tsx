@@ -48,14 +48,35 @@ describe('Navbar Component', () => {
     expect(screen.getByRole('button', { name: /platform information|app info|info/i })).toBeDefined();
   });
 
-  it('does not render back button on sub-routes', () => {
-    const handleBack = vi.fn();
+  it('disables settings button when assessment is active', () => {
     render(
-      <MemoryRouter initialEntries={['/assessments']}>
-        <Navbar currentView="assessments" onBack={handleBack} />
+      <MemoryRouter initialEntries={['/reaction-test']}>
+        <Navbar currentView="reaction-test" isAssessmentActive={true} />
       </MemoryRouter>
     );
-    const backBtn = screen.queryByRole('button', { name: /go back/i });
-    expect(backBtn).toBeNull();
+    const settingsBtn = screen.getByRole('button', { name: /settings/i });
+    expect(settingsBtn).toBeDefined();
+    expect(settingsBtn.hasAttribute('disabled')).toBe(true);
+    expect(settingsBtn.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('opens mobile drawer and closes on escape key press', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Navbar currentView="home" />
+      </MemoryRouter>
+    );
+    const toggleBtn = screen.getByRole('button', { name: /open navigation menu/i });
+    expect(toggleBtn).toBeDefined();
+    expect(toggleBtn.getAttribute('aria-expanded')).toBe('false');
+
+    // Open drawer
+    fireEvent.click(toggleBtn);
+    expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('dialog', { name: /navigation menu/i })).toBeDefined();
+
+    // Press Escape
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(toggleBtn.getAttribute('aria-expanded')).toBe('false');
   });
 });
