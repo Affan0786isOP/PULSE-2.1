@@ -434,9 +434,8 @@ export function Navbar({
         )}
       </div>
 
-      {!isAssessmentActive && (
-        <AnimatePresence>
-          {isMobileMenuOpen && (
+      <AnimatePresence>
+        {isMobileMenuOpen && !isAssessmentActive && (
             <>
               {/* Backdrop click dismiss */}
               <div 
@@ -463,23 +462,8 @@ export function Navbar({
                     : 'bg-[var(--surface-1)] border-[var(--border-subtle)]'
                 }`}
               >
-                {navItems.map(item => {
-                  if (isAssessmentActive) {
-                    return (
-                      <span
-                        key={`mobile-nav-${item.id}`}
-                        aria-disabled="true"
-                        className={`p-2.5 rounded-lg flex items-center text-xs font-medium uppercase tracking-wider opacity-40 cursor-not-allowed select-none ${
-                          isLight ? 'text-slate-400' : 'text-[var(--text-muted)]'
-                        }`}
-                      >
-                        {item.label}
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <Link
+                {navItems.map(item => (
+<Link
                       key={`mobile-nav-${item.id}`}
                       to={item.to}
                       aria-current={activeId === item.id ? 'page' : undefined}
@@ -499,8 +483,7 @@ export function Navbar({
                     >
                       {item.label}
                     </Link>
-                  );
-                })}
+                ))}
                 <div className={`pt-3 border-t mt-2 flex items-center justify-between gap-2 ${
                   isLight ? 'border-slate-200' : 'border-[var(--border-subtle)]'
                 }`}>
@@ -556,9 +539,8 @@ export function Navbar({
                 </div>
               </motion.div>
             </>
-          )}
-        </AnimatePresence>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Global System Settings Modal (Loaded on demand) */}
       {isSettingsOpen && (
