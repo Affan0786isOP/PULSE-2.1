@@ -6,20 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
-- Documentation system overhaul and architecture specification suite.
-
-### Changed
-- **Backend modularisation:** Decomposed the 3,700-line `server.ts` into `server/` (`config`, `middleware`, `routes`, `services`, `engines`). API endpoints, request/response contracts, middleware order, rate limits and exports are unchanged; `server.ts` remains the entry point for `npm run dev`, the esbuild bundle and Vercel.
-- Consolidated the repeated inline HMAC calls behind `signProvenancePayload()` in `server/services/provenanceService.ts`.
-- Renamed the npm package from `react-example` to `pulse`.
-- Archived 46 legacy `fix_*` / `patch_*` scripts from the repository root into `scripts/archive/`.
+## [2.2.1] — 2026-10-17
 
 ### Added
-- Unit tests for the server engines, provenance service, idempotency store and device-routing helpers (`tests/unit/serverEngines.test.ts`).
+- **Canonical Navbar Unification:** Replaced legacy disparate headers with universal `Navbar` component supporting explicit light/dark themes, brand lockup, and modal triggers across all desktop views.
+- **Cognitive Session Safety:** Enforced active assessment lockouts, blocking accidental navigation, modal activation, and tab switches with an explicit "Exit Test" safeguard.
+- **Mobile Drawer Accessibility:** Implemented bidirectional Tab/Shift+Tab focus cycling, Escape-key dismissal, backdrop dismissibility, and inert background isolation.
+- **Screenshot Audit Harnesses:** Added Playwright capture scripts in `scratch/` for desktop and mobile viewport audits.
 
-### Fixed (docs)
-- `docs/ARCHITECTURE.md` rate-limit figures now match the code (general API 200 req / 15 min, admin login 10 req / 15 min).
+### Changed
+- **Backend Modularisation:** Decomposed the monolithic `server.ts` into modular `server/` architecture (`config`, `middleware`, `routes`, `services`, `engines`, `repositories`).
+- **Admin Surface Deprecation:** Fully audited and removed the web admin console, browser admin login routes (`/api/admin/*`), and obsolete client auth contexts. Moderation is now handled strictly via server operator scripts.
+- **Desktop Leaderboard Redesign:** Modernized desktop leaderboard view with light theme, fluid waves, and direct server query optimization.
+- Consolidated HMAC signing routines behind `signProvenancePayload()` in `server/services/provenanceService.ts`.
+- Renamed npm package from `react-example` to `pulse`.
+
+### Removed
+- Confirmed dead frontend components (`FullscreenPrompt`, `WhatIsPulseScene`, `gooey-nav`, unreferenced brand cards).
+- Archived 46 legacy scripts from repository root into `scripts/archive/`.
 
 ---
 

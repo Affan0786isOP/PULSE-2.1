@@ -126,7 +126,7 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 
 | Module / Feature | Route / Interface | Status | Implementation Details |
 | :--- | :--- | :--- | :--- |
-| **Desktop Home & Hero** | `/` | `IMPLEMENTED` | Awwwards-tier animated canvas background, 3D assessment carousel, interactive live reticle, quick-start CTAs. |
+| **Desktop Home & Hero** | `/` | `IMPLEMENTED` | Awwwards-tier animated canvas background, 3D assessment carousel, interactive live reticle, quick-start CTAs, and canonical unified Navbar with assessment lockouts. |
 | **Mobile PWA Sub-App** | `/mobile/` | `IMPLEMENTED` | Dedicated mobile entry point, touch-optimized layouts, service worker caching, standalone PWA install prompt. |
 | **Device Auto-Routing** | Middleware & Client | `IMPLEMENTED` | Client-side routing applies viewport/device checks; the server preserves normal page navigation and redirects only for explicit routing flags/preferences. |
 | **Hardware Calibrator** | Background Hook | `IMPLEMENTED` | RAF sampling detects screen refresh rate (60Hz–240Hz) and display latency offset. |

@@ -14,7 +14,7 @@ sequenceDiagram
     participant Client as React Client
     participant Server as Express Server (server.ts)
     participant Firestore as Firestore (leaderboardResults)
-    participant Admin as Admin Console
+    participant Operator as Operator CLI / Admin SDK
 
     User->>Client: Complete Assessment & Opt In
     Client->>Server: POST /api/leaderboard/submit<br/>(trials, scoreMetric, displayName)
@@ -25,9 +25,8 @@ sequenceDiagram
     Server->>Firestore: Create document in leaderboardResults<br/>(hidden: false)
     Server-->>Client: Return success confirmation
     
-    Note over Admin,Firestore: Moderation Flow
-    Admin->>Server: POST /api/admin/leaderboard/hide (id, reason)
-    Server->>Firestore: Transaction: update hidden + write adminAuditLogs
+    Note over Operator,Firestore: Moderation Flow (Server CLI Scripts)
+    Operator->>Firestore: Update hidden + write adminAuditLogs transaction
 ```
 
 ---
@@ -51,9 +50,10 @@ sequenceDiagram
 ---
 
 ## 4. Administrative Moderation Controls
-- **Soft-Hide (`/api/admin/leaderboard/hide`):** Sets `hidden = true` on flagged entries without deleting historical data. Soft-hidden entries are instantly filtered out of the public leaderboard query.
-- **Hard-Delete (`/api/admin/leaderboard/delete`):** Permanently purges fraudulent or malicious entries from Firestore.
-- **Audit Ledger (`adminAuditLogs`):** Hide/unhide/delete and their audit entries are written in one Firestore transaction. The current moderation repository writes the actor as the generic value `admin`, not a unique moderator identity. No separate automated audit-retention job was verified in the reviewed application code.
+- **CLI Script Execution:** Web admin routes (`/api/admin/*`) and browser consoles have been removed to eliminate external attack surfaces. Moderation actions (soft-hide, restore, or hard-delete) are executed directly via operator scripts using the Firebase Admin SDK (`FIREBASE_SERVICE_ACCOUNT`).
+- **Soft-Hide (`hideLeaderboardEntry`):** Sets `hidden = true` on flagged entries without deleting historical data. Soft-hidden entries are excluded from public leaderboard queries.
+- **Hard-Delete (`deleteLeaderboardEntry`):** Permanently purges fraudulent or malicious entries from Firestore when required.
+- **Audit Ledger (`adminAuditLogs`):** Hide/unhide/delete operations and their corresponding audit entries are committed in a single atomic Firestore transaction. The moderation repository records the operator identity, reason, and immutable server timestamp.
 
 
 ## 5. Ranking, identity, and tie policy

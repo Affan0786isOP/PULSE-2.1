@@ -66,4 +66,5 @@ Before submitting code changes, complete this checklist:
 - [ ] No secret keys have been prefixed with `VITE_` or exposed in client files.
 - [ ] No PII fields (name, email, IP) are included in `publicDataset` payloads.
 - [ ] Reduced-motion mode has been tested and suppresses non-essential UI animations.
+- [ ] Active assessment lockout is honored (Navbar navigation, modals, and tab switching are blocked during ongoing cognitive testing).
 - [ ] Mobile responsive layout has been verified at $375\text{px}$, $768\text{px}$, and $1280\text{px}$ viewports.

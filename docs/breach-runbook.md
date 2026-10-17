@@ -14,7 +14,7 @@
 
 | Severity | Definition | Examples | Response Target |
 | :--- | :--- | :--- | :--- |
-| **SEV-1 (Critical)** | Active compromise of server infrastructure, leaked service account keys, mass unauthorized data modification or exfiltration. | Leak of `FIREBASE_SERVICE_ACCOUNT` or `ADMIN_PASSCODE`; mass deletion/alteration of `assessmentResults`. | **Immediate (≤ 15 minutes)** |
+| **SEV-1 (Critical)** | Active compromise of server infrastructure, leaked service account keys, mass unauthorized data modification or exfiltration. | Compromise of server environment, leaked `FIREBASE_SERVICE_ACCOUNT` key, or mass deletion/alteration of `assessmentResults`. | **Immediate (≤ 15 minutes)** |
 | **SEV-2 (High)** | Tampering with cryptographic provenance, unauthorized elevation of privileges, or denial-of-wallet exploitation. | Compromised `PULSE_PROVENANCE_SECRET`; repeated bypass of rate limiters causing billing spikes. | **≤ 1 hour** |
 | **SEV-3 (Medium)** | Isolated vulnerability discovery without evidence of active exploitation; abnormal spike in false starts/aborted sessions. | Insecure direct object reference bug identified; single user report of data irregularity. | **≤ 6 hours** |
 | **SEV-4 (Low)** | Minor misconfiguration, non-security-impacting bug, or automated vulnerability scanner notice. | Content Security Policy report-only alert; benign bot traffic. | **≤ 24 hours** |

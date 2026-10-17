@@ -5,8 +5,8 @@ Thank you for contributing to the PULSE cognitive assessment and benchmark platf
 ---
 
 ## 1. Development Prerequisites
-- **Node.js:** v20+ (v22 LTS recommended)
-- **Package Manager:** `npm` or `bun`
+- **Node.js:** v22.12+ (v22 LTS recommended)
+- **Package Manager:** `npm` (v10+). Pinned via `"packageManager"` in `package.json`; do not use `bun` or `yarn`.
 - **Git:** Git 2.30+
 
 ---
@@ -38,7 +38,7 @@ These conventions are actively established in the codebase:
 ### 3.2 Security & Data Mutations
 - **Server-Authoritative Writes:** Direct client mutations to Firestore collections are disabled. All data mutations must route through Express API endpoints in `server.ts`.
 - **Zero PII:** Never introduce user identity fields (email, real name, phone number, IP address) into `publicDataset` or assessment trial collections.
-- **Never expose secrets:** Server secrets (`ADMIN_PASSCODE`, `PULSE_PROVENANCE_SECRET`, `FIREBASE_SERVICE_ACCOUNT`) must never be prefixed with `VITE_` or referenced in client-side code.
+- **Never expose secrets:** Server secrets (`PULSE_PROVENANCE_SECRET`, `FIREBASE_SERVICE_ACCOUNT`) must never be prefixed with `VITE_` or referenced in client-side code. Web administration endpoints and passcodes have been removed; moderation is handled via server CLI scripts.
 
 ### 3.3 Dual-Surface Parity
 - PULSE maintains a desktop web client (`src/`) and a mobile PWA subproject (`mobile/src/`).
