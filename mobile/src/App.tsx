@@ -159,6 +159,7 @@ function App() {
                   <Route path="/color-test" element={<ColorTest onNavigate={handleNavigate} />} />
                   <Route path="/privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
                   <Route path="/research-privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
+                <Route path="/privacy-policy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
 
                   <Route path="*" element={<NotFound onNavigate={handleNavigate} />} />
                 </Routes>

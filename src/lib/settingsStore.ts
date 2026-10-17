@@ -5,7 +5,6 @@ export type ThemeMode = 'dark';
 export interface UserSettings {
   soundEnabled: boolean;
   hapticsEnabled: boolean;
-  fullscreenPromptEnabled: boolean;
   themeMode: ThemeMode;
   exhibitionModeEnabled: boolean;
   reducedMotionEnabled: boolean;
@@ -24,7 +23,6 @@ export function getDefaultReducedMotion(): boolean {
 const DEFAULT_SETTINGS: UserSettings = {
   soundEnabled: true,
   hapticsEnabled: true,
-  fullscreenPromptEnabled: true,
   themeMode: 'dark',
   exhibitionModeEnabled: false,
   reducedMotionEnabled: getDefaultReducedMotion(),
@@ -50,9 +48,6 @@ function sanitizeSettings(raw: unknown, fallback: UserSettings = DEFAULT_SETTING
   }
   if (typeof obj.hapticsEnabled === 'boolean') {
     result.hapticsEnabled = obj.hapticsEnabled;
-  }
-  if (typeof obj.fullscreenPromptEnabled === 'boolean') {
-    result.fullscreenPromptEnabled = obj.fullscreenPromptEnabled;
   }
   // Dark-only architecture: themeMode is always 'dark'
   result.themeMode = 'dark';
@@ -154,7 +149,6 @@ export function updateSettings(partial: Partial<UserSettings>): UserSettings {
   if (
     current.soundEnabled === next.soundEnabled &&
     current.hapticsEnabled === next.hapticsEnabled &&
-    current.fullscreenPromptEnabled === next.fullscreenPromptEnabled &&
     current.exhibitionModeEnabled === next.exhibitionModeEnabled &&
     current.reducedMotionEnabled === next.reducedMotionEnabled &&
     current.fontScale === next.fontScale
