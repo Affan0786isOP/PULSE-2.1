@@ -57,9 +57,9 @@
 /
 ├── src/                      # Desktop React Application
 │   ├── components/           # UI Components & Assessment Protocols
-│   │   ├── admin/            # Admin dashboard, moderation, export audit
 │   │   ├── brand/            # Unified logo, reticle, telemetry cards
-│   │   └── dataset/          # Research dataset explorer subcomponents
+│   │   ├── dataset/          # Research dataset explorer subcomponents
+│   │   └── home/             # Homepage views, 3D assessment carousel
 │   ├── lib/                  # State stores, Firebase client, timing utilities
 │   │   └── dataset/          # Data normalization pipeline & React hooks
 │   └── styles/               # CSS variables & aesthetic rules
@@ -79,7 +79,7 @@
 ## 5. Security & Trust Invariants
 - **Client writes are rejected:** `firestore.rules` enforces `allow write: if false` on all canonical collections. All mutations must occur via `server.ts`.
 - **Zero PII in open dataset:** Public records omit user IDs, session IDs, emails, and exact timestamps (aggregated to `completedAtMonth` YYYY-MM).
-- **Admin authentication:** Restricted via `ADMIN_PASSCODE` verified server-side with session-bound HMAC tokens and IP rate limiting.
+- **Administrative operations:** Web admin routes and UI have been audited and removed to minimize attack surface. Moderation actions are executed directly via server CLI scripts utilizing Firebase Admin credentials (`FIREBASE_SERVICE_ACCOUNT`).
 
 ---
 

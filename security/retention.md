@@ -19,8 +19,10 @@ This document defines the statutory retention schedules, automated purge trigger
 | **`assessmentTrials`** | Granular millisecond reaction telemetry | **5 years** | Scientific replication retention; purged upon verified participant erasure request. |
 | **`assessmentResults`** | Longitudinal assessment score summaries | **5 years** | Longitudinal cognitive cohort baselining; purged upon verified participant erasure request. |
 | **`publicDataset`** | Anonymized open research benchmark data | **Indefinite** | Anonymized scientific open archive (contains zero UIDs, zero IPs, zero device identifiers). |
-| **`leaderboardResults`** | Voluntary opted-in public rank records | **No automated expiry configured in the reviewed repository** | Records persist until an administrator hides/deletes them or a separately implemented removal process is run. A 2-year target is not enforced by code found in this review. |
-| **`adminAuditLogs`** | Immutable moderation & administrative trail | **7 years** | Statutory security and compliance audit logging requirements. |
+| **`leaderboardResults`** | Voluntary opted-in public rank records (one best score per owner) | **Not automatically purged** | Voluntary public alias ranking; participant GDPR erasure supported via `DELETE /api/leaderboard/mine`. |
+| **`leaderboardPrivateMeta`** | Private submission receipts, trial digests, owner UIDs, and moderation metadata | **Assessment lifespan** | Purged upon participant erasure request or manual administrative review. |
+| **`leaderboardOwnerIndex`** | Pseudonymous owner best-score index and transaction locking | **Active state** | Updated transactionally to track participant approved best scores. |
+| **`adminAuditLogs`** | Immutable moderation & administrative trail | **7 years** | Statutory security and compliance audit logging requirements. Moderation executed via server CLI scripts. |
 
 ---
 

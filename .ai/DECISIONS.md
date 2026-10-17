@@ -37,3 +37,22 @@ This file records verified architectural and engineering decisions established i
 - **Decision:** Stimulus presentation and response timestamps are captured using `performance.now()`. Display refresh rates are detected dynamically via `requestAnimationFrame` sampling (`refreshRateDetector.ts`) to calculate hardware frame presentation delays.
 - **Consequences:** Sub-millisecond timing resolution is preserved across supported hardware configurations.
 - **Evidence:** [`src/lib/refreshRateDetector.ts`](../src/lib/refreshRateDetector.ts), [`src/components/ReactionTest.tsx`](../src/components/ReactionTest.tsx).
+
+---
+
+### Decision: Canonical Navbar Unification & Active Test Safety
+- **Status:** Accepted
+- **Context:** Fragmented headers across pages led to inconsistent navigation styling, modal churn, and accidental navigation during live cognitive assessments.
+- **Decision:** Unify all desktop and shared navigation into `src/components/Navbar.tsx` with explicit light theme defaults, dark mode support for assessment test viewports, and strict active-assessment lockouts (blocking route links and modal triggers while tests are underway).
+- **Consequences:** Single source of truth for global navigation and accessibility (focus cycling, backdrop dismissal, inert background isolation).
+- **Evidence:** [`src/components/Navbar.tsx`](../src/components/Navbar.tsx), [`tests/unit/navbarComponent.test.tsx`](../tests/unit/navbarComponent.test.tsx).
+
+---
+
+### Decision: Web Admin Surface Deprecation & Scoped CLI Operations
+- **Status:** Accepted
+- **Context:** Browser-facing `/admin` routes, login forms, and HTTP moderation endpoints presented an unnecessary external attack surface.
+- **Decision:** Decommission and delete all web-facing admin UI pages, authentication contexts, and `/api/admin/*` endpoints. Restrict administrative moderation (soft-hide, unhide, purge) exclusively to server CLI operator scripts running directly with `FIREBASE_SERVICE_ACCOUNT` credentials.
+- **Consequences:** Minimizes attack surface and eliminates admin passcode session management from client/server HTTP routing.
+- **Evidence:** [`docs/breach-runbook.md`](../docs/breach-runbook.md), [`docs/specs/LEADERBOARD_PROVENANCE.md`](../docs/specs/LEADERBOARD_PROVENANCE.md).
+

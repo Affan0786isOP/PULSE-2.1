@@ -22,7 +22,7 @@ These rules govern all AI coding agents working within the PULSE repository. The
 
 ## 3. Security & Trust Boundaries
 1. **Server-Authoritative Writes:** All Firestore mutations to canonical collections (`publicDataset`, `assessmentTrials`, `assessmentResults`, `leaderboardResults`, `adminAuditLogs`) MUST route through the Express server backend (`server.ts`). Never attempt direct client writes to locked Firestore paths.
-2. **Never Expose Secrets:** Never prefix backend secrets (`ADMIN_PASSCODE`, `PULSE_PROVENANCE_SECRET`, `FIREBASE_SERVICE_ACCOUNT`) with `VITE_` or include them in client bundles.
+2. **Never Expose Secrets:** Never prefix backend secrets (`PULSE_PROVENANCE_SECRET`, `FIREBASE_SERVICE_ACCOUNT`) with `VITE_` or include them in client bundles. Web admin authentication passcodes have been removed; moderation is restricted to server CLI scripts.
 3. **Zero PII in Public Datasets:** Never attach participant personal names, emails, IPs, or precise birthdates to `publicDataset` or assessment trial records.
 
 ---
