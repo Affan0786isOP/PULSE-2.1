@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { Menu, X, Settings, Info, RefreshCw, Download } from 'lucide-react';
+import { Menu, X, Settings, Info, RefreshCw, Download, ArrowLeft, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { PulseLogo } from './brand';
@@ -67,8 +67,33 @@ export function Navbar({
       const previousOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
 
-      // 2. Make application content outside the drawer inert while open
+      // 2. Make application content and header siblings outside the drawer inert while open
       const elementsToRestore: Array<{ el: HTMLElement; hadInert: boolean }> = [];
+
+      const setInertSafely = (target: HTMLElement) => {
+        const hadInert = target.hasAttribute('inert') || (target as HTMLElement & { inert?: boolean }).inert === true;
+        elementsToRestore.push({ el: target, hadInert });
+        if ('inert' in target) {
+          (target as HTMLElement & { inert: boolean }).inert = true;
+        }
+        target.setAttribute('inert', '');
+      };
+
+      // A: Mark all direct children of the header EXCEPT the mobile drawer as inert
+      if (navRef.current) {
+        for (let i = 0; i < navRef.current.children.length; i++) {
+          const child = navRef.current.children[i];
+          if (
+            child instanceof HTMLElement && 
+            child !== drawerRef.current && 
+            !child.contains(drawerRef.current)
+          ) {
+            setInertSafely(child);
+          }
+        }
+      }
+
+      // B: Traverse up the tree from header and mark sibling containers inert
       let current: HTMLElement | null = navRef.current;
       while (current && current !== document.body) {
         const parent = current.parentElement;
@@ -76,12 +101,7 @@ export function Navbar({
           for (let i = 0; i < parent.children.length; i++) {
             const child = parent.children[i];
             if (child !== current && child instanceof HTMLElement && !child.contains(navRef.current)) {
-              const hadInert = child.hasAttribute('inert') || (child as HTMLElement & { inert?: boolean }).inert === true;
-              elementsToRestore.push({ el: child, hadInert });
-              if ('inert' in child) {
-                (child as HTMLElement & { inert: boolean }).inert = true;
-              }
-              child.setAttribute('inert', '');
+              setInertSafely(child);
             }
           }
         }
@@ -203,26 +223,68 @@ export function Navbar({
         paddingRight: 'max(1.5rem, env(safe-area-inset-right, 0px))' 
       }}
     >
-      {/* Brand Lockup */}
-      <div className="flex items-center gap-3">
-        <Link 
-          to="/"
-          className={`flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 rounded-lg ${
-            isLight ? 'focus-visible:ring-[#0066FF]' : 'focus-visible:ring-[var(--accent)]'
-          }`}
-          aria-label="PULSE Home"
-        >
-          <PulseLogo 
-            variant="horizontal" 
-            size={30} 
-            color={isLight ? '#0066FF' : 'var(--accent)'} 
-            textColor={isLight ? '#090D1A' : 'var(--text-primary)'} 
-          />
-        </Link>
+      {/* Brand Lockup & Back / Exit Navigation */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {(!isHome || onBack) && (
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label={isAssessmentActive ? "Exit assessment" : "Go back"}
+            title={isAssessmentActive ? "Exit assessment" : "Go back"}
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border text-xs font-medium transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 cursor-pointer shrink-0 ${
+              isAssessmentActive
+                ? 'border-red-200/90 bg-red-50/80 hover:bg-red-100 text-red-600 focus-visible:ring-red-500 shadow-xs'
+                : (isLight
+                    ? 'border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] shadow-[0_2px_6px_rgba(0,0,0,0.03)] focus-visible:ring-[#0066FF]'
+                    : 'border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]')
+            }`}
+          >
+            {isAssessmentActive ? (
+              <>
+                <LogOut size={13} strokeWidth={2.2} className="shrink-0" />
+                <span className="hidden sm:inline font-semibold">Exit Test</span>
+              </>
+            ) : (
+              <>
+                <ArrowLeft size={14} strokeWidth={2.2} className="shrink-0" />
+                <span className="hidden sm:inline">Back</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {isAssessmentActive ? (
+          <span 
+            className="flex items-center gap-3 opacity-50 cursor-not-allowed select-none"
+            aria-label="PULSE Home (Disabled during active assessment)"
+          >
+            <PulseLogo 
+              variant="horizontal" 
+              size={30} 
+              color={isLight ? '#0066FF' : 'var(--accent)'} 
+              textColor={isLight ? '#090D1A' : 'var(--text-primary)'} 
+            />
+          </span>
+        ) : (
+          <Link 
+            to="/"
+            className={`flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 rounded-lg ${
+              isLight ? 'focus-visible:ring-[#0066FF]' : 'focus-visible:ring-[var(--accent)]'
+            }`}
+            aria-label="PULSE Home"
+          >
+            <PulseLogo 
+              variant="horizontal" 
+              size={30} 
+              color={isLight ? '#0066FF' : 'var(--accent)'} 
+              textColor={isLight ? '#090D1A' : 'var(--text-primary)'} 
+            />
+          </Link>
+        )}
 
         {title && (
           <>
-            <div className={`h-4 w-px hidden sm:block mx-2 ${isLight ? 'bg-slate-200' : 'bg-[var(--border-subtle)]'}`} aria-hidden="true" />
+            <div className={`h-4 w-px hidden sm:block mx-1 sm:mx-2 ${isLight ? 'bg-slate-200' : 'bg-[var(--border-subtle)]'}`} aria-hidden="true" />
             <span className={`text-xs font-medium hidden sm:block ${isLight ? 'text-slate-500' : 'text-[var(--text-secondary)]'}`}>
               {title}
             </span>
@@ -234,6 +296,17 @@ export function Navbar({
       <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8 min-[2560px]:gap-10">
         {navItems.map(item => {
           const isActive = activeId === item.id;
+          if (isAssessmentActive) {
+            return (
+              <span
+                key={item.id}
+                aria-disabled="true"
+                className="text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium text-slate-400 opacity-50 cursor-not-allowed select-none"
+              >
+                {item.label}
+              </span>
+            );
+          }
           return (
             <Link
               key={item.id}
@@ -265,7 +338,7 @@ export function Navbar({
           </div>
         )}
 
-        {pwa.isInstallable && (
+        {pwa.isInstallable && !isAssessmentActive && (
           <button
             type="button"
             id="desktop-install-app-btn"
@@ -290,13 +363,20 @@ export function Navbar({
         <button
           type="button"
           id="navbar-info-btn"
-          onClick={() => setIsWelcomeOpen(true)}
+          disabled={isAssessmentActive}
+          aria-disabled={isAssessmentActive}
+          onClick={() => {
+            if (!isAssessmentActive) setIsWelcomeOpen(true);
+          }}
           aria-label="Platform Information"
-          title="Platform Information"
-          className={isLight 
-            ? "flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
-            : "w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] flex items-center justify-center active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          }
+          title={isAssessmentActive ? "Info unavailable during active assessment" : "Platform Information"}
+          className={`flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 ${
+            isLight 
+              ? 'border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm focus-visible:ring-[#0066FF]'
+              : 'border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] focus-visible:ring-[var(--accent)]'
+          } ${
+            isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+          }`}
         >
           <Info size={15} strokeWidth={2.2} />
           <span className="hidden sm:inline">Info</span>
@@ -325,21 +405,23 @@ export function Navbar({
         </button>
 
         {/* Hamburger Menu Toggle for mobile / tablets (< md) */}
-        <button 
-          type="button" 
-          ref={mobileMenuTriggerRef}
-          aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-expanded={isMobileMenuOpen}
-          aria-controls="navbar-mobile-drawer"
-          className={`w-9 h-9 sm:w-10 sm:h-10 md:hidden flex items-center justify-center rounded-full border active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 ${
-            isLight
-              ? 'border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] shadow-[0_2px_6px_rgba(0,0,0,0.03)] focus-visible:ring-[#0066FF]'
-              : 'border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] focus-visible:ring-[var(--accent)]'
-          }`}
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
-        </button>
+        {!isAssessmentActive && (
+          <button 
+            type="button" 
+            ref={mobileMenuTriggerRef}
+            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="navbar-mobile-drawer"
+            className={`w-9 h-9 sm:w-10 sm:h-10 md:hidden flex items-center justify-center rounded-full border active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 ${
+              isLight
+                ? 'border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] shadow-[0_2px_6px_rgba(0,0,0,0.03)] focus-visible:ring-[#0066FF]'
+                : 'border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] focus-visible:ring-[var(--accent)]'
+            }`}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+          </button>
+        )}
       </div>
 
       <AnimatePresence>
@@ -421,15 +503,21 @@ export function Navbar({
                   type="button" 
                   id="mobile-menu-info-btn"
                   aria-label="Info"
+                  disabled={isAssessmentActive}
+                  aria-disabled={isAssessmentActive}
                   onClick={() => {
-                    mobileMenuTriggerRef.current?.focus();
-                    setIsMobileMenuOpen(false); 
-                    setIsWelcomeOpen(true); 
+                    if (!isAssessmentActive) {
+                      mobileMenuTriggerRef.current?.focus();
+                      setIsMobileMenuOpen(false); 
+                      setIsWelcomeOpen(true); 
+                    }
                   }}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 ${
                     isLight
                       ? 'bg-slate-50 border-slate-200 text-slate-700 hover:text-[#0066FF] focus-visible:ring-[#0066FF]'
                       : 'bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]'
+                  } ${
+                    isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
                   }`}
                 >
                   <Info size={14} aria-hidden="true" />

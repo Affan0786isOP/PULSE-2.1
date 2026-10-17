@@ -5,11 +5,9 @@ import {
 } from 'lucide-react';
 import { SEO } from './SEO';
 import { useReducedMotionPreference } from '../lib/settingsStore';
-import { usePwaInstall } from '../lib/usePwaInstall';
 import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { DesktopWaveGraphic } from './home/DesktopWaveGraphic';
-import { PulseLogo } from './brand';
 import { Navbar } from './Navbar';
 
 const HOME_SCHEMA = {
@@ -74,7 +72,6 @@ const HOME_SCHEMA = {
 
 export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
-  const pwa = usePwaInstall();
   const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
 
   // Pixel-perfect uniform scaling based on 1280x720 baseline for screens >= 768px
