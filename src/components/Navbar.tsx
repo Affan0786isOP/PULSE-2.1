@@ -49,6 +49,7 @@ export function Navbar({
   const navRef = useRef<HTMLElement>(null);
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const wasMobileMenuOpen = useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -79,13 +80,15 @@ export function Navbar({
         target.setAttribute('inert', '');
       };
 
-      // A: Mark all direct children of the header EXCEPT the mobile drawer as inert
+      // A: Mark all direct children of the header EXCEPT the mobile drawer and its backdrop as inert
       if (navRef.current) {
         for (let i = 0; i < navRef.current.children.length; i++) {
           const child = navRef.current.children[i];
           if (
             child instanceof HTMLElement && 
             child !== drawerRef.current && 
+            child !== backdropRef.current &&
+            !child.hasAttribute('data-drawer-backdrop') &&
             !child.contains(drawerRef.current)
           ) {
             setInertSafely(child);
@@ -429,6 +432,9 @@ export function Navbar({
           <>
             {/* Backdrop click dismiss */}
             <div 
+              ref={backdropRef}
+              data-drawer-backdrop="true"
+              data-testid="navbar-backdrop"
               className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 md:hidden"
               aria-hidden="true"
               onClick={() => setIsMobileMenuOpen(false)}

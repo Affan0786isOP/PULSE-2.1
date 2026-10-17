@@ -688,7 +688,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   if (sessionError) {
     return (
       <div className="bg-transparent text-[var(--text-primary)] font-sans min-h-[100dvh] w-full flex flex-col select-none">
-        <Navbar currentView="direction-test" onNavigate={onNavigate} onBack={() => onNavigate('assessments')} />
+        <Navbar currentView="direction-test" onNavigate={onNavigate} onBack={() => onNavigate('assessments')} theme="dark" />
         <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
@@ -712,6 +712,7 @@ return (
         onNavigate={onNavigate} 
         onBack={() => onNavigate('assessments')}
         isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'}
+        theme="dark"
       />
       
       <main 

@@ -130,7 +130,30 @@ describe('Navbar Component', () => {
     document.body.removeChild(siblingEl);
   });
 
-  it('traps tab focus within the drawer and restores focus on close', async () => {
+  it('keeps backdrop accessible and dismisses drawer on backdrop click', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Navbar currentView="home" />
+      </MemoryRouter>
+    );
+
+    const toggleBtn = screen.getByRole('button', { name: /open navigation menu/i });
+    fireEvent.click(toggleBtn);
+
+    const backdrop = screen.getByTestId('navbar-backdrop');
+    expect(backdrop).toBeDefined();
+    // Backdrop MUST NOT be marked inert
+    expect(backdrop.hasAttribute('inert')).toBe(false);
+    expect(screen.getByRole('dialog', { name: /navigation menu/i })).toBeDefined();
+    expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');
+
+    // Clicking the backdrop closes the drawer
+    fireEvent.click(backdrop);
+    expect(toggleBtn.getAttribute('aria-expanded')).toBe('false');
+    expect(document.body.style.overflow).toBe('');
+  });
+
+  it('traps tab focus within the drawer across both boundaries and restores focus on close', async () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <Navbar currentView="home" />
@@ -144,12 +167,35 @@ describe('Navbar Component', () => {
     const drawer = screen.getByRole('dialog', { name: /navigation menu/i });
     expect(drawer).toBeDefined();
 
-    // Tab key cycling
-    const links = screen.getAllByRole('link');
-    const firstNavInDrawer = links.find(l => l.getAttribute('href') === '/assessments');
-    expect(firstNavInDrawer).toBeDefined();
+    // Query all focusable items within the drawer
+    const focusables = Array.from(
+      drawer.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    expect(focusables.length).toBeGreaterThan(1);
+    const firstElement = focusables[0];
+    const lastElement = focusables[focusables.length - 1];
 
-    // Press Escape to close and check focus restoration
+    // Boundary 1: Tab on last element cycles forward to first element
+    lastElement.focus();
+    expect(document.activeElement).toBe(lastElement);
+    fireEvent.keyDown(window, { key: 'Tab' });
+    expect(document.activeElement).toBe(firstElement);
+
+    // Boundary 2: Shift+Tab on first element cycles backward to last element
+    firstElement.focus();
+    expect(document.activeElement).toBe(firstElement);
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(lastElement);
+
+    // Boundary 3: Tab when focus is outside drawer brings focus to first element
+    toggleBtn.focus();
+    expect(document.activeElement).toBe(toggleBtn);
+    fireEvent.keyDown(window, { key: 'Tab' });
+    expect(document.activeElement).toBe(firstElement);
+
+    // Press Escape to close and verify focus returns to trigger
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(document.activeElement).toBe(toggleBtn);
   });
