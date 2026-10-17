@@ -463,26 +463,26 @@ export function Navbar({
                 }`}
               >
                 {navItems.map(item => (
-<Link
-                      key={`mobile-nav-${item.id}`}
-                      to={item.to}
-                      aria-current={activeId === item.id ? 'page' : undefined}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        if (onNavigate) onNavigate(item.id);
-                      }}
-                      className={`p-2.5 rounded-lg flex items-center text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 ${
-                        isLight
-                          ? (activeId === item.id
-                              ? 'bg-blue-50 text-[#0066FF] font-semibold focus-visible:ring-[#0066FF]'
-                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-[#0066FF]')
-                          : (activeId === item.id
-                              ? 'bg-[var(--accent-subtle)] text-[var(--accent)] font-semibold focus-visible:ring-[var(--accent)]'
-                              : 'text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]')
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
+                  <Link
+                    key={`mobile-nav-${item.id}`}
+                    to={item.to}
+                    aria-current={activeId === item.id ? 'page' : undefined}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      if (onNavigate) onNavigate(item.id);
+                    }}
+                    className={`p-2.5 rounded-lg flex items-center text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 ${
+                      isLight
+                        ? (activeId === item.id
+                            ? 'bg-blue-50 text-[#0066FF] font-semibold focus-visible:ring-[#0066FF]'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-[#0066FF]')
+                        : (activeId === item.id
+                            ? 'bg-[var(--accent-subtle)] text-[var(--accent)] font-semibold focus-visible:ring-[var(--accent)]'
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]')
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
                 ))}
                 <div className={`pt-3 border-t mt-2 flex items-center justify-between gap-2 ${
                   isLight ? 'border-slate-200' : 'border-[var(--border-subtle)]'
