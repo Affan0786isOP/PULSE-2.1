@@ -436,109 +436,109 @@ export function Navbar({
 
       <AnimatePresence>
         {isMobileMenuOpen && !isAssessmentActive && (
-            <>
-              {/* Backdrop click dismiss */}
-              <div 
-                ref={backdropRef}
-                data-drawer-backdrop="true"
-                data-testid="navbar-backdrop"
-                className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 md:hidden"
-                aria-hidden="true"
-                onClick={() => setIsMobileMenuOpen(false)}
-              />
-              <motion.div 
-                ref={drawerRef}
-                id="navbar-mobile-drawer"
-                role="dialog"
-                aria-modal="true"
-                aria-label="Navigation Menu"
-                initial={{ opacity: 0, y: -6, scaleY: 0.96 }}
-                animate={{ opacity: 1, y: 0, scaleY: 1 }}
-                exit={{ opacity: 0, y: -6, scaleY: 0.96 }}
-                transition={{ duration: 0.16, ease: "easeOut" }}
-                className={`absolute top-full left-0 w-full border-b shadow-2xl flex flex-col p-4 gap-1 md:hidden z-50 origin-top ${
-                  isLight 
-                    ? 'bg-white/95 backdrop-blur-md border-slate-200' 
-                    : 'bg-[var(--surface-1)] border-[var(--border-subtle)]'
-                }`}
-              >
-                {navItems.map(item => (
-                  <Link
-                    key={`mobile-nav-${item.id}`}
-                    to={item.to}
-                    aria-current={activeId === item.id ? 'page' : undefined}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      if (onNavigate) onNavigate(item.id);
-                    }}
-                    className={`p-2.5 rounded-lg flex items-center text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 ${
-                      isLight
-                        ? (activeId === item.id
-                            ? 'bg-blue-50 text-[#0066FF] font-semibold focus-visible:ring-[#0066FF]'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-[#0066FF]')
-                        : (activeId === item.id
-                            ? 'bg-[var(--accent-subtle)] text-[var(--accent)] font-semibold focus-visible:ring-[var(--accent)]'
-                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]')
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-                <div className={`pt-3 border-t mt-2 flex items-center justify-between gap-2 ${
-                  isLight ? 'border-slate-200' : 'border-[var(--border-subtle)]'
-                }`}>
-                  <button 
-                    type="button" 
-                    id="mobile-menu-settings-btn"
-                    aria-label="Settings"
-                    disabled={isAssessmentActive}
-                    aria-disabled={isAssessmentActive}
-                    title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings"}
-                    onClick={() => { 
-                      if (!isAssessmentActive) {
-                        mobileMenuTriggerRef.current?.focus();
-                        setIsMobileMenuOpen(false); 
-                        setIsSettingsOpen(true); 
-                      }
-                    }}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 ${
-                      isLight
-                        ? 'bg-slate-50 border-slate-200 text-slate-700 hover:text-[#090D1A] focus-visible:ring-[#0066FF]'
-                        : 'bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]'
-                    } ${
-                      isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
-                    }`}
-                  >
-                    <Settings size={14} aria-hidden="true" />
-                    <span>Settings</span>
-                  </button>
-                  <button 
-                    type="button" 
-                    id="mobile-menu-info-btn"
-                    aria-label="Info"
-                    disabled={isAssessmentActive}
-                    aria-disabled={isAssessmentActive}
-                    onClick={() => { 
-                      if (!isAssessmentActive) {
-                        mobileMenuTriggerRef.current?.focus();
-                        setIsMobileMenuOpen(false); 
-                        setIsWelcomeOpen(true); 
-                      }
-                    }}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 ${
-                      isLight
-                        ? 'bg-slate-50 border-slate-200 text-slate-700 hover:text-[#0066FF] focus-visible:ring-[#0066FF]'
-                        : 'bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]'
-                    } ${
-                      isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
-                    }`}
-                  >
-                    <Info size={14} aria-hidden="true" />
-                    <span>Info</span>
-                  </button>
-                </div>
-              </motion.div>
-            </>
+          <>
+            {/* Backdrop click dismiss */}
+            <div 
+              ref={backdropRef}
+              data-drawer-backdrop="true"
+              data-testid="navbar-backdrop"
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 md:hidden"
+              aria-hidden="true"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div 
+              ref={drawerRef}
+              id="navbar-mobile-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation Menu"
+              initial={{ opacity: 0, y: -6, scaleY: 0.96 }}
+              animate={{ opacity: 1, y: 0, scaleY: 1 }}
+              exit={{ opacity: 0, y: -6, scaleY: 0.96 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
+              className={`absolute top-full left-0 w-full border-b shadow-2xl flex flex-col p-4 gap-1 md:hidden z-50 origin-top ${
+                isLight 
+                  ? 'bg-white/95 backdrop-blur-md border-slate-200' 
+                  : 'bg-[var(--surface-1)] border-[var(--border-subtle)]'
+              }`}
+            >
+              {navItems.map(item => (
+                <Link
+                  key={`mobile-nav-${item.id}`}
+                  to={item.to}
+                  aria-current={activeId === item.id ? 'page' : undefined}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    if (onNavigate) onNavigate(item.id);
+                  }}
+                  className={`p-2.5 rounded-lg flex items-center text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 ${
+                    isLight
+                      ? (activeId === item.id
+                          ? 'bg-blue-50 text-[#0066FF] font-semibold focus-visible:ring-[#0066FF]'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-[#0066FF]')
+                      : (activeId === item.id
+                          ? 'bg-[var(--accent-subtle)] text-[var(--accent)] font-semibold focus-visible:ring-[var(--accent)]'
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]')
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <div className={`pt-3 border-t mt-2 flex items-center justify-between gap-2 ${
+                isLight ? 'border-slate-200' : 'border-[var(--border-subtle)]'
+              }`}>
+                <button 
+                  type="button" 
+                  id="mobile-menu-settings-btn"
+                  aria-label="Settings"
+                  disabled={isAssessmentActive}
+                  aria-disabled={isAssessmentActive}
+                  title={isAssessmentActive ? "Settings unavailable during active assessment" : "Settings"}
+                  onClick={() => { 
+                    if (!isAssessmentActive) {
+                      mobileMenuTriggerRef.current?.focus();
+                      setIsMobileMenuOpen(false); 
+                      setIsSettingsOpen(true); 
+                    }
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-200 text-slate-700 hover:text-[#090D1A] focus-visible:ring-[#0066FF]'
+                      : 'bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]'
+                  } ${
+                    isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+                  }`}
+                >
+                  <Settings size={14} aria-hidden="true" />
+                  <span>Settings</span>
+                </button>
+                <button 
+                  type="button" 
+                  id="mobile-menu-info-btn"
+                  aria-label="Info"
+                  disabled={isAssessmentActive}
+                  aria-disabled={isAssessmentActive}
+                  onClick={() => { 
+                    if (!isAssessmentActive) {
+                      mobileMenuTriggerRef.current?.focus();
+                      setIsMobileMenuOpen(false); 
+                      setIsWelcomeOpen(true); 
+                    }
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-200 text-slate-700 hover:text-[#0066FF] focus-visible:ring-[#0066FF]'
+                      : 'bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]'
+                  } ${
+                    isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+                  }`}
+                >
+                  <Info size={14} aria-hidden="true" />
+                  <span>Info</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
