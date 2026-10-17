@@ -219,4 +219,30 @@ describe('Navbar Component', () => {
     );
     expect(header.className).toContain('h-14 sm:h-16');
   });
+
+  it('closes mobile drawer automatically and disallows navigation when isAssessmentActive becomes true', () => {
+    const { rerender } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <Navbar currentView="home" isAssessmentActive={false} />
+      </MemoryRouter>
+    );
+
+    const toggleBtn = screen.getByRole('button', { name: /open navigation menu/i });
+    fireEvent.click(toggleBtn);
+    expect(screen.getByRole('dialog', { name: /navigation menu/i })).toBeDefined();
+
+    // Rerender with assessment becoming active
+    rerender(
+      <MemoryRouter initialEntries={['/']}>
+        <Navbar currentView="home" isAssessmentActive={true} />
+      </MemoryRouter>
+    );
+
+    // Mobile drawer dialog is no longer rendered
+    expect(screen.queryByRole('dialog', { name: /navigation menu/i })).toBeNull();
+    // Hamburger trigger is also hidden
+    expect(screen.queryByRole('button', { name: /navigation menu/i })).toBeNull();
+    // Body overflow is restored
+    expect(document.body.style.overflow).toBe('');
+  });
 });
