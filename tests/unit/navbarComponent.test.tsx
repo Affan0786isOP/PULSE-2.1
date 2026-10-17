@@ -220,29 +220,39 @@ describe('Navbar Component', () => {
     expect(header.className).toContain('h-14 sm:h-16');
   });
 
-  it('closes mobile drawer automatically and disallows navigation when isAssessmentActive becomes true', () => {
-    const { rerender } = render(
+  it('closes mobile drawer and restores inert background state when an assessment becomes active', () => {
+    const siblingEl = document.createElement('div');
+    siblingEl.id = 'assessment-transition-sibling';
+    document.body.appendChild(siblingEl);
+
+    const { rerender, unmount } = render(
       <MemoryRouter initialEntries={['/']}>
         <Navbar currentView="home" isAssessmentActive={false} />
       </MemoryRouter>
     );
 
-    const toggleBtn = screen.getByRole('button', { name: /open navigation menu/i });
-    fireEvent.click(toggleBtn);
-    expect(screen.getByRole('dialog', { name: /navigation menu/i })).toBeDefined();
+    try {
+      const toggleBtn = screen.getByRole('button', { name: /open navigation menu/i });
+      fireEvent.click(toggleBtn);
 
-    // Rerender with assessment becoming active
-    rerender(
-      <MemoryRouter initialEntries={['/']}>
-        <Navbar currentView="home" isAssessmentActive={true} />
-      </MemoryRouter>
-    );
+      expect(screen.getByRole('dialog', { name: /navigation menu/i })).toBeDefined();
+      expect(siblingEl.hasAttribute('inert')).toBe(true);
+      expect(document.body.style.overflow).toBe('hidden');
 
-    // Mobile drawer dialog is no longer rendered
-    expect(screen.queryByRole('dialog', { name: /navigation menu/i })).toBeNull();
-    // Hamburger trigger is also hidden
-    expect(screen.queryByRole('button', { name: /navigation menu/i })).toBeNull();
-    // Body overflow is restored
-    expect(document.body.style.overflow).toBe('');
+      // Rerender with assessment becoming active.
+      rerender(
+        <MemoryRouter initialEntries={['/']}>
+          <Navbar currentView="home" isAssessmentActive={true} />
+        </MemoryRouter>
+      );
+
+      expect(screen.queryByRole('dialog', { name: /navigation menu/i })).toBeNull();
+      expect(screen.queryByRole('button', { name: /navigation menu/i })).toBeNull();
+      expect(document.body.style.overflow).toBe('');
+      expect(siblingEl.hasAttribute('inert')).toBe(false);
+    } finally {
+      unmount();
+      siblingEl.remove();
+    }
   });
 });
