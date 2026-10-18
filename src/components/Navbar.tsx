@@ -434,8 +434,9 @@ export function Navbar({
         )}
       </div>
 
-      <AnimatePresence>
-        {isMobileMenuOpen && !isAssessmentActive && (
+      {!isAssessmentActive && (
+        <AnimatePresence>
+          {isMobileMenuOpen && (
           <>
             {/* Backdrop click dismiss */}
             <div 
@@ -541,6 +542,7 @@ export function Navbar({
           </>
         )}
       </AnimatePresence>
+      )}
 
       {/* Global System Settings Modal (Loaded on demand) */}
       {isSettingsOpen && (

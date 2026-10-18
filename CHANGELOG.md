@@ -21,6 +21,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Consolidated HMAC signing routines behind `signProvenancePayload()` in `server/services/provenanceService.ts`.
 - Renamed npm package from `react-example` to `pulse`.
 
+### Fixed
+- **Mobile Drawer Assessment Transition:** Hardened drawer lifecycle so active assessment transitions immediately unmount mobile drawer dialogs and restore background inert state without layout leakage.
+
 ### Removed
 - Confirmed dead frontend components (`FullscreenPrompt`, `WhatIsPulseScene`, `gooey-nav`, unreferenced brand cards).
 - Archived 46 legacy scripts from repository root into `scripts/archive/`.
