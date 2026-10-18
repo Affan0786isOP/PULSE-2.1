@@ -68,4 +68,17 @@ describe('Legacy Frontend Components Pre-Deletion Audit & Purge', () => {
     expect(existsSync(resolve(process.cwd(), 'mobile/src/components/Dataset.tsx'))).toBe(false);
     expect(existsSync(resolve(process.cwd(), 'src/components/dataset'))).toBe(false);
   });
+
+  it('confirms 0 active references to src/lib/dataset pipeline', () => {
+    const refs = findRepositoryReferences([
+      'from \'../lib/dataset\'',
+      'from \'../../src/lib/dataset\'',
+      'from \'./lib/dataset\''
+    ]);
+    expect(refs).toEqual([]);
+  });
+
+  it('confirms src/lib/dataset directory is deleted', () => {
+    expect(existsSync(resolve(process.cwd(), 'src/lib/dataset'))).toBe(false);
+  });
 });
