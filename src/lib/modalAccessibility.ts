@@ -1,5 +1,7 @@
-import { useEffect, useState, useId } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { modalManager, BASE_MODAL_Z_INDEX } from './modalManager';
+
+let modalCounter = 0;
 
 export interface ModalAccessibilityOptions {
   isOpen: boolean;
@@ -16,8 +18,11 @@ export function useModalAccessibility({
   initialFocusRef,
   modalId,
 }: ModalAccessibilityOptions): { zIndex: number; isTopModal: boolean } {
-  const generatedId = useId();
-  const id = modalId || generatedId;
+  const defaultIdRef = useRef<string | null>(null);
+  if (!defaultIdRef.current) {
+    defaultIdRef.current = modalId || `pulse-modal-${++modalCounter}`;
+  }
+  const id = modalId || defaultIdRef.current;
   const [zIndex, setZIndex] = useState<number>(() => {
     if (isOpen) {
       return modalManager.getModalZIndex(id);
