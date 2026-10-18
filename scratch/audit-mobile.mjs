@@ -28,7 +28,7 @@ import { chromium } from 'playwright';
   for (const p of pages) {
     console.log(`Auditing ${p.name}...`);
     try {
-      await page.goto(p.url, { waitUntil: 'domcontentloaded', timeout: 5000 });
+      await page.goto(p.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
       await page.waitForTimeout(600);
       await page.screenshot({ path: `scratch/${p.name}.png`, fullPage: false });
     } catch (e) {
