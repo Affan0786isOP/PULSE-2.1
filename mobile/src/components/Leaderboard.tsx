@@ -124,7 +124,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   };
 
   return (
-    <div className="bg-transparent text-[var(--text-main)] font-sans min-h-[100dvh] w-full overflow-x-hidden flex flex-col selection:bg-cyan-500/30">
+    <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] font-sans min-h-[100dvh] w-full overflow-x-hidden flex flex-col selection:bg-[#0066FF]/20">
       <SEO 
         title="Verified Leaderboard & Cohort Rankings | PULSE"
         description="Compare participant-selected leaderboard aliases against age-cohort results across five cognitive assessments."
@@ -138,7 +138,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             onClick={handleTitleTap}
             role="button"
             tabIndex={0}
-            className="cursor-pointer select-none"
+            className="cursor-pointer select-none font-heading font-bold text-sm tracking-tight text-[#090D1A]"
           >
             LEADERBOARD
           </span>
@@ -150,154 +150,109 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             disabled={loading}
             aria-label="Refresh Leaderboard"
             title="Refresh Leaderboard"
-            className="p-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--cyan-primary)] hover:border-[var(--cyan-primary)] active:scale-95 transition-[color,background-color,border-color,opacity,transform] cursor-pointer disabled:opacity-50 shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 text-slate-600 hover:text-[#090D1A] active:scale-95 transition-all cursor-pointer disabled:opacity-50 shadow-2xs flex items-center justify-center"
           >
-            <RefreshCw size={16} className={loading ? 'animate-spin text-[var(--cyan-primary)]' : ''} />
+            <RefreshCw size={15} strokeWidth={2.2} className={loading ? 'animate-spin text-[#0066FF]' : ''} />
           </button>
         }
       />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-col pb-[calc(3rem+env(safe-area-inset-bottom,0px))]">
-        {/* Game Navigation Selector with Left & Right Arrows */}
+        {/* Horizontal Protocol Pill Tab Bar */}
         <div 
-          className="flex items-center justify-between gap-2 mb-3 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-1.5 shadow-sm max-[340px]:gap-0.5 max-[340px]:p-1"
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') {
-              e.preventDefault();
-              const nextIndex = (currentIndex - 1 + PROTOCOLS.length) % PROTOCOLS.length;
-              handlePrevProtocol();
-              document.getElementById(`leaderboard-tab-${PROTOCOLS[nextIndex].id}`)?.focus();
-            }
-            if (e.key === 'ArrowRight') {
-              e.preventDefault();
-              const nextIndex = (currentIndex + 1) % PROTOCOLS.length;
-              handleNextProtocol();
-              document.getElementById(`leaderboard-tab-${PROTOCOLS[nextIndex].id}`)?.focus();
-            }
-            if (e.key === 'Home' || e.key === 'End') {
-              e.preventDefault();
-              const targetIndex = e.key === 'Home' ? 0 : PROTOCOLS.length - 1;
-              selectProtocol(PROTOCOLS[targetIndex].id);
-              document.getElementById(`leaderboard-tab-${PROTOCOLS[targetIndex].id}`)?.focus();
-            }
-          }}
-          tabIndex={0}
-          aria-label="Protocol Selector"
+          className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-0.5 mb-3.5 shrink-0"
+          role="tablist"
+          aria-label="Protocols"
         >
-          <button type="button"
-            id="mobile-leaderboard-prev-btn"
-            onClick={handlePrevProtocol}
-            aria-label="Previous Protocol"
-            title="Previous Protocol"
-            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-[color,background-color,border-color,opacity,transform] cursor-pointer shrink-0 max-[340px]:hidden"
-          >
-            <ChevronLeft size={20} />
-          </button>
-
-          <div className="flex flex-col items-center justify-center min-w-0 px-2 select-none max-[340px]:flex-1 max-[340px]:px-0">
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={currentProto.id}
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 4 }}
-                transition={{ duration: 0.15 }}
-                className="flex items-center gap-2 min-w-0 max-w-full"
+          {PROTOCOLS.map((p) => {
+            const isSelected = p.id === selectedProtocol;
+            return (
+              <button
+                type="button"
+                key={p.id}
+                id={`leaderboard-tab-${p.id}`}
+                role="tab"
+                aria-controls="leaderboard-panel"
+                aria-selected={isSelected}
+                tabIndex={isSelected ? 0 : -1}
+                onClick={() => {
+                  triggerHaptic('tap');
+                  selectProtocol(p.id);
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                  isSelected
+                    ? 'bg-[#0066FF] text-white shadow-sm shadow-[#0066FF]/25'
+                    : 'bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 active:bg-slate-100 shadow-2xs'
+                }`}
               >
-                <img src={currentProto.logo} alt={currentProto.name} className="w-5 h-5 object-contain shrink-0" />
-                <span className="font-heading font-black text-xs sm:text-sm text-[var(--cyan-primary)] uppercase tracking-wider min-w-0 max-w-full truncate">
-                  {currentProto.name}
-                </span>
-              </motion.div>
-            </AnimatePresence>
-            <div className="flex items-center justify-center gap-1 mt-1.5 py-1 max-[340px]:gap-0" role="tablist" aria-label="Protocols">
-              {PROTOCOLS.map((p) => (
-                <button type="button"
-                  key={p.id}
-                  onClick={() => {
-                    triggerHaptic('tap');
-                    selectProtocol(p.id);
-                  }}
-                  aria-label={`Select ${p.name}`}
-                  title={p.name}
-                  id={`leaderboard-tab-${p.id}`}
-                  role="tab"
-                  aria-controls="leaderboard-panel"
-                  tabIndex={p.id === selectedProtocol ? 0 : -1}
-                  aria-selected={p.id === selectedProtocol}
-                  className="min-w-[32px] min-h-[44px] flex items-center justify-center rounded-md bg-transparent p-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] max-[340px]:w-11 max-[340px]:min-w-[44px]">
-                  <span aria-hidden="true" className={`block rounded-full transition-[color,background-color,transform] ${p.id === selectedProtocol ? 'h-2.5 w-5 bg-[var(--cyan-primary)]' : 'h-2.5 w-2 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'}`}/>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button type="button"
-            id="mobile-leaderboard-next-btn"
-            onClick={handleNextProtocol}
-            aria-label="Next Protocol"
-            title="Next Protocol"
-            className="w-11 h-11 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan-primary)] transition-[color,background-color,border-color,opacity,transform] cursor-pointer shrink-0 max-[340px]:hidden"
-          >
-            <ChevronRight size={20} />
-          </button>
+                <img src={p.logo} alt="" className={`w-3.5 h-3.5 object-contain shrink-0 ${isSelected ? 'brightness-200 contrast-200' : ''}`} />
+                <span>{p.shortName}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Leaderboard Entries List — Clean, Decluttered & Full-Width Mobile Fitting */}
-        <div id="leaderboard-panel" role="tabpanel" aria-labelledby={`leaderboard-tab-${selectedProtocol}`} aria-busy={loading} className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3 sm:p-4 backdrop-blur-xl flex-1 min-w-0">
+        {/* Leaderboard Table Card */}
+        <div 
+          id="leaderboard-panel" 
+          role="tabpanel" 
+          aria-labelledby={`leaderboard-tab-${selectedProtocol}`} 
+          aria-busy={loading} 
+          className="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(0,102,255,0.03)] flex-1 min-w-0 flex flex-col"
+        >
           {loading ? (
             <div className="py-2" role="status" aria-live="polite" aria-label="Loading leaderboard">
               <SkeletonTable rows={6} cols={3} />
             </div>
           ) : error ? (
             <div role="alert" className="py-12 flex flex-col items-center justify-center text-center px-4">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-500 mb-3 shadow-2xs">
                 <AlertCircle size={20} />
               </div>
-              <h3 className="text-sm font-bold text-[var(--text-main)] mb-1">
+              <h3 className="text-sm font-bold text-[#090D1A] mb-1">
                 Unable to Load Leaderboard
               </h3>
-              <p className="text-xs font-mono text-[var(--text-muted)] mb-4">{error}</p>
+              <p className="text-xs text-slate-500 mb-4">{error}</p>
               <button
                 type="button"
                 onClick={() => fetchLeaderboard()}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-subtle)] hover:border-[var(--cyan-primary)] text-xs font-mono text-[var(--text-main)] transition-colors cursor-pointer min-h-[38px]"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-all active:scale-95 cursor-pointer"
               >
                 <RefreshCw size={13} />
                 <span>Retry</span>
               </button>
             </div>
           ) : displayedEntries.length === 0 ? (
-            <div className="py-12 flex flex-col items-center justify-center text-center px-4">
-              <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--cyan-primary)] mb-3">
+            <div className="py-12 flex flex-col items-center justify-center text-center px-4 my-auto">
+              <div className="w-11 h-11 rounded-2xl bg-[#EAF5FF] border border-[#D0E7FF] flex items-center justify-center text-[#0066FF] mb-3 shadow-2xs">
                 <Inbox size={20} />
               </div>
-              <h3 className="text-sm font-bold text-[var(--text-main)] mb-1">
+              <h3 className="text-sm font-bold text-[#090D1A] mb-1">
                 No telemetry recorded
               </h3>
-              <p className="text-xs text-[var(--text-secondary)] mb-4 px-2">
-                Be the first to complete the {currentProto?.name || 'test'} battery and submit your result.
+              <p className="text-xs text-slate-500 mb-5 px-2">
+                Be the first to complete the {currentProto?.name || 'test'} battery and submit your verified result.
               </p>
               <button
                 type="button"
                 onClick={() => onNavigate(currentProto.route)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--cyan-primary)] text-black font-bold text-xs uppercase tracking-wider transition-[color,background-color,border-color,opacity,transform] shadow-sm active:scale-95 cursor-pointer min-h-[40px]"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0066FF] hover:bg-[#0052CC] text-white font-semibold text-xs transition-all shadow-[0_2px_8px_rgba(0,102,255,0.25)] active:scale-95 cursor-pointer"
               >
-                <Play size={13} className="fill-black" />
+                <Play size={13} className="fill-white" />
                 <span>Take Test</span>
               </button>
             </div>
           ) : (
             <div className="w-full flex flex-col">
               {/* Header labels */}
-              <div className="grid grid-cols-12 items-center text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider pb-2 px-2 border-b border-[var(--border-subtle)]">
+              <div className="grid grid-cols-12 items-center text-[10.5px] font-mono font-bold text-slate-400 uppercase tracking-wider pb-2.5 px-2 border-b border-slate-100">
                 <span className="col-span-2">Rank</span>
                 <span className="col-span-6">Name</span>
                 <span className="col-span-4 text-right">Score</span>
               </div>
 
-              {/* Rows */}
-              <div className="divide-y divide-[var(--border-subtle)] font-mono">
+              {/* Rows — completely uniform without special user accents */}
+              <div className="divide-y divide-slate-100 font-sans">
                 {displayedEntries.map((entry, idx) => {
                   const unit = PROTOCOLS.find(p => p.id === entry.assessmentType)?.unit || '';
                   const formattedScore = formatLeaderboardScore(entry.scoreMetric, unit);
@@ -306,10 +261,10 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                   return (
                     <motion.div
                       key={entry.id}
-                      initial={{ opacity: 0, y: 5 }}
+                      initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.18, delay: Math.min(idx * 0.025, 0.25) }}
-                      className="grid grid-cols-12 items-center py-2.5 px-2 hover:bg-[var(--bg-card-hover)] transition-colors rounded-lg"
+                      transition={{ duration: 0.15, delay: Math.min(idx * 0.02, 0.2) }}
+                      className="grid grid-cols-12 items-center py-3 px-2 hover:bg-slate-50/70 transition-colors rounded-lg"
                     >
                       {/* Rank badge */}
                       <div className="col-span-2 flex items-center">
@@ -318,12 +273,12 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                           aria-label={`Rank ${rank}`}
                           className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-bold ${
                             rank === 1
-                              ? 'bg-amber-400/20 text-amber-500 dark:text-amber-300 border border-amber-400/40'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-200'
                               : rank === 2
-                              ? 'bg-slate-300/20 text-slate-600 dark:text-slate-200 border border-slate-300/40'
+                              ? 'bg-slate-100 text-slate-700 border border-slate-200'
                               : rank === 3
-                              ? 'bg-amber-700/20 text-amber-700 dark:text-amber-500 border border-amber-700/40'
-                              : 'text-[var(--text-muted)] bg-[var(--bg-panel)] border border-[var(--border-subtle)]'
+                              ? 'bg-orange-100 text-orange-800 border border-orange-200'
+                              : 'text-slate-500 font-mono text-[12px]'
                           }`}
                         >
                           {rank <= 3 ? <Award size={13} /> : rank}
@@ -332,11 +287,11 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
                       {/* Name & optional meta */}
                       <div className="col-span-6 flex flex-col justify-center min-w-0 pr-2">
-                        <span className="font-bold text-xs sm:text-sm text-[var(--text-main)] truncate">
+                        <span className="font-semibold text-xs sm:text-[13.5px] text-[#090D1A] truncate">
                           {entry.displayName || 'Anonymous'}
                         </span>
                         {entry.ageGroup && (
-                          <span className="text-[9px] text-[var(--text-muted)] font-normal truncate">
+                          <span className="text-[10px] text-slate-400 font-normal truncate">
                             {entry.ageGroup}
                           </span>
                         )}
@@ -344,10 +299,10 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
                       {/* Score metric */}
                       <div className="col-span-4 flex items-baseline justify-end gap-1 text-right">
-                        <span className="text-sm font-bold text-[var(--cyan-primary)]">
+                        <span className="text-sm font-bold text-[#090D1A] tabular-nums">
                           {formattedScore}
                         </span>
-                        <span className="text-[10px] text-[var(--text-muted)] font-normal">
+                        <span className="text-[10.5px] text-slate-500 font-medium">
                           {unit}
                         </span>
                       </div>
