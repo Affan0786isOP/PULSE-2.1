@@ -9,6 +9,7 @@ import type { Firestore } from 'firebase-admin/firestore';
  */
 export class FirestoreRateLimitStore implements Store {
   private windowMs = 15 * 60 * 1000;
+  private readonly memoryFallback = new Map<string, { count: number; resetAt: Date }>();
 
   constructor(private readonly getDb: () => Firestore | null) {}
 
@@ -20,41 +21,71 @@ export class FirestoreRateLimitStore implements Store {
 
   private getCounterRef(key: string) {
     const db = this.getDb();
-    if (!db) throw new Error('RATE_LIMIT_STORE_UNAVAILABLE');
+    if (!db) return null;
     const keyHash = crypto.createHash('sha256').update(key).digest('hex');
     return db.collection('_rateLimitCounters').doc(keyHash);
   }
 
   async increment(key: string): Promise<{ totalHits: number; resetTime: Date }> {
-    const ref = this.getCounterRef(key);
     const now = Date.now();
     const windowStart = Math.floor(now / this.windowMs) * this.windowMs;
-    let totalHits = 0;
+    const resetTime = new Date(windowStart + this.windowMs);
 
-    await ref.firestore.runTransaction(async tx => {
-      const snap = await tx.get(ref);
-      const data = snap.data();
-      const previousCount = data?.windowStart === windowStart ? Number(data.count) || 0 : 0;
-      totalHits = previousCount + 1;
-      tx.set(ref, {
-        count: totalHits,
-        windowStart,
-        resetAt: new Date(windowStart + this.windowMs),
-        updatedAt: now
+    const ref = this.getCounterRef(key);
+    if (!ref) {
+      const existing = this.memoryFallback.get(key);
+      if (!existing || existing.resetAt.getTime() <= now) {
+        this.memoryFallback.set(key, { count: 1, resetAt: resetTime });
+        return { totalHits: 1, resetTime };
+      }
+      existing.count += 1;
+      return { totalHits: existing.count, resetTime: existing.resetAt };
+    }
+
+    try {
+      let totalHits = 0;
+      await ref.firestore.runTransaction(async tx => {
+        const snap = await tx.get(ref);
+        const data = snap.data();
+        const previousCount = data?.windowStart === windowStart ? Number(data.count) || 0 : 0;
+        totalHits = previousCount + 1;
+        tx.set(ref, {
+          count: totalHits,
+          windowStart,
+          resetAt: resetTime,
+          updatedAt: now
+        });
       });
-    });
 
-    return { totalHits, resetTime: new Date(windowStart + this.windowMs) };
+      return { totalHits, resetTime };
+    } catch (err) {
+      console.warn('[Rate limit store] Firestore counter error, falling back to memory counter:', err instanceof Error ? err.message : String(err));
+      const existing = this.memoryFallback.get(key);
+      if (!existing || existing.resetAt.getTime() <= now) {
+        this.memoryFallback.set(key, { count: 1, resetAt: resetTime });
+        return { totalHits: 1, resetTime };
+      }
+      existing.count += 1;
+      return { totalHits: existing.count, resetTime: existing.resetAt };
+    }
   }
 
   decrement(key: string): void {
+    const now = Date.now();
+    const ref = this.getCounterRef(key);
+    if (!ref) {
+      const existing = this.memoryFallback.get(key);
+      if (existing) {
+        existing.count = Math.max(0, existing.count - 1);
+      }
+      return;
+    }
+
     try {
-      const ref = this.getCounterRef(key);
       void ref.firestore.runTransaction(async tx => {
         const snap = await tx.get(ref);
         if (!snap.exists) return;
         const data = snap.data();
-        const now = Date.now();
         const windowStart = Math.floor(now / this.windowMs) * this.windowMs;
         if (data?.windowStart !== windowStart) return;
         const count = Math.max(0, (Number(data.count) || 0) - 1);
@@ -68,11 +99,14 @@ export class FirestoreRateLimitStore implements Store {
   }
 
   resetKey(key: string): void {
+    this.memoryFallback.delete(key);
     try {
       const ref = this.getCounterRef(key);
-      void ref.delete().catch(err => {
-        console.warn('[Rate limit store] Failed to reset shared counter:', err instanceof Error ? err.message : String(err));
-      });
+      if (ref) {
+        void ref.delete().catch(err => {
+          console.warn('[Rate limit store] Failed to reset shared counter:', err instanceof Error ? err.message : String(err));
+        });
+      }
     } catch (err) {
       console.warn('[Rate limit store] Shared counter is unavailable during reset:', err instanceof Error ? err.message : String(err));
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Lock, AlertCircle, X, Loader2 } from 'lucide-react';
+import { Lock, AlertCircle, X, Loader2, Eye, EyeOff } from 'lucide-react';
 import { adminLogin } from '../../lib/adminActions';
 
 export interface AdminPasscodeModalProps {
@@ -10,6 +10,7 @@ export interface AdminPasscodeModalProps {
 
 export function AdminPasscodeModal({ isOpen, onClose, onSuccess }: AdminPasscodeModalProps) {
   const [passcode, setPasscode] = useState('');
+  const [showPasscode, setShowPasscode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -17,6 +18,7 @@ export function AdminPasscodeModal({ isOpen, onClose, onSuccess }: AdminPasscode
   useEffect(() => {
     if (isOpen) {
       setPasscode('');
+      setShowPasscode(false);
       setError(null);
       setTimeout(() => {
         inputRef.current?.focus();
@@ -94,16 +96,31 @@ export function AdminPasscodeModal({ isOpen, onClose, onSuccess }: AdminPasscode
             <label htmlFor="admin-passcode-input" className="block text-xs font-medium text-slate-300 mb-1.5">
               Passcode
             </label>
-            <input
-              id="admin-passcode-input"
-              ref={inputRef}
-              type="password"
-              value={passcode}
-              onChange={e => setPasscode(e.target.value)}
-              disabled={isSubmitting}
-              placeholder="••••••"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 text-sm font-mono tracking-widest"
-            />
+            <div className="relative">
+              <input
+                id="admin-passcode-input"
+                ref={inputRef}
+                type={showPasscode ? 'text' : 'password'}
+                value={passcode}
+                onChange={e => setPasscode(e.target.value)}
+                disabled={isSubmitting}
+                placeholder={showPasscode ? 'Enter passcode' : '••••••'}
+                className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 text-sm font-mono tracking-widest"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPasscode(prev => !prev)}
+                disabled={isSubmitting}
+                aria-label={showPasscode ? 'Hide password' : 'Show password'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors focus:outline-none disabled:opacity-50"
+              >
+                {showPasscode ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-2 justify-end pt-2">

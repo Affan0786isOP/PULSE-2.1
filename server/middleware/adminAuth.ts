@@ -8,7 +8,7 @@ const MAX_SESSION_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 export function getAdminPasscode(): string {
   const code = process.env.ADMIN_PASSCODE;
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
 
   if (!code) {
     if (isDev) {
@@ -28,7 +28,7 @@ export function getAdminPasscode(): string {
 
 export function getAdminSessionSecret(): string {
   const secret = process.env.PULSE_ADMIN_SESSION_SECRET;
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
 
   if (!secret) {
     if (isDev) {

@@ -104,4 +104,40 @@ describe('Admin Trigger & Authentication Modal Integration Tests', () => {
       expect(assignMock).toHaveBeenCalledWith('/admin');
     });
   });
+
+  it('toggles passcode visibility when clicking the show/hide button', async () => {
+    const mockNavigate = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <DesktopLeaderboard onNavigate={mockNavigate} />
+      </MemoryRouter>
+    );
+
+    // Trigger keyboard shortcut to open modal
+    fireEvent.keyDown(window, {
+      key: 'A',
+      ctrlKey: true,
+      shiftKey: true
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Admin Access')).toBeDefined();
+    });
+
+    const input = screen.getByLabelText(/Passcode/i) as HTMLInputElement;
+    expect(input.type).toBe('password');
+
+    // Click show password toggle button
+    const toggleBtn = screen.getByRole('button', { name: 'Show password' });
+    fireEvent.click(toggleBtn);
+
+    expect(input.type).toBe('text');
+    expect(screen.getByRole('button', { name: 'Hide password' })).toBeDefined();
+
+    // Click again to hide
+    fireEvent.click(screen.getByRole('button', { name: 'Hide password' }));
+    expect(input.type).toBe('password');
+    expect(screen.getByRole('button', { name: 'Show password' })).toBeDefined();
+  });
 });
