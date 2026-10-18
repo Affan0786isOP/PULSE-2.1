@@ -124,73 +124,77 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
         </h1>
 
         {/* Subtitle */}
-        <p className="text-[#475569] text-[14.5px] leading-[1.52] max-w-[330px] font-normal mb-7">
-          Reaction time, memory, attention and more — tested with precision, in your browser.
+        <p className="text-[#475569] text-[14px] leading-[1.5] max-w-[340px] font-normal mb-6">
+          Test your reaction speed, memory and attention — right in your browser, with no account required.
         </p>
 
-        {/* 4 Quick Navigation Shortcuts */}
-        <div className="grid grid-cols-4 gap-2.5 mb-7">
+        {/* 4 Quick Navigation Shortcuts (2x2 Grid) */}
+        <div className="grid grid-cols-2 gap-2.5 mb-6">
           {/* Leaderboard */}
           <button 
             onClick={() => handleFeatureClick('/leaderboard')}
             aria-label="Open Leaderboard"
-            className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
+            className="flex items-center gap-3 p-3 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
-              <Trophy size={22} strokeWidth={2.2} />
+            <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+              <Trophy size={19} strokeWidth={2.2} />
             </div>
-            <span className="text-[11px] font-medium text-[#334155] leading-[1.2] mt-2 whitespace-pre-line">
-              Leaderboard
-            </span>
+            <div className="min-w-0">
+              <span className="text-[13px] font-bold text-[#090D1A] block leading-tight">Leaderboard</span>
+              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Rankings & Cohorts</span>
+            </div>
           </button>
 
           {/* Dataset */}
           <button 
             onClick={() => handleFeatureClick('/dataset')}
             aria-label="Open Dataset"
-            className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
+            className="flex items-center gap-3 p-3 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
-              <Database size={22} strokeWidth={2.2} />
+            <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+              <Database size={19} strokeWidth={2.2} />
             </div>
-            <span className="text-[11px] font-medium text-[#334155] leading-[1.2] mt-2">
-              Dataset
-            </span>
+            <div className="min-w-0">
+              <span className="text-[13px] font-bold text-[#090D1A] block leading-tight">Dataset</span>
+              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Open Research Data</span>
+            </div>
           </button>
 
           {/* Analytics */}
           <button 
             onClick={() => handleFeatureClick('/analytics')}
             aria-label="Open Analytics"
-            className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
+            className="flex items-center gap-3 p-3 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
-              <BarChart2 size={22} strokeWidth={2.2} />
+            <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+              <BarChart2 size={19} strokeWidth={2.2} />
             </div>
-            <span className="text-[11px] font-medium text-[#334155] leading-[1.2] mt-2">
-              Analytics
-            </span>
+            <div className="min-w-0">
+              <span className="text-[13px] font-bold text-[#090D1A] block leading-tight">Analytics</span>
+              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Trends & Variance</span>
+            </div>
           </button>
 
           {/* About Us */}
           <button 
             onClick={() => handleFeatureClick('/about')}
             aria-label="Open About Us"
-            className="flex flex-col items-center text-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-xl active:scale-95 transition-transform"
+            className="flex items-center gap-3 p-3 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-[54px] h-[54px] rounded-full bg-white shadow-[0_4px_14px_rgba(0,102,255,0.07),0_1px_3px_rgba(0,0,0,0.04)] border border-sky-100/90 flex items-center justify-center text-[#090D1A] group-hover:border-[#0066FF]/40 transition-colors">
-              <Info size={22} strokeWidth={2.2} />
+            <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+              <Info size={19} strokeWidth={2.2} />
             </div>
-            <span className="text-[11px] font-medium text-[#334155] leading-[1.2] mt-2">
-              About Us
-            </span>
+            <div className="min-w-0">
+              <span className="text-[13px] font-bold text-[#090D1A] block leading-tight">About Us</span>
+              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Origins & Protocol</span>
+            </div>
           </button>
         </div>
 
         {/* Primary CTA: Start Testing */}
         <button 
           onClick={handleStartTesting}
-          className="w-full h-[54px] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white font-semibold text-[16px] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.4),0_4px_10px_-2px_rgba(0,102,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] transition-all flex items-center justify-center gap-2 group mb-7"
+          className="w-full h-[54px] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white font-semibold text-[16px] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.4),0_4px_10px_-2px_rgba(0,102,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] transition-all flex items-center justify-center gap-2 group mb-6"
         >
           <span>Start Testing</span>
           <ArrowRight size={19} className="group-active:translate-x-0.5 transition-transform" />
@@ -232,20 +236,18 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           {/* Divider */}
           <div className="absolute left-[66.66%] top-1/2 -translate-y-1/2 h-8 w-[1px] bg-[#CFE4F7]" />
 
-          {/* Col 3: Leaderboard */}
-          <button 
-            onClick={() => { triggerHaptic(); navigate('/leaderboard'); }}
-            aria-label="View public leaderboard rankings"
-            className="flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-lg active:opacity-75 transition-opacity"
-            title="Public Leaderboard Rankings"
+          {/* Col 3: Free / No sign-up */}
+          <div
+            className="flex flex-col items-center text-center"
+            title="No account required"
           >
-            <div className="h-[26px] flex items-center justify-center">
-              <Globe size={22} strokeWidth={2} className="text-[#090D1A]" />
-            </div>
-            <span className="text-[11px] font-medium text-[#64748B] mt-0.5 leading-tight">
-              Leaderboard
+            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] tracking-tight">
+              Free
             </span>
-          </button>
+            <span className="text-[11px] font-medium text-[#64748B] mt-0.5 leading-tight">
+              No sign-up
+            </span>
+          </div>
         </div>
       </div>
 

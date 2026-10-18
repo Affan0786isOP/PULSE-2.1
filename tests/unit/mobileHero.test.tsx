@@ -43,7 +43,7 @@ describe('MobileHero', () => {
     expect(screen.getByText('COGNITIVE BENCHMARKING')).toBeDefined();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Measure.*your/);
     expect(screen.getByText('mind.')).toBeDefined();
-    expect(screen.getByText(/tested with precision, in your browser/i)).toBeDefined();
+    expect(screen.getByText(/Test your reaction speed, memory and attention — right in your browser, with no account required\./i)).toBeDefined();
   });
 
   it('renders all four feature shortcuts and navigates to their actual routes', () => {
@@ -69,12 +69,14 @@ describe('MobileHero', () => {
     expect(screen.getByTestId('current-path').textContent).toBe('/assessments');
   });
 
-  it('displays the canonical test count and a non-interactive result count', () => {
+  it('displays the canonical test count and a non-interactive result count with free metric', () => {
     renderHero();
     expect(screen.getByText(String(CANONICAL_ASSESSMENT_IDS.length))).toBeDefined();
     expect(screen.getByText('Tests')).toBeDefined();
     expect(screen.getByText('90')).toBeDefined();
     expect(screen.getByText('Results')).toBeDefined();
+    expect(screen.getByText('Free')).toBeDefined();
+    expect(screen.getByText('No sign-up')).toBeDefined();
     expect(screen.queryByRole('button', { name: /results/i })).toBeNull();
   });
 
