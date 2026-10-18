@@ -235,7 +235,7 @@ export function Navbar({
     >
       {/* Brand Lockup & Back / Exit Navigation */}
       <div className="flex items-center gap-2.5 sm:gap-3">
-        {(!isHome || onBack) && (
+        {(isAssessmentActive || Boolean(onBack)) && (
           <button
             type="button"
             onClick={handleBack}
@@ -332,9 +332,6 @@ export function Navbar({
               }`}
             >
               {item.label}
-              {isActive && isLight && (
-                <span className="absolute -bottom-1.5 left-0 right-0 h-[2.5px] bg-[#0066FF] rounded-full" />
-              )}
             </Link>
           );
         })}

@@ -139,7 +139,7 @@ export const PageShell: React.FC<PageShellProps> = ({
           <Navbar
             currentView={currentView}
             onNavigate={onNavigate}
-            onBack={onBack}
+            onBack={isAssessmentActive ? onBack : undefined}
             isAssessmentActive={isAssessmentActive}
             theme="light"
           />
