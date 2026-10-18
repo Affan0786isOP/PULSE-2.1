@@ -1,0 +1,52 @@
+import { describe, it, expect } from 'vitest';
+import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { resolve, join } from 'path';
+
+function findRepositoryReferences(targetPatterns: string[]): { file: string; line: number; match: string }[] {
+  const matches: { file: string; line: number; match: string }[] = [];
+  const walk = (dir: string) => {
+    const list = readdirSync(dir);
+    for (const f of list) {
+      if (['node_modules', '.git', 'dist', 'audit', '.gemini', 'scratch', 'docs'].includes(f)) continue;
+      const full = join(dir, f);
+      const stat = statSync(full);
+      if (stat.isDirectory()) {
+        walk(full);
+      } else if (/\.(tsx|ts|json|html|css)$/.test(f)) {
+        if (full.includes('tests') || full.includes('tests\\')) continue;
+        const content = readFileSync(full, 'utf8');
+        const lines = content.split('\n');
+        lines.forEach((l, i) => {
+          for (const pattern of targetPatterns) {
+            if (l.includes(pattern)) {
+              matches.push({ file: full, line: i + 1, match: l.trim() });
+            }
+          }
+        });
+      }
+    }
+  };
+  walk(process.cwd());
+  return matches;
+}
+
+describe('Legacy Frontend Components Pre-Deletion Audit & Purge', () => {
+  it('confirms 0 repository-wide references to AnimatedBackground before deletion', () => {
+    const refs = findRepositoryReferences(['AnimatedBackground', 'pulse-technical-background', 'mobile-technical-background']);
+    // Filter out the component files themselves if they still exist during audit
+    const activeRefs = refs.filter(r => !r.file.endsWith('AnimatedBackground.tsx'));
+    expect(activeRefs).toEqual([]);
+  });
+
+  it('confirms AnimatedBackground files are deleted', () => {
+    expect(existsSync(resolve(process.cwd(), 'src/components/AnimatedBackground.tsx'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'mobile/src/components/AnimatedBackground.tsx'))).toBe(false);
+  });
+
+  it('confirms legacy grid CSS variables are removed from index.css', () => {
+    const desktopCss = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8');
+    const mobileCss = readFileSync(resolve(process.cwd(), 'mobile/src/index.css'), 'utf8');
+    expect(desktopCss).not.toContain('--bg-grid-pattern');
+    expect(mobileCss).not.toContain('--bg-grid-pattern');
+  });
+});
