@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { ChevronRight } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { triggerHaptic } from '../lib/settingsStore';
 import { SEO } from './SEO';
@@ -64,7 +65,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
   };
 
   return (
-    <div className="bg-[var(--bg-base)] text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans relative selection:bg-[var(--accent-subtle)] pb-20">
+    <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] min-h-[100dvh] w-full flex flex-col font-sans relative selection:bg-[#0066FF]/20 pb-20">
       <SEO 
         title="Assessments | PULSE"
         description="Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory."
@@ -75,15 +76,15 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       <main className="flex-1 w-full max-w-md mx-auto px-4 py-4 flex flex-col gap-3">
         <header className="mb-2">
           <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-            <span className="font-mono text-[10px] text-[var(--accent)] tracking-widest uppercase font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0066FF]" />
+            <span className="font-mono text-[10px] text-[#0066FF] tracking-widest uppercase font-semibold">
               TEST BATTERY
             </span>
           </div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-[#090D1A]">
             Assessments
           </h1>
-          <p className="text-[var(--text-secondary)] text-xs mt-0.5">
+          <p className="text-[#64748B] text-xs mt-0.5">
             Select a benchmark to begin telemetry capture.
           </p>
         </header>
@@ -108,14 +109,14 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                     onNavigate(assessment.id);
                   }
                 }}
-                className={`w-full text-left p-3.5 rounded-xl border flex items-center gap-3.5 transition-all relative overflow-hidden ${
+                className={`w-full text-left p-3.5 rounded-2xl border flex items-center gap-3.5 transition-all relative overflow-hidden shadow-[0_2px_12px_rgba(0,102,255,0.04)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 ${
                   isAvail 
-                    ? 'bg-[var(--surface-1)] border-[var(--border-subtle)] active:bg-[var(--surface-2)] active:border-[var(--border-default)]' 
-                    : 'bg-[var(--surface-1)]/50 border-[var(--border-subtle)]/40 opacity-50 cursor-not-allowed'
+                    ? 'bg-white border-slate-200/80 hover:border-[#0066FF]/40 active:bg-slate-50' 
+                    : 'bg-white/50 border-slate-200/40 opacity-50 cursor-not-allowed'
                 }`}
               >
-                {/* Protocol Mark Icon */}
-                <div className="w-13 h-13 rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 p-1">
+                {/* Protocol Mark Icon in high-contrast container */}
+                <div className="w-13 h-13 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shrink-0 p-1.5 shadow-2xs">
                   <img 
                     src={assessment.logo} 
                     alt={assessment.title}
@@ -126,20 +127,23 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1 mb-0.5">
-                    <span className="font-mono text-[9px] text-[var(--accent)] font-semibold tracking-wider">
+                    <span className="font-mono text-[9.5px] text-[#0066FF] font-bold tracking-wider">
                       PROTOCOL 0{index + 1}
                     </span>
-                    <span className="font-mono text-[8.5px] text-[var(--text-muted)] uppercase tracking-wider">
+                    <span className="font-mono text-[8.5px] text-[#64748B] font-semibold uppercase tracking-wider">
                       {assessment.type}
                     </span>
                   </div>
-                  <h2 className="font-heading text-sm font-bold text-[var(--text-primary)] tracking-tight truncate">
+                  <h2 className="font-heading text-[14.5px] font-bold text-[#090D1A] tracking-tight truncate">
                     {assessment.title}
                   </h2>
-                  <p className="text-[11px] text-[var(--text-secondary)] line-clamp-1 mt-0.5">
+                  <p className="text-[11.5px] text-[#64748B] line-clamp-1 mt-0.5 font-normal">
                     {assessment.description}
                   </p>
                 </div>
+
+                {/* Navigation Chevron */}
+                <ChevronRight size={18} strokeWidth={2.2} className="text-slate-400 shrink-0 ml-0.5" />
               </motion.button>
             );
           })}
