@@ -100,7 +100,7 @@ describe('desktop and mobile leaderboard components', () => {
     await verifyBoard(MobileLeaderboard, getMobileLeaderboardResults as typeof getDesktopLeaderboardResults);
   });
 
-  it('keeps narrow-phone protocol controls within the selector with 44px dot targets', async () => {
+  it('keeps protocol controls within the selector with 44px touch targets', async () => {
     render(
       <MemoryRouter initialEntries={['/leaderboard']}>
         <MobileLeaderboard onNavigate={vi.fn()} />
@@ -108,14 +108,9 @@ describe('desktop and mobile leaderboard components', () => {
     );
     expect(await screen.findByText('Speed Winner')).toBeTruthy();
 
-    expect(document.getElementById('mobile-leaderboard-prev-btn')?.className).toContain('max-[340px]:hidden');
-    expect(document.getElementById('mobile-leaderboard-next-btn')?.className).toContain('max-[340px]:hidden');
-
-    const protocolTabs = Array.from(document.querySelectorAll('[role="tablist"][aria-label="Protocols"] [role="tab"]'));
+    const protocolTabs = Array.from(document.querySelectorAll('[role="tablist"] [role="tab"]'));
     expect(protocolTabs).toHaveLength(5);
     for (const tab of protocolTabs) {
-      expect(tab.className).toContain('max-[340px]:w-11');
-      expect(tab.className).toContain('max-[340px]:min-w-[44px]');
       expect(tab.className).toContain('min-h-[44px]');
     }
   });

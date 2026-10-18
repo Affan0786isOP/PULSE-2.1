@@ -129,19 +129,19 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
         </p>
 
         {/* 4 Quick Navigation Shortcuts (2x2 Grid) */}
-        <div className="grid grid-cols-2 gap-2.5 mb-6">
+        <div className="grid grid-cols-2 gap-2 mb-6">
           {/* Leaderboard */}
           <button 
             onClick={() => handleFeatureClick('/leaderboard')}
             aria-label="Open Leaderboard"
-            className="flex items-center gap-3 p-3 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
-              <Trophy size={19} strokeWidth={2.2} />
+            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+              <Trophy size={17} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <span className="text-[13px] font-bold text-[#090D1A] block leading-tight">Leaderboard</span>
-              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Rankings & Cohorts</span>
+              <span className="text-[12.5px] font-bold text-[#090D1A] block leading-tight">Leaderboard</span>
+              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Global Ranks</span>
             </div>
           </button>
 
@@ -149,14 +149,14 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           <button 
             onClick={() => handleFeatureClick('/dataset')}
             aria-label="Open Dataset"
-            className="flex items-center gap-3 p-3 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
-              <Database size={19} strokeWidth={2.2} />
+            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+              <Database size={17} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <span className="text-[13px] font-bold text-[#090D1A] block leading-tight">Dataset</span>
-              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Open Research Data</span>
+              <span className="text-[12.5px] font-bold text-[#090D1A] block leading-tight">Dataset</span>
+              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Open Data</span>
             </div>
           </button>
 
@@ -164,14 +164,14 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           <button 
             onClick={() => handleFeatureClick('/analytics')}
             aria-label="Open Analytics"
-            className="flex items-center gap-3 p-3 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
-              <BarChart2 size={19} strokeWidth={2.2} />
+            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+              <BarChart2 size={17} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <span className="text-[13px] font-bold text-[#090D1A] block leading-tight">Analytics</span>
-              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Trends & Variance</span>
+              <span className="text-[12.5px] font-bold text-[#090D1A] block leading-tight">Analytics</span>
+              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Trends & Stats</span>
             </div>
           </button>
 
@@ -179,14 +179,14 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           <button 
             onClick={() => handleFeatureClick('/about')}
             aria-label="Open About Us"
-            className="flex items-center gap-3 p-3 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
-              <Info size={19} strokeWidth={2.2} />
+            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+              <Info size={17} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <span className="text-[13px] font-bold text-[#090D1A] block leading-tight">About Us</span>
-              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Origins & Protocol</span>
+              <span className="text-[12.5px] font-bold text-[#090D1A] block leading-tight">About Us</span>
+              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Origins & Team</span>
             </div>
           </button>
         </div>

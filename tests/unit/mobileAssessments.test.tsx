@@ -11,10 +11,10 @@ describe('Mobile Assessments Hub Laboratory Light', () => {
         <Assessments onNavigate={() => {}} />
       </MemoryRouter>
     );
-    expect(screen.getByText('PROTOCOL 01')).toBeInTheDocument();
-    expect(screen.getByText('PROTOCOL 05')).toBeInTheDocument();
-    expect(screen.getByText('Visual Reaction')).toBeInTheDocument();
-    expect(screen.getByText('Number Memory')).toBeInTheDocument();
+    expect(screen.getByText('PROTOCOL 01')).toBeDefined();
+    expect(screen.getByText('PROTOCOL 05')).toBeDefined();
+    expect(screen.getByText('Visual Reaction')).toBeDefined();
+    expect(screen.getByText('Number Memory')).toBeDefined();
     // Protocol cards are inside the motion list container
     const card = screen.getByText('Visual Reaction').closest('button');
     expect(card).not.toBeNull();

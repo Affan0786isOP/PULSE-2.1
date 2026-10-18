@@ -12,8 +12,8 @@ describe('Mobile Navbar Laboratory Light & Apparatus Lockout', () => {
       </MemoryRouter>
     );
     const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('bg-white/90');
-    expect(nav).toHaveClass('backdrop-blur-md');
+    expect(nav?.className).toContain('bg-white/90');
+    expect(nav?.className).toContain('backdrop-blur-md');
   });
 
   it('switches to dark apparatus header and disables settings when assessment is active', () => {
@@ -23,8 +23,8 @@ describe('Mobile Navbar Laboratory Light & Apparatus Lockout', () => {
       </MemoryRouter>
     );
     const nav = container.querySelector('nav');
-    expect(nav).toHaveClass('bg-[#12161B]');
-    const settingsBtn = screen.getByLabelText(/Settings/i);
-    expect(settingsBtn).toBeDisabled();
+    expect(nav?.className).toContain('bg-[#12161B]');
+    const settingsBtn = screen.getByLabelText(/Settings/i) as HTMLButtonElement;
+    expect(settingsBtn.disabled).toBe(true);
   });
 });

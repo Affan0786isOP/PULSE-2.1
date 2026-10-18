@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -16,8 +16,8 @@ describe('Mobile Improve Guide Laboratory Light', () => {
         <Improve onNavigate={() => {}} />
       </MemoryRouter>
     );
-    expect(screen.getByText(/PERFORMANCE GUIDE/i)).toBeInTheDocument();
-    expect(screen.getByText(/Biological & environmental factors/i)).toBeInTheDocument();
+    expect(screen.getByText(/PERFORMANCE GUIDE/i)).toBeDefined();
+    expect(screen.getByText(/Biological & environmental factors/i)).toBeDefined();
     const root = container.firstChild as HTMLElement;
     expect(root.className).toContain('bg-gradient-to-b');
     expect(root.className).toContain('text-[#090D1A]');

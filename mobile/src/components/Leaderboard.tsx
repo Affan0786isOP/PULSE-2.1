@@ -162,7 +162,26 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         <div 
           className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-0.5 mb-3.5 shrink-0"
           role="tablist"
-          aria-label="Protocols"
+          aria-label="Protocol Selector - Use arrow keys to cycle between assessment batteries"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              handlePrevProtocol();
+            }
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              handleNextProtocol();
+            }
+            if (e.key === 'Home') {
+              e.preventDefault();
+              selectProtocol(PROTOCOLS[0].id);
+            }
+            if (e.key === 'End') {
+              e.preventDefault();
+              selectProtocol(PROTOCOLS[PROTOCOLS.length - 1].id);
+            }
+          }}
         >
           {PROTOCOLS.map((p) => {
             const isSelected = p.id === selectedProtocol;
@@ -172,6 +191,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 key={p.id}
                 id={`leaderboard-tab-${p.id}`}
                 role="tab"
+                aria-label={`Select ${p.name.toUpperCase()}`}
                 aria-controls="leaderboard-panel"
                 aria-selected={isSelected}
                 tabIndex={isSelected ? 0 : -1}
@@ -179,7 +199,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                   triggerHaptic('tap');
                   selectProtocol(p.id);
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
                   isSelected
                     ? 'bg-[#0066FF] text-white shadow-sm shadow-[#0066FF]/25'
                     : 'bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 active:bg-slate-100 shadow-2xs'

@@ -46,7 +46,7 @@ describe('Leaderboard Uniform Row Styling', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Aria Stark')).toBeInTheDocument();
+      expect(screen.getByText('Aria Stark')).toBeDefined();
     });
 
     expect(container.querySelectorAll('.bg-sky-50\\/50')).toHaveLength(0);

@@ -8,7 +8,7 @@ describe('Mobile Age Selection Laboratory Light', () => {
     const { container } = render(
       <AgeSelection onSelect={() => {}} onCancel={() => {}} assessmentId="visual-reaction" />
     );
-    expect(screen.getByText('Young Adults')).toBeInTheDocument();
+    expect(screen.getByText('Young Adults')).toBeDefined();
     const root = container.firstChild as HTMLElement;
     expect(root.className).toContain('bg-gradient-to-b');
     expect(root.className).toContain('text-[#090D1A]');

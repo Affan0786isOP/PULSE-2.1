@@ -49,10 +49,10 @@ describe('Mobile Leaderboard Laboratory Light', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(screen.getByRole('tablist')).toBeDefined();
     
     await waitFor(() => {
-      expect(screen.getByText('Elena Rostova')).toBeInTheDocument();
+      expect(screen.getByText('Elena Rostova')).toBeDefined();
     });
 
     const panel = container.querySelector('#leaderboard-panel');
