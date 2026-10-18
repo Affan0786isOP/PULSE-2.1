@@ -8,8 +8,11 @@ import { chromium } from 'playwright';
 
   const link = await page.$('a[href="/assessments"]');
   if (link) {
-    console.log('Found Assessments link, clicking...');
-    
+    console.log('Hovering Assessments link to preload...');
+    await link.hover();
+    await page.waitForTimeout(100);
+
+    console.log('Clicking Assessments link...');
     const samples = [];
     const startTime = Date.now();
     
@@ -25,14 +28,18 @@ import { chromium } from 'playwright';
         
         return {
           pathname: window.location.pathname,
-          appWrapperBg: appWrapper ? window.getComputedStyle(appWrapper).backgroundColor : null,
+          bodyBg: window.getComputedStyle(document.body).backgroundColor,
+          htmlBg: window.getComputedStyle(document.documentElement).backgroundColor,
+          appWrapperBgImage: appWrapper ? window.getComputedStyle(appWrapper).backgroundImage.substring(0, 30) : null,
           motionOpacity: motionDiv ? window.getComputedStyle(motionDiv).opacity : null,
           shellExists: !!shell,
-          shellBg: shell ? window.getComputedStyle(shell).backgroundColor : null,
           shellDataTheme: shell ? shell.getAttribute('data-theme') : null,
         };
       });
       samples.push({ ms: now, data });
+      if (i === 3 || i === 7) {
+        await page.screenshot({ path: `scratch/transition-frame-${i}.png` });
+      }
       await page.waitForTimeout(16);
     }
     console.log('Transition samples:');
@@ -40,3 +47,4 @@ import { chromium } from 'playwright';
   }
   await browser.close();
 })();
+
