@@ -81,4 +81,23 @@ describe('Legacy Frontend Components Pre-Deletion Audit & Purge', () => {
   it('confirms src/lib/dataset directory is deleted', () => {
     expect(existsSync(resolve(process.cwd(), 'src/lib/dataset'))).toBe(false);
   });
+
+  it('confirms 0 active references to StimulusReticle and standalone fullscreen helpers', () => {
+    const refs = findRepositoryReferences([
+      'from \'./StimulusReticle\'',
+      'from \'../lib/fullscreen\'',
+      'from \'./lib/fullscreen\''
+    ]);
+    expect(refs).toEqual([]);
+  });
+
+  it('confirms StimulusReticle and standalone fullscreen helper files are deleted', () => {
+    expect(existsSync(resolve(process.cwd(), 'src/components/brand/StimulusReticle.tsx'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'src/lib/fullscreen.ts'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'mobile/src/lib/fullscreen.ts'))).toBe(false);
+
+    const brandIndex = readFileSync(resolve(process.cwd(), 'src/components/brand/index.ts'), 'utf8');
+    expect(brandIndex).not.toContain('StimulusReticle');
+    expect(brandIndex).toContain('PulseLogo');
+  });
 });
