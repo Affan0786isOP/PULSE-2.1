@@ -55,7 +55,7 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
 
   return (
     <div 
-      className="h-[100dvh] max-h-[100dvh] w-full bg-transparent text-[var(--text-primary)] flex flex-col justify-between overflow-hidden p-3 p-safe"
+      className="h-[100dvh] max-h-[100dvh] w-full bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] flex flex-col justify-between overflow-hidden p-3 p-safe selection:bg-[#0066FF]/20"
       style={{
         paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))',
         paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))',
@@ -72,21 +72,21 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
             onClick={handleCancel}
             aria-label="Go Back"
             title="Go Back"
-            className="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200/90 text-slate-700 hover:text-[#090D1A] hover:bg-slate-50 shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={16} strokeWidth={2.2} />
           </button>
 
           <button 
-            type="button"
+            type="button" 
             id="age-selection-logo-btn"
             onClick={handleCancel}
-            className="flex items-center cursor-pointer p-0.5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg"
+            className="flex items-center cursor-pointer p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] rounded-lg"
             title="PULSE Home"
             aria-label="PULSE Home"
           >
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-              <PulseLogo variant="mark" size={16} color="var(--accent)" />
+            <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-[#0066FF]">
+              <PulseLogo variant="mark" size={16} color="#0066FF" />
             </div>
           </button>
         </div>
@@ -99,13 +99,13 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
               aria-label="About this assessment and methodology"
               aria-expanded={isInfoOpen}
               aria-controls="assessment-info-panel"
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--accent)] hover:bg-[var(--surface-2)] cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200/90 text-[#0066FF] hover:bg-slate-50 shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
               title="Assessment methodology & details"
             >
-              <Info size={16} />
+              <Info size={16} strokeWidth={2.2} />
             </button>
           )}
-          <span className="font-mono text-[10px] font-semibold tracking-wider text-[var(--text-muted)] uppercase bg-[var(--surface-1)] border border-[var(--border-subtle)] px-2.5 py-1 rounded-md">
+          <span className="font-mono text-[10px] font-bold tracking-wider text-slate-600 uppercase bg-white border border-slate-200/90 px-2.5 py-1 rounded-md shadow-2xs">
             Demographic Baseline
           </span>
         </div>
@@ -116,17 +116,17 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="w-full max-w-sm mx-auto flex-1 flex flex-col justify-center my-auto min-h-0 bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-2xl p-4 shadow-sm"
+        className="w-full max-w-sm mx-auto flex-1 flex flex-col justify-center my-auto min-h-0 bg-white border border-slate-200/80 rounded-3xl p-4 shadow-[0_4px_24px_rgba(0,102,255,0.04)]"
       >
         {/* Header Titles */}
         <div className="text-center mb-3 shrink-0">
-          <div className="w-9 h-9 mx-auto rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] mb-2">
-            <User size={16} />
+          <div className="w-9 h-9 mx-auto rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-[#0066FF] mb-2 shadow-2xs">
+            <User size={16} strokeWidth={2.2} />
           </div>
-          <h2 className="font-heading text-base font-bold tracking-tight text-[var(--text-primary)]">
+          <h2 className="font-heading text-base font-bold tracking-tight text-[#090D1A]">
             Select your age group
           </h2>
-          <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+          <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">
             PULSE compares your performance to others in your age group.
           </p>
         </div>
@@ -155,25 +155,25 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
                 key={age}
                 id={`age-option-${age.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
                 onClick={() => handleSelect(age)}
-                className={`w-full min-h-[48px] text-left px-3 py-2 rounded-xl border text-xs font-mono transition-colors transition-transform transition-opacity duration-150 cursor-pointer flex items-center justify-between gap-3 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                className={`w-full min-h-[46px] text-left px-3 py-2 rounded-xl border text-xs font-mono transition-all duration-150 cursor-pointer flex items-center justify-between gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
                   isSelected 
-                    ? 'bg-[var(--surface-2)] border-[var(--accent)] text-[var(--text-primary)] shadow-sm' 
-                    : 'bg-[var(--surface-1)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:border-[var(--border-default)] hover:text-[var(--text-primary)]'
+                    ? 'bg-sky-50/70 border-[#0066FF] text-[#090D1A] shadow-xs' 
+                    : 'bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 border transition-colors ${
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
                     isSelected
-                      ? 'bg-[var(--accent)] text-slate-950 border-[var(--accent)]'
-                      : 'bg-[var(--surface-2)] text-[var(--accent)] border-[var(--border-subtle)]'
+                      ? 'bg-[#0066FF] text-white border-[#0066FF]'
+                      : 'bg-slate-50 text-slate-600 border-slate-200'
                   }`}>
-                    <IconComponent size={14} />
+                    <IconComponent size={14} strokeWidth={2.2} />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-xs truncate text-[var(--text-primary)]">
+                    <span className="font-bold text-xs truncate text-[#090D1A]">
                       {meta.label}
                     </span>
-                    <span className="text-[10px] text-[var(--text-muted)]">
+                    <span className="text-[10px] text-[#64748B]">
                       {meta.range}
                     </span>
                   </div>
@@ -181,11 +181,11 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
 
                 <div className="shrink-0">
                   {isSelected ? (
-                    <div className="w-5 h-5 rounded-full bg-[var(--accent)] flex items-center justify-center text-slate-950">
+                    <div className="w-5 h-5 rounded-full bg-[#0066FF] flex items-center justify-center text-white">
                       <Check size={12} strokeWidth={3} />
                     </div>
                   ) : (
-                    <div className="w-4 h-4 rounded-full border border-[var(--border-subtle)]" />
+                    <div className="w-4 h-4 rounded-full border-2 border-slate-300" />
                   )}
                 </div>
               </motion.button>
@@ -199,10 +199,10 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
           id="continue-assessment-btn"
           onClick={handleContinue}
           disabled={!selectedAge}
-          className={`w-full min-h-[44px] h-11 px-4 rounded-xl font-mono font-bold text-xs tracking-wider uppercase inline-flex items-center justify-center gap-2 transition-colors transition-transform transition-opacity shrink-0 ${
+          className={`w-full min-h-[44px] h-11 px-4 rounded-full font-sans font-bold text-xs tracking-wider uppercase inline-flex items-center justify-center gap-2 transition-all shrink-0 ${
             selectedAge 
-              ? 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 cursor-pointer shadow-sm active:scale-[0.99]' 
-              : 'bg-[var(--surface-2)] text-[var(--text-muted)] cursor-not-allowed opacity-50 border border-[var(--border-subtle)]'
+              ? 'bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white cursor-pointer shadow-[0_4px_16px_rgba(0,102,255,0.3)] active:scale-[0.98]' 
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60 border border-slate-200'
           }`}
         >
           <span>Continue to Test</span>
@@ -212,7 +212,7 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
 
       {/* Bottom subtle note */}
       <div className="text-center py-1 shrink-0">
-        <p className="font-mono text-[10px] text-[var(--text-muted)]">De-identified research baseline • PULSE</p>
+        <p className="font-mono text-[10.5px] text-[#64748B]">De-identified research baseline • PULSE</p>
       </div>
 
       {canonicalRoute && (
