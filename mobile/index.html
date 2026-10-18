@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0B0D10" />
+    <meta name="theme-color" content="#FFFFFF" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -164,14 +164,23 @@
         // Instant Settings & Theme Application
         function applySavedSettings() {
           try {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            document.documentElement.style.colorScheme = 'dark';
-            document.documentElement.classList.add('dark');
-            document.documentElement.classList.remove('light');
+            var path = window.location.pathname || '';
+            var isDark = /^\/(mobile\/)?(reaction-test|visual-reaction|direction-test|direction|colour-recognition|color-recognition|color-test|block-memory|block-memory-test|number-memory|number-memory-test)(\/|$)/.test(path);
+            var theme = isDark ? 'dark' : 'light';
+
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.style.colorScheme = theme;
+            if (isDark) {
+              document.documentElement.classList.add('dark');
+              document.documentElement.classList.remove('light');
+            } else {
+              document.documentElement.classList.add('light');
+              document.documentElement.classList.remove('dark');
+            }
 
             var meta = document.querySelector('meta[name="theme-color"]');
             if (meta) {
-              meta.setAttribute('content', '#0B0D10');
+              meta.setAttribute('content', isDark ? '#12161B' : '#FFFFFF');
             }
 
             var raw = localStorage.getItem('pulse_user_settings');
@@ -203,9 +212,27 @@
         applySavedSettings();
       })();
     </script>
+    <style>
+      html, body {
+        background-color: var(--bg-base, #FFFFFF);
+        color: var(--text-main, #090D1A);
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        width: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+      #root {
+        min-height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
   </head>
-  <body class="bg-[var(--bg-base)] text-[var(--text-main)] antialiased selection:bg-cyan-500/30">
-    <main id="pulse-seo-shell" aria-labelledby="pulse-seo-shell-title" style="max-width:720px;margin:0 auto;padding:3rem 1rem;font-family:system-ui,sans-serif;color:#f4f7fa;background:#0b0d10;line-height:1.6"><p style="margin:0 0 .5rem;font:600 .75rem/1.4 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#22c7d6">PULSE</p><h1 id="pulse-seo-shell-title" style="font-size:clamp(2rem,9vw,3rem);line-height:1.05;margin:0 0 1rem">PULSE — Precision User Latency &amp; Stimulus Evaluator</h1><p>A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.</p><nav aria-label="PULSE pages"><ul style="display:flex;flex-wrap:wrap;gap:.75rem;padding:0;margin:1.5rem 0 0;list-style:none"><li><a href="/">Home</a></li><li><a href="/about">About</a></li><li><a href="/assessments">Assessments</a></li><li><a href="/reaction-test">Visual Reaction Test</a></li><li><a href="/direction-test">Directional Choice Test</a></li><li><a href="/colour-recognition">Colour Recognition Test</a></li><li><a href="/block-memory">Block Memory Test</a></li><li><a href="/number-memory">Number Memory Test</a></li><li><a href="/leaderboard">Leaderboard</a></li><li><a href="/improve">Performance Guide</a></li><li><a href="/privacy">Privacy</a></li></ul></nav></main>
+  <body class="bg-white text-[#090D1A] antialiased selection:bg-[#0066FF]/20">
+    <main id="pulse-seo-shell" aria-labelledby="pulse-seo-shell-title" style="max-width:720px;margin:0 auto;padding:3rem 1rem;font-family:system-ui,sans-serif;color:#090D1A;background:#FFFFFF;line-height:1.6"><p style="margin:0 0 .5rem;font:600 .75rem/1.4 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#0066FF">PULSE</p><h1 id="pulse-seo-shell-title" style="font-size:clamp(2rem,9vw,3rem);line-height:1.05;margin:0 0 1rem">PULSE — Precision User Latency &amp; Stimulus Evaluator</h1><p>A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.</p><nav aria-label="PULSE pages"><ul style="display:flex;flex-wrap:wrap;gap:.75rem;padding:0;margin:1.5rem 0 0;list-style:none"><li><a href="/">Home</a></li><li><a href="/about">About</a></li><li><a href="/assessments">Assessments</a></li><li><a href="/reaction-test">Visual Reaction Test</a></li><li><a href="/direction-test">Directional Choice Test</a></li><li><a href="/colour-recognition">Colour Recognition Test</a></li><li><a href="/block-memory">Block Memory Test</a></li><li><a href="/number-memory">Number Memory Test</a></li><li><a href="/leaderboard">Leaderboard</a></li><li><a href="/improve">Performance Guide</a></li><li><a href="/privacy">Privacy</a></li></ul></nav></main>
     <div id="root"></div>
     <script type="module" src="./src/main.tsx"></script>
   </body>

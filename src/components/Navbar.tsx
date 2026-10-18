@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { PulseLogo } from './brand';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { resolveActiveNavId } from '../lib/navigation';
+import { preloadRoute } from '../lib/routeTheme';
 export { resolveActiveNavId };
 
 // Defer modal loading until user interaction
@@ -322,6 +323,8 @@ export function Navbar({
               key={item.id}
               to={item.to}
               aria-current={isActive ? 'page' : undefined}
+              onMouseEnter={() => preloadRoute(item.to)}
+              onFocus={() => preloadRoute(item.to)}
               onClick={() => {
                 if (onNavigate) onNavigate(item.id);
               }}
@@ -465,6 +468,8 @@ export function Navbar({
                   key={`mobile-nav-${item.id}`}
                   to={item.to}
                   aria-current={activeId === item.id ? 'page' : undefined}
+                  onMouseEnter={() => preloadRoute(item.to)}
+                  onTouchStart={() => preloadRoute(item.to)}
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     if (onNavigate) onNavigate(item.id);

@@ -76,4 +76,66 @@ describe('Page Transition & Surface Continuity Verification', () => {
     );
     expect(container.querySelector('.bg-white')).not.toBeNull();
   });
+
+  it('correctly classifies dark apparatus vs light public routes', async () => {
+    const { isDarkApparatusRoute } = await import('../../src/lib/routeTheme');
+    
+    // Light public routes
+    expect(isDarkApparatusRoute('/')).toBe(false);
+    expect(isDarkApparatusRoute('/about')).toBe(false);
+    expect(isDarkApparatusRoute('/assessments')).toBe(false);
+    expect(isDarkApparatusRoute('/leaderboard')).toBe(false);
+    expect(isDarkApparatusRoute('/improve')).toBe(false);
+    expect(isDarkApparatusRoute('/dataset')).toBe(false);
+    expect(isDarkApparatusRoute('/privacy')).toBe(false);
+
+    // Mobile light routes
+    expect(isDarkApparatusRoute('/mobile')).toBe(false);
+    expect(isDarkApparatusRoute('/mobile/')).toBe(false);
+    expect(isDarkApparatusRoute('/mobile/assessments')).toBe(false);
+    expect(isDarkApparatusRoute('/mobile/about')).toBe(false);
+
+    // Dark apparatus routes
+    expect(isDarkApparatusRoute('/reaction-test')).toBe(true);
+    expect(isDarkApparatusRoute('/visual-reaction')).toBe(true);
+    expect(isDarkApparatusRoute('/direction-test')).toBe(true);
+    expect(isDarkApparatusRoute('/colour-recognition')).toBe(true);
+    expect(isDarkApparatusRoute('/block-memory')).toBe(true);
+    expect(isDarkApparatusRoute('/number-memory')).toBe(true);
+
+    // Mobile dark apparatus routes
+    expect(isDarkApparatusRoute('/mobile/reaction-test')).toBe(true);
+    expect(isDarkApparatusRoute('/mobile/direction-test')).toBe(true);
+  });
+
+  it('synchronizes document element and theme-color meta tag with route surface', async () => {
+    const { applyAppTheme } = await import('../../src/lib/useSystemTheme');
+    
+    // Apply light route
+    const lightTheme = applyAppTheme('/assessments');
+    expect(lightTheme).toBe('light');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(document.documentElement.classList.contains('light')).toBe(true);
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      expect(meta.getAttribute('content')).toBe('#FFFFFF');
+    }
+
+    // Apply dark route
+    const darkTheme = applyAppTheme('/reaction-test');
+    expect(darkTheme).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.documentElement.classList.contains('light')).toBe(false);
+
+    if (meta) {
+      expect(meta.getAttribute('content')).toBe('#12161B');
+    }
+
+    // Restore to light route
+    applyAppTheme('/');
+  });
 });
+

@@ -87,10 +87,22 @@ const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPriv
 const AdminPage = React.lazy(() => import('./components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 
 
-const RouteFallback = () => (
-  <div className="min-h-[60vh] flex-1 flex flex-col items-center justify-center p-6 text-center font-sans bg-inherit">
-    <div className="w-8 h-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin mb-3" />
-    <div className="text-xs text-[var(--text-muted)] font-mono uppercase tracking-widest">Loading Module...</div>
+import { isDarkApparatusRoute } from './lib/routeTheme';
+
+const RouteFallback = ({ isDark }: { isDark?: boolean }) => (
+  <div
+    className={`min-h-[100dvh] flex-1 flex flex-col items-center justify-center p-6 text-center font-sans ${
+      isDark
+        ? 'bg-[#12161B] text-slate-400'
+        : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-slate-600'
+    }`}
+  >
+    <div
+      className={`w-8 h-8 rounded-full border-2 ${
+        isDark ? 'border-[#22C7D6]' : 'border-[#0066FF]'
+      } border-t-transparent animate-spin mb-3`}
+    />
+    <div className="text-xs font-mono uppercase tracking-widest opacity-80">Loading Module...</div>
   </div>
 );
 
@@ -98,7 +110,8 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [settings] = useSettings();
-  useSystemTheme();
+  const isDark = isDarkApparatusRoute(location.pathname);
+  useSystemTheme(location.pathname);
 
   React.useEffect(() => {
     try {
@@ -166,7 +179,13 @@ function App() {
 
   return (
     <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'user'}>
-      <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans overflow-x-clip selection:bg-cyan-500/30">
+      <div
+        className={`min-h-[100dvh] ${
+          isDark
+            ? 'bg-[#12161B] text-[var(--text-main)]'
+            : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A]'
+        } relative font-sans overflow-x-clip selection:bg-cyan-500/30`}
+      >
         <DeferredAnalytics />
 
         {/* App Content */}
@@ -179,7 +198,7 @@ function App() {
               transition={{ duration: 0.15, ease: "easeOut" }}
               className="w-full flex-1 flex flex-col"
             >
-              <React.Suspense fallback={<RouteFallback />}>
+              <React.Suspense fallback={<RouteFallback isDark={isDark} />}>
               <RouteSEO />
               <Routes location={location}>
                 <Route path="/" element={<Home />} />
