@@ -138,7 +138,7 @@ export function Improve({
   const activeEvidence = getEvidenceBadge(activeEntry.evidenceType);
 
   return (
-    <div className="bg-transparent text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-cyan-500/30 relative">
+    <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-[#0066FF]/20 relative">
       <SEO 
         title="Performance Guide | PULSE"
         description="Review research, physiological factors, and preparation habits that affect response time and measurement consistency."
@@ -161,15 +161,15 @@ export function Improve({
           className="w-full max-w-md mx-auto px-4 relative z-10 flex flex-col gap-5"
         >
           {/* Header Banner */}
-          <div className="text-center pt-2 pb-2 border-b border-[var(--border-subtle)]">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--accent)] text-[11px] font-mono mb-1.5">
-              <BookOpen size={12} />
+          <div className="text-center pt-2 pb-3 border-b border-slate-200/80">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-sky-100 bg-sky-50 text-[#0066FF] text-[11px] font-mono font-bold mb-2 shadow-2xs">
+              <BookOpen size={12} strokeWidth={2.4} />
               <span>PERFORMANCE GUIDE</span>
             </div>
-            <h1 className="font-heading text-xl font-bold tracking-tight text-[var(--text-primary)]">
+            <h1 className="font-heading text-xl font-bold tracking-tight text-[#090D1A]">
               Performance &amp; Consistency
             </h1>
-            <p className="text-[var(--text-secondary)] text-xs mt-1 leading-relaxed">
+            <p className="text-[#64748B] text-xs mt-1 leading-relaxed">
               Review the physiological factors and habits that affect response latency and measurement consistency.
             </p>
           </div>
@@ -177,26 +177,26 @@ export function Improve({
           {/* Section 1: Variable Matrix */}
           <section className="flex flex-col gap-2.5">
             <div>
-              <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
+              <span className="font-mono text-[10px] font-bold text-[#0066FF] tracking-wider uppercase block">
                 Biological &amp; environmental factors
               </span>
-              <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
+              <h2 className="font-heading text-xs font-bold tracking-wider text-[#090D1A] uppercase">
                 What Affects Performance?
               </h2>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5">
               {/* Hinders */}
-              <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-lg p-3">
-                <div className="flex items-center gap-1.5 text-[var(--danger)] font-mono text-[10px] font-semibold uppercase tracking-wider mb-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--danger)]" />
+              <div className="bg-rose-50/70 border border-rose-200/90 rounded-2xl p-3.5 shadow-2xs">
+                <div className="flex items-center gap-1.5 text-rose-700 font-mono text-[10.5px] font-bold uppercase tracking-wider mb-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
                   <span>Associated with Higher Latency</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {PHYSIOLOGICAL_FACTORS.filter(f => f.impact === 'associated_increase' || (f.impact === undefined && f.reduces)).map((factor) => (
                     <span
                       key={factor.id}
-                      className="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 text-[11px] px-2 py-0.5 rounded font-sans"
+                      className="bg-white text-rose-800 border border-rose-200 text-[11.5px] px-2.5 py-1 rounded-lg font-medium shadow-2xs"
                     >
                       {factor.title}
                     </span>
@@ -205,16 +205,16 @@ export function Improve({
               </div>
 
               {/* Supports */}
-              <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-lg p-3">
-                <div className="flex items-center gap-1.5 text-[var(--success)] font-mono text-[10px] font-semibold uppercase tracking-wider mb-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
+              <div className="bg-emerald-50/70 border border-emerald-200/90 rounded-2xl p-3.5 shadow-2xs">
+                <div className="flex items-center gap-1.5 text-emerald-700 font-mono text-[10.5px] font-bold uppercase tracking-wider mb-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span>Supports Response Consistency</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {PHYSIOLOGICAL_FACTORS.filter(f => f.impact === 'supports_consistency' || (f.impact === undefined && !f.reduces)).map((factor) => (
                     <span
                       key={factor.id}
-                      className="bg-[var(--success)]/10 text-[var(--success)] border border-[var(--success)]/20 text-[11px] px-2 py-0.5 rounded font-sans"
+                      className="bg-white text-emerald-800 border border-emerald-200 text-[11.5px] px-2.5 py-1 rounded-lg font-medium shadow-2xs"
                     >
                       {factor.title}
                     </span>
@@ -228,10 +228,10 @@ export function Improve({
           <section className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <div>
-                <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
+                <span className="font-mono text-[10px] font-bold text-[#0066FF] tracking-wider uppercase block">
                   Daily habits
                 </span>
-                <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
+                <h2 className="font-heading text-xs font-bold tracking-wider text-[#090D1A] uppercase">
                   Daily Habit Preparation
                 </h2>
               </div>
@@ -239,7 +239,7 @@ export function Improve({
                 <button
                   type="button"
                   onClick={handleResetChecklist}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[var(--surface-2)] hover:bg-[var(--surface-3)] active:scale-95 active:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[transform,background-color,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 active:scale-95 border border-slate-200 text-[10px] font-mono font-medium text-slate-600 hover:text-[#090D1A] shadow-2xs transition-all cursor-pointer"
                 >
                   <RotateCcw size={10} />
                   <span>Reset</span>
@@ -247,22 +247,22 @@ export function Improve({
               )}
             </div>
 
-            <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 flex flex-col gap-2.5">
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,102,255,0.03)] flex flex-col gap-3">
               <div className="flex justify-between items-center text-xs font-mono">
-                <span className="text-[var(--text-secondary)] font-medium">HABITS CHECKED</span>
-                <span className="text-[var(--accent)] font-semibold">
+                <span className="text-[#64748B] font-semibold">HABITS CHECKED</span>
+                <span className="text-[#0066FF] font-bold">
                   {checkedItems.size} / {PREPARATION_HABITS.length} ({habitCompletionPercentage}%)
                 </span>
               </div>
 
-              <div className="w-full h-1.5 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="w-full h-full bg-[var(--accent)] origin-left transition-transform duration-300 ease-out rounded-full"
+                  className="w-full h-full bg-[#0066FF] origin-left transition-transform duration-300 ease-out rounded-full"
                   style={{ transform: `scaleX(${habitCompletionPercentage / 100})` }}
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5 mt-1">
+              <div className="flex flex-col gap-2 mt-1">
                 {PREPARATION_HABITS.map((item, index) => {
                   const isChecked = checkedItems.has(index);
                   return (
@@ -273,39 +273,39 @@ export function Improve({
                       aria-checked={isChecked}
                       aria-label={`${item.title}: ${item.desc}`}
                       onClick={() => toggleChecklist(index)}
-                      className={`w-full flex items-center justify-between p-2.5 rounded-lg border text-left transition-colors cursor-pointer active:scale-[0.99] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                      className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
                         isChecked
-                          ? "bg-[var(--accent-subtle)] border-[var(--accent)]/40 text-[var(--text-primary)]"
-                          : "bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)]"
+                          ? "bg-sky-50/60 border-sky-200 text-[#090D1A] shadow-2xs"
+                          : "bg-white border-slate-200/80 hover:border-slate-300 text-slate-700"
                       }`}
                     >
                       <div className="flex flex-col gap-0.5 pr-2">
-                        <span className="text-xs font-medium text-[var(--text-primary)] flex items-center gap-1.5">
+                        <span className="text-[13px] font-bold text-[#090D1A] flex items-center gap-1.5">
                           <span>{item.title}</span>
-                          <span className="text-[9px] font-mono text-[var(--text-muted)] uppercase px-1 rounded bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+                          <span className="text-[9.5px] font-mono text-[#0066FF] font-semibold uppercase px-1.5 py-0.5 rounded-md bg-sky-50 border border-sky-100">
                             {item.category}
                           </span>
                         </span>
-                        <span className="text-[11px] text-[var(--text-muted)] leading-tight">
+                        <span className="text-[11.5px] text-[#64748B] leading-tight font-normal">
                           {item.desc}
                         </span>
                       </div>
                       <div
-                        className={`w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors ${
+                        className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 transition-all ${
                           isChecked
-                            ? "bg-[var(--accent)] text-slate-950 font-bold"
-                            : "border border-[var(--border-strong)] bg-transparent text-transparent"
+                            ? "bg-[#0066FF] text-white shadow-xs"
+                            : "border-2 border-slate-300 bg-white text-transparent"
                         }`}
                       >
-                        <Check size={11} strokeWidth={3} />
+                        <Check size={13} strokeWidth={3} />
                       </div>
                     </button>
                   );
                 })}
               </div>
 
-              <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center gap-1.5 text-[10px] text-[var(--text-muted)] font-mono">
-                <ShieldCheck size={12} className="text-[var(--accent)] shrink-0" />
+              <div className="pt-2.5 border-t border-slate-100 flex items-center gap-1.5 text-[10.5px] text-[#64748B] font-mono">
+                <ShieldCheck size={13} className="text-[#0066FF] shrink-0" />
                 <span>Habit adherence supports baseline testing consistency.</span>
               </div>
             </div>
@@ -314,10 +314,10 @@ export function Improve({
           {/* Section 3: Research Insight & Findings */}
           <section className="flex flex-col gap-2.5">
             <div>
-              <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
+              <span className="font-mono text-[10px] font-bold text-[#0066FF] tracking-wider uppercase block">
                 Research ledger
               </span>
-              <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
+              <h2 className="font-heading text-xs font-bold tracking-wider text-[#090D1A] uppercase">
                 Research findings
               </h2>
             </div>
@@ -331,39 +331,39 @@ export function Improve({
                   setIsLedgerPaused(false);
                 }
               }}
-              className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 flex flex-col gap-2.5 relative"
+              className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,102,255,0.03)] flex flex-col gap-3 relative"
             >
-              <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
                 <div className="flex items-center gap-1.5">
-                  <BrainCircuit size={14} className="text-[var(--accent)]" />
-                  <span className="font-heading text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wider">
+                  <BrainCircuit size={15} className="text-[#0066FF]" />
+                  <span className="font-heading text-xs font-bold text-[#090D1A] uppercase tracking-wider">
                     {activeEntry.domain}
                   </span>
                 </div>
-                <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                <span className="font-mono text-[10.5px] font-semibold text-slate-400">
                   {(currentSlide + 1).toString().padStart(2, "0")} / {researchEntries.length.toString().padStart(2, "0")}
                 </span>
               </div>
 
-              <span className={`font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded border w-fit ${activeEvidence.className}`}>
+              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-sky-200 bg-sky-50 text-[#0066FF] font-bold w-fit">
                 {activeEvidence.label}
               </span>
 
-              <p className="text-xs text-[var(--text-primary)] leading-relaxed font-sans min-h-[44px] flex items-center">
+              <p className="text-[13px] text-[#090D1A] leading-relaxed font-sans min-h-[44px] flex items-center font-medium">
                 "{activeEntry.statement}"
               </p>
 
               {/* Provenance Box */}
-              <div className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-md p-2 text-[11px] space-y-1">
-                <div className="flex items-center gap-1 text-[var(--text-primary)] font-medium">
-                  <BookOpen size={12} className="text-[var(--accent)] shrink-0" />
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-[11.5px] space-y-1.5">
+                <div className="flex items-center gap-1.5 text-[#090D1A] font-bold">
+                  <BookOpen size={13} className="text-[#0066FF] shrink-0" />
                   <span>{activeEntry.citation.source} ({activeEntry.citation.year})</span>
                 </div>
-                <p className="text-[10px] text-[var(--text-muted)] font-mono pl-4">
+                <p className="text-[10.5px] text-[#64748B] font-mono pl-5">
                   {activeEntry.citation.reference}
                 </p>
                 {activeEntry.citation.doi && (
-                  <div className="text-[9px] text-[var(--text-muted)] font-mono pl-4 flex items-center gap-1">
+                  <div className="text-[10px] text-[#0066FF] font-mono pl-5 flex items-center gap-1">
                     <span>DOI: {activeEntry.citation.doi}</span>
                     <ExternalLink size={9} />
                   </div>
@@ -371,11 +371,11 @@ export function Improve({
               </div>
 
               {/* Prev / Next controls */}
-              <div className="flex items-center justify-between pt-1 border-t border-[var(--border-subtle)]">
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={handlePrevSlide}
-                  className="flex items-center gap-1 text-[11px] font-mono font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                  className="flex items-center gap-1 text-[11px] font-mono font-bold text-slate-600 hover:text-[#090D1A] transition-colors cursor-pointer active:scale-95"
                 >
                   <ChevronLeft size={14} />
                   <span>PREV</span>
@@ -383,7 +383,7 @@ export function Improve({
                 <button
                   type="button"
                   onClick={handleNextSlide}
-                  className="flex items-center gap-1 text-[11px] font-mono font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                  className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#0066FF] hover:text-[#0052CC] transition-colors cursor-pointer active:scale-95"
                 >
                   <span>NEXT OBSERVATION</span>
                   <ChevronRight size={14} />
@@ -395,22 +395,22 @@ export function Improve({
           {/* Section 4: Expectation Management */}
           <section className="flex flex-col gap-2.5">
             <div>
-              <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
+              <span className="font-mono text-[10px] font-bold text-[#0066FF] tracking-wider uppercase block">
                 Expectation management
               </span>
-              <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
+              <h2 className="font-heading text-xs font-bold tracking-wider text-[#090D1A] uppercase">
                 Can you improve your results?
               </h2>
             </div>
-            <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-3.5 space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed">
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,102,255,0.03)] space-y-2 text-xs text-[#475569] leading-relaxed">
               <p>
                 Absolute physiological limits set a floor on neural transmission speed, but day-to-day variance depends heavily on focus, sleep, and environmental distractions. You can minimize performance dips and achieve higher consistency by maintaining good sleep habits, minimizing hardware input latency, and practicing the tasks.
               </p>
-              <div className="pt-2 border-t border-[var(--border-subtle)] space-y-1.5">
-                <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+              <div className="pt-2.5 border-t border-slate-100 space-y-1.5">
+                <p className="text-[11px] text-[#64748B] leading-relaxed">
                   Longitudinal gains on benchmark tasks largely reflect task familiarity, stimulus anticipation, and motor pattern learning rather than an expansion of overall cognitive capacity.
                 </p>
-                <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                <p className="text-[11px] text-[#64748B] leading-relaxed">
                   Variations across age cohorts reflect sensory-motor processing differences across populations rather than an absolute indicator of individual biological decline.
                 </p>
               </div>
@@ -420,10 +420,10 @@ export function Improve({
           {/* Section 5: System Protocol Tips */}
           <section className="flex flex-col gap-2.5">
             <div>
-              <span className="font-mono text-[10px] font-semibold text-[var(--text-muted)] tracking-wider uppercase block">
+              <span className="font-mono text-[10px] font-bold text-[#0066FF] tracking-wider uppercase block">
                 Best practices
               </span>
-              <h2 className="font-heading text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
+              <h2 className="font-heading text-xs font-bold tracking-wider text-[#090D1A] uppercase">
                 How to improve
               </h2>
             </div>
@@ -458,13 +458,13 @@ export function Improve({
               ].map((tip) => (
                 <div
                   key={tip.num}
-                  className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-lg p-3 flex flex-col gap-1"
+                  className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-2xs flex flex-col gap-1"
                 >
-                  <div className="flex items-center gap-1.5 font-heading text-[var(--accent)] font-semibold text-xs tracking-wider">
-                    <span className="font-mono text-[var(--text-muted)]">{tip.num} —</span>
+                  <div className="flex items-center gap-1.5 font-heading text-[#0066FF] font-bold text-xs tracking-wider">
+                    <span className="font-mono text-slate-400">{tip.num} —</span>
                     <span>{tip.title}</span>
                   </div>
-                  <p className="text-xs text-[var(--text-secondary)] font-sans leading-relaxed pl-5">
+                  <p className="text-xs text-[#64748B] font-sans leading-relaxed pl-5 font-normal">
                     {tip.desc}
                   </p>
                 </div>
@@ -473,19 +473,19 @@ export function Improve({
           </section>
 
           {/* Actions */}
-          <section className="pt-2 pb-4 flex flex-col gap-2">
+          <section className="pt-2 pb-4 flex flex-col gap-2.5">
             <button
               type="button"
               onClick={() => onNavigate("assessments")}
-              className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 rounded-md py-3 px-5 font-medium text-xs tracking-wider uppercase flex items-center justify-center gap-2 active:scale-98 transition-colors cursor-pointer font-bold shadow-sm"
+              className="w-full h-[52px] bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white rounded-full font-semibold text-sm tracking-wide uppercase flex items-center justify-center gap-2 active:scale-98 transition-all shadow-[0_4px_16px_rgba(0,102,255,0.3)] cursor-pointer"
             >
               <span>Take assessments</span>
-              <ArrowRight size={15} />
+              <ArrowRight size={16} />
             </button>
             <button
               type="button"
               onClick={() => onNavigate("home")}
-              className="w-full bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-md py-2.5 px-5 font-medium text-xs tracking-wider uppercase flex items-center justify-center gap-2 active:scale-98 transition-colors cursor-pointer"
+              className="w-full h-[46px] bg-white hover:bg-slate-50 border border-slate-200/90 text-[#090D1A] rounded-full font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 active:scale-98 transition-all shadow-2xs cursor-pointer"
             >
               Return home
             </button>
