@@ -83,7 +83,7 @@ async function run() {
           const clientWidth = document.documentElement.clientWidth;
           const hasHorizontalOverflow = scrollWidth > clientWidth + 2;
           const title = document.title;
-          const dataTheme = document.querySelector('[data-theme]')?.getAttribute('data-theme') || 'light';
+          const dataTheme = document.querySelector('main#main-content')?.closest('[data-theme]')?.getAttribute('data-theme') || document.querySelector('[data-theme]')?.getAttribute('data-theme') || 'light';
           const skipLink = document.querySelector('a[href="#main-content"]');
           const hasSkipLink = Boolean(skipLink);
 
@@ -114,6 +114,91 @@ async function run() {
         await context.close();
       }
     }
+
+    // Dynamic State Captures (1920x1080)
+    console.log('\n=== Capturing Dynamic Interactive States ===');
+    const dynamicContext = await browser.newContext({
+      viewport: { width: 1920, height: 1080 },
+      deviceScaleFactor: 1,
+    });
+    const dynPage = await dynamicContext.newPage();
+    await dynPage.addInitScript(() => {
+      localStorage.setItem('pulse_welcome_seen', 'true');
+      localStorage.setItem('pulse_welcome_dismissed', 'true');
+    });
+
+    // 1. Settings Modal
+    await dynPage.goto(`http://127.0.0.1:${PORT}/`);
+    await dynPage.waitForTimeout(600);
+    const settingsBtn = dynPage.locator('button[aria-label="Settings"], button:has-text("Settings")').first();
+    if (await settingsBtn.isVisible()) {
+      await settingsBtn.click();
+      await dynPage.waitForTimeout(400);
+      await dynPage.screenshot({ path: path.join(ARTIFACT_DIR, 'modal_settings.png') });
+      console.log('[PASS] Captured modal_settings.png');
+    }
+
+    // 2. Active Reaction Test Canvas
+    await dynPage.goto(`http://127.0.0.1:${PORT}/reaction-test`);
+    await dynPage.waitForTimeout(600);
+    const adultBtn = dynPage.locator('button:has-text("Adults")').first();
+    if (await adultBtn.isVisible()) {
+      await adultBtn.click();
+      const proceedBtn = dynPage.locator('button:has-text("Proceed to Assessment")').first();
+      if (await proceedBtn.isVisible()) {
+        await proceedBtn.click();
+      }
+      await dynPage.waitForTimeout(800);
+      await dynPage.screenshot({ path: path.join(ARTIFACT_DIR, 'canvas_active_reaction.png') });
+      console.log('[PASS] Captured canvas_active_reaction.png');
+    }
+
+    // 3. Active Direction Test Canvas
+    await dynPage.goto(`http://127.0.0.1:${PORT}/direction-test`);
+    await dynPage.waitForTimeout(600);
+    const dirAdultBtn = dynPage.locator('button:has-text("Adults")').first();
+    if (await dirAdultBtn.isVisible()) {
+      await dirAdultBtn.click();
+      const proceedBtn = dynPage.locator('button:has-text("Proceed to Assessment")').first();
+      if (await proceedBtn.isVisible()) {
+        await proceedBtn.click();
+      }
+      await dynPage.waitForTimeout(800);
+      await dynPage.screenshot({ path: path.join(ARTIFACT_DIR, 'canvas_active_direction.png') });
+      console.log('[PASS] Captured canvas_active_direction.png');
+    }
+
+    // 4. Active Block Memory Test Canvas
+    await dynPage.goto(`http://127.0.0.1:${PORT}/block-memory`);
+    await dynPage.waitForTimeout(600);
+    const blockAdultBtn = dynPage.locator('button:has-text("Adults")').first();
+    if (await blockAdultBtn.isVisible()) {
+      await blockAdultBtn.click();
+      const proceedBtn = dynPage.locator('button:has-text("Proceed to Assessment")').first();
+      if (await proceedBtn.isVisible()) {
+        await proceedBtn.click();
+      }
+      await dynPage.waitForTimeout(800);
+      await dynPage.screenshot({ path: path.join(ARTIFACT_DIR, 'canvas_active_block_memory.png') });
+      console.log('[PASS] Captured canvas_active_block_memory.png');
+    }
+
+    // 5. Active Color Test Canvas
+    await dynPage.goto(`http://127.0.0.1:${PORT}/colour-recognition`);
+    await dynPage.waitForTimeout(600);
+    const colorAdultBtn = dynPage.locator('button:has-text("Adults")').first();
+    if (await colorAdultBtn.isVisible()) {
+      await colorAdultBtn.click();
+      const proceedBtn = dynPage.locator('button:has-text("Proceed to Assessment")').first();
+      if (await proceedBtn.isVisible()) {
+        await proceedBtn.click();
+      }
+      await dynPage.waitForTimeout(800);
+      await dynPage.screenshot({ path: path.join(ARTIFACT_DIR, 'canvas_active_color_test.png') });
+      console.log('[PASS] Captured canvas_active_color_test.png');
+    }
+
+    await dynamicContext.close();
 
     const reportPath = path.join(ARTIFACT_DIR, 'audit-summary.json');
     fs.writeFileSync(reportPath, JSON.stringify(auditResults, null, 2));

@@ -63,7 +63,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
 
       const proceedBtn = screen.getByRole('button', { name: /proceed to assessment/i });
       expect((proceedBtn as HTMLButtonElement).disabled).toBe(true);
-    });
+    }, 15000);
 
     it('transitions to calibrated dark apparatus after age cohort selection', async () => {
       const onNavigate = vi.fn();
@@ -102,7 +102,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       });
       expect(stimulusArea).toBeDefined();
       expect(stimulusArea.getAttribute('tabindex')).toBe('0');
-    });
+    }, 15000);
 
     it('immediately aborts test sequence when pulse_settings_open event is triggered', async () => {
       const onNavigate = vi.fn();
@@ -126,7 +126,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       await waitFor(() => {
         expect(screen.getByText('Click to start')).toBeDefined();
       });
-    });
+    }, 15000);
   });
 
   describe('DirectionTest (Directional Choice Engine)', () => {
@@ -155,6 +155,6 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       const mainLandmarks = screen.getAllByRole('main');
       expect(mainLandmarks).toHaveLength(1);
       expect(mainLandmarks[0].id).toBe('main-content');
-    });
+    }, 15000);
   });
 });

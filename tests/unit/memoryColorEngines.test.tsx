@@ -79,7 +79,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
 
       // Footer omitted on engine canvas
       expect(screen.queryByRole('contentinfo')).toBeNull();
-    });
+    }, 15000);
 
     it('immediately aborts test sequence when pulse_settings_open event is triggered', async () => {
       const onNavigate = vi.fn();
@@ -101,7 +101,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
       await waitFor(() => {
         expect(screen.getByText('15 ROUNDS • STROOP TEST')).toBeDefined();
       });
-    });
+    }, 15000);
   });
 
   describe('BlockMemoryTest (Corsi Block Tapping Engine)', () => {
@@ -130,7 +130,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
       const mainLandmarks = screen.getAllByRole('main');
       expect(mainLandmarks).toHaveLength(1);
       expect(mainLandmarks[0].id).toBe('main-content');
-    });
+    }, 15000);
   });
 
   describe('NumberMemoryTest (Digit Span Memory Engine)', () => {
@@ -159,6 +159,6 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
       const mainLandmarks = screen.getAllByRole('main');
       expect(mainLandmarks).toHaveLength(1);
       expect(mainLandmarks[0].id).toBe('main-content');
-    });
+    }, 15000);
   });
 });

@@ -14,7 +14,7 @@
     color: var(--text-main);
   }
 
-  :root, :root[data-theme="dark"] {
+  :root, :root[data-theme="dark"], [data-theme="dark"] {
     color-scheme: dark;
     caret-color: var(--accent);
     --font-size: /* deliberate-ignore round-stat */ /* deliberate-ignore round-stat */ 100%;
@@ -110,7 +110,7 @@
     --sar: env(safe-area-inset-right, 0px);
   }
 
-  :root[data-theme="light"] {
+  :root[data-theme="light"], [data-theme="light"], .light {
     color-scheme: light;
     caret-color: var(--accent);
     /* Semantic Surfaces */
