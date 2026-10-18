@@ -11,6 +11,22 @@ export interface AdminLeaderboardDTO {
   publicEntry: boolean;
 }
 
+export interface AdminLeaderboardEntryRecord {
+  id: string;
+  displayName: string;
+  assessmentType: string;
+  scoreMetric: number;
+  ageGroup: string;
+  createdAt: number;
+  hidden?: boolean;
+  hiddenAt?: number;
+  hideReason?: string;
+  publicEntry?: boolean;
+  submissionReceiptOnly?: boolean;
+  ownerUid?: string;
+  [key: string]: unknown;
+}
+
 export interface AdminLeaderboardPageResponse {
   success: boolean;
   entries: AdminLeaderboardDTO[];
