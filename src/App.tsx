@@ -4,7 +4,6 @@ import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
 import { useSettings } from './lib/settingsStore';
 import { useSystemTheme } from './lib/useSystemTheme';
-import { AnimatedBackground } from './components/AnimatedBackground';
 import { Home } from './components/Home';
 import { RouteSEO } from './components/RouteSEO';
 import { DatasetComingSoon } from './components/DatasetComingSoon';
@@ -88,7 +87,7 @@ const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPriv
 
 
 const RouteFallback = () => (
-  <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center font-sans">
+  <div className="min-h-[60vh] flex-1 flex flex-col items-center justify-center p-6 text-center font-sans bg-inherit">
     <div className="w-8 h-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin mb-3" />
     <div className="text-xs text-[var(--text-muted)] font-mono uppercase tracking-widest">Loading Module...</div>
   </div>
@@ -166,19 +165,16 @@ function App() {
   return (
     <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'user'}>
       <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-main)] relative font-sans overflow-x-clip selection:bg-cyan-500/30">
-        {/* Global Consistent Animated Canvas Background */}
-        <AnimatedBackground />
         <DeferredAnalytics />
 
         {/* App Content */}
         <div className="relative z-10 min-h-[100dvh] flex flex-col">
-          <AnimatePresence mode="wait" initial={false}>
+          <AnimatePresence initial={false}>
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
               className="w-full flex-1 flex flex-col"
             >
               <React.Suspense fallback={<RouteFallback />}>
