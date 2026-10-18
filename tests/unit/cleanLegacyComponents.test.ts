@@ -49,4 +49,23 @@ describe('Legacy Frontend Components Pre-Deletion Audit & Purge', () => {
     expect(desktopCss).not.toContain('--bg-grid-pattern');
     expect(mobileCss).not.toContain('--bg-grid-pattern');
   });
+
+  it('confirms 0 active references to legacy Dataset explorer and dataset subcomponents', () => {
+    const refs = findRepositoryReferences([
+      'from \'./dataset/DatasetHeader\'',
+      'from \'./dataset/DatasetFilterBar\'',
+      'from \'./dataset/DatasetContentSlot\'',
+      'from \'./components/Dataset\'',
+      'from \'../../src/components/Dataset\''
+    ]);
+    // Only Dataset.tsx files themselves import them currently; once deleted, 0 active references
+    const activeRefs = refs.filter(r => !r.file.endsWith('Dataset.tsx'));
+    expect(activeRefs).toEqual([]);
+  });
+
+  it('confirms legacy Dataset components and directory are deleted', () => {
+    expect(existsSync(resolve(process.cwd(), 'src/components/Dataset.tsx'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'mobile/src/components/Dataset.tsx'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'src/components/dataset'))).toBe(false);
+  });
 });
