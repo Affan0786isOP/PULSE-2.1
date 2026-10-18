@@ -58,12 +58,26 @@
         { "fieldPath": "ageGroup", "order": "ASCENDING" },
         { "fieldPath": "completedAtTimestamp", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "leaderboardResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assessmentType", "order": "ASCENDING" },
+        { "fieldPath": "displayName", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [
     {
       "collectionGroup": "_rateLimitCounters",
       "fieldPath": "resetAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminSessionRevocations",
+      "fieldPath": "expireAtTimestamp",
       "ttl": true,
       "indexes": []
     }

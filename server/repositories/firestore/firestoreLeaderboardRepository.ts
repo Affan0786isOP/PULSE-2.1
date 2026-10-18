@@ -400,6 +400,9 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
         ? db.collection('leaderboardOwnerIndex').doc(ownerIndexDocumentId(ownerUid, assessmentType))
         : null;
       const ownerIndexSnap = ownerIndexRef ? await tx.get(ownerIndexRef) : null;
+      if (ownerIndexSnap?.data()?.deleting === true) {
+        throw new Error('OWNER_ERASURE_IN_PROGRESS');
+      }
 
       tx.update(docRef, {
         hidden: true,
@@ -601,9 +604,10 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
 
     return db.runTransaction(async tx => {
       const [snap, metaSnap] = await Promise.all([tx.get(docRef), tx.get(metaRef)]);
-      if (!snap.exists && !metaSnap.exists) return { success: true, found: false };
+      // Only delete if the public leaderboard row exists. Private-only receipts cannot be deleted via admin moderation.
+      if (!snap.exists) return { success: true, found: false };
 
-      const row = snap.exists ? snap.data() || {} : {};
+      const row = snap.data() || {};
       const meta = metaSnap.exists ? metaSnap.data() || {} : {};
       const ownerUid = typeof meta.ownerUid === 'string' ? meta.ownerUid : '';
       const assessmentType = normalizeAssessmentType(String(row.assessmentType || meta.assessmentType || ''));
@@ -611,8 +615,11 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
         ? db.collection('leaderboardOwnerIndex').doc(ownerIndexDocumentId(ownerUid, assessmentType))
         : null;
       const ownerIndexSnap = ownerIndexRef ? await tx.get(ownerIndexRef) : null;
+      if (ownerIndexSnap?.data()?.deleting === true) {
+        throw new Error('OWNER_ERASURE_IN_PROGRESS');
+      }
 
-      if (snap.exists) tx.delete(docRef);
+      tx.delete(docRef);
       if (metaSnap.exists) tx.delete(metaRef);
       if (ownerIndexRef && ownerIndexSnap?.data()?.leaderboardDocId === entryId) {
         tx.set(ownerIndexRef, { leaderboardDocId: null, updatedAt: timestamp }, { merge: true });
@@ -625,6 +632,132 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
         timestamp
       });
       return { success: true, found: true };
+    });
+  }
+
+  async updateEntryAlias(
+    entryId: string,
+    newDisplayName: string,
+    reason?: string
+  ): Promise<{
+    success: boolean;
+    found: boolean;
+    entry?: AdminLeaderboardEntryRecord;
+  }> {
+    const db = this.getDb();
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
+
+    const docRef = db.collection('leaderboardResults').doc(entryId);
+    const metaRef = db.collection('leaderboardPrivateMeta').doc(entryId);
+    const auditRef = db.collection('adminAuditLogs').doc(`log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`);
+    const timestamp = Date.now();
+
+    return db.runTransaction(async tx => {
+      const [snap, metaSnap] = await Promise.all([tx.get(docRef), tx.get(metaRef)]);
+      if (!snap.exists) return { success: true, found: false };
+
+      const row = snap.data() || {};
+      const meta = metaSnap.exists ? metaSnap.data() || {} : {};
+      const ownerUid = typeof meta.ownerUid === 'string' ? meta.ownerUid : '';
+      const assessmentType = normalizeAssessmentType(String(row.assessmentType || meta.assessmentType || ''));
+
+      // Check erasure lock
+      const ownerIndexRef = ownerUid && assessmentType
+        ? db.collection('leaderboardOwnerIndex').doc(ownerIndexDocumentId(ownerUid, assessmentType))
+        : null;
+      const ownerIndexSnap = ownerIndexRef ? await tx.get(ownerIndexRef) : null;
+      if (ownerIndexSnap?.data()?.deleting === true) {
+        throw new Error('OWNER_ERASURE_IN_PROGRESS');
+      }
+
+      // Legacy records might not have attestedDisplayName in privateMeta.
+      // If missing, verify whether existing token matches row.displayName.
+      let attestedDisplayName = typeof meta.attestedDisplayName === 'string' && meta.attestedDisplayName
+        ? meta.attestedDisplayName
+        : '';
+
+      const provenanceToken = String(row.provenanceToken || meta.provenanceToken || '');
+      const scoreMetric = Number(row.scoreMetric ?? meta.scoreMetric);
+      const ageGroup = String(row.ageGroup || meta.ageGroup || '');
+      const trialsDigest = String(meta.trialsDigest || '');
+      const provenanceVersion = Number(meta.provenanceVersion ?? row.provenanceVersion) || 1;
+
+      // If attestedDisplayName is missing, verify existing provenance with current alias
+      if (!attestedDisplayName && provenanceToken) {
+        // Try public displayName first, then meta.displayName
+        const candidateNames = [
+          typeof row.displayName === 'string' ? row.displayName : '',
+          typeof meta.displayName === 'string' ? meta.displayName : ''
+        ].filter(Boolean);
+
+        const secret = process.env.PULSE_PROVENANCE_SECRET;
+        if (secret) {
+          let matched = false;
+          for (const cand of candidateNames) {
+            const sanitized = cand.replace(/:/g, '_');
+            const tokenData = provenanceVersion >= 2
+              ? `lb:v2:${entryId}:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitized}:${trialsDigest}`
+              : `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitized}:${trialsDigest}`;
+            const expected = crypto.createHmac('sha256', secret).update(tokenData).digest('hex');
+            const expectedBuf = Buffer.from(expected, 'hex');
+            const tokenBuf = Buffer.from(provenanceToken, 'hex');
+            if (expectedBuf.length === tokenBuf.length && crypto.timingSafeEqual(expectedBuf, tokenBuf)) {
+              attestedDisplayName = cand;
+              matched = true;
+              break;
+            }
+          }
+          if (!matched && candidateNames.length > 0) {
+            throw new Error('PROVENANCE_MISMATCH');
+          }
+        } else {
+          // If secret is not loaded, preserve current public display name
+          attestedDisplayName = typeof row.displayName === 'string' ? row.displayName : '';
+        }
+      }
+
+      const previousDisplayName = String(row.displayName || meta.displayName || '');
+
+      // Update public row (preserves original provenanceToken)
+      tx.update(docRef, {
+        displayName: newDisplayName,
+        updatedAt: timestamp
+      });
+
+      // Update private metadata (record current displayName, preserve/set immutable attestedDisplayName)
+      tx.set(metaRef, {
+        ...meta,
+        displayName: newDisplayName,
+        attestedDisplayName,
+        updatedAt: timestamp
+      }, { merge: true });
+
+      // Record audit log
+      tx.set(auditRef, {
+        actor: 'admin',
+        action: 'EDIT_LEADERBOARD_ALIAS',
+        target: entryId,
+        previousDisplayName,
+        newDisplayName,
+        note: reason || 'Display name corrected by admin',
+        timestamp
+      });
+
+      const updatedRecord: AdminLeaderboardEntryRecord = {
+        ...meta,
+        ...row,
+        id: entryId,
+        displayName: newDisplayName,
+        attestedDisplayName,
+        publicEntry: true,
+        createdAt: typeof row.createdAt?.toMillis === 'function' ? row.createdAt.toMillis() : (Number(row.createdAt) || 0)
+      };
+
+      return {
+        success: true,
+        found: true,
+        entry: updatedRecord
+      };
     });
   }
 }

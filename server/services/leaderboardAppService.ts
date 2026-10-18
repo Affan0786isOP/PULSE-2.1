@@ -415,14 +415,19 @@ export class LeaderboardAppService implements ILeaderboardService {
       return { verified: false, publiclyVisible: false, pendingReview: false, reason: 'Submission receipt does not exist.' };
     }
 
-    const displayName = safeLeaderboardDisplayNameForRead(row.displayName);
+    // Validate the current public display name separately
+    const publicDisplayName = safeLeaderboardDisplayNameForRead(row.displayName);
+    const rawAttestedName = typeof row.attestedDisplayName === 'string' && row.attestedDisplayName
+      ? row.attestedDisplayName
+      : (typeof row.displayName === 'string' ? row.displayName : '');
+
     const assessmentType = normalizeAssessmentType(String(row.assessmentType || ''));
     const scoreMetric = Number(row.scoreMetric);
     const ageGroup = String(row.ageGroup || '');
     const trialsDigest = String(row.trialsDigest || '');
     const provenanceToken = String(row.provenanceToken || '');
     if (
-      !displayName ||
+      !rawAttestedName ||
       !VALID_ASSESSMENT_TYPES.includes(assessmentType) ||
       !isValidLeaderboardScoreMetric(assessmentType, scoreMetric) ||
       !ageGroup ||
@@ -431,14 +436,15 @@ export class LeaderboardAppService implements ILeaderboardService {
       return { verified: false, publiclyVisible: false, pendingReview: row.hidden === true, reason: 'Stored submission receipt has invalid provenance fields.' };
     }
 
-    const sanitizedDisplayName = displayName.replace(/:/g, '_');
+    // Exact originally stored attested alias with colon replacement (no safeLeaderboardDisplayNameForRead on attested name)
+    const sanitizedAttestedName = rawAttestedName.replace(/:/g, '_');
     const tokenData = Number(row.provenanceVersion) >= 2
-      ? `lb:v2:${normalizedId}:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest}`
-      : `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedDisplayName}:${trialsDigest}`;
+      ? `lb:v2:${normalizedId}:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedAttestedName}:${trialsDigest}`
+      : `lb:${assessmentType}:${ageGroup}:${scoreMetric.toFixed(2)}:${sanitizedAttestedName}:${trialsDigest}`;
 
     try {
       const verified = safeCompareHex(signProvenancePayload(tokenData), provenanceToken);
-      const publiclyVisible = row.publicEntry === true && row.hidden === false;
+      const publiclyVisible = row.publicEntry === true && row.hidden === false && publicDisplayName !== null;
       return {
         verified,
         publiclyVisible,

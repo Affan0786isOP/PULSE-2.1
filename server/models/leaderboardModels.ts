@@ -12,6 +12,7 @@ export interface LeaderboardEntryRecord {
 export interface AdminLeaderboardEntryRecord {
   id: string;
   displayName?: string;
+  attestedDisplayName?: string;
   assessmentType?: string;
   scoreMetric?: number;
   ageGroup?: string;

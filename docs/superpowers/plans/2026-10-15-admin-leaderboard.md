@@ -58,11 +58,11 @@
 - **Interfaces:**
   - `AdminLeaderboardDTO`, `AdminLeaderboardPageResponse`, `UpdateAliasInput`, `CreateAuditLogInput`.
   - `IAdminService` methods: `login`, `logout`, `getLeaderboardPage`, `editLeaderboardAlias`, `hideLeaderboardEntry`, `unhideLeaderboardEntry`, `deleteLeaderboardEntry`.
-- [ ] **Step 1:** Create `server/models/adminModels.ts`.
-- [ ] **Step 2:** Create `server/services/interfaces/IAdminService.ts`.
-- [ ] **Step 3:** Create `server/services/adminService.ts` implementing DTO projection (strips `ownerUid`, `sessionId`, `trialsDigest`, `qualityFlags`).
-- [ ] **Step 4:** Create `tests/unit/adminService.test.ts` testing service behavior with mock repository.
-- [ ] **Step 5:** Run `npx vitest run tests/unit/adminService.test.ts` and verify it passes.
+- [x] **Step 1:** Create `server/models/adminModels.ts`.
+- [x] **Step 2:** Create `server/services/interfaces/IAdminService.ts`.
+- [x] **Step 3:** Create `server/services/adminService.ts` implementing DTO projection (strips `ownerUid`, `sessionId`, `trialsDigest`, `qualityFlags`).
+- [x] **Step 4:** Create `tests/unit/adminService.test.ts` testing service behavior with mock repository.
+- [x] **Step 5:** Run `npx vitest run tests/unit/adminService.test.ts` and verify it passes.
 
 ---
 
@@ -79,10 +79,10 @@
   - `POST /api/admin/leaderboard/hide`
   - `POST /api/admin/leaderboard/unhide`
   - `POST /api/admin/leaderboard/delete`
-- [ ] **Step 1:** Create `tests/unit/adminAuth.test.ts` testing constant-time SHA-256 password checks, token generation, and claims validation.
-- [ ] **Step 2:** Create `server/routes/adminRoutes.ts` with router middleware, route handlers, `Cache-Control: no-store`, and error code mapping (400, 401, 404, 409, 422, 503).
-- [ ] **Step 3:** Create `tests/unit/adminRoutes.test.ts` testing standalone router with mock Express app and mock service.
-- [ ] **Step 4:** Run `npx vitest run tests/unit/adminAuth.test.ts tests/unit/adminRoutes.test.ts` and verify it passes.
+- [x] **Step 1:** Create `tests/unit/adminAuth.test.ts` testing constant-time SHA-256 password checks, token generation, and claims validation.
+- [x] **Step 2:** Create `server/routes/adminRoutes.ts` with router middleware, route handlers, `Cache-Control: no-store`, and error code mapping (400, 401, 404, 409, 422, 503).
+- [x] **Step 3:** Create `tests/unit/adminRoutes.test.ts` testing standalone router with mock Express app and mock service.
+- [x] **Step 4:** Run `npx vitest run tests/unit/adminAuth.test.ts tests/unit/adminRoutes.test.ts` and verify it passes.
 
 ---
 
@@ -94,13 +94,13 @@
   - `src/components/admin/AdminEditAliasModal.tsx`
   - `src/components/admin/AdminPage.tsx`
   - `tests/unit/adminPage.test.tsx`
-- [ ] **Step 1:** Create `src/lib/adminActions.ts` (typed fetch wrappers with `x-admin-token` header).
-- [ ] **Step 2:** Create `src/lib/useAdminAuth.ts` (auth hook with `login` and `logout`).
-- [ ] **Step 3:** Create `src/components/admin/AdminPasscodeModal.tsx` (accessible dialog with autofocus and error feedback).
-- [ ] **Step 4:** Create `src/components/admin/AdminEditAliasModal.tsx` (alias modal with `validateLeaderboardDisplayName` feedback).
-- [ ] **Step 5:** Create `src/components/admin/AdminPage.tsx` (clean responsive table, prefix search, protocol filter, cursor pagination, guarded delete prompt, pessimistic unhide).
-- [ ] **Step 6:** Create `tests/unit/adminPage.test.tsx` verifying component render, alias modal, and actions.
-- [ ] **Step 7:** Run `npx vitest run tests/unit/adminPage.test.tsx` and verify it passes.
+- [x] **Step 1:** Create `src/lib/adminActions.ts` (typed fetch wrappers with `x-admin-token` header).
+- [x] **Step 2:** Create `src/lib/useAdminAuth.ts` (auth hook with `login` and `logout`).
+- [x] **Step 3:** Create `src/components/admin/AdminPasscodeModal.tsx` (accessible dialog with autofocus and error feedback).
+- [x] **Step 4:** Create `src/components/admin/AdminEditAliasModal.tsx` (alias modal with `validateLeaderboardDisplayName` feedback).
+- [x] **Step 5:** Create `src/components/admin/AdminPage.tsx` (clean responsive table, prefix search, protocol filter, cursor pagination, guarded delete prompt, pessimistic unhide).
+- [x] **Step 6:** Create `tests/unit/adminPage.test.tsx` verifying component render, alias modal, and actions.
+- [x] **Step 7:** Run `npx vitest run tests/unit/adminPage.test.tsx` and verify it passes.
 
 ---
 
@@ -124,13 +124,13 @@
 - **Files to Create:**
   - `tests/unit/adminProvenance.test.ts`
   - `tests/unit/adminRepositoryInvariants.test.ts`
-- [ ] **Step 1:** Verify legacy baseline verifier on existing fixtures.
-- [ ] **Step 2:** Add TTL override and composite index in `firestore.indexes.json`.
-- [ ] **Step 3:** In `firestoreLeaderboardSubmissionRepository.ts`, add `attestedDisplayName: input.displayName` to `privateMetaDoc`.
-- [ ] **Step 4:** In `leaderboardAppService.ts`, update `verifySubmissionProvenance()` to reconstruct HMAC using exact attested characters with colon replacement, and validate current alias separately.
-- [ ] **Step 5:** In `firestoreLeaderboardRepository.ts`, implement `updateEntryAlias()` checking pre-edit provenance (reject 422 if unverifiable), checking erasure locks (409), and preserving `provenanceToken`.
-- [ ] **Step 6:** Guard `softHideEntry()` and `deleteEntry()` against erasure locks, and enforce `snap.exists` in `deleteEntry()`.
-- [ ] **Step 7:** Run `npx vitest run tests/unit/adminProvenance.test.ts tests/unit/adminRepositoryInvariants.test.ts`.
+- [x] **Step 1:** Verify legacy baseline verifier on existing fixtures.
+- [x] **Step 2:** Add TTL override and composite index in `firestore.indexes.json`.
+- [x] **Step 3:** In `firestoreLeaderboardSubmissionRepository.ts`, add `attestedDisplayName: input.displayName` to `privateMetaDoc`.
+- [x] **Step 4:** In `leaderboardAppService.ts`, update `verifySubmissionProvenance()` to reconstruct HMAC using exact attested characters with colon replacement, and validate current alias separately.
+- [x] **Step 5:** In `firestoreLeaderboardRepository.ts`, implement `updateEntryAlias()` checking pre-edit provenance (reject 422 if unverifiable), checking erasure locks (409), and preserving `provenanceToken`.
+- [x] **Step 6:** Guard `softHideEntry()` and `deleteEntry()` against erasure locks, and enforce `snap.exists` in `deleteEntry()`.
+- [x] **Step 7:** Run `npx vitest run tests/unit/adminProvenance.test.ts tests/unit/adminRepositoryInvariants.test.ts`.
 
 ---
 
@@ -139,9 +139,9 @@
   - `docs/SECURITY.md`
   - `server/middleware/auth.ts`
   - `server/container.ts`
-- [ ] **Step 1:** Update `docs/SECURITY.md` §1.4 and Threat Matrix #7 with the Web Moderation Console security defenses.
-- [ ] **Step 2:** In `server/middleware/auth.ts`, add `getAdminPasscode` (fails closed in prod, rejects `'180611'`/placeholders in prod), `validateAdminTokenClaims`, `verifyAdminSession`, and `revokeAdminSessionToken`.
-- [ ] **Step 3:** Wire `adminService` into `server/container.ts`.
+- [x] **Step 1:** Update `docs/SECURITY.md` §1.4 and Threat Matrix #7 with the Web Moderation Console security defenses.
+- [x] **Step 2:** In `server/middleware/adminAuth.ts`, implement `getAdminPasscode` (fails closed in prod, rejects `'180611'`/placeholders in prod), `validateAdminTokenClaims`, `verifyAdminSessionToken`, and `revokeAdminTokenNonce`.
+- [x] **Step 3:** Wire `adminService` into `server/container.ts`.
 
 ---
 
@@ -151,9 +151,9 @@
   - `server/index.ts`
   - `tests/unit/serverRoutesDelegation.test.ts`
   - `tests/unit/serverRoutesParity.test.ts`
-- [ ] **Step 1:** Register `adminLoginLimiter` and `adminMutationLimiter` in `server/config/rateLimits.ts`.
-- [ ] **Step 2:** Call `registerAdminRoutes` in `server/index.ts`.
-- [ ] **Step 3:** Run `npx vitest run tests/unit/serverRoutesDelegation.test.ts tests/unit/serverRoutesParity.test.ts` and verify parity.
+- [x] **Step 1:** Register `adminLoginLimiter` and `adminMutationLimiter` in `server/config/rateLimits.ts`.
+- [x] **Step 2:** Call `registerAdminRoutes` in `server/index.ts`.
+- [x] **Step 3:** Run `npx vitest run tests/unit/serverRoutesDelegation.test.ts tests/unit/serverRoutesParity.test.ts` and verify parity.
 
 ---
 
@@ -163,10 +163,10 @@
   - `src/components/Leaderboard.tsx`
   - `mobile/src/components/Leaderboard.tsx`
   - `tests/unit/adminAuthModal.test.tsx` (new test)
-- [ ] **Step 1:** Register lazy route `/admin` in `src/App.tsx`.
-- [ ] **Step 2:** Attach `Ctrl+Shift+A` and `Cmd+Shift+A` listener to `src/components/Leaderboard.tsx`.
-- [ ] **Step 3:** Attach 5-tap gesture to `mobile/src/components/Leaderboard.tsx` with full-page redirect to `/admin`.
-- [ ] **Step 4:** Run `npx vitest run tests/unit/adminAuthModal.test.tsx`.
+- [x] **Step 1:** Register lazy route `/admin` in `src/App.tsx`.
+- [x] **Step 2:** Attach `Ctrl+Shift+A` and `Cmd+Shift+A` listener to `src/components/Leaderboard.tsx`.
+- [x] **Step 3:** Attach 5-tap gesture to `mobile/src/components/Leaderboard.tsx` with full-page redirect to `/admin`.
+- [x] **Step 4:** Run `npx vitest run tests/unit/adminAuthModal.test.tsx`.
 
 ---
 

@@ -8,6 +8,7 @@ import { triggerHaptic } from '../lib/settingsStore';
 import { SkeletonTable } from './ui/Skeleton';
 import { SEO } from './SEO';
 import { getDisplayedLeaderboardRank } from '../../../shared/domain/leaderboardRanking';
+import { AdminPasscodeModal } from '../../../src/components/admin/AdminPasscodeModal';
 const PROTOCOLS: { id: AssessmentType; route: string; name: string; shortName: string; unit: string; logo: string }[] = [
   { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', shortName: 'Reaction', unit: 'ms', logo: '/brand/assessments/visual-reaction.png' },
   { id: 'direction', route: 'direction-test', name: 'DIRECTION', shortName: 'Direction', unit: 'ms', logo: '/brand/assessments/directional-choice.png' },
@@ -30,7 +31,26 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const tapCountRef = useRef(0);
+  const lastTapTimeRef = useRef(0);
   const activeFetchIdRef = useRef(0);
+
+  const handleTitleTap = () => {
+    const now = Date.now();
+    if (now - lastTapTimeRef.current > 3000) {
+      tapCountRef.current = 1;
+    } else {
+      tapCountRef.current += 1;
+    }
+    lastTapTimeRef.current = now;
+
+    if (tapCountRef.current >= 5) {
+      tapCountRef.current = 0;
+      triggerHaptic('tap');
+      setShowAdminModal(true);
+    }
+  };
 
   useEffect(() => {
     const fromUrl = PROTOCOLS.find(p => p.id === searchParams.get('assessmentType'))?.id;
@@ -113,7 +133,16 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         currentView="leaderboard" 
         onNavigate={onNavigate} 
         onBack={() => onNavigate('home')} 
-        title="LEADERBOARD"
+        title={
+          <span
+            onClick={handleTitleTap}
+            role="button"
+            tabIndex={0}
+            className="cursor-pointer select-none"
+          >
+            LEADERBOARD
+          </span>
+        }
         rightContent={
           <button type="button"
             id="mobile-leaderboard-refresh-btn"
@@ -330,6 +359,15 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
           )}
         </div>
       </main>
+
+      <AdminPasscodeModal
+        isOpen={showAdminModal}
+        onClose={() => setShowAdminModal(false)}
+        onSuccess={() => {
+          setShowAdminModal(false);
+          window.location.assign('/admin');
+        }}
+      />
     </div>
   );
 }

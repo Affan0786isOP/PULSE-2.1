@@ -117,9 +117,30 @@ export const generalApiLimiter = rateLimit({
   message: { success: false, error: 'Too many API requests' }
 });
 
+export const adminLoginLimiter = rateLimit({
+  windowMs,
+  max: 10, // 10 attempts per 15 minutes per IP
+  keyGenerator: createLimiterKey('admin-login', false),
+  store: createSharedStore(),
+  message: { success: false, error: 'Too many admin login attempts. Please try again later.' }
+});
+
+export const adminMutationLimiter = rateLimit({
+  windowMs,
+  max: 120, // 120 mutations per 15 minutes per IP
+  keyGenerator: createLimiterKey('admin-mutation', false),
+  store: createSharedStore(),
+  message: { success: false, error: 'Too many admin operations. Please try again later.' }
+});
+
 
 /** Registers the route-scoped rate limiters. Order is significant and preserved from the original server. */
 export function applyRateLimits(app: Express): void {
+  app.use('/api/admin/login', adminLoginLimiter);
+  app.use('/api/admin/leaderboard/edit-alias', adminMutationLimiter);
+  app.use('/api/admin/leaderboard/hide', adminMutationLimiter);
+  app.use('/api/admin/leaderboard/unhide', adminMutationLimiter);
+  app.use('/api/admin/leaderboard/delete', adminMutationLimiter);
   app.use('/api/leaderboard', leaderboardReadLimiter);
   app.use('/api/research/session', sessionStartLimiter);
   app.use('/api/sessions', generalSessionsLimiter);

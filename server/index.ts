@@ -5,6 +5,7 @@ import { applyRateLimits } from './config/rateLimits';
 import { applyDeviceRoutingMiddleware } from './middleware/deviceRouting';
 import { registerResearchRoutes } from './routes/researchRoutes';
 import { registerLeaderboardRoutes } from './routes/leaderboardRoutes';
+import { registerAdminRoutes } from './routes/adminRoutes';
 import { registerStaticRoutes } from './routes/staticRoutes';
 import { createServerContainer } from './container';
 
@@ -39,6 +40,9 @@ async function startServer() {
   });
   registerLeaderboardRoutes(app, {
     leaderboardService: container.leaderboardService
+  });
+  registerAdminRoutes(app, {
+    adminService: container.adminService
   });
 
   applyDeviceRoutingMiddleware(app);

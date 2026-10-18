@@ -5,6 +5,7 @@ import { PageShell } from './layout/PageShell';
 import { getLeaderboardResults, LeaderboardEntry, AssessmentType, isOptedInLeaderboardUser } from '../lib/firestore';
 import { Trophy, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
 import { getDisplayedLeaderboardRank } from '../../shared/domain/leaderboardRanking';
+import { AdminPasscodeModal } from './admin/AdminPasscodeModal';
 
 type ColumnKey = 'rank' | 'name' | 'time' | 'accuracy' | 'age';
 
@@ -168,7 +169,20 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [showAdminModal, setShowAdminModal] = useState(false);
   const activeFetchIdRef = useRef(0);
+
+  // Moderator keyboard shortcut: Ctrl+Shift+A (or Cmd+Shift+A)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        setShowAdminModal(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const fromUrl = PROTOCOLS.find(p => p.id === searchParams.get('assessmentType'))?.id;
@@ -587,6 +601,19 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             </div>
           )}
         </div>
+
+        <AdminPasscodeModal
+          isOpen={showAdminModal}
+          onClose={() => setShowAdminModal(false)}
+          onSuccess={() => {
+            setShowAdminModal(false);
+            if (onNavigate) {
+              onNavigate('admin');
+            } else {
+              window.location.assign('/admin');
+            }
+          }}
+        />
     </PageShell>
   );
 }

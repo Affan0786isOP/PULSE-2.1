@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AdminService } from '../../server/services/adminService';
-import type { ILeaderboardRepository } from '../../server/repositories/interfaces/ILeaderboardRepository';
+import type { IAdminLeaderboardRepository } from '../../server/services/interfaces/IAdminService';
 import type { AdminLeaderboardEntryRecord } from '../../server/models/adminModels';
 import { AppError } from '../../server/models/replayContracts';
 
@@ -30,7 +30,7 @@ describe('AdminService Unit Tests', () => {
     };
 
     service = new AdminService(
-      mockLeaderboardRepo as unknown as ILeaderboardRepository,
+      mockLeaderboardRepo as unknown as IAdminLeaderboardRepository,
       mockSessionVerifier as any
     );
   });
