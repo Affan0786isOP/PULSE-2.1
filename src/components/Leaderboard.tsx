@@ -514,11 +514,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.15, delay: Math.min(idx * 0.015, 0.15) }}
-                        className={`transition-colors ${
-                          isFirst 
-                            ? 'bg-sky-50/50 hover:bg-sky-50/80 rounded-xl' 
-                            : 'hover:bg-slate-50/60'
-                        }`}
+                        className="transition-colors hover:bg-slate-50/70"
                       >
                         {currentProto.columns.map((col) => {
                           if (col.key === 'rank') {
