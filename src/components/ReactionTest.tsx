@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Navbar } from './Navbar';
+import { PageShell } from './layout/PageShell';
 import { AgeSelection } from './AgeSelection';
 import { Activity, RefreshCw, Info } from 'lucide-react';
 import { AssessmentInfoPanel } from './AssessmentInfoPanel';
@@ -737,47 +737,56 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection assessmentId="visual-reaction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return (
+      <PageShell
+        currentView="reaction-test"
+        onNavigate={onNavigate}
+        onBack={() => onNavigate('assessments')}
+        theme="light"
+        showFooter={false}
+        contentClassName="items-center justify-center py-4"
+      >
+        <AgeSelection assessmentId="visual-reaction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />
+      </PageShell>
+    );
   }
 
   if (sessionError) {
     return (
-      <div className="bg-transparent text-[var(--text-main)] font-sans min-h-[100dvh] w-full flex flex-col select-none">
-        <Navbar currentView="reaction-test" onNavigate={onNavigate} onBack={() => onNavigate('assessments')} theme="dark" />
-        <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
-          <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-xl font-bold text-[var(--text-main)]">Could not start session</h2>
-            <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
-            <button
-              onClick={() => initSession(selectedAgeGroup)}
-              className="px-6 py-2.5 rounded-xl bg-[var(--cyan-primary)] text-black font-semibold hover:opacity-90 active:scale-[0.98] transition-[opacity,transform] flex items-center gap-2 cursor-pointer"
-            >
-              <RefreshCw className="w-4 h-4" /> Retry Connection
-            </button>
-          </div>
-        </main>
-      </div>
+      <PageShell
+        currentView="reaction-test"
+        onNavigate={onNavigate}
+        onBack={() => onNavigate('assessments')}
+        theme="dark-apparatus"
+        showFooter={false}
+        contentClassName="items-center justify-center p-6 text-center"
+      >
+        <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
+          <h2 className="text-xl font-bold text-[var(--text-main)]">Could not start session</h2>
+          <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
+          <button
+            onClick={() => initSession(selectedAgeGroup)}
+            className="px-6 py-2.5 rounded-xl bg-[var(--cyan-primary)] text-black font-semibold hover:opacity-90 active:scale-[0.98] transition-[opacity,transform] flex items-center gap-2 cursor-pointer"
+          >
+            <RefreshCw className="w-4 h-4" /> Retry Connection
+          </button>
+        </div>
+      </PageShell>
     );
   }
-return (
-    <div className="bg-transparent text-[var(--text-main)] font-sans min-h-[100dvh] w-full flex flex-col select-none">
-      <Navbar 
-        currentView="reaction-test" 
-        onNavigate={onNavigate} 
-        onBack={() => onNavigate('assessments')}
-        isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'}
-        theme="dark"
-      />
-      
-      <main 
-        className="flex-1 w-full relative flex flex-col items-center justify-center overflow-y-auto bg-transparent py-4 pb-safe px-safe"
-                style={{ 
-          paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
-          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
-          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))'
-        }}
-      >
+
+  return (
+    <PageShell
+      currentView="reaction-test"
+      onNavigate={onNavigate}
+      onBack={() => onNavigate('assessments')}
+      isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'}
+      theme="dark-apparatus"
+      showFooter={false}
+      maxWidth="full"
+      contentClassName="items-center justify-center overflow-y-auto py-4"
+    >
         <h1 className="sr-only">Visual Reaction Test</h1>
         <style>{`
           @keyframes fadeIn {
@@ -931,13 +940,11 @@ return (
           </div>
         )}
         </motion.div>
-      </main>
-
-      <AssessmentInfoPanel
-        route="/reaction-test"
-        isOpen={isInfoOpen}
-        onClose={() => setIsInfoOpen(false)}
-      />
-    </div>
+        <AssessmentInfoPanel
+          route="/reaction-test"
+          isOpen={isInfoOpen}
+          onClose={() => setIsInfoOpen(false)}
+        />
+      </PageShell>
   );
 }

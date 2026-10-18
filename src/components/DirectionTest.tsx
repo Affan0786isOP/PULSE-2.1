@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Navbar } from './Navbar';
+import { PageShell } from './layout/PageShell';
 import { AgeSelection } from './AgeSelection';
 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -682,48 +682,57 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection assessmentId="direction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return (
+      <PageShell
+        currentView="direction-test"
+        onNavigate={onNavigate}
+        onBack={() => onNavigate('assessments')}
+        theme="light"
+        showFooter={false}
+        contentClassName="items-center justify-center py-4"
+      >
+        <AgeSelection assessmentId="direction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />
+      </PageShell>
+    );
   }
 
   if (sessionError) {
     return (
-      <div className="bg-transparent text-[var(--text-primary)] font-sans min-h-[100dvh] w-full flex flex-col select-none">
-        <Navbar currentView="direction-test" onNavigate={onNavigate} onBack={() => onNavigate('assessments')} theme="dark" />
-        <main className="flex-1 w-full flex flex-col items-center justify-center p-6 text-center">
-          <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">Failed to start session</h2>
-            <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
-            <button
-              onClick={() => initSession(selectedAgeGroup)}
-              className="px-6 py-2.5 rounded-xl bg-[var(--cyan-primary)] text-black font-semibold hover:opacity-90 transition flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" /> Retry connection
-            </button>
-          </div>
-        </main>
-      </div>
+      <PageShell
+        currentView="direction-test"
+        onNavigate={onNavigate}
+        onBack={() => onNavigate('assessments')}
+        theme="dark-apparatus"
+        showFooter={false}
+        contentClassName="items-center justify-center p-6 text-center"
+      >
+        <div className="max-w-md p-6 rounded-2xl bg-[var(--surface-1)] border border-[var(--color-error)]/30 flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-[var(--color-error)]/10 text-[var(--color-error)] flex items-center justify-center font-bold text-xl">!</div>
+          <h2 className="text-lg font-bold text-[var(--text-primary)]">Failed to start session</h2>
+          <p className="text-sm text-[var(--text-muted)]">{sessionError}</p>
+          <button
+            onClick={() => initSession(selectedAgeGroup)}
+            className="px-6 py-2.5 rounded-xl bg-[var(--cyan-primary)] text-black font-semibold hover:opacity-90 transition flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" /> Retry connection
+          </button>
+        </div>
+      </PageShell>
     );
   }
-return (
-    <div className="bg-transparent text-[var(--text-primary)] font-sans min-h-[100dvh] w-full flex flex-col select-none">
-      <Navbar 
-        currentView="direction-test" 
-        onNavigate={onNavigate} 
-        onBack={() => onNavigate('assessments')}
-        isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'}
-        theme="dark"
-      />
-      
-      <main 
-        className="flex-1 w-full relative flex flex-col items-center justify-center overflow-y-auto bg-transparent py-4 pb-safe px-safe"
-                style={{ 
-          paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
-          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
-          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))'
-        }}
-      >
-        <h1 className="sr-only">Directional Choice Test</h1>
+
+  return (
+    <PageShell
+      currentView="direction-test"
+      onNavigate={onNavigate}
+      onBack={() => onNavigate('assessments')}
+      isAssessmentActive={engineState !== 'READY' && engineState !== 'REPORT'}
+      theme="dark-apparatus"
+      showFooter={false}
+      maxWidth="full"
+      contentClassName="items-center justify-center overflow-y-auto py-4"
+    >
+      <h1 className="sr-only">Directional Choice Test</h1>
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -908,13 +917,11 @@ return (
           </div>
         )}
       </motion.div>
-      </main>
-
       <AssessmentInfoPanel
         route="/direction-test"
         isOpen={isInfoOpen}
         onClose={() => setIsInfoOpen(false)}
       />
-    </div>
+    </PageShell>
   );
 }

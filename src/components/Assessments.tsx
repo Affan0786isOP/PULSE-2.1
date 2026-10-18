@@ -1,9 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Navbar } from './Navbar';
-import { Footer } from './Footer';
-import { SEO } from './SEO';
 import { ArrowRight } from 'lucide-react';
+import { PageShell } from './layout/PageShell';
 
 export function Assessments({ onNavigate }: { onNavigate: (view: string) => void }) {
   const assessments = [
@@ -75,113 +73,103 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
   };
 
   return (
-    <div className="bg-[var(--bg-base)] text-[var(--text-primary)] min-h-[100dvh] w-full flex flex-col font-sans relative selection:bg-[var(--accent-subtle)]">
-      <SEO 
-        title="Assessments | PULSE"
-        description="Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory."
-      />
-      <Navbar 
-        currentView="assessments" 
-        onNavigate={onNavigate} 
-      />
-      
-      <main 
-        className="flex-1 flex flex-col items-center p-6 sm:p-10 md:p-12 relative overflow-y-auto pb-safe px-safe"
-        style={{
-          paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom, 0px))',
-          paddingLeft: 'max(1.5rem, env(safe-area-inset-left, 0px))',
-          paddingRight: 'max(1.5rem, env(safe-area-inset-right, 0px))'
-        }}
-      >
-        <div className="w-full max-w-6xl z-10 flex flex-col">
-          {/* Section Header */}
-          <header className="mb-8 md:mb-10 flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
-              <span className="font-mono text-xs text-[var(--accent)] tracking-widest uppercase font-medium">
-                TEST BATTERY
-              </span>
-            </div>
-            <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--text-primary)]">
-              Assessments
-            </h1>
-            <p className="text-[var(--text-secondary)] text-sm sm:text-base max-w-2xl leading-relaxed">
-              Five tasks measuring reaction time, attention, and memory.
-            </p>
-          </header>
-          
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-          >
-            {assessments.map((assessment) => (
-              <motion.button 
-                key={assessment.id}
-                type="button"
-                disabled={assessment.status !== 'AVAILABLE'}
-                variants={itemVariants}
-                whileHover={assessment.status === 'AVAILABLE' ? { y: -3, transition: { duration: 0.15 } } : undefined}
-                whileTap={assessment.status === 'AVAILABLE' ? { scale: 0.98 } : undefined}
-                onClick={() => assessment.status === 'AVAILABLE' && onNavigate(assessment.id)}
-                className={`relative rounded-2xl flex flex-col text-left overflow-hidden w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] transition-all ${
-                  assessment.status === 'AVAILABLE' 
-                    ? 'bg-[var(--surface-1)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:shadow-lg cursor-pointer group' 
-                    : 'bg-[var(--surface-1)] border border-[var(--border-subtle)] opacity-40 cursor-not-allowed'
-                }`}
-              >
-                <div className="relative w-full h-44 bg-[var(--surface-0)] border-b border-[var(--border-subtle)] flex items-center justify-center overflow-hidden">
-                  <div 
-                    className="absolute inset-0 opacity-20 pointer-events-none"
-                    style={{
-                      backgroundImage: 'var(--bg-grid-pattern)',
-                      backgroundSize: '48px 48px'
-                    }}
-                  />
-                  <img 
-                    src={assessment.logo} 
-                    alt={assessment.title}
-                    className="w-24 h-24 sm:w-26 sm:h-26 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-3.5 right-3.5 z-20">
-                     <span className="font-mono text-[10px] text-[var(--text-primary)] bg-[var(--surface-1)]/90 backdrop-blur-md px-2.5 py-1 rounded-md border border-[var(--border-subtle)] uppercase tracking-wider font-medium">
-                       {assessment.badge}
-                     </span>
-                  </div>
-                  <div className="absolute bottom-3 left-4 z-20">
-                    <span className="font-mono text-[11px] text-[var(--accent)] font-semibold tracking-wider">
-                      {assessment.protocolNumber}
-                    </span>
-                  </div>
+    <PageShell
+      currentView="assessments"
+      onNavigate={onNavigate}
+      decorativeWaves="side"
+      maxWidth="6xl"
+      contentClassName="p-4 sm:p-8 md:p-10"
+    >
+      <div className="w-full flex flex-col">
+        {/* Section Header */}
+        <header className="mb-8 md:mb-10 flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#0066FF]" />
+            <span className="font-mono text-xs text-[#0066FF] tracking-widest uppercase font-semibold">
+              TEST BATTERY
+            </span>
+          </div>
+          <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#090D1A]">
+            Assessments
+          </h1>
+          <p className="text-[#334155] text-sm sm:text-base max-w-2xl leading-relaxed">
+            Five tasks measuring reaction time, attention, and memory.
+          </p>
+        </header>
+        
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {assessments.map((assessment) => (
+            <motion.button 
+              key={assessment.id}
+              type="button"
+              disabled={assessment.status !== 'AVAILABLE'}
+              variants={itemVariants}
+              whileHover={assessment.status === 'AVAILABLE' ? { y: -3, transition: { duration: 0.15 } } : undefined}
+              whileTap={assessment.status === 'AVAILABLE' ? { scale: 0.98 } : undefined}
+              onClick={() => assessment.status === 'AVAILABLE' && onNavigate(assessment.id)}
+              className={`relative rounded-2xl flex flex-col text-left overflow-hidden w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] transition-all ${
+                assessment.status === 'AVAILABLE' 
+                  ? 'bg-white/90 backdrop-blur-sm border border-slate-200/80 hover:border-[#0066FF]/40 hover:shadow-lg hover:shadow-blue-500/5 cursor-pointer group' 
+                  : 'bg-slate-50 border border-slate-200 opacity-40 cursor-not-allowed'
+              }`}
+            >
+              {/* Card Medallion Header */}
+              <div className="relative w-full h-44 bg-[#F0F7FF] border-b border-slate-200/60 flex items-center justify-center overflow-hidden">
+                <div 
+                  className="absolute inset-0 opacity-40 pointer-events-none"
+                  style={{
+                    backgroundImage: 'radial-gradient(rgba(0, 102, 255, 0.12) 1.2px, transparent 1.2px)',
+                    backgroundSize: '24px 24px',
+                  }}
+                />
+                <img 
+                  src={assessment.logo} 
+                  alt={assessment.title}
+                  className="w-24 h-24 sm:w-26 sm:h-26 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute top-3.5 right-3.5 z-20">
+                   <span className="font-mono text-[10px] text-slate-700 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider font-semibold shadow-xs">
+                     {assessment.badge}
+                   </span>
+                </div>
+                <div className="absolute bottom-3 left-4 z-20">
+                  <span className="font-mono text-[11px] text-[#0066FF] font-semibold tracking-wider">
+                    {assessment.protocolNumber}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Card Content */}
+              <div className="p-5 sm:p-6 flex flex-col flex-1">
+                <div className="text-[10px] font-mono font-semibold text-slate-500 tracking-wider uppercase mb-1.5">
+                  {assessment.type}
                 </div>
                 
-                <div className="p-5 sm:p-6 flex flex-col flex-1">
-                  <div className="text-[10px] font-mono font-medium text-[var(--text-muted)] tracking-wider uppercase mb-1.5">
-                    {assessment.type}
+                <h2 className="font-heading text-xl font-bold tracking-tight text-[#090D1A] mb-2 group-hover:text-[#0066FF] transition-colors">
+                  {assessment.title}
+                </h2>
+                <p className="text-xs sm:text-sm text-[#334155] leading-relaxed flex-1 mb-5">
+                  {assessment.description}
+                </p>
+                
+                {assessment.status === 'AVAILABLE' && (
+                  <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#BFDBFE] bg-white text-[#0066FF] text-xs font-semibold group-hover:bg-[#F0F7FF] group-hover:border-[#0066FF] transition-colors">
+                      <span>Try {assessment.title}</span>
+                      <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                    </span>
                   </div>
-                  
-                  <h2 className="font-heading text-xl font-bold tracking-tight text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent)] transition-colors">
-                    {assessment.title}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed flex-1 mb-4">
-                    {assessment.description}
-                  </p>
-                  
-                  {assessment.status === 'AVAILABLE' && (
-                    <div className="mt-auto pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors">
-                      <span className="tracking-wide">Start test</span>
-                      <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  )}
-                </div>
-              </motion.button>
-            ))}
-          </motion.div>
-        </div>
-      </main>
-      
-      <Footer />
-    </div>
+                )}
+              </div>
+            </motion.button>
+          ))}
+        </motion.div>
+      </div>
+    </PageShell>
   );
 }

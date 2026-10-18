@@ -134,15 +134,15 @@ export function AssessmentResultReward({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="w-full max-w-lg mx-auto bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 shadow-sm flex flex-col my-auto select-none"
+      className="w-full max-w-lg mx-auto bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-6 shadow-md flex flex-col my-auto select-none text-[#090D1A]"
     >
       {/* Top Header: Assessment Title & Real Personal Best Badge */}
-      <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
-        <span className="font-mono text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+      <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-200/80">
+        <span className="font-mono text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
           {title} Result
         </span>
         {historyStats.isNewPersonalBest && (
-          <span className="inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--accent)] bg-[var(--accent-subtle)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
+          <span className="inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#0066FF] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
             <Trophy size={11} />
             Personal Best
           </span>
@@ -150,7 +150,7 @@ export function AssessmentResultReward({
       </div>
 
       {historyStats.pbError && !submissionError && (
-        <div className="w-full text-[10px] font-mono text-amber-400/80 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded text-center my-1 flex items-center justify-center gap-1.5">
+        <div className="w-full text-[10px] font-mono text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-center my-1 flex items-center justify-center gap-1.5">
           <AlertCircle size={11} className="shrink-0" />
           <span>Could not load personal best</span>
         </div>
@@ -163,10 +163,10 @@ export function AssessmentResultReward({
 
       {/* Primary Authoritative Score */}
       <div className="flex items-baseline justify-center gap-1.5 my-2 z-10 relative">
-        <span className="text-4xl sm:text-5xl font-mono font-bold tracking-tight text-[var(--text-primary)]">
+        <span className="text-4xl sm:text-5xl font-mono font-bold tracking-tight text-[#090D1A]">
           {animatedScore}
         </span>
-        <span className="text-base sm:text-lg font-mono font-semibold text-[var(--accent)]">
+        <span className="text-base sm:text-lg font-mono font-semibold text-[#0066FF]">
           {unit}
         </span>
       </div>
@@ -175,12 +175,12 @@ export function AssessmentResultReward({
       {supportingMetrics && supportingMetrics.length > 0 && (
         <div className={`grid ${supportingMetrics.length <= 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} gap-2 w-full my-2`}>
           {supportingMetrics.map((m, idx) => (
-            <div key={idx} className="flex flex-col items-center justify-center bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-lg p-2 text-center">
-              <span className="font-mono text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-0.5">
+            <div key={idx} className="flex flex-col items-center justify-center bg-slate-50 border border-slate-200/80 rounded-lg p-2 text-center">
+              <span className="font-mono text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">
                 {m.label}
               </span>
-              <span className="font-mono text-sm sm:text-base font-bold text-[var(--text-primary)]">
-                {m.value}{m.unit ? <span className="text-xs text-[var(--text-muted)] ml-0.5 font-normal">{m.unit}</span> : ''}
+              <span className="font-mono text-sm sm:text-base font-bold text-[#090D1A]">
+                {m.value}{m.unit ? <span className="text-xs text-slate-500 ml-0.5 font-normal">{m.unit}</span> : ''}
               </span>
             </div>
           ))}
@@ -189,9 +189,9 @@ export function AssessmentResultReward({
 
       {/* Submission error notification if cloud sync failed */}
       {submissionError && (
-        <div className="w-full bg-rose-500/10 border border-rose-500/30 text-rose-400 p-2.5 rounded-lg my-2 flex items-center justify-between text-xs font-mono">
+        <div className="w-full bg-rose-50 border border-rose-200 text-rose-600 p-2.5 rounded-lg my-2 flex items-center justify-between text-xs font-mono">
           <div className="flex items-center gap-1.5 min-w-0 mr-2">
-            <AlertCircle size={14} className="shrink-0 text-rose-400" />
+            <AlertCircle size={14} className="shrink-0 text-rose-500" />
             <span className="truncate">{submissionError}</span>
           </div>
           {onRetrySubmission && (
@@ -199,7 +199,7 @@ export function AssessmentResultReward({
               type="button"
               onClick={onRetrySubmission}
               disabled={isSubmitting}
-              className="px-2.5 py-1 bg-rose-500/20 hover:bg-rose-500/30 active:bg-rose-500/40 active:scale-[0.97] text-rose-200 border border-rose-500/40 rounded text-[10px] font-bold uppercase tracking-wider cursor-pointer shrink-0 transition-[background-color,transform]"
+              className="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 active:bg-rose-300 active:scale-[0.97] text-rose-800 border border-rose-300 rounded text-[10px] font-bold uppercase tracking-wider cursor-pointer shrink-0 transition-[background-color,transform]"
             >
               {isSubmitting ? '...' : 'Retry'}
             </button>
@@ -215,12 +215,12 @@ export function AssessmentResultReward({
       )}
 
       {/* Standardized Actions Bar */}
-      <div className="flex items-center gap-2 w-full mt-3 pt-3 border-t border-[var(--border-subtle)]">
+      <div className="flex items-center gap-2 w-full mt-3 pt-3 border-t border-slate-200/80">
         <button
           type="button"
           onClick={onRetry}
           id="result-retry-button"
-          className="flex-1 h-10 px-3 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--border-subtle)] active:bg-[var(--surface-3)] active:scale-[0.98] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] text-xs font-mono font-medium uppercase tracking-wider transition-[background-color,border-color,transform] inline-flex items-center justify-center gap-1.5 cursor-pointer"
+          className="flex-1 h-10 px-3 rounded-lg bg-slate-100 hover:bg-slate-200/80 active:bg-slate-200 active:scale-[0.98] text-slate-700 border border-slate-200 hover:border-slate-300 text-xs font-mono font-medium uppercase tracking-wider transition-[background-color,border-color,transform] inline-flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <RotateCcw size={13} />
           <span>Try Again</span>
@@ -230,7 +230,7 @@ export function AssessmentResultReward({
           type="button"
           onClick={onNext}
           id="result-next-button"
-          className="flex-1 h-10 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] active:opacity-90 active:scale-[0.98] text-slate-950 text-xs font-mono font-bold uppercase tracking-wider transition-[background-color,opacity,transform] inline-flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+          className="flex-1 h-10 px-4 rounded-lg bg-[#0066FF] hover:bg-[#0052CC] active:opacity-90 active:scale-[0.98] text-white text-xs font-mono font-bold uppercase tracking-wider transition-[background-color,opacity,transform] inline-flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
         >
           <span className="truncate">{nextAssessmentName}</span>
           <ArrowRight size={13} className="shrink-0" />
@@ -241,7 +241,7 @@ export function AssessmentResultReward({
             type="button"
             onClick={onViewLeaderboard}
             id="result-leaderboard-button"
-            className="w-10 h-10 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--border-subtle)] active:bg-[var(--surface-3)] active:scale-[0.97] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] flex items-center justify-center transition-[background-color,color,transform] cursor-pointer shrink-0"
+            className="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200/80 active:bg-slate-200 active:scale-[0.97] text-slate-600 hover:text-slate-900 border border-slate-200 flex items-center justify-center transition-[background-color,color,transform] cursor-pointer shrink-0"
             title="View leaderboard"
             aria-label="View leaderboard"
           >

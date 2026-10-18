@@ -1,58 +1,50 @@
 import React from 'react';
 import { Database, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Navbar } from './Navbar';
-import { Footer } from './Footer';
-import { SEO } from './SEO';
+import { PageShell } from './layout/PageShell';
 
 export function DatasetComingSoon() {
   return (
-    <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-primary)] font-sans flex flex-col selection:bg-[var(--accent-subtle)]">
-      <SEO
-        title="Dataset Coming Soon | PULSE"
-        description="The public PULSE research dataset is being prepared for release."
-        noindex
-      />
+    <PageShell
+      currentView="dataset"
+      decorativeWaves="bottom"
+      noindex={true}
+      maxWidth="2xl"
+      contentClassName="items-center justify-center py-12 sm:py-16"
+    >
+      <section
+        aria-labelledby="dataset-coming-soon-title"
+        className="w-full text-center bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-2xl p-8 sm:p-12 shadow-xs"
+      >
+        <div className="mx-auto mb-6 w-14 h-14 rounded-2xl bg-[#E0F2FE] border border-[#BFDBFE] flex items-center justify-center text-[#0066FF]">
+          <Database size={24} aria-hidden="true" />
+        </div>
 
-      <Navbar currentView="dataset" />
+        <p className="text-[11px] font-mono font-semibold text-[#0066FF] uppercase tracking-[0.22em] mb-3">
+          Dataset
+        </p>
 
-      <main className="flex-1 w-full flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <section
-          aria-labelledby="dataset-coming-soon-title"
-          className="w-full max-w-2xl text-center"
+        <h1
+          id="dataset-coming-soon-title"
+          className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#090D1A]"
         >
-          <div className="mx-auto mb-6 w-14 h-14 rounded-2xl bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)]">
-            <Database size={24} aria-hidden="true" />
-          </div>
+          PUBLIC RESEARCH DATASET — COMING SOON
+        </h1>
 
-          <p className="text-[11px] font-mono font-semibold text-[var(--accent)] uppercase tracking-[0.22em] mb-3">
-            Dataset
-          </p>
+        <p className="mt-5 text-sm sm:text-base text-[#334155] leading-relaxed max-w-xl mx-auto">
+          We’re preparing the verified PULSE research dataset for public release. The explorer will open once the dataset reaches the required research and quality standards.
+        </p>
 
-          <h1
-            id="dataset-coming-soon-title"
-            className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[var(--text-primary)]"
+        <div className="mt-8 flex justify-center">
+          <Link
+            to="/assessments"
+            className="inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-semibold text-xs sm:text-sm transition-all active:scale-[0.98] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
           >
-            PUBLIC RESEARCH DATASET — COMING SOON
-          </h1>
-
-          <p className="mt-5 text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed max-w-xl mx-auto">
-            We’re preparing the verified PULSE research dataset for public release. The explorer will open once the dataset reaches the required research and quality standards.
-          </p>
-
-          <div className="mt-8 flex justify-center">
-            <Link
-              to="/assessments"
-              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-slate-950 font-semibold text-xs sm:text-sm transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-            >
-              <span>Explore Assessments</span>
-              <ArrowRight size={15} aria-hidden="true" />
-            </Link>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
+            <span>Explore Assessments</span>
+            <ArrowRight size={15} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+    </PageShell>
   );
 }

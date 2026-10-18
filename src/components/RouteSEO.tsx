@@ -29,6 +29,12 @@ type RouteMetadata = {
 export function RouteSEO() {
   const location = useLocation();
   const canonicalPath = getCanonicalPath(location.pathname);
+
+  // If a PageShell is currently mounted and managing SEO, RouteSEO yields
+  if (typeof document !== 'undefined' && document.querySelector('meta[data-seo-owner="shell"]')) {
+    return null;
+  }
+
   const route = (metadata.routes as Record<string, RouteMetadata>)[canonicalPath];
 
   if (!route) {

@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Navbar } from './Navbar';
+import { PageShell } from './layout/PageShell';
 import { getLeaderboardResults, LeaderboardEntry, AssessmentType, isOptedInLeaderboardUser } from '../lib/firestore';
 import { Trophy, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox } from 'lucide-react';
-import { SEO } from './SEO';
 import { getDisplayedLeaderboardRank } from '../../shared/domain/leaderboardRanking';
-import { LeaderboardSideWaves } from './leaderboard/LeaderboardSideWaves';
 
 type ColumnKey = 'rank' | 'name' | 'time' | 'accuracy' | 'age';
 
@@ -241,26 +239,14 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   };
 
   return (
-    <div 
-      data-theme="light" 
-      className="min-h-[100dvh] w-full bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] font-sans selection:bg-[#0066FF]/20 overflow-x-hidden relative flex flex-col"
+    <PageShell
+      currentView="leaderboard"
+      onNavigate={onNavigate}
+      decorativeWaves="side"
+      maxWidth="5xl"
+      showFooter={false}
+      contentClassName="pt-6 pb-16 max-w-[1040px] px-4 sm:px-6 lg:px-8"
     >
-      <SEO 
-        title="Verified Leaderboard & Cohort Rankings | PULSE"
-        description="Compare participant-selected display names against age-cohort results across five cognitive assessments."
-      />
-
-      {/* Decorative Fluid Blue Waves along edges + subtle dot grid identical to Home */}
-      <LeaderboardSideWaves />
-
-      {/* Primary Desktop Navigation Bar */}
-      <Navbar currentView="leaderboard" onNavigate={onNavigate} theme="light" />
-
-      <main 
-        id="main-content"
-        tabIndex={-1}
-        className="flex-1 w-full max-w-[1040px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 flex flex-col relative z-10 focus-visible:outline-none"
-      >
         {/* Header Section */}
         <header className="mb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="flex items-start gap-4">
@@ -601,7 +587,6 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             </div>
           )}
         </div>
-      </main>
-    </div>
+    </PageShell>
   );
 }

@@ -26,8 +26,10 @@ vi.mock('../../mobile/src/lib/firestore', () => ({
 }));
 
 vi.mock('../../src/components/Navbar', () => ({ Navbar: () => null }));
-vi.mock('../../src/components/Footer', () => ({ Footer: () => null }));
-vi.mock('../../src/components/SEO', () => ({ SEO: () => null }));
+vi.mock('../../src/components/SEO', () => ({ 
+  SEO: () => null,
+  getCanonicalPath: (p: string) => p,
+}));
 vi.mock('../../mobile/src/components/Navbar', () => ({
   Navbar: ({ rightContent }: { rightContent?: React.ReactNode }) => rightContent ?? null,
 }));

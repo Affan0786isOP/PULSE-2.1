@@ -3,12 +3,10 @@ import { Link } from 'react-router-dom';
 import { 
   ArrowRight
 } from 'lucide-react';
-import { SEO } from './SEO';
 import { useReducedMotionPreference } from '../lib/settingsStore';
 import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
-import { DesktopWaveGraphic } from './home/DesktopWaveGraphic';
-import { Navbar } from './Navbar';
+import { PageShell } from './layout/PageShell';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -104,44 +102,15 @@ export function Home() {
   );
 
   return (
-    <div 
+    <PageShell
+      currentView="home"
+      schema={HOME_SCHEMA}
+      decorativeWaves="bottom"
+      showFooter={false}
       style={desktopScale !== 1 ? { zoom: desktopScale, minHeight: `calc(100dvh / ${desktopScale})` } : undefined}
-      className="min-h-[100dvh] w-full bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] font-sans selection:bg-[#0066FF]/20 overflow-x-hidden relative flex flex-col"
+      contentClassName="h-[100dvh] overflow-x-hidden justify-center px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 pb-4 sm:pb-6"
     >
-      <a 
-        href="#main-content" 
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:bg-[#0066FF] focus:text-white focus:font-semibold focus:text-xs focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0066FF]/60"
-      >
-        Skip to main content
-      </a>
-
-      <SEO 
-        title="PULSE — Precision User Latency & Stimulus Evaluator"
-        description="A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing."
-        schema={HOME_SCHEMA}
-      />
-      
-      {/* Background Subtle Dot-Matrix Grid */}
-      <div 
-        className="absolute inset-0 pointer-events-none select-none z-0 opacity-40"
-        style={{
-          backgroundImage: 'radial-gradient(rgba(0, 102, 255, 0.12) 1.2px, transparent 1.2px)',
-          backgroundSize: '36px 36px',
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Top Navigation Bar */}
-      <Navbar currentView="home" />
-
-
-      {/* Main Viewport Container - Perfectly Centered on Shared Visual Axis */}
-      <main 
-        id="main-content" 
-        tabIndex={-1} 
-        className="w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto flex-1 flex flex-col justify-center px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 relative z-10 focus-visible:outline-none pb-4 sm:pb-6"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
         {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
         <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[2560px]:max-w-[580px]">
           {/* Eyebrow Badge */}
@@ -242,10 +211,6 @@ export function Home() {
           <AssessmentHero3D />
         </section>
         </div>
-      </main>
-
-      {/* Flowing Layered Wave Graphic along lower edge */}
-      <DesktopWaveGraphic />
-    </div>
+    </PageShell>
   );
 }
