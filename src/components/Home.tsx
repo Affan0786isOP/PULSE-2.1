@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useReducedMotionPreference } from '../lib/settingsStore';
 import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
+import { useBaselineScale } from '../lib/useBaselineScale';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { PageShell } from './layout/PageShell';
 
@@ -71,26 +72,7 @@ const HOME_SCHEMA = {
 export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
   const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
-
-  // Pixel-perfect uniform scaling based on 1280x720 baseline for screens >= 768px
-  const [desktopScale, setDesktopScale] = useState(1);
-
-  React.useEffect(() => {
-    const updateScale = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      if (w >= 768) {
-        // Uniform aspect scaling to ensure exact 720p visual proportion fits perfectly on any screen
-        const scale = Math.min(w / 1280, h / 720);
-        setDesktopScale(scale);
-      } else {
-        setDesktopScale(1);
-      }
-    };
-    updateScale();
-    window.addEventListener('resize', updateScale, { passive: true });
-    return () => window.removeEventListener('resize', updateScale);
-  }, []);
+  const { style: stageStyle } = useBaselineScale();
 
   // Format verified dynamic result count safely
   const displayResults = isLoadingResults ? (
@@ -107,7 +89,7 @@ export function Home() {
       schema={HOME_SCHEMA}
       decorativeWaves="bottom"
       showFooter={false}
-      style={desktopScale !== 1 ? { zoom: desktopScale, minHeight: `calc(100dvh / ${desktopScale})` } : undefined}
+      style={stageStyle}
       contentClassName="h-[100dvh] overflow-x-hidden justify-center px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 pb-4 sm:pb-6"
     >
       <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
