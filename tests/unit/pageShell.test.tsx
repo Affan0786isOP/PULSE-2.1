@@ -173,4 +173,40 @@ describe('PageShell Layout & Architecture', () => {
     expect(jsonLd).not.toBeNull();
     expect(jsonLd?.textContent).toContain('Test Scientific Schema');
   });
+
+  it('applies uniform baseline scaling by default on desktop viewports and allows disabling via disableScaling', () => {
+    const originalW = window.innerWidth;
+    const originalH = window.innerHeight;
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1920 });
+    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 1080 });
+
+    try {
+      const { container: scaledContainer, unmount: unmountScaled } = render(
+        <MemoryRouter initialEntries={['/about']}>
+          <PageShell currentView="about">
+            <div>Scaled Content</div>
+          </PageShell>
+        </MemoryRouter>
+      );
+
+      const scaledRoot = scaledContainer.firstElementChild as HTMLElement;
+      expect(scaledRoot.style.zoom).toBe('1.5');
+      expect(scaledRoot.style.minHeight).toMatch(/calc\((100dvh \/ 1\.5|66\.6667dvh)\)/);
+      unmountScaled();
+
+      const { container: unscaledContainer } = render(
+        <MemoryRouter initialEntries={['/about']}>
+          <PageShell currentView="about" disableScaling={true}>
+            <div>Unscaled Content</div>
+          </PageShell>
+        </MemoryRouter>
+      );
+
+      const unscaledRoot = unscaledContainer.firstElementChild as HTMLElement;
+      expect(unscaledRoot.style.zoom).toBeFalsy();
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: originalW });
+      Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: originalH });
+    }
+  });
 });

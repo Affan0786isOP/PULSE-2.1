@@ -5,6 +5,7 @@ import { Footer } from '../Footer';
 import { SEO, getCanonicalPath } from '../SEO';
 import { DesktopWaveGraphic } from '../home/DesktopWaveGraphic';
 import { LeaderboardSideWaves } from '../leaderboard/LeaderboardSideWaves';
+import { useBaselineScale } from '../../lib/useBaselineScale';
 import seoMetadata from '../../../shared/seoMetadata.json';
 
 export interface PageShellProps {
@@ -24,6 +25,7 @@ export interface PageShellProps {
   showFooter?: boolean;
   theme?: 'light' | 'dark-apparatus';
   contentClassName?: string;
+  disableScaling?: boolean;
   style?: React.CSSProperties;
 }
 
@@ -56,9 +58,12 @@ export const PageShell: React.FC<PageShellProps> = ({
   showFooter = true,
   theme = 'light',
   contentClassName = '',
+  disableScaling = false,
   style,
 }) => {
   const location = useLocation();
+  const { style: scaleStyle } = useBaselineScale();
+  const effectiveStyle = disableScaling ? style : (scaleStyle ? { ...scaleStyle, ...style } : style);
 
   // Register shell as authoritative SEO owner before any useEffect runs
   useLayoutEffect(() => {
@@ -90,7 +95,7 @@ export const PageShell: React.FC<PageShellProps> = ({
   return (
     <div
       data-theme={isDarkApparatus ? 'dark' : 'light'}
-      style={style}
+      style={effectiveStyle}
       className={`min-h-[100dvh] w-full font-sans overflow-x-hidden relative flex flex-col ${
         isDarkApparatus
           ? 'bg-[#12161B] text-white selection:bg-[#0066FF]/30'

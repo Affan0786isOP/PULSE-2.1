@@ -1,14 +1,11 @@
 import React from 'react';
-import { Navbar } from './Navbar';
-import { Footer } from './Footer';
+import { PageShell } from './layout/PageShell';
 import { FileQuestion, ArrowRight } from 'lucide-react';
 
 export function NotFound({ onNavigate }: { onNavigate: (view: string) => void }) {
   return (
-    <div className="min-h-[100dvh] bg-[var(--bg-base)] text-[var(--text-primary)] font-sans selection:bg-[var(--accent-subtle)] flex flex-col relative overflow-hidden">
-      <Navbar currentView="" onNavigate={onNavigate} />
-
-      <main className="flex-1 flex flex-col items-center justify-center p-6 z-10 text-center">
+    <PageShell currentView="404" onNavigate={onNavigate} showFooter={true} customTitle="404 - Page Not Found | PULSE">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 z-10 text-center">
         <div className="w-16 h-16 rounded-2xl bg-[var(--surface-1)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent)] mb-6">
           <FileQuestion size={32} strokeWidth={1.5} />
         </div>
@@ -31,9 +28,7 @@ export function NotFound({ onNavigate }: { onNavigate: (view: string) => void })
           <span>Return to Dashboard</span>
           <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </PageShell>
   );
 }
