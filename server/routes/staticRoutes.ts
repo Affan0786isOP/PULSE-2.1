@@ -75,6 +75,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
     const HASHED_ASSET_REGEX = /\/assets\/.*-[A-Za-z0-9_-]{8,}\.(js|css)$/;
 
     app.use(express.static(distPath, {
+      index: false,
       dotfiles: 'deny',
       setHeaders: (res, filePath) => {
         const normalized = filePath.replace(/\\/g, '/');
@@ -102,7 +103,21 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
       if (reqPath.startsWith('/assets/') || reqPath.startsWith('/mobile/assets/')) return true;
       // Any request with a file extension (e.g. .js, .css, .png, .map, etc.)
       const lastSegment = reqPath.split('/').pop() || '';
+      // We no longer exempt .html here so that index.html explicit requests drop into fallback
       return lastSegment.includes('.') && !lastSegment.endsWith('.html');
+    };
+
+    const serveWithNonce = (filePath: string, res: express.Response) => {
+      const nonce = res.locals.nonce || '';
+      fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+          res.status(500).type('text/plain').send('Internal Server Error');
+          return;
+        }
+        // Use case-insensitive regex in case there are <SCRIPT> tags
+        const injectedHtml = nonce ? data.replace(/<script\b/ig, `<script nonce="${nonce}"`) : data;
+        res.type('text/html').send(injectedHtml);
+      });
     };
 
     app.get(['/mobile', '/mobile/*'], (req, res) => {
@@ -113,9 +128,9 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
       const mobileHtml = path.join(distPath, 'mobile', 'index.html');
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       if (fs.existsSync(mobileHtml)) {
-        res.sendFile(mobileHtml);
+        serveWithNonce(mobileHtml, res);
       } else {
-        res.sendFile(path.join(distPath, 'index.html'));
+        serveWithNonce(path.join(distPath, 'index.html'), res);
       }
     });
 
@@ -126,7 +141,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
         return res.status(404).type('text/plain').send('Not found');
       }
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
-      res.sendFile(path.join(distPath, 'index.html'));
+      serveWithNonce(path.join(distPath, 'index.html'), res);
     });
   }
 }
