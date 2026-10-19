@@ -2,35 +2,51 @@ import { describe, it, expect } from 'vitest';
 import { deriveDirectionMetrics } from './flankerCalculator';
 import { deriveColorRecognitionMetrics, validateColorRecognitionTrial } from './stroopCalculator';
 import { deriveVisualReactionMetrics } from './reactionCalculator';
+import { seedPRNG } from './prng';
 
 describe('Wave 2 Backend Fixes Regression', () => {
   it('PB-3: Direction PRNG uses attempt count to avoid predictable restarts', () => {
-    // Generate trials with duplicate trialNumbers to simulate retries
+    const sessionId = 'test-session-pb3';
+
+    // Simulate PRNG for attempt 1
+    const prng1 = seedPRNG(`${sessionId}-direction-0-a1`);
+    prng1(); // skip windowDelay
+    const DIRECTIONS = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+    const expectedDir1 = DIRECTIONS[Math.floor(prng1() * DIRECTIONS.length)];
+
+    // Simulate PRNG for attempt 2
+    const prng2 = seedPRNG(`${sessionId}-direction-0-a2`);
+    prng2(); // skip windowDelay
+    const expectedDir2 = DIRECTIONS[Math.floor(prng2() * DIRECTIONS.length)];
+
+    // Assert that the expected directions differ between attempts, which verifies
+    // that attemptNumber is correctly being incorporated into the PRNG seed.
+    expect(expectedDir1).not.toBe(expectedDir2);
+
     const baseTrial = {
-      targetDirection: 'UP',
-      reactionTime: 500,
-      userResponse: 'UP'
+      reactionTime: 500
     };
     
-    // We pass 2 trials with the same trialNumber
+    // We pass 2 trials with the same trialNumber but updated targets so they pass validation
     const trials = [
-      { ...baseTrial, trialNumber: 1 },
-      { ...baseTrial, trialNumber: 1 }
+      { ...baseTrial, targetDirection: expectedDir1, userResponse: expectedDir1, trialNumber: 1 },
+      { ...baseTrial, targetDirection: expectedDir2, userResponse: expectedDir2, trialNumber: 1 }
     ];
     
     const ctx = {
       trials,
       ageGroup: 'adult',
       session: 's1',
-      sessionId: 'test-session-pb3'
+      sessionId
     };
     
-    deriveDirectionMetrics(ctx as any);
+    const result = deriveDirectionMetrics(ctx as any);
     
-    // Since the PRNG seed includes attemptNumber, the expectedDir (which overrides targetDirection)
-    // might differ. The bug was that they would ALWAYS be identical. We can just check that attemptNumber
-    // logic doesn't crash and changes behavior from the buggy one.
-    // Actually, we can't assert they are different 100% of the time, but we can verify it doesn't crash.
+    // It should fail at trial 3 (missing trialNumber or completed trials size),
+    // but NOT on targetDirection mismatch for trial 2. This proves the logic accepted
+    // the differently generated PRNG expected directions for multiple attempts.
+    expect(result.success).toBe(false);
+    expect(result.error).not.toContain('targetDirection mismatch');
     expect(trials.length).toBe(2);
   });
 
