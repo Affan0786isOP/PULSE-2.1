@@ -135,8 +135,19 @@ export const generalApiLimiter = rateLimit({
   max: 2000,
   keyGenerator: createLimiterKey('general-api', false),
   store: createSharedStore(),
-  skip: (req) => req.method === 'GET' && req.originalUrl.split('?')[0] === '/api/leaderboard',
-  message: { success: false, error: 'Too many API requests' }
+  skip: (req) => {
+    if (req.method === 'GET' && req.originalUrl.split('?')[0] === '/api/leaderboard') return true;
+
+    // Skip static assets to avoid interfering with normal usage
+    if (req.method === 'GET') {
+      const path = req.path;
+      if (path.startsWith('/assets/') || path.startsWith('/mobile/assets/')) return true;
+      const lastSegment = path.split('/').pop() || '';
+      if (lastSegment.includes('.') && !lastSegment.endsWith('.html')) return true;
+    }
+    return false;
+  },
+  message: { success: false, error: 'Too many requests' }
 });
 
 export const adminLoginLimiter = rateLimit({
@@ -171,5 +182,5 @@ export function applyRateLimits(app: Express): void {
   app.use('/api/leaderboard/submit', leaderboardSubmitLimiter);
   app.use('/api/research/verify-provenance', verificationLimiter);
   app.use('/api/leaderboard/verify-provenance', verificationLimiter);
-  app.use('/api/', generalApiLimiter);
+  app.use(generalApiLimiter);
 }
