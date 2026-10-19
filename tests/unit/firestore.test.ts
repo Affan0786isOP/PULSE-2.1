@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   normalizeAssessmentType,
   startExperimentSession,
@@ -56,6 +56,11 @@ describe('API catch blocks error handling', () => {
     // Suppress console.error/warn during tests that intentionally trigger them
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('startExperimentSession handles .json() rejection correctly on failed request', async () => {
@@ -215,13 +220,10 @@ describe('setServiceWorkerActiveSession', () => {
     // ...
     // if (!active && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) { ... }
 
-    // Will reject internally but the .catch(() => {}) should swallow it
-    await expect(async () => {
-      setServiceWorkerActiveSession(false);
-      // Let promises flush
-      await new Promise(resolve => setTimeout(resolve, 10));
-    }).not.toThrow();
-
-    expect(getRegistrationMock).toHaveBeenCalled();
+    // The function returns void; wait for the rejected registration promise to settle
+    // so this test exercises the internal catch instead of only checking sync throws.
+    expect(() => setServiceWorkerActiveSession(false)).not.toThrow();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(getRegistrationMock).toHaveBeenCalledTimes(1);
   });
 });
