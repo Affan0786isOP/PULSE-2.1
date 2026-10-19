@@ -201,6 +201,11 @@ describe('API catch blocks error handling', () => {
 });
 
 describe('setServiceWorkerActiveSession', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   it('handles serviceWorker.getRegistration() rejection correctly (catch block at line 256)', async () => {
     const getRegistrationMock = vi.fn().mockRejectedValue(new Error('Service worker error'));
 
