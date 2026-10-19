@@ -3,6 +3,7 @@ name: Leaderboard regression checks
 on:
   push:
     branches:
+      - main
       - CLAUDE-GPT-BUG-FIXES
   pull_request:
     branches:
@@ -21,7 +22,7 @@ on:
       - 'mobile/src/lib/firestore.ts'
       - 'src/lib/adminActions.ts'
       - 'tests/unit/leaderboard*'
-      - 'tests/unit/server*'
+      - 'tests/unit/**'
       - 'tests/unit/firebase.test.ts'
       - 'tests/unit/firestore.test.ts'
       - 'package.json'
