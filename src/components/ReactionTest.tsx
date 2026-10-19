@@ -89,6 +89,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   const finalizeTimeout = useRef<NodeJS.Timeout | null>(null);
   
   const countdownInterval = useRef<NodeJS.Timeout | null>(null);
+  const engineStateRef = useRef<EngineState>('READY');
   const sessionTimingOffsetRef = useRef<{
     displayDelayOffsetMs: number;
     displayDelayOffsetEstimated: boolean;

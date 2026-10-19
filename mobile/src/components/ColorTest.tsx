@@ -97,7 +97,6 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   const stimulusTimeout = useRef<NodeJS.Timeout | null>(null);
   const [shuffledOptions, setShuffledOptions] = useState<typeof COLORS>([]);
 
-  const engineStateRef = useRef<EngineState>('READY');
   const sessionTimingOffsetRef = useRef<{
     displayDelayOffsetMs: number;
     displayDelayOffsetEstimated: boolean;

@@ -69,4 +69,17 @@ describe('Service Worker Tier 2 Caching', () => {
       expect(sw).toContain('BUILD_KEY_ROUTE_ASSETS');
     }
   });
+
+  it('races document navigation against a 3-second timeout and falls back to shell', () => {
+    expect(desktopSw).toContain("reject(new Error('Navigation timeout')), 3000");
+    expect(desktopSw).toContain("await caches.match('/')");
+    expect(mobileSw).toContain("reject(new Error('Navigation timeout')), 3000");
+    expect(mobileSw).toContain("await caches.match('/mobile/')");
+  });
+
+  it('allows and caches multimedia and animation assets offline', () => {
+    for (const sw of [desktopSw, mobileSw]) {
+      expect(sw).toContain('riv|mp3|wav|ogg|webm|mp4');
+    }
+  });
 });

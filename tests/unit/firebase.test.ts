@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as firestore from 'firebase/firestore';
 import * as firebaseAuth from 'firebase/auth';
-import { getLeaderboardResults, isOptedInLeaderboardUser, clearClientLeaderboardCache } from '@/lib/firestore';
-import { getLeaderboardResults as getMobileLeaderboardResults, clearClientLeaderboardCache as clearMobileCache } from '../../mobile/src/lib/firestore';
+import { getLeaderboardResults, isOptedInLeaderboardUser, clearClientLeaderboardCache, deleteMyLeaderboardEntries, getMyLeaderboardRank } from '@/lib/firestore';
+import { getLeaderboardResults as getMobileLeaderboardResults, clearClientLeaderboardCache as clearMobileCache, deleteMyLeaderboardEntries as deleteMobileMyLeaderboardEntries, getMyLeaderboardRank as getMobileMyLeaderboardRank } from '../../mobile/src/lib/firestore';
 
 // Mock Firebase
 vi.mock('firebase/app', () => ({
@@ -26,7 +26,7 @@ vi.mock('firebase/firestore', async (importOriginal) => {
 });
 
 vi.mock('firebase/auth', () => ({
-  getAuth: vi.fn(() => ({ currentUser: { uid: '123' }, onAuthStateChanged: vi.fn() })),
+  getAuth: vi.fn(() => ({ currentUser: { uid: '123', getIdToken: vi.fn(() => Promise.resolve('mock-token')) }, onAuthStateChanged: vi.fn() })),
   signInAnonymously: vi.fn(),
   setPersistence: vi.fn(() => Promise.resolve()),
   inMemoryPersistence: {},
@@ -110,6 +110,52 @@ describe('Firebase Integration Tests (Mocked)', () => {
     const mobileEntries = await getMobileLeaderboardResults('visual-reaction');
     expect(mobileEntries).toHaveLength(1);
     expect(mobileEntries[0].displayName).toBe('Mobile Player');
+  });
+
+  it('deleteMyLeaderboardEntries sends authenticated DELETE request and clears client leaderboard cache', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, deletedCount: 3 })
+    });
+
+    const resDesktop = await deleteMyLeaderboardEntries('visual-reaction');
+    expect(resDesktop.success).toBe(true);
+    expect(resDesktop.deletedCount).toBe(3);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/leaderboard/mine?assessmentType=visual-reaction'),
+      expect.objectContaining({ method: 'DELETE' })
+    );
+
+    const resMobile = await deleteMobileMyLeaderboardEntries('all');
+    expect(resMobile.success).toBe(true);
+    expect(resMobile.deletedCount).toBe(3);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/leaderboard/mine?assessmentType=all'),
+      expect.objectContaining({ method: 'DELETE' })
+    );
+  });
+
+  it('getMyLeaderboardRank sends authenticated GET request and returns player rank', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, rank: 5 })
+    });
+
+    const resDesktop = await getMyLeaderboardRank('visual-reaction');
+    expect(resDesktop.success).toBe(true);
+    expect(resDesktop.rank).toBe(5);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/leaderboard/my-rank?assessmentType=visual-reaction'),
+      expect.objectContaining({ method: 'GET' })
+    );
+
+    const resMobile = await getMobileMyLeaderboardRank('direction');
+    expect(resMobile.success).toBe(true);
+    expect(resMobile.rank).toBe(5);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/leaderboard/my-rank?assessmentType=direction'),
+      expect.objectContaining({ method: 'GET' })
+    );
   });
 
   it('maintains Firebase mock isolation (no real network calls)', () => {
