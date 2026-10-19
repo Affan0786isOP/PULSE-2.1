@@ -99,7 +99,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
 
     // Explicit HTML file URLs must use the nonce-injecting SPA handlers below.
     app.use((req, res, next) => {
-      if (req.path === '/index.html' || req.path === '/mobile/index.html') {
+      if (req.path.toLowerCase().endsWith('.html')) {
         return next();
       }
       return staticFiles(req, res, next);
@@ -127,6 +127,20 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
         res.type('text/html').send(injectedHtml);
       });
     };
+
+    // Serve existing HTML files through nonce injection, including generated SEO shells.
+    app.get(/\.html$/i, (req, res, next) => {
+      const root = path.resolve(distPath);
+      const candidate = path.resolve(root, `.${req.path}`);
+      if (candidate !== root && !candidate.startsWith(root + path.sep)) {
+        return res.status(404).type('text/plain').send('Not found');
+      }
+      if (!fs.existsSync(candidate) || !fs.statSync(candidate).isFile()) {
+        return next();
+      }
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+      return serveWithNonce(candidate, res);
+    });
 
     app.get(['/mobile', '/mobile/*'], (req, res) => {
       if (isMissingStaticAsset(req.path)) {
