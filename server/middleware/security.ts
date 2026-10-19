@@ -1,4 +1,5 @@
 import type { Express } from 'express';
+import * as crypto from 'crypto';
 
 /** URL prefix normalisation (Vercel/proxies) + production security headers / CSP. */
 export function applySecurityMiddleware(app: Express): void {
@@ -34,10 +35,13 @@ export function applySecurityMiddleware(app: Express): void {
       res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     }
 
+    const nonce = crypto.randomBytes(16).toString('base64');
+    res.locals.nonce = nonce;
+
     // Do not set X-Frame-Options: SAMEORIGIN as it prevents AI Studio preview iframe rendering
     const isProd = process.env.NODE_ENV === 'production';
     const scriptSrc = isProd
-      ? "script-src 'self' 'unsafe-inline' https://*.firebaseio.com https://*.googleapis.com https://apis.google.com https://*.gstatic.com https://va.vercel-scripts.com https://*.vercel-scripts.com"
+      ? `script-src 'self' 'nonce-${nonce}' https://*.firebaseio.com https://*.googleapis.com https://apis.google.com https://*.gstatic.com https://va.vercel-scripts.com https://*.vercel-scripts.com`
       : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.googleapis.com https://apis.google.com https://*.gstatic.com https://va.vercel-scripts.com https://*.vercel-scripts.com";
 
     const connectSrc = isProd
