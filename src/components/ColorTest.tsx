@@ -4,7 +4,7 @@ import { PageShell } from './layout/PageShell';
 import { AgeSelection } from './AgeSelection';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Activity, Info, X, Check, RefreshCw } from 'lucide-react';
-import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
+import { submitAssessmentResult, startExperimentSession, setServiceWorkerActiveSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
 import { AssessmentInfoPanel } from './AssessmentInfoPanel';
@@ -97,6 +97,17 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   const stimulusTimeout = useRef<NodeJS.Timeout | null>(null);
   const [shuffledOptions, setShuffledOptions] = useState<typeof COLORS>([]);
 
+  const engineStateRef = useRef<EngineState>('READY');
+  const sessionTimingOffsetRef = useRef<{
+    displayDelayOffsetMs: number;
+    displayDelayOffsetEstimated: boolean;
+    displayDelayOffsetSource: 'measured' | 'estimated' | 'fallback';
+  }>({
+    displayDelayOffsetMs: 8.33,
+    displayDelayOffsetEstimated: true,
+    displayDelayOffsetSource: 'fallback'
+  });
+
   useEffect(() => {
     engineStateRef.current = engineState;
   }, [engineState]);
@@ -105,6 +116,12 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     setIsSessionLoading(true);
     setSessionError(null);
     try {
+      const snap = getCachedRefreshRate();
+      sessionTimingOffsetRef.current = {
+        displayDelayOffsetMs: snap?.displayDelayOffsetMs || 0,
+        displayDelayOffsetEstimated: Boolean(snap?.isEstimated || snap?.source === 'fallback'),
+        displayDelayOffsetSource: snap?.source || 'fallback'
+      };
       const res = await startExperimentSession('color-recognition', age);
       if (res?.success && res?.sessionId) {
         setSessionId(res.sessionId);
@@ -126,6 +143,14 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     if (!selectedAgeGroup) return;
     initSession(selectedAgeGroup);
   }, [selectedAgeGroup, initSession]);
+
+  useEffect(() => {
+    return () => {
+      setServiceWorkerActiveSession(false);
+      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+      if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
+    };
+  }, []);
 
   const updateLiveTimer = useCallback(() => {
     if (engineStateRef.current === 'STIMULUS_ACTIVE') {
@@ -199,6 +224,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
 
     setReportStats(stats);
     setEngineState('REPORT'); engineStateRef.current = 'REPORT';
+    setServiceWorkerActiveSession(false);
     playAudioCue('milestone');
     triggerHaptic('milestone');
   };
@@ -215,7 +241,9 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         ? e.timeStamp
         : performance.now();
       const rawDelta = Math.max(0, timeTriggered - timeStimulusFired.current);
-      const offsetMs = getCachedRefreshRate()?.displayDelayOffsetMs || 0;
+      const offsetMs = sessionTimingOffsetRef.current.displayDelayOffsetMs;
+      const offsetEstimated = sessionTimingOffsetRef.current.displayDelayOffsetEstimated;
+      const offsetSource = sessionTimingOffsetRef.current.displayDelayOffsetSource;
       const netDelta = Math.max(0, Number((rawDelta - offsetMs).toFixed(2)));
       if (timerRef.current) timerRef.current.textContent = netDelta.toFixed(1);
       
@@ -277,6 +305,8 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         reactionTime: netDelta,
         rawReactionTime: Number(rawDelta.toFixed(2)),
         displayDelayOffsetMs: offsetMs,
+        displayDelayOffsetEstimated: offsetEstimated,
+        displayDelayOffsetSource: offsetSource,
         accuracy: correct ? 1 : 0,
         correct,
         falseStart: isFalseStart,
@@ -440,6 +470,9 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         responseTimestamp: null,
         reactionTime: null,
         rawReactionTime: null,
+        displayDelayOffsetMs: null,
+        displayDelayOffsetEstimated: null,
+        displayDelayOffsetSource: null,
         accuracy: 0,
         falseStart: false,
         timedOut: true,

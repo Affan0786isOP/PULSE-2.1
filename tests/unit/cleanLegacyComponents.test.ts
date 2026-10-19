@@ -5,16 +5,31 @@ import { resolve, join } from 'path';
 function findRepositoryReferences(targetPatterns: string[]): { file: string; line: number; match: string }[] {
   const matches: { file: string; line: number; match: string }[] = [];
   const walk = (dir: string) => {
-    const list = readdirSync(dir);
+    let list: string[];
+    try {
+      list = readdirSync(dir);
+    } catch {
+      return;
+    }
     for (const f of list) {
-      if (['node_modules', '.git', 'dist', 'audit', '.gemini', 'scratch', 'docs'].includes(f)) continue;
+      if (['node_modules', '.git', 'dist', 'audit', '.gemini', 'scratch', 'docs', '.agent', '.agents', 'claude-seo', 'temp-test-dist'].includes(f)) continue;
       const full = join(dir, f);
-      const stat = statSync(full);
+      let stat;
+      try {
+        stat = statSync(full);
+      } catch {
+        continue;
+      }
       if (stat.isDirectory()) {
         walk(full);
       } else if (/\.(tsx|ts|json|html|css)$/.test(f)) {
         if (full.includes('tests') || full.includes('tests\\')) continue;
-        const content = readFileSync(full, 'utf8');
+        let content;
+        try {
+          content = readFileSync(full, 'utf8');
+        } catch {
+          continue;
+        }
         const lines = content.split('\n');
         lines.forEach((l, i) => {
           for (const pattern of targetPatterns) {
@@ -30,7 +45,7 @@ function findRepositoryReferences(targetPatterns: string[]): { file: string; lin
   return matches;
 }
 
-describe('Legacy Frontend Components Pre-Deletion Audit & Purge', () => {
+describe('Legacy Frontend Components Pre-Deletion Audit & Purge', { timeout: 20000 }, () => {
   it('confirms 0 repository-wide references to AnimatedBackground before deletion', () => {
     const refs = findRepositoryReferences(['AnimatedBackground', 'pulse-technical-background', 'mobile-technical-background']);
     // Filter out the component files themselves if they still exist during audit

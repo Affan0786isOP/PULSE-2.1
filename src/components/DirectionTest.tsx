@@ -5,7 +5,7 @@ import { AgeSelection } from './AgeSelection';
 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Activity, RefreshCw, Info } from 'lucide-react';
-import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
+import { submitAssessmentResult, startExperimentSession, setServiceWorkerActiveSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
 import { AssessmentInfoPanel } from './AssessmentInfoPanel';
@@ -86,6 +86,15 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   const countdownInterval = useRef<NodeJS.Timeout | null>(null);
   const autoAdvanceTimer = useRef<NodeJS.Timeout | null>(null);
   const engineStateRef = useRef<EngineState>('READY');
+  const sessionTimingOffsetRef = useRef<{
+    displayDelayOffsetMs: number;
+    displayDelayOffsetEstimated: boolean;
+    displayDelayOffsetSource: 'measured' | 'estimated' | 'fallback';
+  }>({
+    displayDelayOffsetMs: 8.33,
+    displayDelayOffsetEstimated: true,
+    displayDelayOffsetSource: 'fallback'
+  });
   
   useEffect(() => {
     engineStateRef.current = engineState;
@@ -95,6 +104,12 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     setIsSessionLoading(true);
     setSessionError(null);
     try {
+      const snap = getCachedRefreshRate();
+      sessionTimingOffsetRef.current = {
+        displayDelayOffsetMs: snap?.displayDelayOffsetMs || 0,
+        displayDelayOffsetEstimated: Boolean(snap?.isEstimated || snap?.source === 'fallback'),
+        displayDelayOffsetSource: snap?.source || 'fallback'
+      };
       const res = await startExperimentSession('direction', age);
       if (res?.success && res?.sessionId) {
         setSessionId(res.sessionId);
@@ -116,6 +131,14 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     if (!selectedAgeGroup) return;
     initSession(selectedAgeGroup);
   }, [selectedAgeGroup, initSession]);
+
+  useEffect(() => {
+    return () => {
+      setServiceWorkerActiveSession(false);
+      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+      if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
+    };
+  }, []);
 
 
 
@@ -169,6 +192,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
 
     setReportStats(stats);
     setEngineState('REPORT'); engineStateRef.current = 'REPORT';
+    setServiceWorkerActiveSession(false);
     playAudioCue('milestone');
     triggerHaptic('milestone');
   };
@@ -238,6 +262,9 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       responseTimestamp: null,
       reactionTime: null,
       rawReactionTime: null,
+      displayDelayOffsetMs: null,
+      displayDelayOffsetEstimated: null,
+      displayDelayOffsetSource: null,
       accuracy: 0,
       falseStart: false,
       timedOut: true,
@@ -342,6 +369,9 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       stimulusTimestamp: null,
       responseTimestamp: Date.now(),
       reactionTime: 0,
+      displayDelayOffsetMs: null,
+      displayDelayOffsetEstimated: null,
+      displayDelayOffsetSource: null,
       accuracy: 0,
       falseStart: true,
       timedOut: false,
@@ -360,7 +390,9 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
 
     const rawLatency = Math.max(0, timeTriggered - timeStimulusFired.current);
-    const offsetMs = getCachedRefreshRate()?.displayDelayOffsetMs || 0;
+    const offsetMs = sessionTimingOffsetRef.current.displayDelayOffsetMs;
+    const offsetEstimated = sessionTimingOffsetRef.current.displayDelayOffsetEstimated;
+    const offsetSource = sessionTimingOffsetRef.current.displayDelayOffsetSource;
     const netLatency = Math.max(0, Number((rawLatency - offsetMs).toFixed(2)));
 
     const stimWall = stimulusWallTimestamp.current || (Date.now() - Math.round(rawLatency));
@@ -392,6 +424,8 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
         reactionTime: netLatency,
         rawReactionTime: Number(rawLatency.toFixed(2)),
         displayDelayOffsetMs: offsetMs,
+        displayDelayOffsetEstimated: offsetEstimated,
+        displayDelayOffsetSource: offsetSource,
         accuracy: 0,
         falseStart: true,
         timedOut: false,
@@ -445,6 +479,8 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       reactionTime: netLatency,
       rawReactionTime: Number(rawLatency.toFixed(2)),
       displayDelayOffsetMs: offsetMs,
+      displayDelayOffsetEstimated: offsetEstimated,
+      displayDelayOffsetSource: offsetSource,
       accuracy: isCorrect ? 1 : 0,
       correct: isCorrect,
       falseStart: false,

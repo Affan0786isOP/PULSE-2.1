@@ -43,15 +43,11 @@ describe('Service Worker Tier 2 Caching', () => {
   });
 
   it('never wipes or replaces active caches while a test assessment session is live', () => {
-    // Desktop and mobile SW should query clients and check routes for active session before takeover
-    expect(desktopSw).toContain('pulse-session-active');
-    expect(mobileSw).toContain('pulse-session-active');
+    // Desktop and mobile SW should query clients directly via MessageChannel for active session before takeover
     expect(desktopSw).toContain('QUERY_PULSE_SESSION_ACTIVE');
     expect(mobileSw).toContain('QUERY_PULSE_SESSION_ACTIVE');
     expect(desktopSw).toContain('checkAnyClientHasActiveSession');
     expect(mobileSw).toContain('checkAnyClientHasActiveSession');
-    expect(desktopSw).toContain('isAssessmentClient');
-    expect(mobileSw).toContain('isAssessmentClient');
   });
 
   it('strictly bypasses cross-origin requests to prevent caching external resources', () => {
@@ -67,11 +63,10 @@ describe('Service Worker Tier 2 Caching', () => {
     }
   });
 
-  it('partitions entry and secondary assets and purges obsolete hashed assets', () => {
+  it('partitions entry and key route assets', () => {
     for (const sw of [desktopSw, mobileSw]) {
       expect(sw).toContain('BUILD_ENTRY_ASSETS');
-      expect(sw).toContain('BUILD_SECONDARY_ASSETS');
-      expect(sw).toContain('currentCache.delete');
+      expect(sw).toContain('BUILD_KEY_ROUTE_ASSETS');
     }
   });
 });

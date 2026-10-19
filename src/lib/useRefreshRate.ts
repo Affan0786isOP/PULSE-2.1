@@ -22,15 +22,16 @@ export function useRefreshRate(): RefreshRateInfo {
 
     window.addEventListener('pulse_refresh_rate_changed', handleRefreshRateChange);
 
-    // Initial check: if cache is invalid or stale, schedule background detection
+    // Initial check: if cache is invalid or stale, schedule background detection (blocked during active sessions)
     const isCacheValid = isRefreshRateCacheValid();
+    const isSessionActive = typeof window !== 'undefined' && Boolean((window as any).__PULSE_SESSION_ACTIVE__);
 
     let idleHandle: number | null = null;
     let timerHandle: ReturnType<typeof setTimeout> | null = null;
 
-    if (!isCacheValid) {
+    if (!isCacheValid && !isSessionActive) {
       const startBackgroundDetection = () => {
-        if (!isMounted) return;
+        if (!isMounted || (typeof window !== 'undefined' && Boolean((window as any).__PULSE_SESSION_ACTIVE__))) return;
         detectRefreshRate()
           .then((detected) => {
             if (isMounted) {
@@ -53,7 +54,7 @@ export function useRefreshRate(): RefreshRateInfo {
     const MIN_REVALIDATION_INTERVAL_MS = 30_000; // Throttle to at most once per 30s unless signature changed
 
     const checkAndRevalidate = (forceCheck = false) => {
-      if (!isMounted || typeof window === 'undefined') return;
+      if (!isMounted || typeof window === 'undefined' || Boolean((window as any).__PULSE_SESSION_ACTIVE__)) return;
       const currentSig = getDisplaySignature();
       const sigChanged = Boolean(currentSig && currentSig !== lastCheckedSignature);
       const cacheStillValid = isRefreshRateCacheValid();
@@ -72,6 +73,7 @@ export function useRefreshRate(): RefreshRateInfo {
     };
 
     const handleVisibilityOrFocus = () => {
+      if (typeof window !== 'undefined' && Boolean((window as any).__PULSE_SESSION_ACTIVE__)) return;
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
         return;
       }
@@ -87,7 +89,7 @@ export function useRefreshRate(): RefreshRateInfo {
     let lastHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
 
     const handleDisplayChange = () => {
-      if (typeof window === 'undefined') return;
+      if (typeof window === 'undefined' || Boolean((window as any).__PULSE_SESSION_ACTIVE__)) return;
       const currentWidth = window.innerWidth;
       const currentHeight = window.innerHeight;
       const diffX = Math.abs(currentWidth - lastWidth);
@@ -100,7 +102,7 @@ export function useRefreshRate(): RefreshRateInfo {
 
         if (resizeTimer) clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-          if (isMounted) {
+          if (isMounted && !Boolean((window as any).__PULSE_SESSION_ACTIVE__)) {
             checkAndRevalidate(false);
           }
         }, 800);

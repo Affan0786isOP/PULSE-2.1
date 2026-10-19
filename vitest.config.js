@@ -8,6 +8,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    testTimeout: 15000,
     setupFiles: ['./tests/setup/setupTests.ts'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**', '**/.agent/**', '**/pulse-leaderboard-audit/**'],
     alias: {

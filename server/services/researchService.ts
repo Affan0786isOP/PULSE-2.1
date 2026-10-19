@@ -138,6 +138,8 @@ export class ResearchService implements IResearchService {
           payload.rawLatencyMs = rawLat;
         }
         if (typeof t.displayDelayOffsetMs === 'number') payload.displayDelayOffsetMs = t.displayDelayOffsetMs;
+        if (typeof t.displayDelayOffsetEstimated === 'boolean') payload.displayDelayOffsetEstimated = t.displayDelayOffsetEstimated;
+        if (typeof t.displayDelayOffsetSource === 'string') payload.displayDelayOffsetSource = t.displayDelayOffsetSource;
         if (typeof t.notes === 'string') payload.notes = t.notes;
 
         if (typeof t.foreperiodMs === 'number') payload.foreperiodMs = t.foreperiodMs;
@@ -225,6 +227,8 @@ export class ResearchService implements IResearchService {
 
       if (typeof tp.rawLatencyMs === 'number') baseProgressionItem.rawLatencyMs = tp.rawLatencyMs;
       if (typeof tp.displayDelayOffsetMs === 'number') baseProgressionItem.displayDelayOffsetMs = tp.displayDelayOffsetMs;
+      if (typeof tp.displayDelayOffsetEstimated === 'boolean') baseProgressionItem.displayDelayOffsetEstimated = tp.displayDelayOffsetEstimated;
+      if (typeof tp.displayDelayOffsetSource === 'string') baseProgressionItem.displayDelayOffsetSource = tp.displayDelayOffsetSource;
       if (typeof tp.stimulusScheduledAtPerfMs === 'number') baseProgressionItem.stimulusScheduledAtPerfMs = tp.stimulusScheduledAtPerfMs;
       if (typeof tp.stimulusPresentedAtPerfMs === 'number') baseProgressionItem.stimulusPresentedAtPerfMs = tp.stimulusPresentedAtPerfMs;
       if (typeof tp.responseDetectedAtPerfMs === 'number') baseProgressionItem.responseDetectedAtPerfMs = tp.responseDetectedAtPerfMs;

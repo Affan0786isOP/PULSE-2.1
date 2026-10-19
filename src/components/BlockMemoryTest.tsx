@@ -5,7 +5,7 @@ import { AgeSelection } from './AgeSelection';
 
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Heart, Activity, RefreshCw, Info } from 'lucide-react';
-import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
+import { submitAssessmentResult, startExperimentSession, setServiceWorkerActiveSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
 import { AssessmentInfoPanel } from './AssessmentInfoPanel';
@@ -142,11 +142,18 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
   }, [selectedAgeGroup, initSession]);
 
   useEffect(() => {
+    return () => {
+      setServiceWorkerActiveSession(false);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!selectedAgeGroup || !sessionId) return;
     startCountdown();
     return () => {
       engineStateRef.current = 'UNMOUNTED';
       clearAllTimers();
+      setServiceWorkerActiveSession(false);
     };
   }, [selectedAgeGroup, sessionId]);
 
@@ -346,6 +353,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
           totalTimeMsRef.current = duration;
           setTotalTimeMs(duration);
           setEngineState('REPORT'); engineStateRef.current = 'REPORT';
+          setServiceWorkerActiveSession(false);
           playAudioCue('milestone');
           triggerHaptic('milestone');
         }, 1500);
@@ -413,6 +421,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
             totalTimeMsRef.current = duration;
             setTotalTimeMs(duration);
             setEngineState('REPORT'); engineStateRef.current = 'REPORT';
+            setServiceWorkerActiveSession(false);
           }, 1500);
         } else {
           const nextLevel = levelRef.current + 1;

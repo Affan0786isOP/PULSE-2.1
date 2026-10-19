@@ -3,7 +3,7 @@ import { Navbar } from './Navbar';
 import { AgeSelection } from './AgeSelection';
 import { Activity, RefreshCw, Info } from 'lucide-react';
 
-import { submitAssessmentResult, startExperimentSession, AgeGroup } from '../lib/firestore';
+import { submitAssessmentResult, startExperimentSession, setServiceWorkerActiveSession, AgeGroup } from '../lib/firestore';
 import { LeaderboardOptIn } from './LeaderboardOptIn';
 import { AssessmentResultReward } from './AssessmentResultReward';
 import { AssessmentInfoPanel } from './AssessmentInfoPanel';
@@ -88,6 +88,15 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   
   const countdownInterval = useRef<NodeJS.Timeout | null>(null);
   const engineStateRef = useRef<EngineState>('READY');
+  const sessionTimingOffsetRef = useRef<{
+    displayDelayOffsetMs: number;
+    displayDelayOffsetEstimated: boolean;
+    displayDelayOffsetSource: 'measured' | 'estimated' | 'fallback';
+  }>({
+    displayDelayOffsetMs: 8.33,
+    displayDelayOffsetEstimated: true,
+    displayDelayOffsetSource: 'fallback'
+  });
     
   // Sync state to ref for callbacks
   useEffect(() => {
@@ -98,6 +107,12 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     setIsSessionLoading(true);
     setSessionError(null);
     try {
+      const snap = getCachedRefreshRate();
+      sessionTimingOffsetRef.current = {
+        displayDelayOffsetMs: snap?.displayDelayOffsetMs || 0,
+        displayDelayOffsetEstimated: Boolean(snap?.isEstimated || snap?.source === 'fallback'),
+        displayDelayOffsetSource: snap?.source || 'fallback'
+      };
       const res = await startExperimentSession('visual-reaction', ageGroup);
       if (res?.success && res?.sessionId) {
         setSessionId(res.sessionId);
@@ -125,6 +140,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
 
     
     return () => {
+      setServiceWorkerActiveSession(false);
       if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
       if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
     };
@@ -178,6 +194,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
 
     setReportStats(stats);
     setEngineState('REPORT'); engineStateRef.current = 'REPORT';
+    setServiceWorkerActiveSession(false);
     playAudioCue('milestone');
     triggerHaptic('milestone');
   };
@@ -305,6 +322,9 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
       responseTimestamp: now,
       reactionTime: null,
       rawReactionTime: null,
+      displayDelayOffsetMs: null,
+      displayDelayOffsetEstimated: null,
+      displayDelayOffsetSource: null,
       accuracy: 0,
       falseStart: true,
       timedOut: false,
@@ -354,6 +374,9 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
       responseTimestamp: null,
       reactionTime: null,
       rawReactionTime: null,
+      displayDelayOffsetMs: null,
+      displayDelayOffsetEstimated: null,
+      displayDelayOffsetSource: null,
       accuracy: 0,
       falseStart: false,
       timedOut: true,
@@ -374,7 +397,9 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
 
     const stimPerf = stimulusPresentedAtRef.current || timeStimulusFired.current;
     const rawLatency = Math.max(0, timeTriggered - stimPerf);
-    const offsetMs = getCachedRefreshRate()?.displayDelayOffsetMs || 0;
+    const offsetMs = sessionTimingOffsetRef.current.displayDelayOffsetMs;
+    const offsetEstimated = sessionTimingOffsetRef.current.displayDelayOffsetEstimated;
+    const offsetSource = sessionTimingOffsetRef.current.displayDelayOffsetSource;
     const netLatency = Math.max(0, Number((rawLatency - offsetMs).toFixed(2)));
 
     // Ensure timing-domain consistency: responseTimestamp = stimulusTimestamp + Math.round(rawLatency)
@@ -414,6 +439,8 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         reactionTime: netLatency,
         rawReactionTime: Number(rawLatency.toFixed(2)),
         displayDelayOffsetMs: offsetMs,
+        displayDelayOffsetEstimated: offsetEstimated,
+        displayDelayOffsetSource: offsetSource,
         accuracy: 0,
         falseStart: true,
         timedOut: false,
@@ -459,6 +486,8 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
       reactionTime: netLatency,
       rawReactionTime: Number(rawLatency.toFixed(2)),
       displayDelayOffsetMs: offsetMs,
+      displayDelayOffsetEstimated: offsetEstimated,
+      displayDelayOffsetSource: offsetSource,
       accuracy: 1,
       falseStart: false,
       timedOut: false,

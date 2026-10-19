@@ -301,16 +301,16 @@ async function injectServiceWorkerPrecache(swPath, assetsDir, urlPrefix) {
       .filter((file) => /^index-[A-Za-z0-9_-]{8,}\.(?:js|css)$/.test(file))
       .map((file) => `${urlPrefix}${file}`);
 
-    // 2. Secondary route assets (cached non-fatally to keep install lightweight and robust)
-    const secondaryAssets = assetFiles
-      .filter((file) => !/^index-[A-Za-z0-9_-]{8,}\.(?:js|css)$/.test(file) && /.*-[A-Za-z0-9_-]{8,}\.(?:js|css)$/.test(file))
+    // 2. Key assessment route assets (cached non-fatally to ensure offline test readiness)
+    const keyRouteAssets = assetFiles
+      .filter((file) => /^(?:ReactionTest|DirectionTest|ColorTest|BlockMemoryTest|NumberMemoryTest|Assessments)-[A-Za-z0-9_-]{8,}\.js$/.test(file))
       .map((file) => `${urlPrefix}${file}`);
 
     if (entryAssets.length === 0) {
       throw new Error(`Zero entry hashed assets found in ${assetsDir} for precache injection`);
     }
 
-    const replacement = `/* __BUILD_INJECT_ASSETS_START__ */\nconst BUILD_ENTRY_ASSETS = ${JSON.stringify(entryAssets, null, 2)};\nconst BUILD_SECONDARY_ASSETS = ${JSON.stringify(secondaryAssets, null, 2)};\n/* __BUILD_INJECT_ASSETS_END__ */`;
+    const replacement = `/* __BUILD_INJECT_ASSETS_START__ */\nconst BUILD_ENTRY_ASSETS = ${JSON.stringify(entryAssets, null, 2)};\nconst BUILD_KEY_ROUTE_ASSETS = ${JSON.stringify(keyRouteAssets, null, 2)};\n/* __BUILD_INJECT_ASSETS_END__ */`;
     const updated = swContent.replace(/\/\* __BUILD_INJECT_ASSETS_START__ \*\/[\s\S]*?\/\* __BUILD_INJECT_ASSETS_END__ \*\//, replacement);
     await fs.writeFile(swPath, updated, 'utf8');
   } catch (err) {

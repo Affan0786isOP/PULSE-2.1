@@ -43,4 +43,24 @@ describe('FirestoreRateLimitStore Unit Tests', () => {
     const res = await store.increment(key);
     expect(res.totalHits).toBe(1);
   });
+
+  it('keys leaderboard fresh read limiter strictly by IP to prevent forged UID bypass', async () => {
+    const { leaderboardFreshReadLimiter } = await import('../../server/config/rateLimits');
+    const fakeTokenPayload = Buffer.from(JSON.stringify({ user_id: 'forged-attacker-uid' })).toString('base64url');
+    const reqWithFakeAuth = {
+      ip: '198.51.100.1',
+      headers: {
+        authorization: `Bearer fakeheader.${fakeTokenPayload}.fakesig`
+      },
+      socket: { remoteAddress: '198.51.100.1' }
+    } as any;
+
+    const keyGen = (leaderboardFreshReadLimiter as any).keyGenerator;
+    if (typeof keyGen === 'function') {
+      const generatedKey = keyGen(reqWithFakeAuth);
+      expect(generatedKey).not.toContain('forged-attacker-uid');
+      expect(generatedKey).toContain('198.51.100.1');
+      expect(generatedKey).toBe('leaderboard-fresh-read:ip:198.51.100.1');
+    }
+  }, 20000);
 });

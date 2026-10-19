@@ -193,6 +193,8 @@ export type VrtTrialObservation = {
   rawLatencyMs: number | null;
   rawReactionTime: number | null;
   displayDelayOffsetMs: number | null;
+  displayDelayOffsetEstimated?: boolean | null;
+  displayDelayOffsetSource?: string | null;
   falseStart: boolean;
   timedOut: boolean;
   valid: boolean;
@@ -230,9 +232,21 @@ export type BasePayload = {
   [key: string]: any;
 };
 
+let activeSessionTimer: any = null;
+
 export function setServiceWorkerActiveSession(active: boolean): void {
   if (typeof window !== 'undefined') {
     (window as any).__PULSE_SESSION_ACTIVE__ = active;
+    if (activeSessionTimer) {
+      clearTimeout(activeSessionTimer);
+      activeSessionTimer = null;
+    }
+    if (active) {
+      // Auto-expire after 10 minutes to prevent permanent drift if an assessment is abandoned
+      activeSessionTimer = setTimeout(() => {
+        setServiceWorkerActiveSession(false);
+      }, 10 * 60 * 1000);
+    }
   }
   if (!active && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistration().then((reg) => {
@@ -761,3 +775,36 @@ export const getLeaderboardResults = async (
     }
   }
 };
+
+export async function deleteMyLeaderboardEntries(assessmentType: string = 'all'): Promise<{ success: boolean; deletedCount: number; error?: string }> {
+  try {
+    const res = await fetchWithAuth(`/api/leaderboard/mine?assessmentType=${encodeURIComponent(assessmentType)}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, deletedCount: 0, error: err.error || `Server returned ${res.status}` };
+    }
+    const data = await res.json().catch(() => ({}));
+    clearClientLeaderboardCache(assessmentType === 'all' ? undefined : assessmentType);
+    return { success: true, deletedCount: typeof data.deletedCount === 'number' ? data.deletedCount : 0 };
+  } catch (err: any) {
+    return { success: false, deletedCount: 0, error: err?.message || 'Network error' };
+  }
+}
+
+export async function getMyLeaderboardRank(assessmentType: string): Promise<{ success: boolean; rank: number | null; error?: string }> {
+  try {
+    const res = await fetchWithAuth(`/api/leaderboard/my-rank?assessmentType=${encodeURIComponent(assessmentType)}`, {
+      method: 'GET'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, rank: null, error: err.error || `Server returned ${res.status}` };
+    }
+    const data = await res.json().catch(() => ({}));
+    return { success: true, rank: typeof data.rank === 'number' ? data.rank : null };
+  } catch (err: any) {
+    return { success: false, rank: null, error: err?.message || 'Network error' };
+  }
+}

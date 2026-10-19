@@ -41,6 +41,8 @@ export function computeCanonicalTrialsDigest(trials: Record<string, any>[]): str
     const rawReactionTime = typeof t.rawReactionTime === 'number' ? t.rawReactionTime : (typeof t.rawLatencyMs === 'number' ? t.rawLatencyMs : null);
     const rawLatencyMs = rawReactionTime;
     const displayDelayOffsetMs = typeof t.displayDelayOffsetMs === 'number' ? t.displayDelayOffsetMs : null;
+    const displayDelayOffsetEstimated = typeof t.displayDelayOffsetEstimated === 'boolean' ? t.displayDelayOffsetEstimated : null;
+    const displayDelayOffsetSource = typeof t.displayDelayOffsetSource === 'string' ? t.displayDelayOffsetSource : null;
 
     const falseStart = t.falseStart === true;
     const timedOut = t.timedOut === true;
@@ -115,7 +117,9 @@ export function computeCanonicalTrialsDigest(trials: Record<string, any>[]): str
       correctness,
       device,
       deviceCategory,
+      displayDelayOffsetEstimated,
       displayDelayOffsetMs,
+      displayDelayOffsetSource,
       falseStart,
       foreperiodCategory,
       foreperiodMs,

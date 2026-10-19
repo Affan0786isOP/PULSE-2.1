@@ -34,6 +34,7 @@ interface StoredRefreshData {
   info: RefreshRateInfo;
   timestamp: number;
   displaySignature: string;
+  measuredHz?: number;
 }
 
 function readValidCachedInfo(): RefreshRateInfo | null {
@@ -51,25 +52,30 @@ function readValidCachedInfo(): RefreshRateInfo | null {
       info = parsed.info;
       timestamp = typeof parsed.timestamp === 'number' ? parsed.timestamp : 0;
       displaySignature = typeof parsed.displaySignature === 'string' ? parsed.displaySignature : '';
-    } else if (parsed && typeof parsed.hz === 'number' && parsed.status === 'ready') {
-      info = parsed as RefreshRateInfo;
-      timestamp = 0;
-      displaySignature = '';
     }
 
+    // Require valid timestamp and signature; reject old-format entries without timestamps
     if (!info || info.status !== 'ready' || typeof info.hz !== 'number' || info.source === 'fallback') {
       return null;
     }
+    if (!timestamp || timestamp <= 0 || !displaySignature) {
+      return null;
+    }
 
-    // Validate age
+    // Validate age (strictly within 12h, never in the future)
     const now = Date.now();
-    if (timestamp > 0 && (now - timestamp > MAX_REFRESH_RATE_CACHE_AGE_MS || timestamp > now)) {
+    if (now - timestamp > MAX_REFRESH_RATE_CACHE_AGE_MS || timestamp > now) {
       return null;
     }
 
     // Validate display signature to catch multi-monitor and display resolution changes
     const currentSig = getDisplaySignature();
-    if (displaySignature && currentSig && displaySignature !== currentSig) {
+    if (displaySignature !== currentSig) {
+      return null;
+    }
+
+    // Validate measured refresh rate consistency
+    if (typeof parsed.measuredHz === 'number' && parsed.measuredHz !== info.hz) {
       return null;
     }
 
@@ -105,7 +111,8 @@ function broadcastRefreshRate(info: RefreshRateInfo): void {
         const payload: StoredRefreshData = {
           info,
           timestamp: Date.now(),
-          displaySignature: getDisplaySignature()
+          displaySignature: getDisplaySignature(),
+          measuredHz: info.hz
         };
         localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
       } catch {}
@@ -250,6 +257,11 @@ export function snapToRefreshRate(
 }
 
 export function detectRefreshRate(force = false): Promise<RefreshRateInfo> {
+  // Never perform frame detection loops while an active assessment session is running
+  if (typeof window !== 'undefined' && Boolean((window as any).__PULSE_SESSION_ACTIVE__)) {
+    return Promise.resolve(getCachedRefreshRate());
+  }
+
   if (force) {
     cancelRefreshRateDetection();
   } else {
@@ -374,6 +386,9 @@ export function getCachedRefreshRate(): RefreshRateInfo {
 // Invalidate and re-estimate if display characteristics materially change
 if (typeof window !== 'undefined') {
   const handleDisplayChange = () => {
+    if (typeof window !== 'undefined' && Boolean((window as any).__PULSE_SESSION_ACTIVE__)) {
+      return;
+    }
     const valid = readValidCachedInfo();
     if (!valid) {
       detectRefreshRate(true).catch(() => {});
