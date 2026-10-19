@@ -134,4 +134,18 @@ describe('Static Routes & API Caching Headers (Tier 1)', () => {
     expect(apiRes.status).toBe(200);
     expect(apiRes.headers['cache-control']).toBe('no-store, no-cache, must-revalidate, private');
   });
+
+  it('returns 404 for missing static assets instead of serving the HTML shell (M2 fix)', async () => {
+    const missingAsset = await makeRequest(server, 'GET', '/assets/nonexistent-chunk-12345678.js');
+    expect(missingAsset.status).toBe(404);
+    expect(missingAsset.body).not.toContain('Desktop Shell');
+
+    const missingMobileAsset = await makeRequest(server, 'GET', '/mobile/assets/nonexistent-chunk-12345678.js');
+    expect(missingMobileAsset.status).toBe(404);
+    expect(missingMobileAsset.body).not.toContain('Mobile Shell');
+
+    const missingImg = await makeRequest(server, 'GET', '/images/missing.png');
+    expect(missingImg.status).toBe(404);
+    expect(missingImg.body).not.toContain('Desktop Shell');
+  });
 });

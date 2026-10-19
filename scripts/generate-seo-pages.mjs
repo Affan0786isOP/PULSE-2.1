@@ -284,18 +284,33 @@ await writeSitemap();
 
 async function injectServiceWorkerPrecache(swPath, assetsDir, urlPrefix) {
   try {
-    const swContent = await fs.readFile(swPath, 'utf8');
+    let swContent;
+    try {
+      swContent = await fs.readFile(swPath, 'utf8');
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        console.warn(`[SW Precache Injection] Skipped for ${swPath}: file does not exist`);
+        return;
+      }
+      throw err;
+    }
+
     const assetFiles = await fs.readdir(assetsDir);
-    // Find entry chunks (e.g. index-*.js and index-*.css)
-    const hashedEntryAssets = assetFiles
-      .filter((file) => /^index-.*-[A-Za-z0-9_-]{8,}\.(?:js|css)$/.test(file) || /^index-[A-Za-z0-9_-]{8,}\.(?:js|css)$/.test(file))
+    // Find all hashed assets (e.g. *.js and *.css with hash fingerprint)
+    const hashedAssets = assetFiles
+      .filter((file) => /.*-[A-Za-z0-9_-]{8,}\.(?:js|css)$/.test(file))
       .map((file) => `${urlPrefix}${file}`);
 
-    const replacement = `/* __BUILD_INJECT_ASSETS_START__ */\nconst BUILD_ASSETS = ${JSON.stringify(hashedEntryAssets, null, 2)};\n/* __BUILD_INJECT_ASSETS_END__ */`;
+    if (hashedAssets.length === 0) {
+      throw new Error(`Zero hashed assets found in ${assetsDir} for precache injection`);
+    }
+
+    const replacement = `/* __BUILD_INJECT_ASSETS_START__ */\nconst BUILD_ASSETS = ${JSON.stringify(hashedAssets, null, 2)};\n/* __BUILD_INJECT_ASSETS_END__ */`;
     const updated = swContent.replace(/\/\* __BUILD_INJECT_ASSETS_START__ \*\/[\s\S]*?\/\* __BUILD_INJECT_ASSETS_END__ \*\//, replacement);
     await fs.writeFile(swPath, updated, 'utf8');
   } catch (err) {
-    console.warn(`[SW Precache Injection] Skipped for ${swPath}:`, err.message);
+    console.error(`[SW Precache Injection] Failed for ${swPath}:`, err.message);
+    throw err;
   }
 }
 

@@ -26,7 +26,7 @@ export function getIdempotency<T = Record<string, unknown>>(key: string): T | nu
   return item.result as T;
 }
 
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, item] of idempotencyStore.entries()) {
     if (item.expiresAt <= now) {
@@ -34,6 +34,9 @@ setInterval(() => {
     }
   }
 }, 10 * 60 * 1000);
+if (typeof cleanupInterval.unref === 'function') {
+  cleanupInterval.unref();
+}
 
 export function isValidIdempotencyKey(key: unknown): key is string {
   if (typeof key !== 'string') return false;

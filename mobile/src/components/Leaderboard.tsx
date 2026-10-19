@@ -24,6 +24,19 @@ function formatLeaderboardScore(score: number, unit: string): string {
   return score.toFixed(2);
 }
 
+function formatRelativeTime(date: Date | null): string {
+  if (!date) return '';
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 10) return 'Updated just now';
+  if (seconds < 60) return `Updated ${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes === 1) return 'Updated 1m ago';
+  if (minutes < 60) return `Updated ${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours === 1) return 'Updated 1h ago';
+  return `Updated ${hours}h ago`;
+}
+
 export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialProtocol = PROTOCOLS.find(p => p.id === searchParams.get('assessmentType'))?.id || 'visual-reaction';
@@ -31,6 +44,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const tapCountRef = useRef(0);
   const lastTapTimeRef = useRef(0);
@@ -84,6 +98,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
       if (fetchId !== activeFetchIdRef.current) return;
       const valid = (Array.isArray(data) ? data : []).filter(e => isOptedInLeaderboardUser(e?.displayName));
       setEntries(valid);
+      setLastUpdated((data as any).fetchedAt || new Date());
     } catch (err: any) {
       if (fetchId !== activeFetchIdRef.current) return;
       console.error("Leaderboard fetch error:", err);
@@ -144,16 +159,23 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
           </span>
         }
         rightContent={
-          <button type="button"
-            id="mobile-leaderboard-refresh-btn"
-            onClick={() => fetchLeaderboard(undefined, { bypassCache: true })}
-            disabled={loading}
-            aria-label="Refresh Leaderboard"
-            title="Refresh Leaderboard"
-            className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 text-slate-600 hover:text-[#090D1A] active:scale-95 transition-all cursor-pointer disabled:opacity-50 shadow-2xs flex items-center justify-center"
-          >
-            <RefreshCw size={15} strokeWidth={2.2} className={loading ? 'animate-spin text-[#0066FF]' : ''} />
-          </button>
+          <div className="flex items-center gap-2">
+            {lastUpdated && (
+              <span className="text-[11px] text-slate-400 font-medium tracking-tight whitespace-nowrap">
+                {formatRelativeTime(lastUpdated)}
+              </span>
+            )}
+            <button type="button"
+              id="mobile-leaderboard-refresh-btn"
+              onClick={() => fetchLeaderboard(undefined, { bypassCache: true })}
+              disabled={loading}
+              aria-label="Refresh Leaderboard"
+              title="Refresh Leaderboard"
+              className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 text-slate-600 hover:text-[#090D1A] active:scale-95 transition-all cursor-pointer disabled:opacity-50 shadow-2xs flex items-center justify-center shrink-0"
+            >
+              <RefreshCw size={15} strokeWidth={2.2} className={loading ? 'animate-spin text-[#0066FF]' : ''} />
+            </button>
+          </div>
         }
       />
 

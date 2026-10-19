@@ -129,8 +129,8 @@ export function Navbar({
             <button
               type="button"
               id="mobile-offline-status-btn"
-              aria-label="Offline: Working offline — leaderboard syncing paused"
-              title="Working offline — leaderboard syncing paused"
+              aria-label="Offline — cloud features and assessment start unavailable"
+              title="Offline — cloud features and assessment start unavailable"
               tabIndex={0}
               className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-all cursor-default shrink-0 ${
                 isAssessmentActive

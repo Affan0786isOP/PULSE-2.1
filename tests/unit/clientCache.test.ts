@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getLeaderboardResults, clearClientLeaderboardCache } from '@/lib/firestore';
+import * as desktopFirestore from '@/lib/firestore';
+import * as mobileFirestore from '../../mobile/src/lib/firestore';
 import type { LeaderboardEntry } from '@/lib/firestore';
 
-describe('Client Leaderboard In-Memory TTL Cache (Tier 4)', () => {
+describe.each([
+  { platform: 'Desktop', mod: desktopFirestore },
+  { platform: 'Mobile', mod: mobileFirestore }
+])('$platform Client Leaderboard In-Memory TTL Cache (Tier 4)', ({ mod }) => {
   let mockFetch: any;
 
   beforeEach(() => {
-    clearClientLeaderboardCache();
+    mod.clearClientLeaderboardCache();
     mockFetch = vi.fn();
     globalThis.fetch = mockFetch;
   });
@@ -35,14 +39,14 @@ describe('Client Leaderboard In-Memory TTL Cache (Tier 4)', () => {
   it('serves cached envelope { entries, fetchedAt } within 30s TTL', async () => {
     mockFetch.mockReturnValueOnce(mockApiResponse([{ displayName: 'Alice' }]));
 
-    const res1 = await getLeaderboardResults('visual-reaction');
+    const res1 = await mod.getLeaderboardResults('visual-reaction');
     expect(res1.entries).toHaveLength(1);
     expect(res1.entries[0].displayName).toBe('Alice');
     expect(res1.fetchedAt).toBeInstanceOf(Date);
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
     // Call again within TTL - should hit cache
-    const res2 = await getLeaderboardResults('visual-reaction');
+    const res2 = await mod.getLeaderboardResults('visual-reaction');
     expect(res2.entries[0].displayName).toBe('Alice');
     expect(res2.fetchedAt).toEqual(res1.fetchedAt);
     expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -52,9 +56,9 @@ describe('Client Leaderboard In-Memory TTL Cache (Tier 4)', () => {
     mockFetch.mockReturnValue(mockApiResponse([{ displayName: 'Alice' }]));
 
     const [r1, r2, r3] = await Promise.all([
-      getLeaderboardResults('visual-reaction'),
-      getLeaderboardResults('visual-reaction'),
-      getLeaderboardResults('visual-reaction')
+      mod.getLeaderboardResults('visual-reaction'),
+      mod.getLeaderboardResults('visual-reaction'),
+      mod.getLeaderboardResults('visual-reaction')
     ]);
 
     expect(r1.entries).toEqual(r2.entries);
@@ -64,11 +68,11 @@ describe('Client Leaderboard In-Memory TTL Cache (Tier 4)', () => {
 
   it('bypasses cache when bypassCache: true is passed, using cache: no-store and fresh=1', async () => {
     mockFetch.mockReturnValueOnce(mockApiResponse([{ displayName: 'Alice' }]));
-    await getLeaderboardResults('visual-reaction');
+    await mod.getLeaderboardResults('visual-reaction');
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
     mockFetch.mockReturnValueOnce(mockApiResponse([{ displayName: 'Bob' }]));
-    const freshRes = await getLeaderboardResults('visual-reaction', { bypassCache: true });
+    const freshRes = await mod.getLeaderboardResults('visual-reaction', { bypassCache: true });
 
     expect(freshRes.entries[0].displayName).toBe('Bob');
     expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -100,8 +104,8 @@ describe('Client Leaderboard In-Memory TTL Cache (Tier 4)', () => {
       mockApiResponse([{ id: 'fast', displayName: 'FastFresh', scoreMetric: 180 }])
     );
 
-    const req1 = getLeaderboardResults('visual-reaction');
-    const req2 = getLeaderboardResults('visual-reaction', { bypassCache: true });
+    const req1 = mod.getLeaderboardResults('visual-reaction');
+    const req2 = mod.getLeaderboardResults('visual-reaction', { bypassCache: true });
 
     const res2 = await req2;
     expect(res2.entries[0].displayName).toBe('FastFresh');
@@ -111,7 +115,7 @@ describe('Client Leaderboard In-Memory TTL Cache (Tier 4)', () => {
     await req1;
 
     // Subsequent normal read must return FastFresh from cache, not SlowStale
-    const res3 = await getLeaderboardResults('visual-reaction');
+    const res3 = await mod.getLeaderboardResults('visual-reaction');
     expect(res3.entries[0].displayName).toBe('FastFresh');
   });
 });

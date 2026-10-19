@@ -7,53 +7,7 @@
       "includeFiles": "dist/server.js"
     }
   },
-  "headers": [
-    {
-      "source": "/assets/(.*-[A-Za-z0-9_-]{8,}\\.(?:js|css))",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/mobile/assets/(.*-[A-Za-z0-9_-]{8,}\\.(?:js|css))",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(sw\\.js|service-worker\\.js|mobile/sw\\.js|mobile/service-worker\\.js)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/(.*\\.(?:webmanifest|json|ico|png|svg))",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, stale-while-revalidate=604800"
-        }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, private"
-        }
-      ]
-    }
-  ],
+
   "redirects": [
     {
       "source": "/:path*",
@@ -450,6 +404,33 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/(sw\\.js|service-worker\\.js|mobile/sw\\.js|mobile/service-worker\\.js)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.(?:webmanifest|json|ico|png|svg))",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, private"
         }
       ]
     },

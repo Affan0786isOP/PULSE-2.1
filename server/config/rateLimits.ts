@@ -88,6 +88,28 @@ export const verificationLimiter = rateLimit({
   message: { success: false, error: 'Too many verification requests. Please try again later.' }
 });
 
+export const leaderboardFreshReadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  keyGenerator: createLimiterKey('leaderboard-fresh-read', false),
+  store: createSharedStore(),
+  skip: (req) => {
+    if (req.method !== 'GET') return true;
+    if (req.originalUrl.split('?')[0] !== '/api/leaderboard') return true;
+    const isFresh = req.query.fresh === '1' || req.query.fresh === 'true';
+    return !isFresh;
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many forced-refresh requests. Please retry shortly.',
+      entries: []
+    });
+  }
+});
+
 export const leaderboardReadLimiter = rateLimit({
   windowMs,
   max: 600,
@@ -141,6 +163,7 @@ export function applyRateLimits(app: Express): void {
   app.use('/api/admin/leaderboard/hide', adminMutationLimiter);
   app.use('/api/admin/leaderboard/unhide', adminMutationLimiter);
   app.use('/api/admin/leaderboard/delete', adminMutationLimiter);
+  app.use('/api/leaderboard', leaderboardFreshReadLimiter);
   app.use('/api/leaderboard', leaderboardReadLimiter);
   app.use('/api/research/session', sessionStartLimiter);
   app.use('/api/sessions', generalSessionsLimiter);

@@ -96,7 +96,20 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
       }
     }));
 
-    app.get(['/mobile', '/mobile/*'], (_req, res) => {
+    // Guard against serving HTML shells for missing static assets or files with extensions
+    const isMissingStaticAsset = (reqPath: string): boolean => {
+      // Any request under /assets/ or /mobile/assets/
+      if (reqPath.startsWith('/assets/') || reqPath.startsWith('/mobile/assets/')) return true;
+      // Any request with a file extension (e.g. .js, .css, .png, .map, etc.)
+      const lastSegment = reqPath.split('/').pop() || '';
+      return lastSegment.includes('.') && !lastSegment.endsWith('.html');
+    };
+
+    app.get(['/mobile', '/mobile/*'], (req, res) => {
+      if (isMissingStaticAsset(req.path)) {
+        res.setHeader('Cache-Control', 'no-store');
+        return res.status(404).type('text/plain').send('Not found');
+      }
       const mobileHtml = path.join(distPath, 'mobile', 'index.html');
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       if (fs.existsSync(mobileHtml)) {
@@ -107,7 +120,11 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
     });
 
     // SPA fallback for all other routes
-    app.get('*', (_req, res) => {
+    app.get('*', (req, res) => {
+      if (isMissingStaticAsset(req.path)) {
+        res.setHeader('Cache-Control', 'no-store');
+        return res.status(404).type('text/plain').send('Not found');
+      }
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       res.sendFile(path.join(distPath, 'index.html'));
     });

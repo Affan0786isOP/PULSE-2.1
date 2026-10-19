@@ -21,6 +21,22 @@ const OPTIONAL_ASSETS = [
   '/mobile/apple-touch-icon.png'
 ];
 
+// Session continuity tracking
+let activeSessionCount = 0;
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'PULSE_SESSION_START') {
+    activeSessionCount++;
+  } else if (event.data && event.data.type === 'PULSE_SESSION_END') {
+    activeSessionCount = Math.max(0, activeSessionCount - 1);
+  }
+});
+
+function isAssessmentClient(clientUrl) {
+  if (!clientUrl) return false;
+  return /pulse-session-active=1|reaction-test|visual-reaction|direction-test|direction|colour-recognition|color-recognition|color-test|block-memory|number-memory/.test(clientUrl);
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
@@ -39,7 +55,13 @@ self.addEventListener('install', (event) => {
             })
         )
       );
-    }).then(() => self.skipWaiting())
+    }).then(async () => {
+      const clientsList = await self.clients.matchAll({ type: 'window' });
+      const hasActiveSession = activeSessionCount > 0 || clientsList.some((c) => isAssessmentClient(c.url));
+      if (!hasActiveSession) {
+        await self.skipWaiting();
+      }
+    })
   );
 });
 
@@ -48,8 +70,8 @@ self.addEventListener('activate', (event) => {
     (async () => {
       // Assessment Continuity Invariant: Check if any client has an active assessment session
       const clientsList = await self.clients.matchAll({ type: 'window' });
-      const hasActiveSession = clientsList.some((client) => {
-        return client.url && client.url.includes('pulse-session-active=1');
+      const hasActiveSession = activeSessionCount > 0 || clientsList.some((client) => {
+        return client.url && (client.url.includes('pulse-session-active=1') || isAssessmentClient(client.url));
       });
 
       if (!hasActiveSession) {
@@ -59,8 +81,24 @@ self.addEventListener('activate', (event) => {
             .filter((key) => key.startsWith('pulse-mobile-pwa-') && key !== CACHE_NAME)
             .map((key) => caches.delete(key))
         );
+
+        // Purge obsolete hashed assets from active cache if build assets were injected
+        if (BUILD_ASSETS.length > 0) {
+          const currentCache = await caches.open(CACHE_NAME);
+          const cachedRequests = await currentCache.keys();
+          const validPaths = new Set([...CORE_SHELL_ASSETS, ...OPTIONAL_ASSETS, ...BUILD_ASSETS]);
+          await Promise.all(
+            cachedRequests.map(async (req) => {
+              const reqUrl = new URL(req.url);
+              if (reqUrl.pathname.startsWith('/mobile/assets/') && !validPaths.has(reqUrl.pathname)) {
+                await currentCache.delete(req);
+              }
+            })
+          );
+        }
+
+        await self.clients.claim();
       }
-      await self.clients.claim();
     })()
   );
 });
@@ -88,7 +126,16 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.open(FONT_CACHE_NAME).then(async (fontCache) => {
         const cached = await fontCache.match(request);
-        if (cached) return cached;
+        if (cached) {
+          if (url.hostname === 'fonts.googleapis.com') {
+            fetch(request).then((networkResponse) => {
+              if (networkResponse && networkResponse.status === 200) {
+                fontCache.put(request, networkResponse.clone());
+              }
+            }).catch(() => {});
+          }
+          return cached;
+        }
         try {
           const networkResponse = await fetch(request);
           if (networkResponse && networkResponse.status === 200) {
@@ -100,6 +147,12 @@ self.addEventListener('fetch', (event) => {
         }
       })
     );
+    return;
+  }
+
+  // Cross-Origin Bypass (H3):
+  // Any cross-origin request other than Google Fonts MUST NOT be intercepted or cached
+  if (url.origin !== self.location.origin) {
     return;
   }
 
@@ -123,6 +176,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Only cache same-origin static assets (scripts, styles, images, fonts, manifests)
+  const isStaticAsset = (
+    url.pathname.startsWith('/mobile/assets/') ||
+    url.pathname.startsWith('/brand/') ||
+    url.pathname.startsWith('/icons/') ||
+    url.pathname === '/mobile/manifest.webmanifest' ||
+    url.pathname === '/mobile/favicon.svg' ||
+    /\.(?:js|css|svg|png|jpg|jpeg|webp|ico|woff2|json)$/.test(url.pathname)
+  );
+
+  if (!isStaticAsset) {
+    return;
+  }
+
   // Stale-while-revalidate for static scripts, styles, and media
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
@@ -131,7 +198,7 @@ self.addEventListener('fetch', (event) => {
           if (
             networkResponse &&
             networkResponse.status === 200 &&
-            (networkResponse.type === 'basic' || networkResponse.type === 'cors')
+            networkResponse.type === 'basic'
           ) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {

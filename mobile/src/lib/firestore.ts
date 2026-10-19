@@ -173,6 +173,7 @@ export type LeaderboardEntry = {
   createdAt: any;
   source: 'cloud';
   hidden?: boolean;
+  accuracy?: number | null;
 };
 
 export type VrtTrialObservation = {
@@ -229,6 +230,18 @@ export type BasePayload = {
   [key: string]: any;
 };
 
+export function setServiceWorkerActiveSession(active: boolean): void {
+  if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    try {
+      navigator.serviceWorker.controller.postMessage({
+        type: active ? 'PULSE_SESSION_START' : 'PULSE_SESSION_END'
+      });
+    } catch {
+      // Ignore if SW controller is not reachable
+    }
+  }
+}
+
 export const startExperimentSession = async (assessmentType: AssessmentType, ageGroup?: string): Promise<{
   success: boolean;
   sessionId?: string;
@@ -236,6 +249,14 @@ export const startExperimentSession = async (assessmentType: AssessmentType, age
   error?: string;
   status: number;
 }> => {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return {
+      success: false,
+      error: 'Internet connection required to initiate a calibrated assessment session. Please reconnect and retry.',
+      status: 0
+    };
+  }
+
   try {
     const res = await fetchWithAuth('/api/research/session/start', {
       method: 'POST',
@@ -266,6 +287,8 @@ export const startExperimentSession = async (assessmentType: AssessmentType, age
         status: res.status
       };
     }
+
+    setServiceWorkerActiveSession(true);
 
     return {
       success: true,
@@ -327,6 +350,8 @@ export const submitAssessmentResult = async (payload: BasePayload): Promise<{
   } catch (err) {
     reportError(err, 'CRITICAL_FAILURE', { component: 'Firestore', action: 'submitAssessmentResult' });
     return { success: false, error: err instanceof Error ? err.message : 'Submission error' };
+  } finally {
+    setServiceWorkerActiveSession(false);
   }
 };
 
@@ -520,6 +545,7 @@ export const getLeaderboardResults = async (
       const payload = await res.json();
       if (payload.success && Array.isArray(payload.entries)) {
         apiSucceeded = true;
+        allAliasesSucceeded = true;
         payload.entries.forEach((e: any) => {
           const name = String(e?.displayName || '').trim();
           const safeDisplayName = safeLeaderboardDisplayNameForRead(name);
@@ -539,7 +565,8 @@ export const getLeaderboardResults = async (
               scoreMetric: e.scoreMetric,
               ageGroup: String(e.ageGroup || ''),
               createdAt: e.createdAt,
-              source: 'cloud'
+              source: 'cloud',
+              accuracy: typeof e.accuracy === 'number' ? e.accuracy : typeof e.derivedMetrics?.accuracy === 'number' ? e.derivedMetrics.accuracy : null
             });
           }
         });

@@ -46,5 +46,29 @@ describe('Service Worker Tier 2 Caching', () => {
     // Desktop and mobile SW should check if clients report an active session before aggressive cache wipe
     expect(desktopSw).toContain('pulse-session-active');
     expect(mobileSw).toContain('pulse-session-active');
+    expect(desktopSw).toContain('PULSE_SESSION_START');
+    expect(mobileSw).toContain('PULSE_SESSION_START');
+    expect(desktopSw).toContain('isAssessmentClient');
+    expect(mobileSw).toContain('isAssessmentClient');
+  });
+
+  it('strictly bypasses cross-origin requests to prevent caching external resources', () => {
+    for (const sw of [desktopSw, mobileSw]) {
+      expect(sw).toContain('url.origin !== self.location.origin');
+    }
+  });
+
+  it('restricts runtime caching strictly to same-origin static assets', () => {
+    for (const sw of [desktopSw, mobileSw]) {
+      expect(sw).toContain('isStaticAsset');
+      expect(sw).toContain("networkResponse.type === 'basic'");
+    }
+  });
+
+  it('purges obsolete hashed assets when new build assets are present', () => {
+    for (const sw of [desktopSw, mobileSw]) {
+      expect(sw).toContain('BUILD_ASSETS.length > 0');
+      expect(sw).toContain('currentCache.delete');
+    }
   });
 });

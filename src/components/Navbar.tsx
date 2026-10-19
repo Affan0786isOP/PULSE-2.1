@@ -352,8 +352,8 @@ export function Navbar({
           <button
             type="button"
             id="desktop-offline-status-btn"
-            aria-label="Offline: Working offline — leaderboard syncing paused"
-            title="Working offline — leaderboard syncing paused"
+            aria-label="Offline — cloud features and assessment start unavailable"
+            title="Offline — cloud features and assessment start unavailable"
             tabIndex={0}
             className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border transition-all shrink-0 cursor-default focus-visible:outline-none focus-visible:ring-2 ${
               isLight

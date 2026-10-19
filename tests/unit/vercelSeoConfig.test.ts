@@ -93,4 +93,28 @@ describe('Vercel technical SEO routing', () => {
       destination: '/seo/mobile/about.html'
     });
   });
+
+  it('contains zero duplicate top-level keys in vercel.json (M1 fix)', () => {
+    const rawContent = fs.readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8');
+    const lines = rawContent.split('\n');
+    const rootKeyCounts: Record<string, number> = {};
+    for (const line of lines) {
+      const match = line.match(/^  "([^"]+)":/);
+      if (match) {
+        const key = match[1];
+        rootKeyCounts[key] = (rootKeyCounts[key] || 0) + 1;
+      }
+    }
+    for (const [key, count] of Object.entries(rootKeyCounts)) {
+      expect(count, `Top-level key "${key}" appeared ${count} times`).toBe(1);
+    }
+
+    const headers = config.headers as Array<Record<string, unknown>>;
+    const sources = headers.map(h => String(h.source));
+    expect(sources).toContain('/(sw\\.js|service-worker\\.js|mobile/sw\\.js|mobile/service-worker\\.js)');
+    expect(sources).toContain('/(.*\\.(?:webmanifest|json|ico|png|svg))');
+    expect(sources).toContain('/api/(.*)');
+    expect(sources).toContain('/assets/:path*');
+    expect(sources).toContain('/mobile/assets/:path*');
+  });
 });

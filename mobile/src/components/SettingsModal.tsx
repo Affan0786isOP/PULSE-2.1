@@ -31,6 +31,8 @@ import {
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { AddToHomeScreenModal } from './AddToHomeScreenModal';
 import { useModalAccessibility } from '../lib/modalAccessibility';
+import { clearClientLeaderboardCache } from '../lib/firestore';
+import { clearAuthoritativeStatsCache } from '../lib/useAuthoritativeStats';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -325,6 +327,16 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       resetPendingSyncQueue();
       clearInMemorySessionTrials();
       resetSettingsToDefaults();
+      clearClientLeaderboardCache();
+      clearAuthoritativeStatsCache();
+
+      if (typeof caches !== 'undefined') {
+        try {
+          caches.keys().then((keys) => {
+            keys.forEach((key) => caches.delete(key));
+          }).catch(() => {});
+        } catch {}
+      }
 
       setClearedNotice(true);
       setTimeout(() => {
