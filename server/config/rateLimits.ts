@@ -90,8 +90,8 @@ export const verificationLimiter = rateLimit({
 
 export const leaderboardFreshReadLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 30,
-  keyGenerator: createLimiterKey('leaderboard-fresh-read', false),
+  max: 120,
+  keyGenerator: createLimiterKey('leaderboard-fresh-read', true),
   store: createSharedStore(),
   skip: (req) => {
     if (req.method !== 'GET') return true;

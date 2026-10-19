@@ -1,41 +1,72 @@
 const CACHE_NAME = 'pulse-pwa-v4';
 const FONT_CACHE_NAME = 'pulse-fonts-v1';
 
-// Build-injected precache manifest for hashed entry assets
+// Build-injected precache manifest for entry and secondary assets
 /* __BUILD_INJECT_ASSETS_START__ */
-const BUILD_ASSETS = [];
+const BUILD_ENTRY_ASSETS = [];
+const BUILD_SECONDARY_ASSETS = [];
 /* __BUILD_INJECT_ASSETS_END__ */
 
-// Essential core application shell required for offline presentation
+// Essential core application shell required for offline presentation (fast and reliable)
 const CORE_SHELL_ASSETS = [
   '/',
   '/manifest.webmanifest',
   '/favicon.svg',
-  ...BUILD_ASSETS
+  ...BUILD_ENTRY_ASSETS
 ];
 
-// Optional iconography assets (failure will not abort SW install)
+// Optional iconography & secondary route assets (failure will not abort SW install)
 const OPTIONAL_ASSETS = [
   '/icon-192.png',
   '/icon-512.png',
-  '/apple-touch-icon.png'
+  '/apple-touch-icon.png',
+  ...BUILD_SECONDARY_ASSETS
 ];
-
-// Session continuity tracking
-let activeSessionCount = 0;
-
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'PULSE_SESSION_START') {
-    activeSessionCount++;
-  } else if (event.data && event.data.type === 'PULSE_SESSION_END') {
-    activeSessionCount = Math.max(0, activeSessionCount - 1);
-  }
-});
 
 function isAssessmentClient(clientUrl) {
   if (!clientUrl) return false;
   return /pulse-session-active=1|reaction-test|visual-reaction|direction-test|direction|colour-recognition|color-recognition|color-test|block-memory|number-memory/.test(clientUrl);
 }
+
+// Queries open window clients directly for live session state via MessageChannel
+async function checkAnyClientHasActiveSession() {
+  const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  if (clientsList.length === 0) return false;
+
+  for (const client of clientsList) {
+    if (client.url && isAssessmentClient(client.url)) {
+      return true;
+    }
+  }
+
+  const checks = clientsList.map((client) => {
+    return new Promise((resolve) => {
+      try {
+        const channel = new MessageChannel();
+        const timer = setTimeout(() => resolve(false), 200);
+        channel.port1.onmessage = (event) => {
+          clearTimeout(timer);
+          resolve(Boolean(event.data && event.data.isSessionActive));
+        };
+        client.postMessage({ type: 'QUERY_PULSE_SESSION_ACTIVE' }, [channel.port2]);
+      } catch {
+        resolve(false);
+      }
+    });
+  });
+
+  const results = await Promise.all(checks);
+  return results.some(Boolean);
+}
+
+self.addEventListener('message', async (event) => {
+  if (event.data && event.data.type === 'PULSE_SESSIONS_COMPLETED') {
+    const hasActiveSession = await checkAnyClientHasActiveSession();
+    if (!hasActiveSession) {
+      await self.skipWaiting();
+    }
+  }
+});
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -56,8 +87,7 @@ self.addEventListener('install', (event) => {
         )
       );
     }).then(async () => {
-      const clientsList = await self.clients.matchAll({ type: 'window' });
-      const hasActiveSession = activeSessionCount > 0 || clientsList.some((c) => isAssessmentClient(c.url));
+      const hasActiveSession = await checkAnyClientHasActiveSession();
       if (!hasActiveSession) {
         await self.skipWaiting();
       }
@@ -68,37 +98,30 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      // Assessment Continuity Invariant: Check if any client has an active assessment session
-      const clientsList = await self.clients.matchAll({ type: 'window' });
-      const hasActiveSession = activeSessionCount > 0 || clientsList.some((client) => {
-        return client.url && (client.url.includes('pulse-session-active=1') || isAssessmentClient(client.url));
-      });
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((key) => key.startsWith('pulse-pwa-') && !key.startsWith('pulse-mobile-pwa-') && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      );
 
-      if (!hasActiveSession) {
-        const keys = await caches.keys();
+      // Purge obsolete hashed assets from active cache if build assets were injected
+      const allKnownAssets = [...CORE_SHELL_ASSETS, ...OPTIONAL_ASSETS];
+      if (allKnownAssets.length > 0) {
+        const currentCache = await caches.open(CACHE_NAME);
+        const cachedRequests = await currentCache.keys();
+        const validPaths = new Set(allKnownAssets);
         await Promise.all(
-          keys
-            .filter((key) => key.startsWith('pulse-pwa-') && !key.startsWith('pulse-mobile-pwa-') && key !== CACHE_NAME)
-            .map((key) => caches.delete(key))
+          cachedRequests.map(async (req) => {
+            const reqUrl = new URL(req.url);
+            if (reqUrl.pathname.startsWith('/assets/') && !validPaths.has(reqUrl.pathname)) {
+              await currentCache.delete(req);
+            }
+          })
         );
-
-        // Purge obsolete hashed assets from active cache if build assets were injected
-        if (BUILD_ASSETS.length > 0) {
-          const currentCache = await caches.open(CACHE_NAME);
-          const cachedRequests = await currentCache.keys();
-          const validPaths = new Set([...CORE_SHELL_ASSETS, ...OPTIONAL_ASSETS, ...BUILD_ASSETS]);
-          await Promise.all(
-            cachedRequests.map(async (req) => {
-              const reqUrl = new URL(req.url);
-              if (reqUrl.pathname.startsWith('/assets/') && !validPaths.has(reqUrl.pathname)) {
-                await currentCache.delete(req);
-              }
-            })
-          );
-        }
-
-        await self.clients.claim();
       }
+
+      await self.clients.claim();
     })()
   );
 });

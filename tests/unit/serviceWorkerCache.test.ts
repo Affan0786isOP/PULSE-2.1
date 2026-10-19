@@ -43,11 +43,13 @@ describe('Service Worker Tier 2 Caching', () => {
   });
 
   it('never wipes or replaces active caches while a test assessment session is live', () => {
-    // Desktop and mobile SW should check if clients report an active session before aggressive cache wipe
+    // Desktop and mobile SW should query clients and check routes for active session before takeover
     expect(desktopSw).toContain('pulse-session-active');
     expect(mobileSw).toContain('pulse-session-active');
-    expect(desktopSw).toContain('PULSE_SESSION_START');
-    expect(mobileSw).toContain('PULSE_SESSION_START');
+    expect(desktopSw).toContain('QUERY_PULSE_SESSION_ACTIVE');
+    expect(mobileSw).toContain('QUERY_PULSE_SESSION_ACTIVE');
+    expect(desktopSw).toContain('checkAnyClientHasActiveSession');
+    expect(mobileSw).toContain('checkAnyClientHasActiveSession');
     expect(desktopSw).toContain('isAssessmentClient');
     expect(mobileSw).toContain('isAssessmentClient');
   });
@@ -65,9 +67,10 @@ describe('Service Worker Tier 2 Caching', () => {
     }
   });
 
-  it('purges obsolete hashed assets when new build assets are present', () => {
+  it('partitions entry and secondary assets and purges obsolete hashed assets', () => {
     for (const sw of [desktopSw, mobileSw]) {
-      expect(sw).toContain('BUILD_ASSETS.length > 0');
+      expect(sw).toContain('BUILD_ENTRY_ASSETS');
+      expect(sw).toContain('BUILD_SECONDARY_ASSETS');
       expect(sw).toContain('currentCache.delete');
     }
   });

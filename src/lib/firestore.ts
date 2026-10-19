@@ -231,15 +231,28 @@ export type BasePayload = {
 };
 
 export function setServiceWorkerActiveSession(active: boolean): void {
-  if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    try {
-      navigator.serviceWorker.controller.postMessage({
-        type: active ? 'PULSE_SESSION_START' : 'PULSE_SESSION_END'
-      });
-    } catch {
-      // Ignore if SW controller is not reachable
-    }
+  if (typeof window !== 'undefined') {
+    (window as any).__PULSE_SESSION_ACTIVE__ = active;
   }
+  if (!active && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration().then((reg) => {
+      if (reg && reg.waiting) {
+        reg.waiting.postMessage({ type: 'PULSE_SESSIONS_COMPLETED' });
+      }
+    }).catch(() => {});
+  }
+}
+
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'QUERY_PULSE_SESSION_ACTIVE') {
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({
+          isSessionActive: Boolean(typeof window !== 'undefined' && (window as any).__PULSE_SESSION_ACTIVE__)
+        });
+      }
+    }
+  });
 }
 
 export const startExperimentSession = async (assessmentType: AssessmentType, ageGroup?: string): Promise<{
@@ -467,17 +480,20 @@ function getClientGeneration(type: string): number {
 function advanceClientGeneration(type: string): number {
   const next = getClientGeneration(type) + 1;
   clientLeaderboardGenerations.set(type, next);
-  clientLeaderboardCache.delete(type);
   return next;
 }
 
 export function clearClientLeaderboardCache(assessmentType?: string | null): void {
   if (assessmentType && assessmentType !== 'all') {
     const normalized = normalizeAssessmentType(assessmentType);
-    if (normalized) advanceClientGeneration(normalized);
+    if (normalized) {
+      advanceClientGeneration(normalized);
+      clientLeaderboardCache.delete(normalized);
+    }
   } else {
     for (const key of Object.keys(PROTOCOL_ALIASES)) {
       advanceClientGeneration(key);
+      clientLeaderboardCache.delete(key);
     }
   }
 }
@@ -541,6 +557,16 @@ export const getLeaderboardResults = async (
         : `/api/leaderboard?assessmentType=${encodeURIComponent(canonicalType)}`;
       const fetchOpts = isFresh ? { cache: 'no-store' as RequestCache } : undefined;
       const res = await fetch(fetchUrl, fetchOpts);
+      if (res.status === 429) {
+        const cached = clientLeaderboardCache.get(canonicalType);
+        if (cached && cached.entries.length > 0) {
+          const resp = createLeaderboardResponse(cached.entries, cached.fetchedAt);
+          (resp as any).warning = 'Too many refresh requests. Showing latest cached standings — please try again shortly.';
+          (resp as any).isRateLimited = true;
+          return resp;
+        }
+        throw new Error('Too many refresh requests. Please retry shortly.');
+      }
       if (res.ok) {
         const payload = await res.json();
         if (payload.success && Array.isArray(payload.entries)) {

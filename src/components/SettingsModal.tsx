@@ -339,7 +339,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       if (typeof caches !== 'undefined') {
         try {
           caches.keys().then((keys) => {
-            keys.forEach((key) => caches.delete(key));
+            keys.forEach((key) => {
+              const isAppShell = key.startsWith('pulse-pwa-') ||
+                                key.startsWith('pulse-mobile-pwa-') ||
+                                key.startsWith('pulse-fonts-');
+              if (!isAppShell) {
+                caches.delete(key);
+              }
+            });
           }).catch(() => {});
         } catch {}
       }

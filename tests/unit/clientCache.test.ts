@@ -118,4 +118,22 @@ describe.each([
     const res3 = await mod.getLeaderboardResults('visual-reaction');
     expect(res3.entries[0].displayName).toBe('FastFresh');
   });
+
+  it('preserves cached entries and returns a warning if a fresh refresh encounters HTTP 429', async () => {
+    mockFetch.mockReturnValueOnce(mockApiResponse([{ id: 'alice-1', displayName: 'Alice', scoreMetric: 190 }]));
+    const initial = await mod.getLeaderboardResults('visual-reaction');
+    expect(initial.entries[0].displayName).toBe('Alice');
+
+    mockFetch.mockReturnValueOnce(Promise.resolve({
+      ok: false,
+      status: 429,
+      json: () => Promise.resolve({ success: false, error: 'Too many forced-refresh requests' })
+    }));
+
+    const freshRes = await mod.getLeaderboardResults('visual-reaction', { bypassCache: true });
+    expect(freshRes.entries).toHaveLength(1);
+    expect(freshRes.entries[0].displayName).toBe('Alice');
+    expect((freshRes as any).warning).toContain('Too many refresh requests');
+    expect((freshRes as any).isRateLimited).toBe(true);
+  });
 });

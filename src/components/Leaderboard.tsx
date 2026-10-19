@@ -169,8 +169,18 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [, setRelativeTick] = useState(0);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const activeFetchIdRef = useRef(0);
+
+  // Keep "Updated just now / Xm ago" relative time actively updating
+  useEffect(() => {
+    if (!lastUpdated) return;
+    const interval = setInterval(() => {
+      setRelativeTick(t => t + 1);
+    }, 10_000);
+    return () => clearInterval(interval);
+  }, [lastUpdated]);
 
   // Moderator keyboard shortcut: Ctrl+Shift+A (or Cmd+Shift+A)
   useEffect(() => {
@@ -216,13 +226,19 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
       const valid = (Array.isArray(data) ? data : []).filter(e => isOptedInLeaderboardUser(e?.displayName));
       setEntries(valid);
       setLastUpdated((data as any).fetchedAt || new Date());
+      if ((data as any).warning) {
+        setError((data as any).warning);
+      }
     } catch (err: any) {
       if (fetchId !== activeFetchIdRef.current) return;
       console.error("Leaderboard fetch error:", err);
-      setEntries([]);
+      // N3: If working entries already exist, do NOT wipe them on error or 429
+      setEntries(prev => (prev.length > 0 ? prev : []));
+      const is429 = err?.status === 429 || String(err?.message || '').includes('Too many');
       setError(
-        err?.message ||
-        "Cloud leaderboard could not be reached. Please verify your connection."
+        is429
+          ? "Too many refresh requests. Showing latest standings — please try again shortly."
+          : (err?.message || "Cloud leaderboard could not be reached. Please verify your connection.")
       );
     } finally {
       if (fetchId === activeFetchIdRef.current) {
