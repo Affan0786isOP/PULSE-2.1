@@ -74,7 +74,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
 
     const HASHED_ASSET_REGEX = /\/assets\/.*-[A-Za-z0-9_-]{8,}\.(js|css)$/;
 
-    app.use(express.static(distPath, {
+    const staticFiles = express.static(distPath, {
       index: false,
       dotfiles: 'deny',
       setHeaders: (res, filePath) => {
@@ -95,7 +95,15 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
           res.setHeader('Cache-Control', 'no-cache, must-revalidate');
         }
       }
-    }));
+    });
+
+    // Explicit HTML file URLs must use the nonce-injecting SPA handlers below.
+    app.use((req, res, next) => {
+      if (req.path === '/index.html' || req.path === '/mobile/index.html') {
+        return next();
+      }
+      return staticFiles(req, res, next);
+    });
 
     // Guard against serving HTML shells for missing static assets or files with extensions
     const isMissingStaticAsset = (reqPath: string): boolean => {
