@@ -111,8 +111,8 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
       if (reqPath.startsWith('/assets/') || reqPath.startsWith('/mobile/assets/')) return true;
       // Any request with a file extension (e.g. .js, .css, .png, .map, etc.)
       const lastSegment = reqPath.split('/').pop() || '';
-      // We no longer exempt .html here so that index.html explicit requests drop into fallback
-      return lastSegment.includes('.') && !lastSegment.endsWith('.html');
+      // Existing HTML files are handled by the nonce-injecting route above; missing files should 404.
+      return lastSegment.includes('.');
     };
 
     const serveWithNonce = (filePath: string, res: express.Response) => {
