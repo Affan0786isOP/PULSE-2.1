@@ -1,122 +1,127 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAdminAuth } from '../../src/lib/useAdminAuth';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { adminLogin, adminLogout } from '../../src/lib/adminActions';
 
-vi.mock('firebase/auth', () => ({
-  getAuth: vi.fn(),
-  onAuthStateChanged: vi.fn(),
+vi.mock('../../src/lib/adminActions', () => ({
+  adminLogin: vi.fn(),
+  adminLogout: vi.fn(),
 }));
 
-describe('useAdminAuth Hook', () => {
+const mockAdminLogin = vi.mocked(adminLogin);
+const mockAdminLogout = vi.mocked(adminLogout);
+
+describe('useAdminAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
+    localStorage.clear();
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  it('starts unauthenticated when no token is stored', () => {
+    const { result } = renderHook(() => useAdminAuth());
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.token).toBeNull();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
-  it('initializes with loading state and null user', () => {
-    // Prevent onAuthStateChanged from calling the callback immediately to test initial state
-    (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => vi.fn());
+  it('restores a token from sessionStorage', () => {
+    sessionStorage.setItem('pulse_admin_token', 'session-token');
 
     const { result } = renderHook(() => useAdminAuth());
 
-    expect(result.current.user).toBeNull();
-    expect(result.current.loading).toBe(true);
-    expect(result.current.isAdmin).toBe(false);
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.token).toBe('session-token');
   });
 
-  it('sets user and isAdmin when user logs in with admin claims', async () => {
-    const mockUser = {
-      getIdTokenResult: vi.fn().mockResolvedValue({ claims: { admin: true } })
-    };
-
-    (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation((auth, callback) => {
-      callback(mockUser);
-      return vi.fn(); // Return mock unsubscribe
-    });
+  it('falls back to localStorage when sessionStorage has no token', () => {
+    localStorage.setItem('pulse_admin_token', 'persistent-token');
 
     const { result } = renderHook(() => useAdminAuth());
 
-    // Wait for the async getIdTokenResult to resolve
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.token).toBe('persistent-token');
+  });
+
+  it('stores the token in hook state after successful login', async () => {
+    mockAdminLogin.mockResolvedValue({ success: true, token: 'new-token' });
+
+    const { result } = renderHook(() => useAdminAuth());
+    let succeeded = false;
+
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      succeeded = await result.current.login('correct-passcode');
     });
 
-    expect(result.current.user).toBe(mockUser);
-    expect(result.current.isAdmin).toBe(true);
+    expect(mockAdminLogin).toHaveBeenCalledWith('correct-passcode');
+    expect(succeeded).toBe(true);
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.token).toBe('new-token');
+    expect(result.current.loading).toBe(false);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('reports a rejected login without authenticating', async () => {
+    mockAdminLogin.mockRejectedValue(new Error('Network Error'));
+
+    const { result } = renderHook(() => useAdminAuth());
+    let succeeded = true;
+
+    await act(async () => {
+      succeeded = await result.current.login('passcode');
+    });
+
+    expect(succeeded).toBe(false);
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.token).toBeNull();
+    expect(result.current.error).toBe('Network Error');
     expect(result.current.loading).toBe(false);
   });
 
-  it('sets user but not isAdmin when user logs in without admin claims', async () => {
-    const mockUser = {
-      getIdTokenResult: vi.fn().mockResolvedValue({ claims: { admin: false } })
-    };
-
-    (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation((auth, callback) => {
-      callback(mockUser);
-      return vi.fn(); // Return mock unsubscribe
-    });
-
-    const { result } = renderHook(() => useAdminAuth());
-
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-
-    expect(result.current.user).toBe(mockUser);
-    expect(result.current.isAdmin).toBe(false);
-    expect(result.current.loading).toBe(false);
-  });
-
-  it('clears user and isAdmin when user logs out', async () => {
-    (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation((auth, callback) => {
-      callback(null);
-      return vi.fn(); // Return mock unsubscribe
-    });
-
-    const { result } = renderHook(() => useAdminAuth());
-
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-
-    expect(result.current.user).toBeNull();
-    expect(result.current.isAdmin).toBe(false);
-    expect(result.current.loading).toBe(false);
-  });
-
-  it('handles error in getIdTokenResult gracefully', async () => {
-    const mockUser = {
-      getIdTokenResult: vi.fn().mockRejectedValue(new Error("Network Error"))
-    };
-
-    (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation((auth, callback) => {
-      callback(mockUser);
-      return vi.fn(); // Return mock unsubscribe
-    });
+  it('reports an unsuccessful login response', async () => {
+    mockAdminLogin.mockResolvedValue({ success: false, token: '' });
 
     const { result } = renderHook(() => useAdminAuth());
 
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await result.current.login('wrong-passcode');
     });
 
-    expect(result.current.user).toBe(mockUser);
-    expect(result.current.isAdmin).toBe(false);
+    expect(result.current.error).toBe('Login failed');
+    expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.loading).toBe(false);
   });
 
-  it('unsubscribes on unmount', () => {
-    const unsubscribeMock = vi.fn();
-    (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => unsubscribeMock);
+  it('clears hook authentication state on logout', async () => {
+    sessionStorage.setItem('pulse_admin_token', 'existing-token');
+    mockAdminLogout.mockResolvedValue({ success: true });
 
-    const { unmount } = renderHook(() => useAdminAuth());
+    const { result } = renderHook(() => useAdminAuth());
 
-    unmount();
+    await act(async () => {
+      await result.current.logout();
+    });
 
-    expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+    expect(mockAdminLogout).toHaveBeenCalledTimes(1);
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.token).toBeNull();
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('clears hook authentication state even if logout fails', async () => {
+    sessionStorage.setItem('pulse_admin_token', 'existing-token');
+    mockAdminLogout.mockRejectedValue(new Error('Network Error'));
+
+    const { result } = renderHook(() => useAdminAuth());
+
+    await act(async () => {
+      await result.current.logout();
+    });
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.token).toBeNull();
+    expect(result.current.loading).toBe(false);
   });
 });
