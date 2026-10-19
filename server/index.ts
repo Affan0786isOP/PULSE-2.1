@@ -27,6 +27,12 @@ async function startServer() {
   // JSON Body parsing for API endpoints
   app.use(express.json({ limit: '1mb' }));
 
+  // Prevent downstream caching of API responses (including 4xx/5xx error responses)
+  app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    next();
+  });
+
   // Health check endpoint - exempted from rate limiting for Cloud Run probes
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -45,7 +51,8 @@ async function startServer() {
     leaderboardService: container.leaderboardService
   });
   registerAdminRoutes(app, {
-    adminService: container.adminService
+    adminService: container.adminService,
+    invalidateLeaderboardCache: container.leaderboardService.invalidateCache?.bind(container.leaderboardService)
   });
 
   applyDeviceRoutingMiddleware(app);

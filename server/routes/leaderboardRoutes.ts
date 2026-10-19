@@ -274,8 +274,10 @@ export function registerLeaderboardRoutes(
       return res.status(400).json({ success: false, error: 'limit must be an integer between 1 and 100', entries: [] });
     }
 
+    const isFresh = req.query.fresh === '1' || req.query.fresh === 'true';
+
     try {
-      const entries = await services.leaderboardService.getPublicLeaderboard(rawType);
+      const entries = await services.leaderboardService.getPublicLeaderboard(rawType, { fresh: isFresh });
       return res.json({ success: true, entries: entries.slice(0, limitCount) });
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);

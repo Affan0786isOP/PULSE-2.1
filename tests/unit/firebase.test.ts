@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as firestore from 'firebase/firestore';
 import * as firebaseAuth from 'firebase/auth';
-import { getLeaderboardResults, isOptedInLeaderboardUser } from '@/lib/firestore';
-import { getLeaderboardResults as getMobileLeaderboardResults } from '../../mobile/src/lib/firestore';
+import { getLeaderboardResults, isOptedInLeaderboardUser, clearClientLeaderboardCache } from '@/lib/firestore';
+import { getLeaderboardResults as getMobileLeaderboardResults, clearClientLeaderboardCache as clearMobileCache } from '../../mobile/src/lib/firestore';
 
 // Mock Firebase
 vi.mock('firebase/app', () => ({
@@ -37,6 +37,8 @@ describe('Firebase Integration Tests (Mocked)', () => {
   
   beforeEach(() => {
     vi.clearAllMocks();
+    clearClientLeaderboardCache();
+    clearMobileCache();
     
     // Spy on localStorage to guarantee no fallback
     localStorageSpy = vi.spyOn(Storage.prototype, 'getItem');

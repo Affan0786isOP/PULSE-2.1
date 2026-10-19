@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 /** Vite dev middleware (development) or static dist/ + SPA/PWA fallbacks (production). */
-export async function registerStaticRoutes(app: Express): Promise<void> {
+export async function registerStaticRoutes(app: Express, customDistPath?: string): Promise<void> {
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     const { createServer: createViteServer } = await import('vi' + 'te');
@@ -68,9 +68,11 @@ export async function registerStaticRoutes(app: Express): Promise<void> {
     });
   } else {
     // In production, static frontend assets live inside dist/
-    const distPath = fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'))
+    const distPath = customDistPath || (fs.existsSync(path.join(process.cwd(), 'dist', 'index.html'))
       ? path.join(process.cwd(), 'dist')
-      : (typeof __dirname !== 'undefined' && fs.existsSync(path.join(__dirname, 'index.html')) ? __dirname : process.cwd());
+      : (typeof __dirname !== 'undefined' && fs.existsSync(path.join(__dirname, 'index.html')) ? __dirname : process.cwd()));
+
+    const HASHED_ASSET_REGEX = /\/assets\/.*-[A-Za-z0-9_-]{8,}\.(js|css)$/;
 
     app.use(express.static(distPath, {
       dotfiles: 'deny',
@@ -79,12 +81,24 @@ export async function registerStaticRoutes(app: Express): Promise<void> {
         if (normalized.endsWith('.map') || normalized.endsWith('/server.js') || normalized.endsWith('.env')) {
           res.status(404);
           res.end();
+          return;
+        }
+
+        if (HASHED_ASSET_REGEX.test(normalized)) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (normalized.endsWith('/sw.js') || normalized.endsWith('/service-worker.js')) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        } else if (normalized.endsWith('.webmanifest') || normalized.endsWith('.json') || normalized.endsWith('.ico') || normalized.endsWith('.png') || normalized.endsWith('.svg')) {
+          res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+        } else if (normalized.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-cache, must-revalidate');
         }
       }
     }));
 
     app.get(['/mobile', '/mobile/*'], (_req, res) => {
       const mobileHtml = path.join(distPath, 'mobile', 'index.html');
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       if (fs.existsSync(mobileHtml)) {
         res.sendFile(mobileHtml);
       } else {
@@ -94,6 +108,7 @@ export async function registerStaticRoutes(app: Express): Promise<void> {
 
     // SPA fallback for all other routes
     app.get('*', (_req, res) => {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

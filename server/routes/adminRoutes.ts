@@ -12,6 +12,7 @@ import { AppError } from '../models/replayContracts';
 
 export interface AdminRoutesDependencies {
   adminService: IAdminService;
+  invalidateLeaderboardCache?: (assessmentType?: string | null) => void;
   verifySession?: (req: express.Request) => Promise<{ authorized: boolean; errorStatus?: number; errorMsg?: string }>;
   revokeToken?: (token: string) => Promise<boolean>;
   validatePass?: (passcode: string) => boolean;
@@ -23,6 +24,7 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
   const revokeToken = deps.revokeToken ?? (token => revokeAdminTokenNonce(token));
   const validatePass = deps.validatePass ?? (passcode => validateAdminPasscode(passcode));
   const createToken = deps.createToken ?? (() => createAdminToken());
+  const invalidateLeaderboardCache = deps.invalidateLeaderboardCache ?? (() => {});
 
   // Universal No-Store middleware for all /api/admin/* endpoints
   const applyNoStoreHeaders = (_req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -150,6 +152,8 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
         reason: typeof reason === 'string' ? reason.trim() : undefined
       });
 
+      invalidateLeaderboardCache(null);
+
       return res.json(result);
     } catch (err: unknown) {
       const status = err instanceof AppError ? err.status : 500;
@@ -172,6 +176,8 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
         id.trim(),
         typeof reason === 'string' ? reason.trim() : undefined
       );
+
+      invalidateLeaderboardCache(null);
 
       return res.json(result);
     } catch (err: unknown) {
@@ -196,6 +202,8 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
         typeof reason === 'string' ? reason.trim() : undefined
       );
 
+      invalidateLeaderboardCache(null);
+
       return res.json(result);
     } catch (err: unknown) {
       const status = err instanceof AppError ? err.status : 500;
@@ -218,6 +226,8 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
         id.trim(),
         typeof reason === 'string' ? reason.trim() : undefined
       );
+
+      invalidateLeaderboardCache(null);
 
       return res.json(result);
     } catch (err: unknown) {

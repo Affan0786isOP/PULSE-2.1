@@ -281,3 +281,32 @@ await Promise.all(
 );
 
 await writeSitemap();
+
+async function injectServiceWorkerPrecache(swPath, assetsDir, urlPrefix) {
+  try {
+    const swContent = await fs.readFile(swPath, 'utf8');
+    const assetFiles = await fs.readdir(assetsDir);
+    // Find entry chunks (e.g. index-*.js and index-*.css)
+    const hashedEntryAssets = assetFiles
+      .filter((file) => /^index-.*-[A-Za-z0-9_-]{8,}\.(?:js|css)$/.test(file) || /^index-[A-Za-z0-9_-]{8,}\.(?:js|css)$/.test(file))
+      .map((file) => `${urlPrefix}${file}`);
+
+    const replacement = `/* __BUILD_INJECT_ASSETS_START__ */\nconst BUILD_ASSETS = ${JSON.stringify(hashedEntryAssets, null, 2)};\n/* __BUILD_INJECT_ASSETS_END__ */`;
+    const updated = swContent.replace(/\/\* __BUILD_INJECT_ASSETS_START__ \*\/[\s\S]*?\/\* __BUILD_INJECT_ASSETS_END__ \*\//, replacement);
+    await fs.writeFile(swPath, updated, 'utf8');
+  } catch (err) {
+    console.warn(`[SW Precache Injection] Skipped for ${swPath}:`, err.message);
+  }
+}
+
+// Inject hashed entry assets into built service workers
+await injectServiceWorkerPrecache(
+  path.join(distDir, 'sw.js'),
+  path.join(distDir, 'assets'),
+  '/assets/'
+);
+await injectServiceWorkerPrecache(
+  path.join(distDir, 'mobile', 'sw.js'),
+  path.join(distDir, 'mobile', 'assets'),
+  '/mobile/assets/'
+);

@@ -388,6 +388,8 @@ export const submitLeaderboardResult = async (payload: BasePayload & { trials?: 
       throw new Error(data.error || 'Leaderboard submission failed');
     }
 
+    clearClientLeaderboardCache(payload.assessmentType);
+
     return { success: true, syncedToCloud: true };
   } catch (err) {
     reportError(err, 'RECOVERABLE_FAILURE', { component: 'Firestore', action: 'submitLeaderboardResult' });
@@ -407,19 +409,113 @@ export function normalizeAssessmentType(type: string): AssessmentType | null {
   return normalizeLeaderboardAssessmentType(type);
 }
 
-export const getLeaderboardResults = async (assessmentType: AssessmentType): Promise<LeaderboardEntry[]> => {
+export type LeaderboardResponse = LeaderboardEntry[] & {
+  entries: LeaderboardEntry[];
+  fetchedAt: Date;
+};
+
+interface ClientLeaderboardCacheEntry {
+  entries: LeaderboardEntry[];
+  fetchedAt: Date;
+  storedAt: number;
+  generation: number;
+}
+
+interface ClientInFlightRequest {
+  promise: Promise<LeaderboardResponse>;
+  generation: number;
+  isFresh: boolean;
+}
+
+const clientLeaderboardCache = new Map<string, ClientLeaderboardCacheEntry>();
+const clientLeaderboardGenerations = new Map<string, number>();
+const clientLeaderboardInFlight = new Map<string, ClientInFlightRequest>();
+const CLIENT_LEADERBOARD_TTL_MS = 30_000;
+
+function getClientGeneration(type: string): number {
+  const current = clientLeaderboardGenerations.get(type);
+  if (typeof current === 'number') return current;
+  clientLeaderboardGenerations.set(type, 1);
+  return 1;
+}
+
+function advanceClientGeneration(type: string): number {
+  const next = getClientGeneration(type) + 1;
+  clientLeaderboardGenerations.set(type, next);
+  clientLeaderboardCache.delete(type);
+  return next;
+}
+
+export function clearClientLeaderboardCache(assessmentType?: string | null): void {
+  if (assessmentType && assessmentType !== 'all') {
+    const normalized = normalizeAssessmentType(assessmentType);
+    if (normalized) advanceClientGeneration(normalized);
+  } else {
+    for (const key of Object.keys(PROTOCOL_ALIASES)) {
+      advanceClientGeneration(key);
+    }
+  }
+}
+
+function createLeaderboardResponse(entries: LeaderboardEntry[], fetchedAt: Date): LeaderboardResponse {
+  const defensiveCopies = entries.map(e => ({ ...e }));
+  return Object.assign(defensiveCopies, {
+    entries: defensiveCopies,
+    fetchedAt
+  }) as LeaderboardResponse;
+}
+
+export const getLeaderboardResults = async (
+  assessmentType: AssessmentType,
+  options?: { bypassCache?: boolean }
+): Promise<LeaderboardResponse> => {
   const canonicalType = normalizeAssessmentType(assessmentType);
-  if (!canonicalType) return [];
+  if (!canonicalType) return createLeaderboardResponse([], new Date());
 
-  const isSpeed = canonicalType === 'visual-reaction' || canonicalType === 'direction' || canonicalType === 'color-recognition';
-  const entriesMap = new Map<string, LeaderboardEntry>();
-  let firestoreSucceeded = false;
-  let apiSucceeded = false;
-  let lastError: Error | null = null;
+  const isFresh = options?.bypassCache === true;
+  const now = Date.now();
 
-  // 1. Fetch from authoritative /api/leaderboard endpoint (strictly opt-in entries)
-  try {
-    const res = await fetch(`/api/leaderboard?assessmentType=${encodeURIComponent(canonicalType)}`);
+  // 1. Check in-memory client cache
+  if (!isFresh) {
+    const cached = clientLeaderboardCache.get(canonicalType);
+    const currentGen = getClientGeneration(canonicalType);
+    if (cached && cached.generation === currentGen && (now - cached.storedAt) < CLIENT_LEADERBOARD_TTL_MS) {
+      return createLeaderboardResponse(cached.entries, cached.fetchedAt);
+    }
+  }
+
+  // 2. Coalescing and generation reservation
+  let requestGen: number;
+  const activeInFlight = clientLeaderboardInFlight.get(canonicalType);
+
+  if (isFresh) {
+    if (activeInFlight && activeInFlight.isFresh && activeInFlight.generation === getClientGeneration(canonicalType)) {
+      return await activeInFlight.promise;
+    }
+    requestGen = advanceClientGeneration(canonicalType);
+  } else {
+    if (activeInFlight && activeInFlight.generation === getClientGeneration(canonicalType)) {
+      return await activeInFlight.promise;
+    }
+    requestGen = getClientGeneration(canonicalType);
+  }
+
+  // 3. Launch the request
+  const requestPromise = (async () => {
+    const isSpeed = canonicalType === 'visual-reaction' || canonicalType === 'direction' || canonicalType === 'color-recognition';
+    const entriesMap = new Map<string, LeaderboardEntry>();
+    let firestoreSucceeded = false;
+    let apiSucceeded = false;
+    let lastError: Error | null = null;
+    let allAliasesSucceeded = false;
+
+    // 1. Fetch from authoritative /api/leaderboard endpoint (strictly opt-in entries)
+    try {
+      const fetchUrl = isFresh
+        ? `/api/leaderboard?assessmentType=${encodeURIComponent(canonicalType)}&fresh=1`
+        : `/api/leaderboard?assessmentType=${encodeURIComponent(canonicalType)}`;
+      const fetchOpts = isFresh ? { cache: 'no-store' as RequestCache } : undefined;
+      const res = await fetch(fetchUrl, fetchOpts);
     if (res.ok) {
       const payload = await res.json();
       if (payload.success && Array.isArray(payload.entries)) {
@@ -517,8 +613,12 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
           }
         }
 
-        if (querySuccessCount > 0) {
+        if (querySuccessCount === aliases.length) {
           firestoreSucceeded = true;
+          allAliasesSucceeded = true;
+        } else if (querySuccessCount > 0) {
+          firestoreSucceeded = true;
+          allAliasesSucceeded = false;
         }
       }
     } catch (fsErr: any) {
@@ -560,5 +660,34 @@ export const getLeaderboardResults = async (assessmentType: AssessmentType): Pro
     return a.id.localeCompare(b.id);
   });
 
-  return results.slice(0, 100);
+  const topResults = results.slice(0, 100);
+  const fetchedAt = new Date();
+
+  if (getClientGeneration(canonicalType) === requestGen && allAliasesSucceeded) {
+    clientLeaderboardCache.set(canonicalType, {
+      entries: topResults,
+      fetchedAt,
+      storedAt: Date.now(),
+      generation: requestGen
+    });
+  }
+
+  return createLeaderboardResponse(topResults, fetchedAt);
+  })();
+
+  const inFlightRecord: ClientInFlightRequest = {
+    promise: requestPromise,
+    generation: requestGen,
+    isFresh
+  };
+
+  clientLeaderboardInFlight.set(canonicalType, inFlightRecord);
+
+  try {
+    return await requestPromise;
+  } finally {
+    if (clientLeaderboardInFlight.get(canonicalType) === inFlightRecord) {
+      clientLeaderboardInFlight.delete(canonicalType);
+    }
+  }
 };

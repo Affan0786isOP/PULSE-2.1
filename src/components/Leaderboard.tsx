@@ -204,18 +204,18 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
     setSearchParams(nextParams);
   }, [searchParams, setSearchParams]);
 
-  const fetchLeaderboard = useCallback(async (protocolToFetch?: AssessmentType) => {
+  const fetchLeaderboard = useCallback(async (protocolToFetch?: AssessmentType, options?: { bypassCache?: boolean }) => {
     const targetProtocol = protocolToFetch || selectedProtocol;
     const fetchId = ++activeFetchIdRef.current;
     setLoading(true);
     setError(null);
 
     try {
-      const data = await getLeaderboardResults(targetProtocol);
+      const data = options ? await getLeaderboardResults(targetProtocol, options) : await getLeaderboardResults(targetProtocol);
       if (fetchId !== activeFetchIdRef.current) return;
       const valid = (Array.isArray(data) ? data : []).filter(e => isOptedInLeaderboardUser(e?.displayName));
       setEntries(valid);
-      setLastUpdated(new Date());
+      setLastUpdated((data as any).fetchedAt || new Date());
     } catch (err: any) {
       if (fetchId !== activeFetchIdRef.current) return;
       console.error("Leaderboard fetch error:", err);
@@ -290,7 +290,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             <button 
               type="button"
               id="leaderboard-refresh-btn"
-              onClick={() => fetchLeaderboard()}
+              onClick={() => fetchLeaderboard(undefined, { bypassCache: true })}
               disabled={loading}
               aria-label="Refresh Leaderboard"
               title="Refresh Leaderboard Data"

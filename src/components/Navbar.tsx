@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { Menu, X, Settings, Info, RefreshCw, Download, ArrowLeft, LogOut } from 'lucide-react';
+import { Menu, X, Settings, Info, RefreshCw, Download, ArrowLeft, LogOut, WifiOff } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { PulseLogo } from './brand';
@@ -346,6 +346,23 @@ export function Navbar({
           <div className="hidden sm:block">
             {rightContent}
           </div>
+        )}
+
+        {pwa.isOffline && (
+          <button
+            type="button"
+            id="desktop-offline-status-btn"
+            aria-label="Offline: Working offline — leaderboard syncing paused"
+            title="Working offline — leaderboard syncing paused"
+            tabIndex={0}
+            className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border transition-all shrink-0 cursor-default focus-visible:outline-none focus-visible:ring-2 ${
+              isLight
+                ? 'border-amber-200/90 bg-amber-50/80 text-amber-600 focus-visible:ring-amber-500 shadow-2xs'
+                : 'border-amber-500/30 bg-amber-500/10 text-amber-400 focus-visible:ring-amber-400'
+            }`}
+          >
+            <WifiOff size={15} strokeWidth={2.2} aria-hidden="true" />
+          </button>
         )}
 
         {pwa.isInstallable && !isAssessmentActive && (

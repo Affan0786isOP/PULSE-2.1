@@ -27,7 +27,7 @@ vi.mock('../../mobile/src/lib/firestore', () => ({
   ensureAuthenticatedUser: vi.fn(async () => mockState.authenticated),
 }));
 
-import { useAuthoritativeStats } from '../../mobile/src/lib/useAuthoritativeStats';
+import { useAuthoritativeStats, clearAuthoritativeStatsCache } from '../../mobile/src/lib/useAuthoritativeStats';
 
 function StatsProbe() {
   const stats = useAuthoritativeStats();
@@ -42,6 +42,7 @@ function StatsProbe() {
 
 afterEach(() => {
   cleanup();
+  clearAuthoritativeStatsCache();
   mockState.ready = true;
   mockState.authenticated = true;
   mockState.count = 90;

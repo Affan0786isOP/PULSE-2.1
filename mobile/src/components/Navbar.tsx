@@ -1,8 +1,9 @@
 import React, { useState, Suspense } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Activity, ArrowLeft, Settings, Info } from 'lucide-react';
+import { Activity, ArrowLeft, Settings, Info, WifiOff } from 'lucide-react';
 import { PulseLogo } from './brand';
 import { triggerHaptic } from '../lib/settingsStore';
+import { usePwaInstall } from '../lib/usePwaInstall';
 
 import { resolveActiveNavId } from '../lib/navigation';
 export { resolveActiveNavId };
@@ -28,6 +29,7 @@ export function Navbar({
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const pwa = usePwaInstall();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -123,6 +125,22 @@ export function Navbar({
 
         <div className="flex items-center gap-1.5 shrink-0">
           {rightContent}
+          {pwa.isOffline && (
+            <button
+              type="button"
+              id="mobile-offline-status-btn"
+              aria-label="Offline: Working offline — leaderboard syncing paused"
+              title="Working offline — leaderboard syncing paused"
+              tabIndex={0}
+              className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-all cursor-default shrink-0 ${
+                isAssessmentActive
+                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                  : 'border-amber-200/90 bg-amber-50/80 text-amber-600 shadow-2xs'
+              }`}
+            >
+              <WifiOff size={15} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+          )}
           <button 
             type="button"
             id="mobile-nav-info-btn"

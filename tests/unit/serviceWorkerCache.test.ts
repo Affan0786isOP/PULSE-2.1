@@ -1,0 +1,50 @@
+import { describe, it, expect } from 'vitest';
+import * as fs from 'fs';
+import * as path from 'path';
+
+describe('Service Worker Tier 2 Caching', () => {
+  const desktopSwPath = path.join(process.cwd(), 'public', 'sw.js');
+  const mobileSwPath = path.join(process.cwd(), 'mobile', 'public', 'sw.js');
+
+  const desktopSw = fs.readFileSync(desktopSwPath, 'utf8');
+  const mobileSw = fs.readFileSync(mobileSwPath, 'utf8');
+
+  it('uses isolated cache names with version 4', () => {
+    expect(desktopSw).toContain("CACHE_NAME = 'pulse-pwa-v4'");
+    expect(mobileSw).toContain("CACHE_NAME = 'pulse-mobile-pwa-v4'");
+  });
+
+  it('deletes only its own stale versioned caches and never deletes across namespaces', () => {
+    // Desktop must only delete pulse-pwa- (and NOT pulse-mobile-pwa-)
+    expect(desktopSw).toContain("key.startsWith('pulse-pwa-') && !key.startsWith('pulse-mobile-pwa-')");
+    // Mobile must only delete pulse-mobile-pwa-
+    expect(mobileSw).toContain("key.startsWith('pulse-mobile-pwa-')");
+  });
+
+  it('caches Google Fonts stylesheets and webfont binaries in a dedicated font cache', () => {
+    expect(desktopSw).toContain('fonts.googleapis.com');
+    expect(desktopSw).toContain('fonts.gstatic.com');
+    expect(desktopSw).toContain('FONT_CACHE_NAME');
+
+    expect(mobileSw).toContain('fonts.googleapis.com');
+    expect(mobileSw).toContain('fonts.gstatic.com');
+    expect(mobileSw).toContain('FONT_CACHE_NAME');
+  });
+
+  it('strictly excludes all /api and sensitive routes from service worker interception', () => {
+    for (const sw of [desktopSw, mobileSw]) {
+      expect(sw).toContain("url.pathname.startsWith('/api')");
+      expect(sw).toContain("url.pathname.startsWith('/personal-best')");
+      expect(sw).toContain("url.pathname.startsWith('/research')");
+      expect(sw).toContain("url.pathname.startsWith('/admin')");
+      expect(sw).toContain("url.pathname.startsWith('/sessions')");
+      expect(sw).toContain("url.pathname.startsWith('/health')");
+    }
+  });
+
+  it('never wipes or replaces active caches while a test assessment session is live', () => {
+    // Desktop and mobile SW should check if clients report an active session before aggressive cache wipe
+    expect(desktopSw).toContain('pulse-session-active');
+    expect(mobileSw).toContain('pulse-session-active');
+  });
+});

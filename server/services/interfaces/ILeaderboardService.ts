@@ -32,7 +32,8 @@ export interface SubmitLeaderboardResult {
 
 export interface ILeaderboardService {
   submitLeaderboard(input: SubmitLeaderboardInput): Promise<SubmitLeaderboardResult>;
-  getPublicLeaderboard(assessmentType?: string | null): Promise<LeaderboardEntryRecord[]>;
+  getPublicLeaderboard(assessmentType?: string | null, options?: { fresh?: boolean }): Promise<LeaderboardEntryRecord[]>;
+  invalidateCache?(assessmentType?: string | null): void;
   verifyPublicEntryProvenance?(entryId: string): Promise<{ verified: boolean; reason?: string }>;
   verifySubmissionProvenance?(attemptId: string): Promise<{ verified: boolean; publiclyVisible: boolean; pendingReview: boolean; reason?: string }>;
   getSubmissionReplayState?(attemptId: string, retainedEntryId: string | null, userId: string, assessmentType: string): Promise<{

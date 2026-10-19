@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { submitLeaderboardResult, AssessmentType, AgeGroup } from '../lib/firestore';
+import { submitLeaderboardResult, getLeaderboardResults, AssessmentType, AgeGroup } from '../lib/firestore';
 import { isValidLeaderboardScoreMetric, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 
 
@@ -104,6 +104,10 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
 
     if (res.success) {
       setOptInState('SUCCESS');
+      // Prime fresh leaderboard cache in background for instant subsequent leaderboard views
+      getLeaderboardResults(assessmentType, { bypassCache: true }).catch(err => {
+        console.warn('[Leaderboard] Post-submission cache prime notice:', err?.message || err);
+      });
     } else {
       isSubmittingRef.current = false;
       setErrorMsg(res.error || 'Failed to save to the leaderboard.');

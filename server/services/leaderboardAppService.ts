@@ -17,13 +17,62 @@ import { isValidLeaderboardScoreMetric, safeLeaderboardDisplayNameForRead, valid
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 import { safeLogWarning } from '../config/firebaseAdmin';
 
+interface LeaderboardCacheEntry {
+  entries: LeaderboardEntryRecord[];
+  generation: number;
+  storedAt: number;
+}
+
+interface InFlightLeaderboardRequest {
+  promise: Promise<LeaderboardEntryRecord[]>;
+  generation: number;
+  isFresh: boolean;
+}
+
 export class LeaderboardAppService implements ILeaderboardService {
-  private readonly publicLeaderboardInFlight = new Map<string, Promise<LeaderboardEntryRecord[]>>();
+  private readonly cache = new Map<string, LeaderboardCacheEntry>();
+  private readonly generations = new Map<string, number>();
+  private readonly inFlight = new Map<string, InFlightLeaderboardRequest>();
+  private static readonly TTL_MS = 20_000;
+
   constructor(
     private readonly sessionRepo: ISessionRepository,
     private readonly leaderboardRepo: ILeaderboardRepository,
     private readonly submissionRepo: ILeaderboardSubmissionRepository
-  ) {}
+  ) {
+    // Pre-initialize canonical types to generation 1
+    for (const type of VALID_ASSESSMENT_TYPES) {
+      this.generations.set(type, 1);
+    }
+  }
+
+  private getGeneration(type: string): number {
+    const current = this.generations.get(type);
+    if (typeof current === 'number') return current;
+    this.generations.set(type, 1);
+    return 1;
+  }
+
+  private advanceGeneration(type: string): number {
+    const next = this.getGeneration(type) + 1;
+    this.generations.set(type, next);
+    this.cache.delete(type);
+    return next;
+  }
+
+  invalidateCache(assessmentType?: string | null): void {
+    if (assessmentType && assessmentType !== 'all') {
+      const normalized = normalizeAssessmentType(assessmentType);
+      if (VALID_ASSESSMENT_TYPES.includes(normalized)) {
+        this.advanceGeneration(normalized);
+      }
+    } else {
+      // Invalidate all canonical types, initializing if missing
+      for (const type of VALID_ASSESSMENT_TYPES) {
+        this.advanceGeneration(type);
+      }
+    }
+  }
 
   private aliasesForAssessment(assessmentType: string): string[] {
     const aliasesByType: Record<string, string[]> = {
@@ -172,6 +221,7 @@ export class LeaderboardAppService implements ILeaderboardService {
 
     try {
       const deletedCount = await this.leaderboardRepo.deleteEntriesByOwner(userId, normalizedType);
+      this.invalidateCache(normalizedType);
       return { deletedCount };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -329,6 +379,8 @@ export class LeaderboardAppService implements ILeaderboardService {
       qualityFlags
     });
 
+    this.invalidateCache(normalizedAssessmentType);
+
     return result;
   }
 
@@ -470,7 +522,7 @@ export class LeaderboardAppService implements ILeaderboardService {
       : { verified: false, reason: result.reason || 'Stored leaderboard provenance is invalid.' };
   }
 
-  async getPublicLeaderboard(assessmentType?: string | null): Promise<LeaderboardEntryRecord[]> {
+  async getPublicLeaderboard(assessmentType?: string | null, options?: { fresh?: boolean }): Promise<LeaderboardEntryRecord[]> {
     const providedType = typeof assessmentType === 'string' ? assessmentType.trim() : '';
     if (!providedType) {
       throw new AppError('assessmentType query parameter is required', 400);
@@ -481,16 +533,67 @@ export class LeaderboardAppService implements ILeaderboardService {
       throw new AppError('Unknown assessmentType', 400);
     }
 
-    const pending = this.publicLeaderboardInFlight.get(rawType);
-    if (pending) return pending;
+    const isFresh = options?.fresh === true;
+    const now = Date.now();
 
-    const request = this.loadPublicLeaderboard(rawType);
-    this.publicLeaderboardInFlight.set(rawType, request);
+    // 1. If not fresh, check active in-memory cache
+    if (!isFresh) {
+      const cached = this.cache.get(rawType);
+      const currentGen = this.getGeneration(rawType);
+      if (cached && cached.generation === currentGen && (now - cached.storedAt) < LeaderboardAppService.TTL_MS) {
+        return cached.entries.map(e => ({ ...e }));
+      }
+    }
+
+    // 2. Check in-flight requests
+    let requestGen: number;
+    const activeInFlight = this.inFlight.get(rawType);
+
+    if (isFresh) {
+      if (activeInFlight && activeInFlight.isFresh && activeInFlight.generation === this.getGeneration(rawType)) {
+        // Coalesce with an already active fresh request on the current generation
+        const results = await activeInFlight.promise;
+        return results.map(e => ({ ...e }));
+      }
+      // Atomically advance generation for this fresh request
+      requestGen = this.advanceGeneration(rawType);
+    } else {
+      if (activeInFlight && activeInFlight.generation === this.getGeneration(rawType)) {
+        // Coalesce with current in-flight request
+        const results = await activeInFlight.promise;
+        return results.map(e => ({ ...e }));
+      }
+      requestGen = this.getGeneration(rawType);
+    }
+
+    // 3. Launch the request
+    const requestPromise = (async () => {
+      const entries = await this.loadPublicLeaderboard(rawType);
+      // Store into cache ONLY if generation hasn't moved since the request started
+      if (this.getGeneration(rawType) === requestGen) {
+        this.cache.set(rawType, {
+          entries,
+          generation: requestGen,
+          storedAt: Date.now()
+        });
+      }
+      return entries;
+    })();
+
+    const inFlightRecord: InFlightLeaderboardRequest = {
+      promise: requestPromise,
+      generation: requestGen,
+      isFresh
+    };
+
+    this.inFlight.set(rawType, inFlightRecord);
+
     try {
-      return await request;
+      const results = await requestPromise;
+      return results.map(e => ({ ...e }));
     } finally {
-      if (this.publicLeaderboardInFlight.get(rawType) === request) {
-        this.publicLeaderboardInFlight.delete(rawType);
+      if (this.inFlight.get(rawType) === inFlightRecord) {
+        this.inFlight.delete(rawType);
       }
     }
   }

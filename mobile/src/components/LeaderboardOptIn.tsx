@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { submitLeaderboardResult, AssessmentType, AgeGroup } from '../lib/firestore';
+import { submitLeaderboardResult, getLeaderboardResults, AssessmentType, AgeGroup } from '../lib/firestore';
 import { isValidLeaderboardScoreMetric, validateLeaderboardDisplayName } from '../../../shared/domain/leaderboardEligibility';
 
 
@@ -102,6 +102,9 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
 
     if (res.success) {
       setOptInState('SUCCESS');
+      getLeaderboardResults(assessmentType, { bypassCache: true }).catch(err => {
+        console.warn('[Leaderboard] Mobile post-submission cache prime notice:', err?.message || err);
+      });
     } else {
       isSubmittingRef.current = false;
       setErrorMsg(res.error || 'Failed to synchronize with leaderboard.');

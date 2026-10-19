@@ -72,14 +72,14 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
     setSearchParams(nextParams);
   }, [searchParams, setSearchParams]);
 
-  const fetchLeaderboard = useCallback(async (protocolToFetch?: AssessmentType) => {
+  const fetchLeaderboard = useCallback(async (protocolToFetch?: AssessmentType, options?: { bypassCache?: boolean }) => {
     const targetProtocol = protocolToFetch || selectedProtocol;
     const fetchId = ++activeFetchIdRef.current;
     setLoading(true);
     setError(null);
 
     try {
-      const data = await getLeaderboardResults(targetProtocol);
+      const data = options ? await getLeaderboardResults(targetProtocol, options) : await getLeaderboardResults(targetProtocol);
       // Guard against out-of-order resolution if user switched tabs
       if (fetchId !== activeFetchIdRef.current) return;
       const valid = (Array.isArray(data) ? data : []).filter(e => isOptedInLeaderboardUser(e?.displayName));
@@ -146,7 +146,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         rightContent={
           <button type="button"
             id="mobile-leaderboard-refresh-btn"
-            onClick={() => fetchLeaderboard()}
+            onClick={() => fetchLeaderboard(undefined, { bypassCache: true })}
             disabled={loading}
             aria-label="Refresh Leaderboard"
             title="Refresh Leaderboard"

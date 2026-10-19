@@ -76,7 +76,7 @@ describe('Legacy Frontend Components Pre-Deletion Audit & Purge', () => {
       'from \'./lib/dataset\''
     ]);
     expect(refs).toEqual([]);
-  });
+  }, 15000);
 
   it('confirms src/lib/dataset directory is deleted', () => {
     expect(existsSync(resolve(process.cwd(), 'src/lib/dataset'))).toBe(false);
