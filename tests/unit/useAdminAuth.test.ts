@@ -124,4 +124,27 @@ describe('useAdminAuth', () => {
     expect(result.current.token).toBeNull();
     expect(result.current.loading).toBe(false);
   });
+
+  it('exposes loading while the login request is pending', async () => {
+    let resolveLogin!: (value: { success: boolean; token: string }) => void;
+    mockAdminLogin.mockReturnValue(new Promise(resolve => {
+      resolveLogin = resolve;
+    }));
+
+    const { result } = renderHook(() => useAdminAuth());
+    let loginPromise!: Promise<boolean>;
+
+    act(() => {
+      loginPromise = result.current.login('passcode');
+    });
+    expect(result.current.loading).toBe(true);
+
+    await act(async () => {
+      resolveLogin({ success: true, token: 'resolved-token' });
+      await loginPromise;
+    });
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.token).toBe('resolved-token');
+  });
 });
