@@ -23,13 +23,48 @@ interface CachedStats {
   storedAt: number;
 }
 
+const STATS_STORAGE_KEY = 'pulse_authoritative_stats';
 let statsCache: CachedStats | null = null;
 let inFlightStatsPromise: Promise<number> | null = null;
 const STATS_TTL_MS = 60_000;
 
+function readPersistedStats(): CachedStats | null {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(STATS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.count === 'number' && Number.isSafeInteger(parsed.count) && parsed.count >= 0) {
+      return {
+        count: parsed.count,
+        storedAt: typeof parsed.storedAt === 'number' ? parsed.storedAt : 0,
+      };
+    }
+  } catch {
+    // Ignore localStorage parse errors
+  }
+  return null;
+}
+
+function persistStats(stats: CachedStats): void {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(stats));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
 export function clearAuthoritativeStatsCache(): void {
   statsCache = null;
   inFlightStatsPromise = null;
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    try {
+      localStorage.removeItem(STATS_STORAGE_KEY);
+    } catch {
+      // Ignore
+    }
+  }
 }
 
 async function loadAuthoritativeCount(): Promise<number> {
@@ -54,9 +89,18 @@ async function loadAuthoritativeCount(): Promise<number> {
 export function useAuthoritativeStats(): AuthoritativeHeroStats {
   const testsCount = CANONICAL_ASSESSMENT_IDS.length;
   const now = Date.now();
-  const hasFreshCache = statsCache !== null && (now - statsCache.storedAt) < STATS_TTL_MS;
 
-  const [resultsCount, setResultsCount] = useState<number | null>(hasFreshCache ? statsCache!.count : null);
+  if (statsCache === null) {
+    const persisted = readPersistedStats();
+    if (persisted) {
+      statsCache = persisted;
+    }
+  }
+
+  const hasFreshCache = statsCache !== null && (now - statsCache.storedAt) < STATS_TTL_MS;
+  const initialCount = statsCache !== null ? statsCache.count : null;
+
+  const [resultsCount, setResultsCount] = useState<number | null>(initialCount);
   const [isLoadingResults, setIsLoadingResults] = useState<boolean>(!hasFreshCache);
 
   useEffect(() => {
@@ -76,11 +120,18 @@ export function useAuthoritativeStats(): AuthoritativeHeroStats {
     if (!inFlightStatsPromise) {
       inFlightStatsPromise = loadAuthoritativeCount()
         .then((count) => {
-          statsCache = { count, storedAt: Date.now() };
+          const fresh = { count, storedAt: Date.now() };
+          statsCache = fresh;
+          persistStats(fresh);
           return count;
         })
         .catch((err) => {
           statsCache = null;
+          if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+            try {
+              localStorage.removeItem(STATS_STORAGE_KEY);
+            } catch {}
+          }
           throw err;
         })
         .finally(() => {

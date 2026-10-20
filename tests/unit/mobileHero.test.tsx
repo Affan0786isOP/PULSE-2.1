@@ -94,6 +94,7 @@ describe('MobileHero', () => {
   });
 
   it('marks the result count as loading while Firestore is queried', () => {
+    mockStats.resultsCount = null;
     mockStats.isLoadingResults = true;
     renderHero();
     expect(screen.getByRole('status', { name: /loading result count/i })).toBeDefined();

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useReducedMotionPreference } from '../lib/settingsStore';
 import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
+import { AnimatedResultCount } from './ui/AnimatedResultCount';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { PageShell } from './layout/PageShell';
 
@@ -71,15 +72,6 @@ const HOME_SCHEMA = {
 export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
   const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
-
-  // Format verified dynamic result count safely
-  const displayResults = isLoadingResults ? (
-    <span role="status" aria-label="Loading result count" className="inline-block w-8 h-5 bg-sky-200/50 animate-pulse motion-reduce:animate-none rounded my-0.5" />
-  ) : typeof resultsCount === 'number' ? (
-    resultsCount >= 1000 ? `${Math.floor(resultsCount / 1000)}K+` : String(resultsCount)
-  ) : (
-    '—'
-  );
 
   return (
     <PageShell
@@ -159,8 +151,8 @@ export function Home() {
               className="flex flex-col items-center text-center"
               title="Count of public research result records in Firestore"
             >
-              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
-                {displayResults}
+              <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center min-h-[28px]">
+                <AnimatedResultCount value={resultsCount} isLoading={isLoadingResults} />
               </span>
               <span className="text-[12px] min-[2560px]:text-[13.5px] font-semibold text-[#1E293B] mt-0.5">
                 Results

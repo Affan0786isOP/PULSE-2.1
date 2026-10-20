@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { triggerHaptic } from '../../lib/settingsStore';
 import { useAuthoritativeStats } from '../../lib/useAuthoritativeStats';
+import { AnimatedResultCount } from '../ui/AnimatedResultCount';
 import { PulseLogo } from '../brand';
 import { NeuralGraphic } from './NeuralGraphic';
 import { WaveGraphic } from './WaveGraphic';
@@ -56,15 +57,6 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
       }
     }
   };
-
-  // Format verified result count safely (distinguishing actual count from fabricated defaults)
-  const displayResults = isLoadingResults ? (
-    <span role="status" aria-label="Loading result count" className="inline-block w-8 h-5 bg-sky-200/50 animate-pulse motion-reduce:animate-none rounded my-0.5" />
-  ) : typeof resultsCount === 'number' ? (
-    resultsCount >= 1000 ? `${Math.floor(resultsCount / 1000)}K+` : String(resultsCount)
-  ) : (
-    '—'
-  );
 
   return (
     <section 
@@ -225,8 +217,8 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
             className="flex flex-col items-center text-center"
             title="Count of public research result records in Firestore"
           >
-            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center">
-              {displayResults}
+            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center min-h-[28px]">
+              <AnimatedResultCount value={resultsCount} isLoading={isLoadingResults} />
             </span>
             <span className="text-[11px] font-medium text-[#64748B] mt-0.5">
               Results

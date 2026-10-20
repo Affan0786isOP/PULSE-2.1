@@ -96,4 +96,29 @@ describe('useAuthoritativeStats 60s Cache (Tier 5)', () => {
     // Must transition to null (unavailable) to prevent stale number drift
     expect(result2.current.resultsCount).toBeNull();
   });
+
+  it('loads persisted count from localStorage on cold start immediately while refreshing in background', async () => {
+    localStorage.setItem('pulse_authoritative_stats', JSON.stringify({ count: 94, storedAt: 500 }));
+
+    let resolveFetch: (val: any) => void;
+    const pendingPromise = new Promise((resolve) => { resolveFetch = resolve; });
+    vi.mocked(firestore.getCountFromServer).mockReturnValueOnce(pendingPromise as any);
+
+    const { result } = renderHook(() => useAuthoritativeStats());
+
+    // Immediately shows cached count from localStorage
+    expect(result.current.resultsCount).toBe(94);
+
+    // Resolve network fetch with updated count
+    resolveFetch!({ data: () => ({ count: 98 }) });
+
+    await waitFor(() => {
+      expect(result.current.resultsCount).toBe(98);
+      expect(result.current.isLoadingResults).toBe(false);
+    });
+
+    // Check localStorage was updated with fresh value
+    const updated = JSON.parse(localStorage.getItem('pulse_authoritative_stats') || '{}');
+    expect(updated.count).toBe(98);
+  });
 });
