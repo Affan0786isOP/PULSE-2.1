@@ -1,7 +1,6 @@
 import React, { useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Navbar } from '../Navbar';
-import { Footer } from '../Footer';
 import { SEO, getCanonicalPath } from '../SEO';
 import { DesktopWaveGraphic } from '../home/DesktopWaveGraphic';
 import { LeaderboardSideWaves } from '../leaderboard/LeaderboardSideWaves';
@@ -23,6 +22,7 @@ export interface PageShellProps {
   decorativeWaves?: 'bottom' | 'side' | 'none';
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '5xl' | '6xl' | 'full';
   showNavbar?: boolean;
+  /** @deprecated The site-wide footer has been removed; retained for call-site compatibility. */
   showFooter?: boolean;
   theme?: 'light' | 'dark-apparatus' | 'dark';
   contentClassName?: string;
@@ -56,7 +56,6 @@ export const PageShell: React.FC<PageShellProps> = ({
   decorativeWaves = 'none',
   maxWidth,
   showNavbar = true,
-  showFooter = true,
   theme = 'light',
   contentClassName = '',
   disableScaling = false,
@@ -174,12 +173,6 @@ export const PageShell: React.FC<PageShellProps> = ({
         {children}
       </main>
 
-      {/* Conditional Footer */}
-      {showFooter && (
-        <div className={isDarkApparatus ? 'w-full bg-white border-t border-slate-200/80 relative z-20' : 'w-full'}>
-          <Footer />
-        </div>
-      )}
     </div>
   );
 };
