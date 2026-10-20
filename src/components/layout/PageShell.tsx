@@ -6,6 +6,7 @@ import { SEO, getCanonicalPath } from '../SEO';
 import { DesktopWaveGraphic } from '../home/DesktopWaveGraphic';
 import { LeaderboardSideWaves } from '../leaderboard/LeaderboardSideWaves';
 import { useBaselineScale } from '../../lib/useBaselineScale';
+import { useSystemTheme } from '../../lib/useSystemTheme';
 import seoMetadata from '../../../shared/seoMetadata.json';
 
 export interface PageShellProps {
@@ -23,7 +24,7 @@ export interface PageShellProps {
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '5xl' | '6xl' | 'full';
   showNavbar?: boolean;
   showFooter?: boolean;
-  theme?: 'light' | 'dark-apparatus';
+  theme?: 'light' | 'dark-apparatus' | 'dark';
   contentClassName?: string;
   disableScaling?: boolean;
   style?: React.CSSProperties;
@@ -87,19 +88,25 @@ export const PageShell: React.FC<PageShellProps> = ({
   const description = customDescription || routeMeta?.description || 'Precision User Latency & Stimulus Evaluator';
   const effectiveNoindex = noindex !== undefined ? noindex : (routeMeta ? !routeMeta.indexable : false);
 
-  const isDarkApparatus = theme === 'dark-apparatus';
+  const { activeTheme: globalActiveTheme, isDarkApparatus: isRouteApparatus } = useSystemTheme(location.pathname);
+  const isDarkApparatus = theme === 'dark-apparatus' || isRouteApparatus;
+  const effectiveTheme: 'dark' | 'light' = isDarkApparatus 
+    ? 'dark' 
+    : (theme === 'dark' ? 'dark' : globalActiveTheme);
   const maxWidthClass = maxWidth 
     ? MAX_WIDTH_MAP[maxWidth] || 'max-w-[1440px] min-[2560px]:max-w-[1800px]'
     : 'max-w-[1440px] min-[2560px]:max-w-[1800px]';
 
   return (
     <div
-      data-theme={isDarkApparatus ? 'dark' : 'light'}
+      data-theme={effectiveTheme}
       style={effectiveStyle}
       className={`min-h-[100dvh] w-full font-sans overflow-x-hidden relative flex flex-col ${
         isDarkApparatus
           ? 'bg-[#12161B] text-white selection:bg-[#0066FF]/30'
-          : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] selection:bg-[#0066FF]/20'
+          : (effectiveTheme === 'dark'
+              ? 'bg-[#0B0D10] text-[#F5F7FA] selection:bg-[#22C7D6]/30'
+              : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] selection:bg-[#0066FF]/20')
       }`}
     >
       {/* Skip to Main Content Landmark */}
@@ -128,7 +135,9 @@ export const PageShell: React.FC<PageShellProps> = ({
             <div
               className="absolute inset-0 pointer-events-none select-none z-0 opacity-40"
               style={{
-                backgroundImage: 'radial-gradient(rgba(0, 102, 255, 0.12) 1.2px, transparent 1.2px)',
+                backgroundImage: effectiveTheme === 'dark'
+                  ? 'radial-gradient(rgba(34, 199, 214, 0.08) 1.2px, transparent 1.2px)'
+                  : 'radial-gradient(rgba(0, 102, 255, 0.12) 1.2px, transparent 1.2px)',
                 backgroundSize: '36px 36px',
               }}
               aria-hidden="true"
@@ -146,7 +155,7 @@ export const PageShell: React.FC<PageShellProps> = ({
             onNavigate={onNavigate}
             onBack={isAssessmentActive ? onBack : undefined}
             isAssessmentActive={isAssessmentActive}
-            theme="light"
+            theme={isDarkApparatus ? 'light' : effectiveTheme}
           />
         </div>
       )}

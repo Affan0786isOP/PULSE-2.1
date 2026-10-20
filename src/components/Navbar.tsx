@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { Menu, X, Settings, Info, RefreshCw, Download, ArrowLeft, LogOut, WifiOff } from 'lucide-react';
+import { Menu, X, Settings, Info, RefreshCw, Download, ArrowLeft, LogOut, WifiOff, Sun, Moon } from 'lucide-react';
+import { useSystemTheme } from '../lib/useSystemTheme';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { PulseLogo } from './brand';
@@ -218,6 +219,21 @@ export function Navbar({
     }
   };
 
+  const { activeTheme, isDarkApparatus: isRouteApparatus, toggleTheme } = useSystemTheme(location.pathname);
+  const isDarkActive = activeTheme === 'dark';
+  const showThemeToggle = !isAssessmentActive && !isRouteApparatus;
+
+  const handleToggleTheme = (e: React.MouseEvent<HTMLButtonElement>) => {
+    let origin: { x: number; y: number } | undefined;
+    if (e.clientX !== 0 || e.clientY !== 0) {
+      origin = { x: e.clientX, y: e.clientY };
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }
+    toggleTheme(origin);
+  };
+
   const isLight = theme !== 'dark';
 
   return (
@@ -387,6 +403,23 @@ export function Navbar({
           </button>
         )}
 
+        {showThemeToggle && (
+          <button
+            type="button"
+            id="navbar-theme-toggle-btn"
+            onClick={handleToggleTheme}
+            aria-label={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
+            title={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
+            className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 min-[2560px]:w-10 min-[2560px]:h-10 rounded-full text-xs active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 cursor-pointer shrink-0 ${
+              isLight
+                ? 'border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm focus-visible:ring-[#0066FF]'
+                : 'border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] focus-visible:ring-[var(--accent)]'
+            }`}
+          >
+            {isDarkActive ? <Sun size={15} strokeWidth={2.2} /> : <Moon size={15} strokeWidth={2.2} />}
+          </button>
+        )}
+
         <button
           type="button"
           id="navbar-info-btn"
@@ -507,6 +540,25 @@ export function Navbar({
               <div className={`pt-3 border-t mt-2 flex items-center justify-between gap-2 ${
                 isLight ? 'border-slate-200' : 'border-[var(--border-subtle)]'
               }`}>
+                {showThemeToggle && (
+                  <button
+                    type="button"
+                    id="mobile-menu-theme-btn"
+                    aria-label={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
+                    title={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
+                    onClick={(e) => {
+                      handleToggleTheme(e);
+                    }}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 cursor-pointer ${
+                      isLight
+                        ? 'bg-slate-50 border-slate-200 text-slate-700 hover:text-[#0066FF] focus-visible:ring-[#0066FF]'
+                        : 'bg-[var(--surface-2)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--accent)] focus-visible:ring-[var(--accent)]'
+                    }`}
+                  >
+                    {isDarkActive ? <Sun size={14} aria-hidden="true" /> : <Moon size={14} aria-hidden="true" />}
+                    <span>{isDarkActive ? 'Light' : 'Dark'}</span>
+                  </button>
+                )}
                 <button 
                   type="button" 
                   id="mobile-menu-settings-btn"

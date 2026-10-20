@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark *, [data-theme="dark"] *));
+
+/* View Transitions API — Radial wave screen takeover */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
 
 @layer base {
   html {
@@ -509,4 +524,77 @@ a {
   --border: var(--border-default);
   --glass-border: var(--border-subtle);
   --stat-box-bg: var(--surface-2);
+}
+
+
+/* ==========================================================================
+   Dual-Theme Compatibility: Observatory Slate Mapping
+   When data-theme="dark" is active on general desktop pages, cascade
+   semantic surfaces, borders, and text colors to component containers.
+   ========================================================================== */
+:root[data-theme="dark"], [data-theme="dark"], .dark {
+  /* Headings & Text */
+  h1, h2, h3, h4, .font-heading {
+    color: var(--text-primary);
+  }
+
+  /* Card Surfaces & Panels */
+  .bg-white,
+  .bg-white\/95,
+  .bg-white\/90,
+  .bg-white\/85,
+  .bg-white\/80 {
+    background-color: var(--surface-1);
+    color: var(--text-primary);
+  }
+
+  /* Secondary Sub-surfaces & Badges */
+  .bg-slate-50,
+  .bg-slate-50\/80,
+  .bg-slate-50\/70,
+  .bg-slate-100,
+  .bg-slate-100\/80,
+  .bg-\[\#F0F7FF\],
+  .bg-\[\#EAF5FF\],
+  .bg-\[\#F0F5FA\]\/80 {
+    background-color: var(--surface-2);
+  }
+
+  /* Borders */
+  .border-slate-100,
+  .border-slate-200,
+  .border-slate-200\/90,
+  .border-slate-200\/80,
+  .border-slate-200\/60,
+  .border-sky-100,
+  .border-sky-200,
+  .border-sky-200\/90,
+  .border-\[\#BFDBFE\],
+  .border-\[\#D0E7FF\],
+  .border-\[\#CDE5FF\] {
+    border-color: var(--border-subtle);
+  }
+
+  /* Text Colors */
+  .text-\[\#090D1A\],
+  .text-slate-900,
+  .text-slate-800 {
+    color: var(--text-primary);
+  }
+
+  .text-\[\#334155\],
+  .text-slate-700,
+  .text-slate-600 {
+    color: var(--text-secondary);
+  }
+
+  .text-slate-500,
+  .text-slate-400 {
+    color: var(--text-muted);
+  }
+
+  /* Accents & Highlights */
+  .bg-\[\#E0F2FE\] {
+    background-color: var(--accent-subtle);
+  }
 }

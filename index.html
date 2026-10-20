@@ -200,12 +200,24 @@
         function applySavedSettings() {
           try {
             var path = window.location.pathname || '';
-            var isDark = /^\/(mobile\/)?(reaction-test|visual-reaction|direction-test|direction|colour-recognition|color-recognition|color-test|block-memory|block-memory-test|number-memory|number-memory-test)(\/|$)/.test(path);
-            var theme = isDark ? 'dark' : 'light';
+            var isDarkApparatus = /^\/(mobile\/)?(reaction-test|visual-reaction|direction-test|direction|colour-recognition|color-recognition|color-test|block-memory|block-memory-test|number-memory|number-memory-test)(\/|$)/.test(path);
+
+            var raw = localStorage.getItem('pulse_user_settings');
+            var settings = raw ? JSON.parse(raw) : null;
+            var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            var theme = 'light';
+            if (isDarkApparatus) {
+              theme = 'dark';
+            } else if (settings && (settings.themeMode === 'dark' || settings.themeMode === 'light')) {
+              theme = settings.themeMode;
+            } else {
+              theme = systemDark ? 'dark' : 'light';
+            }
 
             document.documentElement.setAttribute('data-theme', theme);
             document.documentElement.style.colorScheme = theme;
-            if (isDark) {
+            if (theme === 'dark') {
               document.documentElement.classList.add('dark');
               document.documentElement.classList.remove('light');
             } else {
@@ -215,10 +227,8 @@
 
             var meta = document.querySelector('meta[name="theme-color"]');
             if (meta) {
-              meta.setAttribute('content', isDark ? '#12161B' : '#FFFFFF');
+              meta.setAttribute('content', theme === 'dark' ? (isDarkApparatus ? '#12161B' : '#0B0D10') : '#FFFFFF');
             }
-
-            var raw = localStorage.getItem('pulse_user_settings');
             var settings = raw ? JSON.parse(raw) : null;
             var prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             var isReducedMotion = settings && typeof settings.reducedMotionEnabled === 'boolean' ? settings.reducedMotionEnabled : prefersReduce;

@@ -110,8 +110,8 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [settings] = useSettings();
-  const isDark = isDarkApparatusRoute(location.pathname);
-  useSystemTheme(location.pathname);
+  const { activeTheme, isDarkApparatus } = useSystemTheme(location.pathname);
+  const isDark = isDarkApparatus || activeTheme === 'dark';
 
   React.useEffect(() => {
     try {
@@ -182,7 +182,7 @@ function App() {
       <div
         className={`min-h-[100dvh] ${
           isDark
-            ? 'bg-[#12161B] text-[var(--text-main)]'
+            ? (isDarkApparatus ? 'bg-[#12161B] text-[var(--text-main)]' : 'bg-[#0B0D10] text-[var(--text-main)]')
             : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A]'
         } relative font-sans overflow-x-clip selection:bg-cyan-500/30`}
       >

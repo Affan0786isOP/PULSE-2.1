@@ -18,15 +18,18 @@ import {
   AlertCircle,
   Clock,
   Moon,
+  Sun,
   Activity,
   Timer
 } from 'lucide-react';
 import { PulseLogo } from './brand';
+import { useSystemTheme } from '../lib/useSystemTheme';
 import { useRefreshRate } from '../lib/useRefreshRate';
 import { detectRefreshRate, resetRefreshRateCache, cancelRefreshRateDetection } from '../lib/refreshRateDetector';
 import { resetPendingSyncQueue } from '../lib/trialStore';
 import { clearInMemorySessionTrials } from '../lib/inMemorySessionStore';
 import { 
+  ThemeMode,
   useSettings, 
   playAudioCue, 
   triggerHaptic, 
@@ -50,6 +53,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const refreshInfo = useRefreshRate();
   const pwa = usePwaInstall();
   const [settings, updateSettingsState] = useSettings();
+  const { activeTheme, setThemeMode } = useSystemTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [isRecalibrating, setIsRecalibrating] = useState(false);
   const isRecalibratingRef = useRef(false);
@@ -481,6 +485,69 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       transition={{ duration: 0.15 }}
                       className="space-y-3"
                     >
+                      {/* Interface Theme Card */}
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#090D1A]">
+                              Interface Theme
+                            </span>
+                            <span className="font-mono text-[11px] text-[#64748B]">
+                              {settings.themeMode === 'system'
+                                ? `System default (${activeTheme})`
+                                : `${settings.themeMode === 'dark' ? 'Dark' : 'Light'} theme active`}
+                            </span>
+                          </div>
+                          <span className="font-mono text-[11px] text-[#64748B] font-medium uppercase">
+                            {settings.themeMode}
+                          </span>
+                        </div>
+
+                        <div 
+                          role="radiogroup" 
+                          aria-label="Theme preference"
+                          className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-[#F0F5FA]/80 border border-slate-100"
+                        >
+                          {[
+                            { label: 'Light', value: 'light' as ThemeMode, icon: Sun },
+                            { label: 'Dark', value: 'dark' as ThemeMode, icon: Moon },
+                            { label: 'System', value: 'system' as ThemeMode, icon: Monitor },
+                          ].map(opt => {
+                            const isSelected = settings.themeMode === opt.value;
+                            const IconComp = opt.icon;
+                            return (
+                              <button
+                                type="button"
+                                key={`theme-mode-${opt.value}`}
+                                id={`theme-mode-${opt.value}-btn`}
+                                role="radio"
+                                aria-checked={isSelected}
+                                onClick={(e) => {
+                                  playAudioCue('click');
+                                  let origin: { x: number; y: number } | undefined;
+                                  if (e.clientX !== 0 || e.clientY !== 0) {
+                                    origin = { x: e.clientX, y: e.clientY };
+                                  } else {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+                                  }
+                                  setThemeMode(opt.value, origin);
+                                }}
+                                className={`flex items-center justify-center gap-2 py-2 px-1 sm:px-2 rounded-lg font-mono text-xs transition-all cursor-pointer border ${
+                                  isSelected
+                                    ? 'bg-white border-sky-200 text-[#0066FF] font-bold shadow-xs'
+                                    : 'border-transparent text-[#64748B] hover:text-[#090D1A]'
+                                }`}
+                                title={`${opt.label} theme mode`}
+                              >
+                                <IconComp size={14} strokeWidth={2.2} />
+                                <span className="text-[11.5px] font-bold">{opt.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
                       {/* Font Scale Card */}
                       <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] space-y-2.5">
                         <div className="flex items-center justify-between">
