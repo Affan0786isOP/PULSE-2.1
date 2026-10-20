@@ -204,7 +204,7 @@ export function Improve({
 
         <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 xl:gap-16 px-4 sm:px-6 lg:px-8">
           <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-8 self-start z-10 px-0 order-1 lg:order-1 flex justify-center lg:justify-start">
-            <div className="w-full max-w-full sm:max-w-sm lg:max-w-none bg-white/80 backdrop-blur-sm lg:bg-transparent p-3 sm:p-4 lg:p-0 rounded-xl border border-slate-200/80 lg:border-none mb-4 lg:mb-0 shadow-xs lg:shadow-none">
+            <div className="w-full max-w-full sm:max-w-sm lg:max-w-none bg-white/80 dark:bg-[#12161B]/80 backdrop-blur-sm lg:bg-transparent p-3 sm:p-4 lg:p-0 rounded-xl border border-slate-200/80 dark:border-slate-800 lg:border-none mb-4 lg:mb-0 shadow-xs lg:shadow-none">
               <HookSidebar
                 items={improveSections}
                 value={activeIndex}
@@ -223,15 +223,15 @@ export function Improve({
             className="flex-1 min-w-0 relative z-10 flex flex-col gap-12 order-2"
           >
             {/* Header Section */}
-            <div className="text-center md:text-left border-b border-slate-200/80 pb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[#BFDBFE] bg-[#E0F2FE] text-[#0066FF] text-xs font-mono mb-3 font-semibold">
+            <div className="text-center md:text-left border-b border-slate-200/80 dark:border-slate-800 pb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[#BFDBFE] dark:border-[#22C7D6]/40 bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] text-xs font-mono mb-3 font-semibold">
                 <BookOpen size={13} />
                 <span>Performance guide</span>
               </div>
-              <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight text-[#090D1A] mb-3">
+              <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight text-[#090D1A] dark:text-white mb-3">
                 Performance &amp; Consistency
               </h1>
-              <p className="text-[#334155] text-sm sm:text-base max-w-2xl leading-relaxed">
+              <p className="text-[#334155] dark:text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
                 Review the physiological factors and habits that affect response latency and measurement consistency.
               </p>
             </div>
@@ -239,13 +239,13 @@ export function Improve({
             {/* Section 1: Physiological Factors */}
             <section id="factors" className="scroll-mt-8">
               <div className="mb-6 text-center md:text-left">
-                <span className="font-mono text-xs text-slate-500 font-semibold tracking-wider uppercase block mb-1">
+                <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                   Biological &amp; environmental factors
                 </span>
-                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A] mb-2">
+                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A] dark:text-white mb-2">
                   What affects measured reaction time?
                 </h2>
-                <p className="text-[#334155] text-xs sm:text-sm max-w-2xl">
+                <p className="text-[#334155] dark:text-slate-300 text-xs sm:text-sm max-w-2xl">
                   Response time changes based on biological states, environmental cues, hardware, and fatigue.
                 </p>
               </div>
@@ -258,11 +258,11 @@ export function Improve({
                   return (
                     <div
                       key={`factor-${factor.id}`}
-                      className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-xl p-4.5 flex flex-col justify-between transition-all hover:border-[#0066FF]/40 hover:shadow-xs"
+                      className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-xl p-4.5 flex flex-col justify-between transition-all hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 hover:shadow-xs"
                     >
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <div className="w-8 h-8 rounded-md bg-[#F0F7FF] border border-[#BFDBFE] flex items-center justify-center text-[#0066FF]">
+                          <div className="w-8 h-8 rounded-md bg-[#F0F7FF] dark:bg-[#181D23] border border-[#BFDBFE] dark:border-slate-700 flex items-center justify-center text-[#0066FF] dark:text-[#22C7D6]">
                             <IconComp size={16} />
                           </div>
                           <span
@@ -271,10 +271,10 @@ export function Improve({
                             {evidence.label}
                           </span>
                         </div>
-                        <h3 className="font-heading text-[#090D1A] font-semibold text-sm mb-1">
+                        <h3 className="font-heading text-[#090D1A] dark:text-white font-semibold text-sm mb-1">
                           {factor.title}
                         </h3>
-                        <p className="text-[#334155] text-xs leading-relaxed mb-3">
+                        <p className="text-[#334155] dark:text-slate-300 text-xs leading-relaxed mb-3">
                           {factor.desc}
                         </p>
                       </div>
@@ -298,13 +298,13 @@ export function Improve({
             <section id="checklist" className="scroll-mt-8">
               <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="text-center sm:text-left">
-                  <span className="font-mono text-xs text-slate-500 font-semibold tracking-wider uppercase block mb-1">
+                  <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                     Daily habits
                   </span>
-                  <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A] mb-1">
+                  <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A] dark:text-white mb-1">
                     Preparation checklist
                   </h2>
-                  <p className="text-[#334155] text-xs sm:text-sm max-w-2xl">
+                  <p className="text-[#334155] dark:text-slate-300 text-xs sm:text-sm max-w-2xl">
                     Check off the habits you follow to maintain testing consistency.
                   </p>
                 </div>
@@ -312,7 +312,7 @@ export function Improve({
                   <button
                     type="button"
                     onClick={handleResetChecklist}
-                    className="self-center sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 active:scale-95 border border-slate-200 text-slate-700 hover:text-[#090D1A] text-xs font-mono transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] cursor-pointer"
+                    className="self-center sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-[#181D23] hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-[#090D1A] dark:hover:text-white text-xs font-mono transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] cursor-pointer"
                   >
                     <RotateCcw size={12} />
                     <span>Reset checklist</span>
@@ -320,19 +320,19 @@ export function Improve({
                 )}
               </div>
 
-              <div className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-2xl p-6 md:p-8 shadow-xs">
+              <div className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-xs">
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-medium text-xs sm:text-sm text-[#090D1A]">
+                    <span className="font-medium text-xs sm:text-sm text-[#090D1A] dark:text-white">
                       Preparation progress
                     </span>
-                    <span className="text-[#0066FF] font-mono text-xs font-semibold">
+                    <span className="text-[#0066FF] dark:text-[#22C7D6] font-mono text-xs font-semibold">
                       {checkedItems.size} of {PREPARATION_HABITS.length} habits checked ({habitCompletionPercentage}%)
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 border border-slate-200 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="w-full h-full bg-[#0066FF] origin-left transition-transform duration-300 ease-out rounded-full"
+                      className="w-full h-full bg-[#0066FF] dark:bg-[#22C7D6] origin-left transition-transform duration-300 ease-out rounded-full"
                       style={{ transform: `scaleX(${habitCompletionPercentage / 100})` }}
                     />
                   </div>
@@ -351,8 +351,8 @@ export function Improve({
                         onClick={() => toggleChecklist(index)}
                         className={`flex text-left gap-3.5 p-3.5 rounded-xl border cursor-pointer transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
                           isChecked
-                            ? "bg-[#F0F7FF] border-[#0066FF]/40 text-[#090D1A]"
-                            : "bg-slate-50/70 border-slate-200/80 hover:border-slate-300 active:bg-slate-100 text-[#334155]"
+                            ? "bg-[#F0F7FF] dark:bg-[#181D23] border-[#0066FF]/40 dark:border-[#22C7D6]/40 text-[#090D1A] dark:text-white"
+                            : "bg-slate-50/70 dark:bg-[#12161B]/60 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 active:bg-slate-100 dark:active:bg-[#181D23] text-[#334155] dark:text-slate-300"
                         }`}
                       >
                         <div
@@ -366,14 +366,14 @@ export function Improve({
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-0.5">
-                            <h4 className="font-semibold text-xs sm:text-sm text-[#090D1A]">
+                            <h4 className="font-semibold text-xs sm:text-sm text-[#090D1A] dark:text-white">
                               {item.title}
                             </h4>
-                            <span className="font-mono text-[9px] text-slate-500 uppercase px-1.5 py-0.5 rounded bg-white border border-slate-200">
+                            <span className="font-mono text-[9px] text-slate-500 dark:text-slate-400 uppercase px-1.5 py-0.5 rounded bg-white dark:bg-[#181D23] border border-slate-200 dark:border-slate-700">
                               {item.category}
                             </span>
                           </div>
-                          <p className="text-[11px] sm:text-xs text-[#334155] leading-relaxed">
+                          <p className="text-[11px] sm:text-xs text-[#334155] dark:text-slate-300 leading-relaxed">
                             {item.desc}
                           </p>
                         </div>
@@ -382,8 +382,8 @@ export function Improve({
                   })}
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-2 text-[11px] text-slate-500 font-mono">
-                  <ShieldCheck size={14} className="text-[#0066FF] shrink-0" />
+                <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                  <ShieldCheck size={14} className="text-[#0066FF] dark:text-[#22C7D6] shrink-0" />
                   <span>
                     These habits support testing consistency and minimize fatigue. They do not directly measure cognitive ability.
                   </span>
@@ -394,10 +394,10 @@ export function Improve({
             {/* Section 3: Research Ledger */}
             <section id="ledger" className="scroll-mt-8">
               <div className="mb-4 text-center md:text-left">
-                <span className="font-mono text-xs text-slate-500 font-semibold tracking-wider uppercase block mb-1">
+                <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                   Research ledger
                 </span>
-                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A]">
+                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A] dark:text-white">
                   Research findings
                 </h2>
               </div>
@@ -411,15 +411,15 @@ export function Improve({
                     setIsLedgerPaused(false);
                   }
                 }}
-                className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-xs"
+                className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-xs"
               >
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200/80">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200/80 dark:border-slate-800">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-md bg-[#F0F7FF] border border-[#BFDBFE] flex items-center justify-center text-[#0066FF]">
+                    <div className="w-7 h-7 rounded-md bg-[#F0F7FF] dark:bg-[#181D23] border border-[#BFDBFE] dark:border-slate-700 flex items-center justify-center text-[#0066FF] dark:text-[#22C7D6]">
                       <BrainCircuit size={16} />
                     </div>
                     <div>
-                      <span className="font-heading text-xs font-semibold text-[#090D1A] tracking-wide uppercase block">
+                      <span className="font-heading text-xs font-semibold text-[#090D1A] dark:text-white tracking-wide uppercase block">
                         {activeEntry.domain}
                       </span>
                       <span className={`font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded border inline-block mt-0.5 ${activeEvidence.className}`}>
@@ -432,16 +432,16 @@ export function Improve({
                   </span>
                 </div>
 
-                <p className="font-sans text-base sm:text-lg font-normal leading-relaxed text-[#090D1A] mb-6 min-h-[60px] flex items-center">
+                <p className="font-sans text-base sm:text-lg font-normal leading-relaxed text-[#090D1A] dark:text-slate-100 mb-6 min-h-[60px] flex items-center">
                   "{activeEntry.statement}"
                 </p>
 
                 {/* Provenance Box */}
-                <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3.5 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="bg-slate-50 dark:bg-[#181D23] border border-slate-200/80 dark:border-slate-800 rounded-lg p-3.5 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                   <div className="flex items-center gap-2">
-                    <BookOpen size={14} className="text-[#0066FF] shrink-0" />
+                    <BookOpen size={14} className="text-[#0066FF] dark:text-[#22C7D6] shrink-0" />
                     <div>
-                      <span className="text-[#090D1A] font-medium">
+                      <span className="text-[#090D1A] dark:text-white font-medium">
                         {activeEntry.citation.source}
                       </span>
                       <span className="text-slate-500 font-mono ml-1.5">
@@ -487,25 +487,25 @@ export function Improve({
             {/* Section 4: Expectation Management */}
             <section id="expectations" className="scroll-mt-8">
               <div className="mb-4 text-center md:text-left">
-                <span className="font-mono text-xs text-slate-500 font-semibold tracking-wider uppercase block mb-1">
+                <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                   Expectation management
                 </span>
-                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A]">
+                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A] dark:text-white">
                   Can you improve your results?
                 </h2>
               </div>
-              <div className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-2xl p-6 md:p-8 space-y-3.5 text-xs sm:text-sm text-[#334155] leading-relaxed shadow-xs">
+              <div className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 md:p-8 space-y-3.5 text-xs sm:text-sm text-[#334155] dark:text-slate-300 leading-relaxed shadow-xs">
                 <p>
                   Absolute physiological limits set a floor on neural transmission speed, but day-to-day variance depends heavily on focus, sleep, and environmental distractions.
                 </p>
                 <p>
                   You can minimize performance dips and achieve higher consistency by maintaining good sleep habits, minimizing hardware input latency, and practicing the tasks.
                 </p>
-                <div className="pt-3 border-t border-slate-200/80 space-y-2">
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 space-y-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                     Longitudinal gains on benchmark tasks largely reflect task familiarity, stimulus anticipation, and motor pattern learning rather than an expansion of overall cognitive capacity.
                   </p>
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                     Variations across age cohorts reflect sensory-motor processing differences across populations rather than an absolute indicator of individual biological decline.
                   </p>
                 </div>
@@ -515,10 +515,10 @@ export function Improve({
             {/* Section 5: System Recommendations */}
             <section id="recommendations" className="scroll-mt-8">
               <div className="mb-6 text-center md:text-left">
-                <span className="font-mono text-xs text-slate-500 font-semibold tracking-wider uppercase block mb-1">
+                <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                   Best practices
                 </span>
-                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A] mb-2">
+                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A] dark:text-white mb-2">
                   How to improve
                 </h2>
               </div>
@@ -552,15 +552,15 @@ export function Improve({
                 ].map((tip) => (
                   <div
                     key={`tip-${tip.num}-${tip.title}`}
-                    className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between hover:border-[#0066FF]/40 transition-colors shadow-xs"
+                    className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 transition-colors shadow-xs"
                   >
-                    <div className="font-mono text-xs font-semibold text-[#0066FF] mb-2">
+                    <div className="font-mono text-xs font-semibold text-[#0066FF] dark:text-[#22C7D6] mb-2">
                       Tip {tip.num}
                     </div>
-                    <h3 className="font-heading font-semibold text-sm text-[#090D1A] mb-1">
+                    <h3 className="font-heading font-semibold text-sm text-[#090D1A] dark:text-white mb-1">
                       {tip.title}
                     </h3>
-                    <p className="text-xs text-[#334155] leading-relaxed">
+                    <p className="text-xs text-[#334155] dark:text-slate-300 leading-relaxed">
                       {tip.desc}
                     </p>
                   </div>
@@ -569,7 +569,7 @@ export function Improve({
             </section>
 
             {/* Bottom Actions */}
-            <section className="pt-4 text-center border-t border-slate-200/80">
+            <section className="pt-4 text-center border-t border-slate-200/80 dark:border-slate-800">
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
@@ -582,7 +582,7 @@ export function Improve({
                 <button
                   type="button"
                   onClick={() => onNavigate("home")}
-                  className="border border-slate-200 bg-white hover:bg-slate-50 text-[#090D1A] font-semibold text-xs tracking-wider uppercase px-6 py-3 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                  className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#181D23] hover:bg-slate-50 dark:hover:bg-slate-800 text-[#090D1A] dark:text-white font-semibold text-xs tracking-wider uppercase px-6 py-3 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
                 >
                   <span>Return home</span>
                 </button>

@@ -14,7 +14,7 @@ export function DatasetComingSoon() {
     >
       <section
         aria-labelledby="dataset-coming-soon-title"
-        className="w-full text-center bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-2xl p-8 sm:p-12 shadow-xs"
+        className="w-full text-center bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-2xl p-8 sm:p-12 shadow-xs"
       >
         <div className="mx-auto mb-6 w-14 h-14 rounded-2xl bg-[#E0F2FE] dark:bg-[#181D23] border border-[#BFDBFE] dark:border-[#22C7D6]/40 flex items-center justify-center text-[#0066FF] dark:text-[#22C7D6]">
           <Database size={24} aria-hidden="true" />

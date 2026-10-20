@@ -429,11 +429,11 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
           role="tabpanel" 
           aria-labelledby={`leaderboard-tab-${selectedProtocol}`} 
           aria-busy={loading} 
-          className="rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-8 flex-1 flex flex-col shadow-[0_4px_24px_rgba(0,102,255,0.03)]"
+          className="rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#12161B] p-5 sm:p-8 flex-1 flex flex-col shadow-[0_4px_24px_rgba(0,102,255,0.03)] dark:shadow-none"
         >
           {loading ? (
             <div className="py-8" role="status" aria-live="polite" aria-label="Loading leaderboard">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
                 {currentProto.columns.map((col) => (
                   <div key={col.key} className="h-4 bg-slate-200/70 rounded w-16 animate-pulse" />
                 ))}
@@ -462,10 +462,10 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-500 mb-4 shadow-xs">
                 <AlertCircle size={24} />
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
                 Unable to Load Leaderboard
               </h3>
-              <p className="text-xs font-mono text-slate-500 mb-5 leading-relaxed">
+              <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
                 {error}
               </p>
               <button
@@ -479,13 +479,13 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             </div>
           ) : displayedEntries.length === 0 ? (
             <div className="py-16 flex flex-col items-center justify-center text-center max-w-md mx-auto my-auto">
-              <div className="w-12 h-12 rounded-2xl bg-[#EAF5FF] border border-[#D0E7FF] flex items-center justify-center text-[#0066FF] mb-4 shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-[#EAF5FF] dark:bg-[#181D23] border border-[#D0E7FF] dark:border-slate-800 flex items-center justify-center text-[#0066FF] dark:text-[#22C7D6] mb-4 shadow-xs">
                 <Inbox size={24} />
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
                 No telemetry recorded
               </h3>
-              <p className="text-xs text-slate-500 leading-relaxed mb-6">
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
                 Be the first participant to complete the {currentProto.name} battery and submit your verified result to the public demographic dataset.
               </p>
               <button
@@ -501,7 +501,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 text-slate-400 font-medium text-xs sm:text-[13px]">
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-400 font-medium text-xs sm:text-[13px]">
                     {currentProto.columns.map((col) => (
                       <th 
                         key={col.key} 
@@ -518,7 +518,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100/70 font-sans text-sm">
+                <tbody className="divide-y divide-slate-100/70 dark:divide-slate-800/70 font-sans text-sm">
                   {displayedEntries.map((entry, idx) => {
                     const rank = getDisplayedLeaderboardRank(displayedEntries, entry);
                     const formattedScore = formatLeaderboardScore(entry.scoreMetric, currentProto.unit);
@@ -530,12 +530,12 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.15, delay: Math.min(idx * 0.015, 0.15) }}
-                        className="transition-colors hover:bg-slate-50/70"
+                        className="transition-colors hover:bg-slate-50/70 dark:hover:bg-[#181D23]/70"
                       >
                         {currentProto.columns.map((col) => {
                           if (col.key === 'rank') {
                             return (
-                              <td key={col.key} className="py-3.5 px-4 font-semibold text-slate-800 text-[14px]">
+                              <td key={col.key} className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200 text-[14px]">
                                 {rank}
                               </td>
                             );
@@ -557,7 +557,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                                   </div>
                                   {/* Safely truncated Display Name with title tooltip */}
                                   <span 
-                                    className="font-semibold text-slate-900 text-[14.5px] truncate max-w-[200px] lg:max-w-[300px]"
+                                    className="font-semibold text-slate-900 dark:text-white text-[14.5px] truncate max-w-[200px] lg:max-w-[300px]"
                                     title={entry.displayName}
                                   >
                                     {entry.displayName}
@@ -569,7 +569,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
                           if (col.key === 'time') {
                             return (
-                              <td key={col.key} className="py-3.5 px-4 text-right font-semibold text-slate-900 tabular-nums text-[14.5px]">
+                              <td key={col.key} className="py-3.5 px-4 text-right font-semibold text-slate-900 dark:text-white tabular-nums text-[14.5px]">
                                 {formattedScore}
                               </td>
                             );
@@ -581,7 +581,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                               const pct = rawAcc <= 1 ? Math.round(rawAcc * 100) : Math.round(rawAcc);
                               return (
                                 <td key={col.key} className="py-3.5 px-4 text-right">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200/60">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
                                     {pct}%
                                   </span>
                                 </td>
@@ -597,7 +597,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
                           if (col.key === 'age') {
                             return (
-                              <td key={col.key} className="py-3.5 px-4 text-right text-slate-600 text-xs sm:text-[13px] font-medium">
+                              <td key={col.key} className="py-3.5 px-4 text-right text-slate-600 dark:text-slate-400 text-xs sm:text-[13px] font-medium">
                                 {entry.ageGroup || '—'}
                               </td>
                             );

@@ -112,10 +112,10 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
               whileHover={assessment.status === 'AVAILABLE' ? { y: -3, transition: { duration: 0.15 } } : undefined}
               whileTap={assessment.status === 'AVAILABLE' ? { scale: 0.98 } : undefined}
               onClick={() => assessment.status === 'AVAILABLE' && onNavigate(assessment.id)}
-              className={`relative rounded-2xl flex flex-col text-left overflow-hidden w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] transition-all ${
+              className={`relative rounded-2xl flex flex-col text-left overflow-hidden w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] transition-all ${
                 assessment.status === 'AVAILABLE' 
-                  ? 'bg-white/90 backdrop-blur-sm border border-slate-200/80 hover:border-[#0066FF]/40 hover:shadow-lg hover:shadow-blue-500/5 cursor-pointer group' 
-                  : 'bg-slate-50 border border-slate-200 opacity-40 cursor-not-allowed'
+                  ? 'bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 hover:shadow-lg hover:shadow-blue-500/5 cursor-pointer group' 
+                  : 'bg-slate-50 dark:bg-[#181D23] border border-slate-200 dark:border-slate-800 opacity-40 cursor-not-allowed'
               }`}
             >
               {/* Card Medallion Header */}
@@ -146,7 +146,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
               
               {/* Card Content */}
               <div className="p-5 sm:p-6 flex flex-col flex-1">
-                <div className="text-[10px] font-mono font-semibold text-slate-500 tracking-wider uppercase mb-1.5">
+                <div className="text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-1.5">
                   {assessment.type}
                 </div>
                 
@@ -158,7 +158,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                 </p>
                 
                 {assessment.status === 'AVAILABLE' && (
-                  <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#BFDBFE] dark:border-[#22C7D6]/40 bg-white dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] text-xs font-semibold group-hover:bg-[#F0F7FF] dark:group-hover:bg-[#22C7D6]/10 group-hover:border-[#0066FF] dark:group-hover:border-[#22C7D6] transition-colors">
                       <span>Try {assessment.title}</span>
                       <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
