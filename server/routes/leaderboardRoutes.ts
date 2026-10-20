@@ -3,12 +3,16 @@ import type { Express } from 'express';
 import { verifyFirebaseUserToken } from '../middleware/auth';
 
 import type { ILeaderboardService } from '../services/interfaces/ILeaderboardService';
+import type { ITelegramNotifierService } from '../services/interfaces/ITelegramNotifierService';
+import { isValidDeviceId } from '../../shared/telemetry/deviceId';
+import { isMobileUserAgent } from '../middleware/deviceRouting';
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 
 export function registerLeaderboardRoutes(
   app: Express,
   services: {
     leaderboardService: ILeaderboardService;
+    telegramService?: ITelegramNotifierService;
   }
 ): void {
   // Authoritative Leaderboard Submission
@@ -19,7 +23,7 @@ export function registerLeaderboardRoutes(
         return res.status(401).json({ success: false, error: 'Authentication required: missing or invalid Firebase ID token' });
       }
 
-      const { displayName, assessmentType, ageGroup, userId, trials, sessionId, idempotencyKey } = req.body || {};
+      const { displayName, assessmentType, ageGroup, userId, trials, sessionId, idempotencyKey, deviceId } = req.body || {};
 
       if (!sessionId || typeof sessionId !== 'string' || !sessionId.trim()) {
         return res.status(400).json({ success: false, error: 'sessionId is required and must be a valid non-empty string' });
@@ -56,6 +60,28 @@ export function registerLeaderboardRoutes(
           trials: Array.isArray(trials) ? trials : [],
           idempotencyKey: validIdempKey
         });
+
+        if (services.telegramService && result && !result.alreadySubmitted) {
+          const validatedDeviceId = isValidDeviceId(deviceId) ? deviceId : undefined;
+          const isMobile = isMobileUserAgent(req);
+          const scoreVal = result.scoreMetric;
+          const isSpeed = assessmentType === 'visual-reaction' || assessmentType === 'direction' || assessmentType === 'colour-recognition' || assessmentType === 'color-recognition';
+
+          void services.telegramService.enqueueLeaderboardUpload({
+            notificationId: result.docId || result.attemptId || sessionId,
+            displayName: displayName || 'Anonymous Participant',
+            assessmentType: assessmentType,
+            ageGroup: ageGroup || 'Unknown',
+            scoreDisplay: String(scoreVal),
+            scoreUnit: isSpeed ? 'ms' : 'pts',
+            trialsCount: Array.isArray(trials) ? trials.length : null,
+            surface: isMobile ? 'mobile' : 'desktop',
+            deviceId: validatedDeviceId,
+            createdAtIso: new Date().toISOString()
+          }).catch((err: unknown) => {
+            console.error('[Telemetry Leaderboard Enqueue Error]:', err instanceof Error ? err.message : String(err));
+          });
+        }
 
         return res.json({
           success: true,
