@@ -240,5 +240,3 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
     </PageShell>
   );
 }
-
-export default About;

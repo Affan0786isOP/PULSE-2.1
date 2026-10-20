@@ -594,5 +594,3 @@ export function Improve({
     </PageShell>
   );
 }
-
-export default Improve;

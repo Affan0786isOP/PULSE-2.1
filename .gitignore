@@ -21,3 +21,6 @@ vite-cache/
 # Audit artifacts
 pulse-leaderboard-audit.zip
 pulse-leaderboard-audit/
+
+# Scratch & temporary scripts
+scratch/

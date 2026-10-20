@@ -13,7 +13,7 @@ import { registerStaticRoutes } from './routes/staticRoutes';
 import { createServerContainer } from './container';
 
 
-export const app = express();
+const app = express();
 
 async function startServer() {
   // Trust proxy for Cloud Run and reverse proxies
