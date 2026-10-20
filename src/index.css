@@ -526,6 +526,51 @@ a {
   --stat-box-bg: var(--surface-2);
 }
 
+:root[data-theme="dark"] .pulse-light-modal,
+[data-theme="dark"] .pulse-light-modal,
+.dark .pulse-light-modal,
+.pulse-light-modal[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface-0: #0B0D10;
+  --surface-1: #12161B;
+  --surface-2: #181D23;
+  --surface-3: #222831;
+
+  --border-subtle: #20262D;
+  --border-default: #29313A;
+  --border-strong: #37414C;
+
+  --text-primary: #F5F7FA;
+  --text-secondary: #A7B0BC;
+  --text-muted: #8490A0;
+  --text-main: var(--text-primary);
+  --foreground: var(--text-primary);
+  --text-subtle: var(--text-muted);
+
+  --accent: #22C7D6;
+  --accent-hover: #35D4E1;
+  --accent-subtle: rgba(34, 199, 214, 0.10);
+  --cyan-primary: var(--accent);
+  --cyan-glow: var(--accent-subtle);
+
+  --success: #34C759;
+  --warning: #F2B84B;
+  --danger: #E05260;
+  --focus-ring: #22C7D6;
+
+  --bg-base: var(--surface-0);
+  --bg-surface: var(--surface-1);
+  --bg-surface-solid: var(--surface-1);
+  --bg-card: var(--surface-1);
+  --bg-card-hover: var(--surface-2);
+  --bg-panel: var(--surface-2);
+  --bg-panel-hover: var(--surface-3);
+  --border: var(--border-default);
+  --glass-border: var(--border-subtle);
+  --stat-box-bg: var(--surface-2);
+}
+
 
 /* ==========================================================================
    Dual-Theme Compatibility: Observatory Slate Mapping

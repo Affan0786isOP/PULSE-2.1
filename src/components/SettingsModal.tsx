@@ -402,19 +402,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 14 }}
                 transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="relative z-10 w-full max-w-[550px] max-h-[min(690px,calc(100dvh-2rem))] bg-gradient-to-b from-[#FFFFFF] via-[#F9FBFF] to-[#F1F6FD] border border-sky-100 rounded-[28px] sm:rounded-[32px] p-5 sm:p-7 flex flex-col font-sans text-[#090D1A] my-auto shadow-[0_24px_64px_rgba(0,102,255,0.14),0_8px_24px_rgba(0,0,0,0.05)] focus-visible:ring-2 focus-visible:ring-[#0066FF] outline-none overflow-hidden"
+                className="relative z-10 w-full max-w-[550px] max-h-[min(690px,calc(100dvh-2rem))] bg-gradient-to-b from-[#FFFFFF] via-[#F9FBFF] to-[#F1F6FD] dark:from-[#12161B] dark:via-[#161B22] dark:to-[#0E1217] border border-sky-100 dark:border-slate-800 rounded-[28px] sm:rounded-[32px] p-5 sm:p-7 flex flex-col font-sans text-[#090D1A] dark:text-white my-auto shadow-[0_24px_64px_rgba(0,102,255,0.14),0_8px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_24px_64px_rgba(0,0,0,0.6)] focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] outline-none overflow-hidden"
               >
                 {/* Header: Title, Subtitle, and Close Control */}
                 <div className="flex items-center justify-between gap-3 mb-4 shrink-0">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-11 h-11 rounded-[14px] bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0 shadow-xs">
+                    <div className="w-11 h-11 rounded-[14px] bg-[#EAF5FF] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 shadow-xs border border-transparent dark:border-slate-800">
                       <Settings size={22} strokeWidth={2.2} />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <h2 id="settings-modal-heading" className="font-heading font-extrabold text-[15px] sm:text-[16px] tracking-wide text-[#090D1A] uppercase leading-tight">
+                      <h2 id="settings-modal-heading" className="font-heading font-extrabold text-[15px] sm:text-[16px] tracking-wide text-[#090D1A] dark:text-white uppercase leading-tight">
                         SYSTEM CONFIGURATION
                       </h2>
-                      <p className="text-[11.5px] sm:text-[12px] text-[#64748B] font-medium tracking-tight">
+                      <p className="text-[11.5px] sm:text-[12px] text-[#64748B] dark:text-slate-400 font-medium tracking-tight">
                         Preferences &amp; Display Timing
                       </p>
                     </div>
@@ -426,7 +426,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     id="close-settings-modal-btn"
                     onClick={onClose}
                     aria-label="Close Settings"
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-[#181D23] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
                   >
                     <X size={18} strokeWidth={2.2} />
                   </button>
@@ -434,14 +434,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                 {/* Segmented Pill Navigation Tabs */}
                 <div className="mb-4 shrink-0">
-                  <div className="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-[#F0F5FA]/80 border border-slate-100 text-xs">
+                  <div className="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-[#F0F5FA]/80 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 text-xs">
                     <button 
                       type="button"
                       onClick={() => { playAudioCue('click'); setActiveTab('general'); }}
-                      className={`py-2 px-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                      className={`py-2 px-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
                         activeTab === 'general'
-                          ? 'bg-white text-[#0066FF] shadow-[0_2px_8px_rgba(0,102,255,0.08)] border border-sky-100/60'
-                          : 'text-[#64748B] hover:text-[#090D1A] border border-transparent'
+                          ? 'bg-white dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] shadow-[0_2px_8px_rgba(0,102,255,0.08)] border border-sky-100/60 dark:border-slate-700'
+                          : 'text-[#64748B] dark:text-slate-400 hover:text-[#090D1A] dark:hover:text-white border border-transparent'
                       }`}
                     >
                       <Sliders size={14} strokeWidth={2.2} />
@@ -451,10 +451,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <button 
                       type="button"
                       onClick={() => { playAudioCue('click'); setActiveTab('feedback'); }}
-                      className={`py-2 px-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                      className={`py-2 px-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
                         activeTab === 'feedback'
-                          ? 'bg-white text-[#0066FF] shadow-[0_2px_8px_rgba(0,102,255,0.08)] border border-sky-100/60'
-                          : 'text-[#64748B] hover:text-[#090D1A] border border-transparent'
+                          ? 'bg-white dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] shadow-[0_2px_8px_rgba(0,102,255,0.08)] border border-sky-100/60 dark:border-slate-700'
+                          : 'text-[#64748B] dark:text-slate-400 hover:text-[#090D1A] dark:hover:text-white border border-transparent'
                       }`}
                     >
                       <Volume2 size={14} strokeWidth={2.2} />
@@ -464,10 +464,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <button 
                       type="button"
                       onClick={() => { playAudioCue('click'); setActiveTab('calibration'); }}
-                      className={`py-2 px-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                      className={`py-2 px-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
                         activeTab === 'calibration'
-                          ? 'bg-white text-[#0066FF] shadow-[0_2px_8px_rgba(0,102,255,0.08)] border border-sky-100/60'
-                          : 'text-[#64748B] hover:text-[#090D1A] border border-transparent'
+                          ? 'bg-white dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] shadow-[0_2px_8px_rgba(0,102,255,0.08)] border border-sky-100/60 dark:border-slate-700'
+                          : 'text-[#64748B] dark:text-slate-400 hover:text-[#090D1A] dark:hover:text-white border border-transparent'
                       }`}
                     >
                       <Monitor size={14} strokeWidth={2.2} />
@@ -487,19 +487,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       className="space-y-3"
                     >
                       {/* Interface Theme Card */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] space-y-2.5">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex flex-col">
-                            <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#090D1A]">
+                            <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#090D1A] dark:text-white">
                               Interface Theme
                             </span>
-                            <span className="font-mono text-[11px] text-[#64748B]">
+                            <span className="font-mono text-[11px] text-[#64748B] dark:text-slate-400">
                               {settings.themeMode === 'system'
                                 ? `System default (${activeTheme})`
                                 : `${settings.themeMode === 'dark' ? 'Dark' : 'Light'} theme active`}
                             </span>
                           </div>
-                          <span className="font-mono text-[11px] text-[#64748B] font-medium uppercase">
+                          <span className="font-mono text-[11px] text-[#64748B] dark:text-slate-400 font-medium uppercase">
                             {settings.themeMode}
                           </span>
                         </div>
@@ -507,7 +507,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div 
                           role="radiogroup" 
                           aria-label="Theme preference"
-                          className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-[#F0F5FA]/80 border border-slate-100"
+                          className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-[#F0F5FA]/80 dark:bg-[#12161B] border border-slate-100 dark:border-slate-800"
                         >
                           {[
                             { label: 'Light', value: 'light' as ThemeMode, icon: Sun },
@@ -536,8 +536,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                 }}
                                 className={`flex items-center justify-center gap-2 py-2 px-1 sm:px-2 rounded-lg font-mono text-xs transition-all cursor-pointer border ${
                                   isSelected
-                                    ? 'bg-white border-sky-200 text-[#0066FF] font-bold shadow-xs'
-                                    : 'border-transparent text-[#64748B] hover:text-[#090D1A]'
+                                    ? 'bg-white dark:bg-[#181D23] border-sky-200 dark:border-[#22C7D6] text-[#0066FF] dark:text-[#22C7D6] font-bold shadow-xs'
+                                    : 'border-transparent text-[#64748B] dark:text-slate-400 hover:text-[#090D1A] dark:hover:text-white'
                                 }`}
                                 title={`${opt.label} theme mode`}
                               >
@@ -550,12 +550,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
 
                       {/* Font Scale Card */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] space-y-2.5">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#090D1A]">
+                          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#090D1A] dark:text-white">
                             Accessibility Text Scale
                           </span>
-                          <span className="font-mono text-[11px] text-[#64748B] font-medium uppercase">
+                          <span className="font-mono text-[11px] text-[#64748B] dark:text-slate-400 font-medium uppercase">
                             {Math.round((settings.fontScale || 1.0) * 100)}% ({
                               (settings.fontScale || 1.0) <= 0.9 ? 'Compact' :
                               (settings.fontScale || 1.0) <= 1.0 ? 'Default' :
@@ -564,7 +564,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-[#F0F5FA]/80 border border-slate-100">
+                        <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-[#F0F5FA]/80 dark:bg-[#12161B] border border-slate-100 dark:border-slate-800">
                           {[
                             { label: '90%', scale: 0.9, title: 'Compact' },
                             { label: '100%', scale: 1.0, title: 'Default' },
@@ -583,13 +583,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                                 }}
                                 className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg font-mono text-xs transition-all cursor-pointer border ${
                                   isSelected
-                                    ? 'bg-white border-sky-200 text-[#0066FF] font-bold shadow-xs'
-                                    : 'border-transparent text-[#64748B] hover:text-[#090D1A]'
+                                    ? 'bg-white dark:bg-[#181D23] border-sky-200 dark:border-[#22C7D6] text-[#0066FF] dark:text-[#22C7D6] font-bold shadow-xs'
+                                    : 'border-transparent text-[#64748B] dark:text-slate-400 hover:text-[#090D1A] dark:hover:text-white'
                                 }`}
                                 title={`${opt.title} text scale (${opt.label})`}
                               >
                                 <span className="text-[11.5px] font-bold">{opt.label}</span>
-                                <span className="text-[9.5px] text-[#94A3B8]">{opt.title}</span>
+                                <span className="text-[9.5px] text-[#94A3B8] dark:text-slate-500">{opt.title}</span>
                               </button>
                             );
                           })}
@@ -597,14 +597,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
 
                       {/* Fullscreen Card */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
                             {isFullscreen ? <Minimize2 size={18} strokeWidth={2.2} /> : <Maximize2 size={18} strokeWidth={2.2} />}
                           </div>
                           <div>
-                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Fullscreen Focus</div>
-                            <div className="text-[11px] sm:text-xs text-[#64748B]">Run tests without browser distractions</div>
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] dark:text-white">Fullscreen Focus</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B] dark:text-slate-400">Run tests without browser distractions</div>
                           </div>
                         </div>
 
@@ -612,7 +612,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           type="button"
                           id="toggle-fullscreen-btn"
                           onClick={handleToggleFullscreen}
-                          className="px-3.5 py-1.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-[#0066FF] font-semibold text-xs cursor-pointer transition-colors shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                          className="px-3.5 py-1.5 rounded-xl border border-sky-200 dark:border-slate-700 bg-sky-50/70 dark:bg-[#12161B] hover:bg-sky-100 dark:hover:bg-slate-800 text-[#0066FF] dark:text-[#22C7D6] font-semibold text-xs cursor-pointer transition-colors shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
                         >
                           {isFullscreen ? 'Exit' : 'Enter'}
                         </button>
@@ -622,16 +622,16 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <div 
                           role="status"
                           aria-live="polite"
-                          className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-mono flex items-center justify-between gap-2"
+                          className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 text-xs font-mono flex items-center justify-between gap-2"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <AlertCircle size={14} className="shrink-0 text-rose-500" />
+                            <AlertCircle size={14} className="shrink-0 text-rose-500 dark:text-rose-400" />
                             <span className="truncate">{fullscreenNotice}</span>
                           </div>
                           <button
                             type="button"
                             onClick={() => setFullscreenNotice(null)}
-                            className="text-rose-500 hover:text-rose-700 cursor-pointer p-0.5 shrink-0"
+                            className="text-rose-500 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 cursor-pointer p-0.5 shrink-0"
                             aria-label="Dismiss message"
                           >
                             <X size={12} />
@@ -640,21 +640,21 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       )}
 
                       {/* Mobile Web App (PWA) Card */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
                             <Smartphone size={18} strokeWidth={2.2} />
                           </div>
                           <div>
-                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] flex items-center gap-1.5">
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] dark:text-white flex items-center gap-1.5">
                               <span>Mobile Web App</span>
                               {pwa.isInstalled && (
-                                <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200 font-mono text-[9.5px] font-bold">
+                                <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-mono text-[9.5px] font-bold">
                                   Active
                                 </span>
                               )}
                             </div>
-                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                            <div className="text-[11px] sm:text-xs text-[#64748B] dark:text-slate-400">
                               {pwa.isInstalled ? 'Running as a standalone app' : 'Add to home screen to launch quickly'}
                             </div>
                           </div>
@@ -671,7 +671,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                               await pwa.promptInstall();
                             }
                           }}
-                          className="px-3.5 py-1.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-[#0066FF] font-semibold text-xs cursor-pointer transition-colors flex items-center gap-1.5 shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                          className="px-3.5 py-1.5 rounded-xl border border-sky-200 dark:border-slate-700 bg-sky-50/70 dark:bg-[#12161B] hover:bg-sky-100 dark:hover:bg-slate-800 text-[#0066FF] dark:text-[#22C7D6] font-semibold text-xs cursor-pointer transition-colors flex items-center gap-1.5 shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
                         >
                           <Download size={13} strokeWidth={2.2} />
                           <span>{pwa.isInstalled ? 'Details' : 'Install'}</span>
@@ -689,14 +689,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       className="space-y-3"
                     >
                       {/* Audio Feedback Card */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
                             {settings.soundEnabled ? <Volume2 size={18} strokeWidth={2.2} /> : <VolumeX size={18} strokeWidth={2.2} />}
                           </div>
                           <div>
-                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Audio Feedback</div>
-                            <div className="text-[11px] sm:text-xs text-[#64748B]">Auditory beeps and click feedback</div>
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] dark:text-white">Audio Feedback</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B] dark:text-slate-400">Auditory beeps and click feedback</div>
                           </div>
                         </div>
                         
@@ -705,7 +705,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             <button 
                               type="button"
                               onClick={handleTestSound}
-                              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#0066FF] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 dark:bg-[#12161B] hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#0066FF] dark:text-[#22C7D6] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
                             >
                               Test
                             </button>
@@ -717,13 +717,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             aria-checked={settings.soundEnabled}
                             aria-label="Toggle Audio Feedback"
                             onClick={handleToggleSound}
-                            className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
-                              settings.soundEnabled ? 'bg-[#0066FF]' : 'bg-slate-200 border border-slate-300'
+                            className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
+                              settings.soundEnabled ? 'bg-[#0066FF] dark:bg-[#22C7D6]' : 'bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700'
                             }`}
                           >
                             <span 
-                              className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
-                                settings.soundEnabled ? 'translate-x-5 text-[#0066FF]' : 'translate-x-0'
+                              className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white dark:bg-[#12161B] shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
+                                settings.soundEnabled ? 'translate-x-5 text-[#0066FF] dark:text-[#22C7D6]' : 'translate-x-0'
                               }`} 
                             >
                               {settings.soundEnabled ? '✓' : ''}
@@ -733,14 +733,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
 
                       {/* Haptic Vibration Card */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
                             <Smartphone size={18} strokeWidth={2.2} />
                           </div>
                           <div>
-                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Haptic Vibration</div>
-                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] dark:text-white">Haptic Vibration</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B] dark:text-slate-400">
                               {!hapticsAvailable ? 'Not supported on this device/browser' : 'Vibrate on button press'}
                             </div>
                           </div>
@@ -751,7 +751,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             <button 
                               type="button"
                               onClick={handleTestHaptic}
-                              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#0066FF] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 dark:bg-[#12161B] hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#0066FF] dark:text-[#22C7D6] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
                             >
                               Test
                             </button>
@@ -764,15 +764,15 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             aria-label="Toggle Haptic Vibration"
                             disabled={!hapticsAvailable}
                             onClick={handleToggleHaptics}
-                            className={`w-12 h-7 rounded-full transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                            className={`w-12 h-7 rounded-full transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
                               !hapticsAvailable
-                                ? 'opacity-40 cursor-not-allowed bg-slate-200 border border-slate-300'
-                                : settings.hapticsEnabled ? 'bg-[#0066FF] cursor-pointer' : 'bg-slate-200 border border-slate-300 cursor-pointer'
+                                ? 'opacity-40 cursor-not-allowed bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700'
+                                : settings.hapticsEnabled ? 'bg-[#0066FF] dark:bg-[#22C7D6] cursor-pointer' : 'bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 cursor-pointer'
                             }`}
                           >
                             <span 
-                              className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
-                                settings.hapticsEnabled && hapticsAvailable ? 'translate-x-5 text-[#0066FF]' : 'translate-x-0'
+                              className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white dark:bg-[#12161B] shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
+                                settings.hapticsEnabled && hapticsAvailable ? 'translate-x-5 text-[#0066FF] dark:text-[#22C7D6]' : 'translate-x-0'
                               }`} 
                             >
                               {settings.hapticsEnabled && hapticsAvailable ? '✓' : ''}
@@ -792,17 +792,17 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       className="space-y-3"
                     >
                       {/* Section Card 1: DISPLAY FRAME TIMING */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] space-y-3">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
                               <Monitor size={17} strokeWidth={2.2} />
                             </div>
                             <div>
-                              <div className="font-mono font-bold text-xs sm:text-[13px] uppercase tracking-wider text-[#090D1A]">
+                              <div className="font-mono font-bold text-xs sm:text-[13px] uppercase tracking-wider text-[#090D1A] dark:text-white">
                                 DISPLAY FRAME TIMING
                               </div>
-                              <div className="text-[11px] text-[#64748B]">
+                              <div className="text-[11px] text-[#64748B] dark:text-slate-400">
                                 Display and timing diagnostics for precise measurement
                               </div>
                             </div>
@@ -813,7 +813,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             id="recalibrate-display-btn"
                             onClick={handleRecalibrateDisplay}
                             disabled={isRecalibrating}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 text-[#0066FF] text-xs font-semibold cursor-pointer transition-all disabled:opacity-50 shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-sky-200 dark:border-slate-700 bg-sky-50/70 dark:bg-[#12161B] hover:bg-sky-100 dark:hover:bg-slate-800 text-[#0066FF] dark:text-[#22C7D6] text-xs font-semibold cursor-pointer transition-all disabled:opacity-50 shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
                           >
                             <RefreshCw size={12} strokeWidth={2.4} className={isRecalibrating ? 'animate-spin' : ''} />
                             <span>{isRecalibrating ? 'Calibrating...' : 'Recalibrate'}</span>
@@ -823,22 +823,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         {/* Two Diagnostic Metric Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
                           {/* Sub-card 1: DISPLAY REFRESH RATE */}
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC]/90 border border-slate-100 flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                          <div className="p-3 rounded-2xl bg-[#F8FAFC]/90 dark:bg-[#12161B] border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-2xl bg-[#EAF5FF] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-700">
                               <Activity size={20} strokeWidth={2.4} />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="text-[9.5px] text-[#64748B] font-mono font-bold uppercase tracking-wider">
+                              <div className="text-[9.5px] text-[#64748B] dark:text-slate-400 font-mono font-bold uppercase tracking-wider">
                                 DISPLAY REFRESH RATE
                               </div>
-                              <div className="text-xl font-extrabold text-[#0066FF] leading-tight mt-0.5">
+                              <div className="text-xl font-extrabold text-[#0066FF] dark:text-[#22C7D6] leading-tight mt-0.5">
                                 {isRecalibrating || refreshInfo.status === 'detecting' ? (
-                                  <span className="text-xs text-[#94A3B8]">Detecting…</span>
+                                  <span className="text-xs text-[#94A3B8] dark:text-slate-500">Detecting…</span>
                                 ) : (
                                   `${refreshInfo.hz} Hz`
                                 )}
                               </div>
-                              <div className="text-[10px] text-[#64748B] font-medium mt-0.5">
+                              <div className="text-[10px] text-[#64748B] dark:text-slate-400 font-medium mt-0.5">
                                 {isRecalibrating || refreshInfo.status === 'detecting'
                                   ? 'Measuring frames…'
                                   : refreshInfo.source === 'measured'
@@ -851,22 +851,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           </div>
 
                           {/* Sub-card 2: ESTIMATED DISPLAY MIDPOINT */}
-                          <div className="p-3 rounded-2xl bg-[#F8FAFC]/90 border border-slate-100 flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-2xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                          <div className="p-3 rounded-2xl bg-[#F8FAFC]/90 dark:bg-[#12161B] border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-2xl bg-[#EAF5FF] dark:bg-[#181D23] text-[#0066FF] dark:text-[#00D2FF] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-700">
                               <Timer size={20} strokeWidth={2.4} />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="text-[9.5px] text-[#64748B] font-mono font-bold uppercase tracking-wider">
+                              <div className="text-[9.5px] text-[#64748B] dark:text-slate-400 font-mono font-bold uppercase tracking-wider">
                                 ESTIMATED DISPLAY MIDPOINT
                               </div>
-                              <div className="text-xl font-extrabold text-[#00C2FF] leading-tight mt-0.5">
+                              <div className="text-xl font-extrabold text-[#00C2FF] dark:text-[#00D2FF] leading-tight mt-0.5">
                                 {isRecalibrating || refreshInfo.status === 'detecting' ? (
-                                  <span className="text-xs text-[#94A3B8]">Computing…</span>
+                                  <span className="text-xs text-[#94A3B8] dark:text-slate-500">Computing…</span>
                                 ) : (
                                   `~${refreshInfo.displayDelayOffsetMs} ms`
                                 )}
                               </div>
-                              <div className="text-[10px] text-[#64748B] font-medium mt-0.5">
+                              <div className="text-[10px] text-[#64748B] dark:text-slate-400 font-medium mt-0.5">
                                 Theoretical midpoint
                               </div>
                             </div>
@@ -874,21 +874,21 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         </div>
 
                         {calibrationError && (
-                          <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-mono">
+                          <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 text-xs font-mono">
                             {calibrationError}
                           </div>
                         )}
                       </div>
 
                       {/* Row 1: Reduced Motion */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
                             <Moon size={18} strokeWidth={2.2} />
                           </div>
                           <div>
-                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Reduced Motion</div>
-                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] dark:text-white">Reduced Motion</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B] dark:text-slate-400">
                               Disable animations, background particles, and transitions
                             </div>
                           </div>
@@ -901,13 +901,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           aria-checked={settings.reducedMotionEnabled}
                           aria-label="Toggle Reduced Motion"
                           onClick={handleToggleReducedMotion}
-                          className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
-                            settings.reducedMotionEnabled ? 'bg-[#0066FF]' : 'bg-slate-200 border border-slate-300'
+                          className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
+                            settings.reducedMotionEnabled ? 'bg-[#0066FF] dark:bg-[#22C7D6]' : 'bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700'
                           }`}
                         >
                           <span 
-                            className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
-                              settings.reducedMotionEnabled ? 'translate-x-5 text-[#0066FF]' : 'translate-x-0'
+                            className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white dark:bg-[#12161B] shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
+                              settings.reducedMotionEnabled ? 'translate-x-5 text-[#0066FF] dark:text-[#22C7D6]' : 'translate-x-0'
                             }`} 
                           >
                             {settings.reducedMotionEnabled ? '✓' : ''}
@@ -916,14 +916,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
 
                       {/* Row 2: Exhibition Kiosk Mode */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
                             <Monitor size={18} strokeWidth={2.2} />
                           </div>
                           <div>
-                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Exhibition Kiosk Mode</div>
-                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] dark:text-white">Exhibition Kiosk Mode</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B] dark:text-slate-400">
                               Lock navigation for public terminals
                             </div>
                           </div>
@@ -936,13 +936,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           aria-checked={settings.exhibitionModeEnabled}
                           aria-label="Toggle Exhibition Kiosk Mode"
                           onClick={handleToggleExhibition}
-                          className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
-                            settings.exhibitionModeEnabled ? 'bg-[#0066FF]' : 'bg-slate-200 border border-slate-300'
+                          className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
+                            settings.exhibitionModeEnabled ? 'bg-[#0066FF] dark:bg-[#22C7D6]' : 'bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700'
                           }`}
                         >
                           <span 
-                            className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
-                              settings.exhibitionModeEnabled ? 'translate-x-5 text-[#0066FF]' : 'translate-x-0'
+                            className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white dark:bg-[#12161B] shadow-md transition-transform flex items-center justify-center text-[10px] font-bold ${
+                              settings.exhibitionModeEnabled ? 'translate-x-5 text-[#0066FF] dark:text-[#22C7D6]' : 'translate-x-0'
                             }`} 
                           >
                             {settings.exhibitionModeEnabled ? '✓' : ''}
@@ -951,14 +951,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       </div>
 
                       {/* Row 3: Clear Local Cache */}
-                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.03)] flex items-center justify-between">
+                      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#FEE2E2] text-[#EF4444] flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-[#FEE2E2] dark:bg-rose-950/40 text-[#EF4444] dark:text-rose-400 flex items-center justify-center shrink-0 border border-transparent dark:border-rose-900/60">
                             <Trash2 size={18} strokeWidth={2.2} />
                           </div>
                           <div>
-                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A]">Clear Local Cache</div>
-                            <div className="text-[11px] sm:text-xs text-[#64748B]">
+                            <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] dark:text-white">Clear Local Cache</div>
+                            <div className="text-[11px] sm:text-xs text-[#64748B] dark:text-slate-400">
                               Reset stored preferences and unsynced data
                             </div>
                           </div>
@@ -968,12 +968,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           type="button"
                           id="clear-session-cache-btn"
                           onClick={handleClearCache}
-                          className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition-colors shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                          className="px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/60 text-rose-600 dark:text-rose-300 text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition-colors shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
                         >
                           {clearedNotice ? (
                             <>
-                              <Check size={13} strokeWidth={2.6} className="text-emerald-600" />
-                              <span className="text-emerald-600">Done</span>
+                              <Check size={13} strokeWidth={2.6} className="text-emerald-600 dark:text-emerald-400" />
+                              <span className="text-emerald-600 dark:text-emerald-400">Done</span>
                             </>
                           ) : (
                             <>
@@ -988,20 +988,20 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </div>
 
                 {/* Footer: PULSE Latency Engine + Precision Calibration */}
-                <div className="flex items-center justify-between pt-4 mt-3 border-t border-slate-100 text-xs shrink-0">
+                <div className="flex items-center justify-between pt-4 mt-3 border-t border-slate-100 dark:border-slate-800 text-xs shrink-0">
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-md bg-[#090D1A] flex items-center justify-center text-[#00D2FF]">
+                    <div className="w-5 h-5 rounded-md bg-[#090D1A] dark:bg-[#181D23] border border-transparent dark:border-slate-700 flex items-center justify-center text-[#00D2FF]">
                       <PulseLogo variant="mark" size={12} color="#00D2FF" />
                     </div>
-                    <span className="font-heading font-extrabold text-[12px] text-[#090D1A] tracking-wider">
+                    <span className="font-heading font-extrabold text-[12px] text-[#090D1A] dark:text-white tracking-wider">
                       PULSE
                     </span>
-                    <span className="text-[11px] font-mono text-[#64748B]">
+                    <span className="text-[11px] font-mono text-[#64748B] dark:text-slate-400">
                       Latency Engine
                     </span>
                   </div>
 
-                  <span className="text-[11px] font-mono font-semibold text-[#0066FF] tracking-wider">
+                  <span className="text-[11px] font-mono font-semibold text-[#0066FF] dark:text-[#22C7D6] tracking-wider">
                     Precision Calibration
                   </span>
                 </div>

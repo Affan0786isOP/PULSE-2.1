@@ -132,11 +132,11 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 14 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 w-full max-w-[550px] max-h-[min(690px,calc(100dvh-2rem))] bg-gradient-to-b from-[#FFFFFF] via-[#F9FBFF] to-[#F1F6FD] border border-sky-100 rounded-[28px] sm:rounded-[32px] p-6 sm:p-7 flex flex-col font-sans text-[#090D1A] my-auto shadow-[0_24px_64px_rgba(0,102,255,0.14),0_8px_24px_rgba(0,0,0,0.05)] focus-visible:ring-2 focus-visible:ring-[#0066FF] outline-none overflow-y-auto"
+            className="relative z-10 w-full max-w-[550px] max-h-[min(690px,calc(100dvh-2rem))] bg-gradient-to-b from-[#FFFFFF] via-[#F9FBFF] to-[#F1F6FD] dark:from-[#12161B] dark:via-[#161B22] dark:to-[#0E1217] border border-sky-100 dark:border-slate-800 rounded-[28px] sm:rounded-[32px] p-6 sm:p-7 flex flex-col font-sans text-[#090D1A] dark:text-white my-auto shadow-[0_24px_64px_rgba(0,102,255,0.14),0_8px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_24px_64px_rgba(0,0,0,0.6)] focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] outline-none overflow-y-auto"
           >
             {/* Top Atmospheric Wave Graphic (Decor) */}
             <svg 
-              className="absolute right-0 top-0 w-52 h-36 pointer-events-none select-none opacity-50 overflow-hidden" 
+              className="absolute right-0 top-0 w-52 h-36 pointer-events-none select-none opacity-50 dark:opacity-30 overflow-hidden" 
               viewBox="0 0 220 140" 
               fill="none" 
               xmlns="http://www.w3.org/2000/svg"
@@ -162,14 +162,14 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
             {/* Header: Branded Mark and Close Button */}
             <div className="flex items-center justify-between gap-3 mb-4 relative z-10">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-[14px] bg-[#090D1A] flex items-center justify-center text-[#00D2FF] shrink-0 shadow-sm">
+                <div className="w-11 h-11 rounded-[14px] bg-[#090D1A] dark:bg-[#181D23] border border-transparent dark:border-slate-800 flex items-center justify-center text-[#00D2FF] shrink-0 shadow-sm">
                   <PulseLogo variant="mark" size={24} color="#00D2FF" />
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <div className="font-heading font-extrabold text-[15px] tracking-wide text-[#090D1A] leading-tight">
+                  <div className="font-heading font-extrabold text-[15px] tracking-wide text-[#090D1A] dark:text-white leading-tight">
                     PULSE
                   </div>
-                  <div className="text-[11.5px] sm:text-[12px] text-[#64748B] font-medium tracking-tight truncate">
+                  <div className="text-[11.5px] sm:text-[12px] text-[#64748B] dark:text-slate-400 font-medium tracking-tight truncate">
                     Cognitive Benchmarking Suite
                   </div>
                 </div>
@@ -179,7 +179,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 ref={closeButtonRef}
                 type="button" 
                 onClick={() => handleDismiss()}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-[#181D23] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
                 aria-label="Close dialog"
               >
                 <X size={18} strokeWidth={2.2} />
@@ -188,27 +188,27 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
 
             {/* Title & Description */}
             <div className="relative z-10 mb-4">
-              <h2 id="welcome-modal-heading" className="text-2xl sm:text-[29px] font-extrabold text-[#090D1A] tracking-tight leading-tight">
-                Welcome to <span className="bg-gradient-to-r from-[#0066FF] to-[#00C2FF] bg-clip-text text-transparent">PULSE</span>
+              <h2 id="welcome-modal-heading" className="text-2xl sm:text-[29px] font-extrabold text-[#090D1A] dark:text-white tracking-tight leading-tight">
+                Welcome to <span className="bg-gradient-to-r from-[#0066FF] to-[#00C2FF] dark:from-[#22C7D6] dark:to-[#00D2FF] bg-clip-text text-transparent">PULSE</span>
               </h2>
-              <p className="text-xs sm:text-[13px] text-[#475569] leading-relaxed mt-1.5 max-w-[480px]">
+              <p className="text-xs sm:text-[13px] text-[#475569] dark:text-slate-300 leading-relaxed mt-1.5 max-w-[480px]">
                 Precision User Latency &amp; Stimulus Evaluator is an open research tool to benchmark your sensory reaction times, directional choice speed, and working memory.
               </p>
             </div>
 
             {/* Section Header: HOW IT WORKS */}
             <div className="flex items-center gap-2.5 mb-3 relative z-10">
-              <span className="text-[10.5px] font-mono font-bold text-[#0066FF] tracking-[0.14em] uppercase">
+              <span className="text-[10.5px] font-mono font-bold text-[#0066FF] dark:text-[#22C7D6] tracking-[0.14em] uppercase">
                 HOW IT WORKS
               </span>
-              <div className="h-[1px] flex-1 bg-gradient-to-r from-sky-200 to-transparent" aria-hidden="true" />
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-sky-200 dark:from-slate-700 to-transparent" aria-hidden="true" />
             </div>
 
             {/* Three Steps with Vertical Connecting Dash Line */}
             <div className="relative flex flex-col gap-2.5 mb-3.5 z-10">
               {/* Vertical Dashed Line running from step 1 badge to step 3 badge */}
               <div 
-                className="absolute left-[21px] top-6 bottom-6 w-0 border-l-[1.5px] border-dashed border-[#94A3B8]/60 z-0 pointer-events-none" 
+                className="absolute left-[21px] top-6 bottom-6 w-0 border-l-[1.5px] border-dashed border-[#94A3B8]/60 dark:border-slate-700 z-0 pointer-events-none" 
                 aria-hidden="true" 
               />
 
@@ -223,30 +223,30 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                     handleDismiss('/assessments');
                   }
                 }}
-                className="group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.04)] hover:border-sky-200 hover:shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                className="group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.04)] dark:shadow-none hover:border-sky-200 dark:hover:border-slate-700 hover:shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
               >
                 {/* Step Badge */}
-                <div className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center font-bold text-[10.5px] shrink-0 z-10 shadow-xs">
+                <div className="w-5 h-5 rounded-full bg-[#0066FF] dark:bg-[#22C7D6] text-white dark:text-black flex items-center justify-center font-bold text-[10.5px] shrink-0 z-10 shadow-xs">
                   1
                 </div>
 
                 {/* Icon Container */}
-                <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
                   <List size={20} strokeWidth={2.4} />
                 </div>
 
                 {/* Step Content */}
                 <div className="min-w-0 flex-1">
-                  <div className="text-[13px] sm:text-[14px] font-bold text-[#090D1A] leading-tight mb-0.5">
+                  <div className="text-[13px] sm:text-[14px] font-bold text-[#090D1A] dark:text-white leading-tight mb-0.5">
                     Pick a test
                   </div>
-                  <div className="text-[11px] sm:text-[12px] text-[#64748B] leading-snug">
+                  <div className="text-[11px] sm:text-[12px] text-[#64748B] dark:text-slate-400 leading-snug">
                     Visual Reaction, Direction, Colour Recognition, Block Memory, or Number Memory.
                   </div>
                 </div>
 
                 {/* Right Arrow Action */}
-                <div className="w-7 h-7 rounded-full bg-[#F1F6FD] text-[#64748B] group-hover:text-[#0066FF] group-hover:bg-[#E1EFFE] flex items-center justify-center transition-colors shrink-0 ml-1">
+                <div className="w-7 h-7 rounded-full bg-[#F1F6FD] dark:bg-[#12161B] text-[#64748B] dark:text-slate-400 group-hover:text-[#0066FF] dark:group-hover:text-[#22C7D6] group-hover:bg-[#E1EFFE] dark:group-hover:bg-[#181D23] flex items-center justify-center transition-colors shrink-0 ml-1">
                   <ChevronRight size={15} strokeWidth={2.4} />
                 </div>
               </div>
@@ -262,30 +262,30 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                     handleDismiss('/assessments');
                   }
                 }}
-                className="group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.04)] hover:border-sky-200 hover:shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                className="group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.04)] dark:shadow-none hover:border-sky-200 dark:hover:border-slate-700 hover:shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
               >
                 {/* Step Badge */}
-                <div className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center font-bold text-[10.5px] shrink-0 z-10 shadow-xs">
+                <div className="w-5 h-5 rounded-full bg-[#0066FF] dark:bg-[#22C7D6] text-white dark:text-black flex items-center justify-center font-bold text-[10.5px] shrink-0 z-10 shadow-xs">
                   2
                 </div>
 
                 {/* Icon Container */}
-                <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
-                  <Zap size={20} strokeWidth={2.4} fill="#0066FF" fillOpacity={0.15} />
+                <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
+                  <Zap size={20} strokeWidth={2.4} fill="currentColor" fillOpacity={0.15} />
                 </div>
 
                 {/* Step Content */}
                 <div className="min-w-0 flex-1">
-                  <div className="text-[13px] sm:text-[14px] font-bold text-[#090D1A] leading-tight mb-0.5">
+                  <div className="text-[13px] sm:text-[14px] font-bold text-[#090D1A] dark:text-white leading-tight mb-0.5">
                     Respond
                   </div>
-                  <div className="text-[11px] sm:text-[12px] text-[#64748B] leading-snug">
+                  <div className="text-[11px] sm:text-[12px] text-[#64748B] dark:text-slate-400 leading-snug">
                     Watch for the cue and answer as fast and accurately as you can.
                   </div>
                 </div>
 
                 {/* Right Arrow Action */}
-                <div className="w-7 h-7 rounded-full bg-[#F1F6FD] text-[#64748B] group-hover:text-[#0066FF] group-hover:bg-[#E1EFFE] flex items-center justify-center transition-colors shrink-0 ml-1">
+                <div className="w-7 h-7 rounded-full bg-[#F1F6FD] dark:bg-[#12161B] text-[#64748B] dark:text-slate-400 group-hover:text-[#0066FF] dark:group-hover:text-[#22C7D6] group-hover:bg-[#E1EFFE] dark:group-hover:bg-[#181D23] flex items-center justify-center transition-colors shrink-0 ml-1">
                   <ChevronRight size={15} strokeWidth={2.4} />
                 </div>
               </div>
@@ -301,38 +301,38 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                     handleDismiss('/leaderboard');
                   }
                 }}
-                className="group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_2px_8px_rgba(0,102,255,0.04)] hover:border-sky-200 hover:shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+                className="group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl bg-white/95 dark:bg-[#181D23] border border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,102,255,0.04)] dark:shadow-none hover:border-sky-200 dark:hover:border-slate-700 hover:shadow-sm transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
               >
                 {/* Step Badge */}
-                <div className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center font-bold text-[10.5px] shrink-0 z-10 shadow-xs">
+                <div className="w-5 h-5 rounded-full bg-[#0066FF] dark:bg-[#22C7D6] text-white dark:text-black flex items-center justify-center font-bold text-[10.5px] shrink-0 z-10 shadow-xs">
                   3
                 </div>
 
                 {/* Icon Container */}
-                <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] dark:bg-[#12161B] text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 border border-transparent dark:border-slate-800">
                   <BarChart2 size={20} strokeWidth={2.4} />
                 </div>
 
                 {/* Step Content */}
                 <div className="min-w-0 flex-1">
-                  <div className="text-[13px] sm:text-[14px] font-bold text-[#090D1A] leading-tight mb-0.5">
+                  <div className="text-[13px] sm:text-[14px] font-bold text-[#090D1A] dark:text-white leading-tight mb-0.5">
                     Review
                   </div>
-                  <div className="text-[11px] sm:text-[12px] text-[#64748B] leading-snug">
+                  <div className="text-[11px] sm:text-[12px] text-[#64748B] dark:text-slate-400 leading-snug">
                     Get your score instantly and compare it against reference benchmarks.
                   </div>
                 </div>
 
                 {/* Right Arrow Action */}
-                <div className="w-7 h-7 rounded-full bg-[#F1F6FD] text-[#64748B] group-hover:text-[#0066FF] group-hover:bg-[#E1EFFE] flex items-center justify-center transition-colors shrink-0 ml-1">
+                <div className="w-7 h-7 rounded-full bg-[#F1F6FD] dark:bg-[#12161B] text-[#64748B] dark:text-slate-400 group-hover:text-[#0066FF] dark:group-hover:text-[#22C7D6] group-hover:bg-[#E1EFFE] dark:group-hover:bg-[#181D23] flex items-center justify-center transition-colors shrink-0 ml-1">
                   <ChevronRight size={15} strokeWidth={2.4} />
                 </div>
               </div>
             </div>
 
             {/* Supporting Links Callout Box */}
-            <div className="rounded-2xl bg-[#F4F9FF]/90 border border-[#E0EEFB] p-3 sm:p-3.5 flex items-center gap-3 text-[11.5px] sm:text-[12px] text-[#475569] leading-relaxed shadow-[0_2px_8px_rgba(0,102,255,0.03)] z-10 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-white border border-sky-100 text-[#0066FF] flex items-center justify-center shrink-0 shadow-xs">
+            <div className="rounded-2xl bg-[#F4F9FF]/90 dark:bg-[#181D23] border border-[#E0EEFB] dark:border-slate-800 p-3 sm:p-3.5 flex items-center gap-3 text-[11.5px] sm:text-[12px] text-[#475569] dark:text-slate-300 leading-relaxed shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none z-10 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-white dark:bg-[#12161B] border border-sky-100 dark:border-slate-700 text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 shadow-xs">
                 <Database size={16} strokeWidth={2.2} />
               </div>
               <div className="flex-1 min-w-0">
@@ -340,7 +340,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 <Link 
                   to="/leaderboard" 
                   onClick={() => handleDismiss()}
-                  className="text-[#0066FF] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] rounded"
+                  className="text-[#0066FF] dark:text-[#22C7D6] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded"
                 >
                   Leaderboard
                 </Link>
@@ -348,7 +348,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 <Link 
                   to="/dataset" 
                   onClick={() => handleDismiss()}
-                  className="text-[#0066FF] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] rounded"
+                  className="text-[#0066FF] dark:text-[#22C7D6] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded"
                 >
                   Dataset
                 </Link>
@@ -356,7 +356,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 <Link 
                   to="/improve" 
                   onClick={() => handleDismiss()}
-                  className="text-[#0066FF] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] rounded"
+                  className="text-[#0066FF] dark:text-[#22C7D6] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded"
                 >
                   Improve
                 </Link>{' '}
@@ -369,7 +369,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
               {/* "Don't show this again" Checkbox */}
               <label 
                 htmlFor="welcome-dont-show-again"
-                className="flex items-center gap-2 text-xs sm:text-[13px] font-medium text-[#475569] hover:text-[#090D1A] cursor-pointer select-none group py-1"
+                className="flex items-center gap-2 text-xs sm:text-[13px] font-medium text-[#475569] dark:text-slate-300 hover:text-[#090D1A] dark:hover:text-white cursor-pointer select-none group py-1"
               >
                 <div className="relative flex items-center justify-center">
                   <input 
@@ -382,8 +382,8 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                   />
                   <div className={`w-5 h-5 rounded-[6px] flex items-center justify-center transition-all ${
                     dontShowAgain 
-                      ? 'bg-[#0066FF] text-white shadow-xs' 
-                      : 'border border-slate-300 bg-white group-hover:border-slate-400 peer-focus-visible:ring-2 peer-focus-visible:ring-[#0066FF]'
+                      ? 'bg-[#0066FF] dark:bg-[#22C7D6] text-white dark:text-black shadow-xs' 
+                      : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#12161B] group-hover:border-slate-400 dark:group-hover:border-slate-500 peer-focus-visible:ring-2 peer-focus-visible:ring-[#0066FF] dark:peer-focus-visible:ring-[#22C7D6]'
                   }`}>
                     {dontShowAgain && <Check size={14} strokeWidth={3} />}
                   </div>
@@ -396,7 +396,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 type="button" 
                 id="welcome-start-assessments-btn"
                 onClick={handleStartAssessments}
-                className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white text-xs sm:text-[13.5px] font-semibold shadow-[0_4px_14px_rgba(0,102,255,0.35)] hover:shadow-[0_6px_18px_rgba(0,102,255,0.45)] active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ml-auto shrink-0"
+                className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] dark:from-[#22C7D6] dark:to-[#00D2FF] text-white dark:text-black text-xs sm:text-[13.5px] font-semibold shadow-[0_4px_14px_rgba(0,102,255,0.35)] dark:shadow-[0_4px_14px_rgba(34,199,214,0.35)] hover:shadow-[0_6px_18px_rgba(0,102,255,0.45)] dark:hover:shadow-[0_6px_18px_rgba(34,199,214,0.45)] active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ml-auto shrink-0"
               >
                 <span>Start Cognitive Battery</span>
                 <ArrowRight size={15} strokeWidth={2.4} />

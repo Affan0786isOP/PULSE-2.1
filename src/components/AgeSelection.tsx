@@ -48,7 +48,7 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
           type="button" 
           id="back-to-assessments-btn"
           onClick={onCancel}
-          className="inline-flex items-center gap-1.5 text-xs font-mono font-medium text-slate-700 hover:text-[#090D1A] transition-colors h-8 px-3 rounded-lg bg-white border border-slate-200/90 hover:bg-slate-50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
+          className="inline-flex items-center gap-1.5 text-xs font-mono font-medium text-slate-700 dark:text-slate-300 hover:text-[#090D1A] dark:hover:text-white transition-colors h-8 px-3 rounded-lg bg-white dark:bg-[#12161B] border border-slate-200/90 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-[#181D23] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
         >
           <ArrowLeft size={13} />
           <span>Assessments</span>
@@ -62,14 +62,14 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
               aria-label="About this assessment and methodology"
               aria-expanded={isInfoOpen}
               aria-controls="assessment-info-panel"
-              className="inline-flex items-center gap-1 text-xs font-mono text-slate-700 hover:text-[#090D1A] transition-colors h-8 px-2.5 rounded-lg bg-white border border-slate-200/90 hover:bg-slate-50 cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs font-mono text-slate-700 dark:text-slate-300 hover:text-[#090D1A] dark:hover:text-white transition-colors h-8 px-2.5 rounded-lg bg-white dark:bg-[#12161B] border border-slate-200/90 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-[#181D23] cursor-pointer"
             >
-              <Info size={13} className="text-[#0066FF]" />
+              <Info size={13} className="text-[#0066FF] dark:text-[#22C7D6]" />
               <span>Info</span>
             </button>
           )}
 
-          <span className="font-mono text-[10px] font-semibold tracking-wider text-slate-500 uppercase bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md">
+          <span className="font-mono text-[10px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-[#181D23] border border-slate-200 dark:border-slate-800 px-2.5 py-1 rounded-md">
             Demographic Baseline
           </span>
         </div>
@@ -80,17 +80,17 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="w-full max-w-md sm:max-w-2xl mx-auto flex flex-col justify-center bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-7 shadow-sm text-[#090D1A]"
+        className="w-full max-w-md sm:max-w-2xl mx-auto flex flex-col justify-center bg-white dark:bg-[#12161B] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-sm text-[#090D1A] dark:text-white"
       >
         {/* Header Titles */}
         <div className="text-center mb-4 sm:mb-5 shrink-0">
-          <div className="w-10 h-10 mx-auto rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0066FF] mb-2.5">
+          <div className="w-10 h-10 mx-auto rounded-xl bg-blue-50 dark:bg-[#181D23] border border-blue-100 dark:border-slate-800 flex items-center justify-center text-[#0066FF] dark:text-[#22C7D6] mb-2.5">
             <User size={18} />
           </div>
-          <h2 className="text-lg sm:text-xl font-heading font-semibold text-[#090D1A] tracking-tight">
+          <h2 className="text-lg sm:text-xl font-heading font-semibold text-[#090D1A] dark:text-white tracking-tight">
             Select Your Age Group
           </h2>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
             Benchmarks normalize accuracy against peer cohorts. Anonymous and non-identifying.
           </p>
         </div>
@@ -107,23 +107,25 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
                 key={group}
                 type="button"
                 onClick={() => handleSelect(group)}
-                className={`group flex items-center justify-between p-2.5 sm:p-3 rounded-xl border text-left transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
+                className={`group flex items-center justify-between p-2.5 sm:p-3 rounded-xl border text-left transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
                   isSelected
-                    ? 'border-[#0066FF] bg-blue-50/70 shadow-xs ring-1 ring-[#0066FF]'
-                    : 'border-slate-200 bg-slate-50/60 hover:border-slate-300 hover:bg-slate-100/80'
+                    ? 'border-[#0066FF] dark:border-[#22C7D6] bg-blue-50/70 dark:bg-[#22C7D6]/10 shadow-xs ring-1 ring-[#0066FF] dark:ring-[#22C7D6]'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#181D23] hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100/80 dark:hover:bg-[#20262E]'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${
-                    isSelected ? 'bg-[#0066FF] text-white' : 'bg-white border border-slate-200 text-slate-500 group-hover:text-slate-900'
+                    isSelected 
+                      ? 'bg-[#0066FF] dark:bg-[#22C7D6] text-white dark:text-black' 
+                      : 'bg-white dark:bg-[#12161B] border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
                   }`}>
                     <Icon size={14} strokeWidth={2.2} />
                   </div>
                   <div className="min-w-0 truncate">
-                    <div className="text-xs font-semibold text-[#090D1A] truncate">
+                    <div className="text-xs font-semibold text-[#090D1A] dark:text-white truncate">
                       {meta?.label || group}
                     </div>
-                    <div className="font-mono text-[10px] text-slate-500">
+                    <div className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
                       {meta?.range}
                     </div>
                   </div>
@@ -131,8 +133,8 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
 
                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ml-2 transition-all ${
                   isSelected
-                    ? 'border-[#0066FF] bg-[#0066FF] text-white'
-                    : 'border-slate-300 bg-white'
+                    ? 'border-[#0066FF] dark:border-[#22C7D6] bg-[#0066FF] dark:bg-[#22C7D6] text-white dark:text-black'
+                    : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#12161B]'
                 }`}>
                   {isSelected && <Check size={10} strokeWidth={3} />}
                 </div>
@@ -142,7 +144,7 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
         </div>
 
         {/* Action Button */}
-        <div className="shrink-0 pt-3 border-t border-slate-200/80">
+        <div className="shrink-0 pt-3 border-t border-slate-200/80 dark:border-slate-800">
           <button
             type="button"
             id="continue-to-assessment-btn"
@@ -150,8 +152,8 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
             onClick={() => selectedAge && onSelect(selectedAge)}
             className={`w-full py-2.5 px-4 rounded-xl font-heading font-medium text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 transition-all ${
               selectedAge
-                ? 'bg-[#0066FF] hover:bg-[#0052CC] text-white active:scale-[0.99] cursor-pointer shadow-sm'
-                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                ? 'bg-[#0066FF] hover:bg-[#0052CC] dark:bg-[#22C7D6] dark:hover:bg-[#1EAFC0] text-white dark:text-black font-semibold active:scale-[0.99] cursor-pointer shadow-sm'
+                : 'bg-slate-100 dark:bg-[#181D23] text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-800 cursor-not-allowed opacity-60'
             }`}
           >
             <span>Proceed to Assessment</span>
