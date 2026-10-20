@@ -1,3 +1,4 @@
+import { getOrCreateDeviceId } from '../../shared/telemetry/deviceId';
 import { doc, setDoc, getDoc, waitForPendingWrites, serverTimestamp, collection, query, where, orderBy, getDocs, getDocsFromServer, limit, Firestore, Timestamp } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import { getInMemorySessionTrials } from './inMemorySessionStore';
@@ -357,7 +358,8 @@ export const submitAssessmentResult = async (payload: BasePayload): Promise<{
         deviceCategory: 'mobile',
         trials,
         sessionId: activeSessionId,
-        idempotencyKey: activeIdempotencyKey
+        idempotencyKey: activeIdempotencyKey,
+        deviceId: getOrCreateDeviceId()
       })
     });
 
@@ -426,7 +428,8 @@ export const submitLeaderboardResult = async (payload: BasePayload & { trials?: 
         trials,
         userId: uid,
         sessionId: activeSessionId,
-        idempotencyKey: activeIdempotencyKey
+        idempotencyKey: activeIdempotencyKey,
+        deviceId: getOrCreateDeviceId()
       })
     });
 

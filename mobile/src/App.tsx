@@ -6,6 +6,7 @@ import { useSettings } from './lib/settingsStore';
 import { useSystemTheme } from './lib/useSystemTheme';
 import { Home } from './components/Home';
 import { RouteSEO } from './components/RouteSEO';
+import { PageViewTracker } from './components/PageViewTracker';
 import { DatasetComingSoon } from '../../src/components/DatasetComingSoon';
 
 import { 
@@ -150,6 +151,7 @@ function App() {
               >
                 <React.Suspense fallback={<RouteFallback isDark={isDark} />}>
                 <RouteSEO />
+                <PageViewTracker surface="mobile" />
                 <Routes location={location}>
                   <Route path="/" element={<Home onNavigate={handleNavigate} />} />
                   <Route path="/about" element={<About onNavigate={handleNavigate} />} />
