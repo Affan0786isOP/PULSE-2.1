@@ -241,9 +241,7 @@ export function Navbar({
       ref={navRef}
       role="banner"
       aria-label="Global Navigation"
-      className={`relative z-30 w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto px-6 sm:px-10 lg:px-14 min-[2560px]:px-20 ${
-        isLight ? 'h-14 sm:h-16 min-[2560px]:h-20' : 'h-16 sm:h-20'
-      } flex items-center justify-between shrink-0 border-b border-transparent transition-colors duration-200`}
+      className="relative z-30 w-full max-w-[1440px] min-[2560px]:max-w-[1800px] mx-auto px-6 sm:px-10 lg:px-14 min-[2560px]:px-20 h-14 sm:h-16 min-[2560px]:h-20 flex items-center justify-between shrink-0 border-b border-transparent transition-colors duration-200"
       style={{ 
         paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))', 
         paddingLeft: 'max(1.5rem, env(safe-area-inset-left, 0px))', 

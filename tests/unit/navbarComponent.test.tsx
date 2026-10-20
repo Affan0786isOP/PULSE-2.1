@@ -208,8 +208,8 @@ describe('Navbar Component', () => {
     );
     const header = screen.getByRole('banner');
     expect(header).toBeDefined();
-    // In dark mode, header has h-16 sm:h-20
-    expect(header.className).toContain('h-16 sm:h-20');
+    // Header maintains stable layout height across both themes to prevent page shifts
+    expect(header.className).toContain('h-14 sm:h-16');
 
     // Rerender with explicit light
     rerender(
