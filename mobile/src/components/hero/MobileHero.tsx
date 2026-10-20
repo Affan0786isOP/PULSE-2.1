@@ -101,7 +101,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           {pwaInstallable && onPromptInstall && (
             <button 
               onClick={() => { triggerHaptic(); onPromptInstall(); }}
-              className="p-2 text-[#475569] hover:text-[#090D1A] rounded-full active:scale-95 transition-all"
+              className="p-2 text-[#475569] dark:text-slate-400 hover:text-[#090D1A] dark:hover:text-white rounded-full active:scale-95 transition-all"
               aria-label="Install App"
             >
               <Download size={20} strokeWidth={2} />
@@ -114,14 +114,14 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
             onClick={handleToggleTheme}
             aria-label={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
             title={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
-            className="p-2 text-[#475569] hover:text-[#090D1A] rounded-full active:scale-90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+            className="p-2 text-[#475569] dark:text-slate-400 hover:text-[#090D1A] dark:hover:text-white rounded-full active:scale-90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
             {isDarkActive ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
           </button>
 
           <button 
             onClick={() => { triggerHaptic(); onOpenMenu(); }}
-            className="p-2 -mr-1.5 text-[#090D1A] hover:bg-black/5 rounded-full active:scale-90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF]"
+            className="p-2 -mr-1.5 text-[#090D1A] dark:text-[#F5F7FA] hover:bg-black/5 dark:hover:bg-white/5 rounded-full active:scale-90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] dark:focus-visible:ring-offset-[#0B0D10]"
             aria-label="Open settings"
           >
             <Menu size={24} strokeWidth={2.1} />
@@ -134,21 +134,21 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
         
         {/* Eyebrow Badge */}
         <div className="mb-4">
-          <div className="inline-flex items-center rounded-full bg-[#E0F2FE]/85 border border-[#BAE6FD]/80 px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.06)]">
-            <span className="text-[10px] font-mono font-bold tracking-[0.18em] text-[#0369A1] uppercase">
+          <div className="inline-flex items-center rounded-full bg-[#E0F2FE]/85 dark:bg-[#181D23] border border-[#BAE6FD]/80 dark:border-slate-700 px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.06)]">
+            <span className="text-[10px] font-mono font-bold tracking-[0.18em] text-[#0369A1] dark:text-[#22C7D6] uppercase">
               COGNITIVE BENCHMARKING
             </span>
           </div>
         </div>
 
         {/* Hero Headline */}
-        <h1 className="font-heading font-extrabold text-[2.75rem] leading-[1.05] tracking-tight text-[#090D1A] mb-3 text-balance">
+        <h1 className="font-heading font-extrabold text-[2.75rem] leading-[1.05] tracking-tight text-[#090D1A] dark:text-[#F5F7FA] mb-3 text-balance">
           Measure<br />
-          your <span className="text-[#0066FF]">mind.</span>
+          your <span className="text-[#0066FF] dark:text-[#22C7D6]">mind.</span>
         </h1>
 
         {/* Subtitle */}
-        <p className="text-[#475569] text-[14px] leading-[1.5] max-w-[340px] font-normal mb-6">
+        <p className="text-[#475569] dark:text-slate-400 text-[14px] leading-[1.5] max-w-[340px] font-normal mb-6">
           Test your reaction speed, memory and attention — right in your browser, with no account required.
         </p>
 
@@ -158,14 +158,14 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           <button 
             onClick={() => handleFeatureClick('/leaderboard')}
             aria-label="Open Leaderboard"
-            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#12161B] shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 dark:border-slate-800 hover:border-[#0066FF]/30 dark:hover:border-[#22C7D6]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-[#181D23] flex items-center justify-center text-[#090D1A] dark:text-[#22C7D6] shrink-0 border border-sky-100/80 dark:border-slate-700">
               <Trophy size={17} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <span className="text-[12.5px] font-bold text-[#090D1A] block leading-tight">Leaderboard</span>
-              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Global Ranks</span>
+              <span className="text-[12.5px] font-bold text-[#090D1A] dark:text-[#F5F7FA] block leading-tight">Leaderboard</span>
+              <span className="text-[10px] text-[#64748B] dark:text-slate-400 block mt-0.5 font-medium truncate">Global Ranks</span>
             </div>
           </button>
 
@@ -173,14 +173,14 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           <button 
             onClick={() => handleFeatureClick('/dataset')}
             aria-label="Open Dataset"
-            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#12161B] shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 dark:border-slate-800 hover:border-[#0066FF]/30 dark:hover:border-[#22C7D6]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-[#181D23] flex items-center justify-center text-[#090D1A] dark:text-[#22C7D6] shrink-0 border border-sky-100/80 dark:border-slate-700">
               <Database size={17} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <span className="text-[12.5px] font-bold text-[#090D1A] block leading-tight">Dataset</span>
-              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Open Data</span>
+              <span className="text-[12.5px] font-bold text-[#090D1A] dark:text-[#F5F7FA] block leading-tight">Dataset</span>
+              <span className="text-[10px] text-[#64748B] dark:text-slate-400 block mt-0.5 font-medium truncate">Open Data</span>
             </div>
           </button>
 
@@ -188,14 +188,14 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           <button 
             onClick={() => handleFeatureClick('/analytics')}
             aria-label="Open Analytics"
-            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#12161B] shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 dark:border-slate-800 hover:border-[#0066FF]/30 dark:hover:border-[#22C7D6]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-[#181D23] flex items-center justify-center text-[#090D1A] dark:text-[#22C7D6] shrink-0 border border-sky-100/80 dark:border-slate-700">
               <BarChart2 size={17} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <span className="text-[12.5px] font-bold text-[#090D1A] block leading-tight">Analytics</span>
-              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Trends & Stats</span>
+              <span className="text-[12.5px] font-bold text-[#090D1A] dark:text-[#F5F7FA] block leading-tight">Analytics</span>
+              <span className="text-[10px] text-[#64748B] dark:text-slate-400 block mt-0.5 font-medium truncate">Trends & Stats</span>
             </div>
           </button>
 
@@ -203,14 +203,14 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           <button 
             onClick={() => handleFeatureClick('/about')}
             aria-label="Open About Us"
-            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 hover:border-[#0066FF]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#12161B] shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 dark:border-slate-800 hover:border-[#0066FF]/30 dark:hover:border-[#22C7D6]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
           >
-            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#090D1A] shrink-0 border border-sky-100/80">
+            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-[#181D23] flex items-center justify-center text-[#090D1A] dark:text-[#22C7D6] shrink-0 border border-sky-100/80 dark:border-slate-700">
               <Info size={17} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <span className="text-[12.5px] font-bold text-[#090D1A] block leading-tight">About Us</span>
-              <span className="text-[10px] text-[#64748B] block mt-0.5 font-medium truncate">Origins & Team</span>
+              <span className="text-[12.5px] font-bold text-[#090D1A] dark:text-[#F5F7FA] block leading-tight">About Us</span>
+              <span className="text-[10px] text-[#64748B] dark:text-slate-400 block mt-0.5 font-medium truncate">Origins & Team</span>
             </div>
           </button>
         </div>
@@ -230,45 +230,45 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           <button 
             onClick={() => { triggerHaptic(); navigate('/assessments'); }}
             aria-label={`View ${testsCount} available tests`}
-            className="flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] rounded-lg active:opacity-75 transition-opacity"
+            className="flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] dark:focus-visible:ring-offset-[#0B0D10] rounded-lg active:opacity-75 transition-opacity"
             title={`${testsCount} available assessment batteries`}
           >
-            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] tracking-tight">
+            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] dark:text-[#F5F7FA] tracking-tight">
               {testsCount}
             </span>
-            <span className="text-[11px] font-medium text-[#64748B] mt-0.5">
+            <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-400 mt-0.5">
               Tests
             </span>
           </button>
 
           {/* Divider */}
-          <div className="absolute left-[33.33%] top-1/2 -translate-y-1/2 h-8 w-[1px] bg-[#CFE4F7]" />
+          <div className="absolute left-[33.33%] top-1/2 -translate-y-1/2 h-8 w-[1px] bg-[#CFE4F7] dark:bg-slate-800" />
 
           {/* Col 2: Authoritative Results Count */}
           <div
             className="flex flex-col items-center text-center"
             title="Count of public research result records in Firestore"
           >
-            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] tracking-tight flex items-center justify-center min-h-[28px]">
+            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] dark:text-[#F5F7FA] tracking-tight flex items-center justify-center min-h-[28px]">
               <AnimatedResultCount value={resultsCount} isLoading={isLoadingResults} />
             </span>
-            <span className="text-[11px] font-medium text-[#64748B] mt-0.5">
+            <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-400 mt-0.5">
               Results
             </span>
           </div>
 
           {/* Divider */}
-          <div className="absolute left-[66.66%] top-1/2 -translate-y-1/2 h-8 w-[1px] bg-[#CFE4F7]" />
+          <div className="absolute left-[66.66%] top-1/2 -translate-y-1/2 h-8 w-[1px] bg-[#CFE4F7] dark:bg-slate-800" />
 
           {/* Col 3: Free / No sign-up */}
           <div
             className="flex flex-col items-center text-center"
             title="No account required"
           >
-            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] tracking-tight">
+            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] dark:text-[#F5F7FA] tracking-tight">
               Free
             </span>
-            <span className="text-[11px] font-medium text-[#64748B] mt-0.5 leading-tight">
+            <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-400 mt-0.5 leading-tight">
               No sign-up
             </span>
           </div>

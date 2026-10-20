@@ -71,11 +71,15 @@ export function Navbar({
 
   const navSurfaceClass = isAssessmentActive
     ? 'bg-[#12161B] text-white border-b border-[#20262D]'
-    : 'bg-white/90 backdrop-blur-md text-[#090D1A] border-b border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)]';
+    : isDarkActive
+      ? 'bg-[#0B0D10]/90 backdrop-blur-md text-[#F5F7FA] border-b border-slate-800 shadow-[0_1px_3px_rgba(0,0,0,0.2)]'
+      : 'bg-white/90 backdrop-blur-md text-[#090D1A] border-b border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)]';
 
   const iconBtnClass = isAssessmentActive
     ? 'w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 active:bg-white/15 active:scale-[0.96] border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer'
-    : 'w-8 h-8 flex items-center justify-center rounded-lg bg-white hover:bg-slate-50 active:bg-slate-100 active:scale-[0.96] border border-slate-200/90 text-[#334155] hover:text-[#090D1A] shadow-2xs transition-all cursor-pointer';
+    : isDarkActive
+      ? 'w-8 h-8 flex items-center justify-center rounded-lg bg-[#181D23] hover:bg-[#20262E] active:bg-[#28303A] active:scale-[0.96] border border-slate-700 text-slate-300 hover:text-white shadow-2xs transition-all cursor-pointer'
+      : 'w-8 h-8 flex items-center justify-center rounded-lg bg-white hover:bg-slate-50 active:bg-slate-100 active:scale-[0.96] border border-slate-200/90 text-[#334155] hover:text-[#090D1A] shadow-2xs transition-all cursor-pointer';
 
   return (
     <>
@@ -118,7 +122,9 @@ export function Navbar({
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
               isAssessmentActive 
                 ? 'bg-white/10 border border-white/15 text-[#0066FF]' 
-                : 'bg-sky-50 border border-sky-100/90 text-[#0066FF]'
+                : isDarkActive
+                  ? 'bg-[#181D23] border border-slate-700 text-[#0066FF]'
+                  : 'bg-sky-50 border border-sky-100/90 text-[#0066FF]'
             }`}>
               <PulseLogo variant="mark" size={16} color="#0066FF" />
             </div>
@@ -128,7 +134,7 @@ export function Navbar({
             typeof title === 'string' ? (
               <span 
                 className={`font-heading font-bold text-sm tracking-tight truncate ml-1 ${
-                  isAssessmentActive ? 'text-white' : 'text-[#090D1A]'
+                  isAssessmentActive ? 'text-white' : isDarkActive ? 'text-[#F5F7FA]' : 'text-[#090D1A]'
                 }`}
                 aria-current={!isHome ? 'page' : undefined}
               >

@@ -57,7 +57,7 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
   const [isWelcomeOpen, setIsWelcomeOpen] = useState<boolean>(() => !isMobileWelcomeSeen());
 
   return (
-    <div className="bg-transparent text-[#090D1A] min-h-[100dvh] w-full flex flex-col font-sans overflow-x-hidden relative selection:bg-[#0066FF]/20 pb-safe">
+    <div className="bg-transparent text-[#090D1A] dark:text-[#F5F7FA] min-h-[100dvh] w-full flex flex-col font-sans overflow-x-hidden relative selection:bg-[#0066FF]/20 pb-safe">
       <SEO
         title="PULSE — Precision User Latency & Stimulus Evaluator"
         description="A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing."

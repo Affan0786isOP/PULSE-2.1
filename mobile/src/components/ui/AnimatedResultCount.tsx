@@ -13,7 +13,7 @@ export function AnimatedResultCount({
   value,
   isLoading,
   className = '',
-  loadingClassName = 'inline-block w-8 h-5 bg-sky-200/50 animate-pulse motion-reduce:animate-none rounded my-0.5',
+  loadingClassName = 'inline-block w-8 h-5 bg-sky-200/50 dark:bg-slate-700/60 animate-pulse motion-reduce:animate-none rounded my-0.5',
 }: AnimatedResultCountProps) {
   const shouldReduceMotion = useReducedMotionPreference();
   const prevValueRef = useRef<number | null>(value);
@@ -55,7 +55,7 @@ export function AnimatedResultCount({
             y: 0,
             opacity: 1,
             scale: hasUpdated ? [1, 1.14, 1] : 1,
-            color: hasUpdated ? ['#090D1A', '#0066FF', '#090D1A'] : '#090D1A',
+            color: hasUpdated ? ['currentColor', 'var(--accent)', 'currentColor'] : 'currentColor',
           }}
           exit={{ y: 8, opacity: 0, scale: 0.95 }}
           transition={{
