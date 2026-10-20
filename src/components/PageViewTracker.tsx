@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { isTrackedPageRoute, ActivitySurface, PageViewRequest } from '../../shared/types/telemetry';
-import { getOrCreateDeviceId, isTelemetryOptedOut } from '../../shared/telemetry/deviceId';
+import { isTrackedPageRoute, ActivitySurface, PageViewRequest } from '@shared/types/telemetry';
+import { getOrCreateDeviceId, isTelemetryOptedOut } from '@shared/telemetry/deviceId';
 
 interface PageViewTrackerProps {
   surface: ActivitySurface;

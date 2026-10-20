@@ -1,4 +1,4 @@
-import { getOrCreateDeviceId } from '../../shared/telemetry/deviceId';
+import { getOrCreateDeviceId } from '@shared/telemetry/deviceId';
 import { doc, setDoc, getDoc, waitForPendingWrites, serverTimestamp, collection, query, where, orderBy, getDocs, getDocsFromServer, limit, Firestore, Timestamp } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import { getInMemorySessionTrials } from './inMemorySessionStore';

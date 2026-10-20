@@ -2,7 +2,7 @@ import {
   PageViewRequest,
   AssessmentResultNotification,
   LeaderboardNotification,
-} from '../../shared/types/telemetry';
+} from '../../../shared/types/telemetry';
 
 export interface TelegramConfig {
   botToken?: string;

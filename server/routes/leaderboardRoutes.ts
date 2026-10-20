@@ -68,7 +68,7 @@ export function registerLeaderboardRoutes(
           const isSpeed = assessmentType === 'visual-reaction' || assessmentType === 'direction' || assessmentType === 'colour-recognition' || assessmentType === 'color-recognition';
 
           void services.telegramService.enqueueLeaderboardUpload({
-            notificationId: result.docId || result.attemptId || result.sessionId || sessionId,
+            notificationId: result.docId || result.attemptId || sessionId,
             displayName: displayName || 'Anonymous Participant',
             assessmentType: assessmentType,
             ageGroup: ageGroup || 'Unknown',
