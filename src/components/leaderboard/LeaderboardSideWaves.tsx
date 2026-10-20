@@ -1,6 +1,10 @@
 import React from 'react';
 
-export const LeaderboardSideWaves: React.FC = () => {
+import { useSystemTheme } from '../../lib/useSystemTheme';
+
+export const LeaderboardSideWaves: React.FC<{ theme?: 'light' | 'dark' }> = ({ theme }) => {
+  const { activeTheme } = useSystemTheme();
+  const isDark = (theme || activeTheme) === 'dark';
   return (
     <div
       className="fixed inset-0 pointer-events-none select-none z-0 overflow-hidden"
@@ -10,7 +14,7 @@ export const LeaderboardSideWaves: React.FC = () => {
       <div 
         className="absolute inset-0 pointer-events-none select-none opacity-40"
         style={{
-          backgroundImage: 'radial-gradient(rgba(0, 102, 255, 0.12) 1.2px, transparent 1.2px)',
+          backgroundImage: isDark ? 'radial-gradient(rgba(34, 199, 214, 0.08) 1.2px, transparent 1.2px)' : 'radial-gradient(rgba(0, 102, 255, 0.12) 1.2px, transparent 1.2px)',
           backgroundSize: '36px 36px',
         }}
       />
@@ -42,7 +46,7 @@ export const LeaderboardSideWaves: React.FC = () => {
             <linearGradient id="lbLeftAmbientFill" x1="0" y1="300" x2="300" y2="900" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#BAE6FD" stopOpacity="0.4" />
               <stop offset="60%" stopColor="#E0F2FE" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.95" />
+              <stop offset="100%" stopColor={isDark ? "#0B0D10" : "#FFFFFF"} stopOpacity={isDark ? "0.9" : "0.95"} />
             </linearGradient>
           </defs>
 
@@ -83,10 +87,10 @@ export const LeaderboardSideWaves: React.FC = () => {
             d="M -50 490
                C 100 480, 220 540, 190 690
                C 160 820, 100 880, 180 950"
-            stroke="#E0F2FE"
-            strokeWidth="2.5"
+            stroke={isDark ? "#22C7D6" : "#E0F2FE"}
+            strokeWidth={isDark ? "1.5" : "2.5"}
             strokeLinecap="round"
-            opacity="0.95"
+            opacity={isDark ? "0.45" : "0.95"}
           />
         </svg>
       </div>
@@ -118,7 +122,7 @@ export const LeaderboardSideWaves: React.FC = () => {
             <linearGradient id="lbRightAmbientFill" x1="440" y1="250" x2="140" y2="900" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#BAE6FD" stopOpacity="0.4" />
               <stop offset="60%" stopColor="#E0F2FE" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.95" />
+              <stop offset="100%" stopColor={isDark ? "#0B0D10" : "#FFFFFF"} stopOpacity={isDark ? "0.9" : "0.95"} />
             </linearGradient>
           </defs>
 
@@ -159,10 +163,10 @@ export const LeaderboardSideWaves: React.FC = () => {
             d="M 490 440
                C 340 450, 220 520, 240 670
                C 260 810, 310 880, 230 950"
-            stroke="#E0F2FE"
-            strokeWidth="2.5"
+            stroke={isDark ? "#22C7D6" : "#E0F2FE"}
+            strokeWidth={isDark ? "1.5" : "2.5"}
             strokeLinecap="round"
-            opacity="0.95"
+            opacity={isDark ? "0.45" : "0.95"}
           />
         </svg>
       </div>

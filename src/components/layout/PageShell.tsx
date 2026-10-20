@@ -128,7 +128,7 @@ export const PageShell: React.FC<PageShellProps> = ({
 
       {/* Decorative Wave & Dot Grid Primitives */}
       {decorativeWaves === 'side' ? (
-        <LeaderboardSideWaves />
+        <LeaderboardSideWaves theme={effectiveTheme} />
       ) : (
         <>
           {!isDarkApparatus && (
@@ -143,7 +143,7 @@ export const PageShell: React.FC<PageShellProps> = ({
               aria-hidden="true"
             />
           )}
-          {decorativeWaves === 'bottom' && <DesktopWaveGraphic />}
+          {decorativeWaves === 'bottom' && <DesktopWaveGraphic theme={effectiveTheme} />}
         </>
       )}
 
