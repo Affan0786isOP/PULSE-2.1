@@ -16,22 +16,22 @@ export function DatasetComingSoon() {
         aria-labelledby="dataset-coming-soon-title"
         className="w-full text-center bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-2xl p-8 sm:p-12 shadow-xs"
       >
-        <div className="mx-auto mb-6 w-14 h-14 rounded-2xl bg-[#E0F2FE] border border-[#BFDBFE] flex items-center justify-center text-[#0066FF]">
+        <div className="mx-auto mb-6 w-14 h-14 rounded-2xl bg-[#E0F2FE] dark:bg-[#181D23] border border-[#BFDBFE] dark:border-[#22C7D6]/40 flex items-center justify-center text-[#0066FF] dark:text-[#22C7D6]">
           <Database size={24} aria-hidden="true" />
         </div>
 
-        <p className="text-[11px] font-mono font-semibold text-[#0066FF] uppercase tracking-[0.22em] mb-3">
+        <p className="text-[11px] font-mono font-semibold text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-[0.22em] mb-3">
           Dataset
         </p>
 
         <h1
           id="dataset-coming-soon-title"
-          className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#090D1A]"
+          className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#090D1A] dark:text-white"
         >
           PUBLIC RESEARCH DATASET — COMING SOON
         </h1>
 
-        <p className="mt-5 text-sm sm:text-base text-[#334155] leading-relaxed max-w-xl mx-auto">
+        <p className="mt-5 text-sm sm:text-base text-[#334155] dark:text-slate-300 leading-relaxed max-w-xl mx-auto">
           We’re preparing the verified PULSE research dataset for public release. The explorer will open once the dataset reaches the required research and quality standards.
         </p>
 

@@ -1,10 +1,10 @@
 import React from 'react';
-
 import { useSystemTheme } from '../../lib/useSystemTheme';
 
 export const LeaderboardSideWaves: React.FC<{ theme?: 'light' | 'dark' }> = ({ theme }) => {
   const { activeTheme } = useSystemTheme();
   const isDark = (theme || activeTheme) === 'dark';
+
   return (
     <div
       className="fixed inset-0 pointer-events-none select-none z-0 overflow-hidden"
@@ -14,7 +14,9 @@ export const LeaderboardSideWaves: React.FC<{ theme?: 'light' | 'dark' }> = ({ t
       <div 
         className="absolute inset-0 pointer-events-none select-none opacity-40"
         style={{
-          backgroundImage: isDark ? 'radial-gradient(rgba(34, 199, 214, 0.08) 1.2px, transparent 1.2px)' : 'radial-gradient(rgba(0, 102, 255, 0.12) 1.2px, transparent 1.2px)',
+          backgroundImage: isDark 
+            ? 'radial-gradient(rgba(34, 199, 214, 0.08) 1.2px, transparent 1.2px)' 
+            : 'radial-gradient(rgba(0, 102, 255, 0.12) 1.2px, transparent 1.2px)',
           backgroundSize: '36px 36px',
         }}
       />
@@ -30,22 +32,22 @@ export const LeaderboardSideWaves: React.FC<{ theme?: 'light' | 'dark' }> = ({ t
         >
           <defs>
             <linearGradient id="lbLeftWaveGradPrimary" x1="0" y1="400" x2="350" y2="700" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.85" />
-              <stop offset="40%" stopColor="#0284C7" stopOpacity="0.9" />
-              <stop offset="80%" stopColor="#0066FF" stopOpacity="0.95" />
-              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.7" />
+              <stop offset="0%" stopColor="#38BDF8" stopOpacity={isDark ? "0.7" : "0.85"} />
+              <stop offset="40%" stopColor="#0284C7" stopOpacity={isDark ? "0.85" : "0.9"} />
+              <stop offset="80%" stopColor="#0066FF" stopOpacity={isDark ? "0.8" : "0.95"} />
+              <stop offset="100%" stopColor="#38BDF8" stopOpacity={isDark ? "0.6" : "0.7"} />
             </linearGradient>
 
             <linearGradient id="lbLeftWaveGradSecondary" x1="0" y1="350" x2="420" y2="750" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#E0F2FE" stopOpacity="0.85" />
-              <stop offset="45%" stopColor="#7DD3FC" stopOpacity="0.65" />
-              <stop offset="80%" stopColor="#0284C7" stopOpacity="0.45" />
-              <stop offset="100%" stopColor="#0066FF" stopOpacity="0.25" />
+              <stop offset="0%" stopColor={isDark ? "#0284C7" : "#E0F2FE"} stopOpacity={isDark ? "0.4" : "0.85"} />
+              <stop offset="45%" stopColor={isDark ? "#0EA5E9" : "#7DD3FC"} stopOpacity={isDark ? "0.5" : "0.65"} />
+              <stop offset="80%" stopColor="#0284C7" stopOpacity={isDark ? "0.35" : "0.45"} />
+              <stop offset="100%" stopColor="#0066FF" stopOpacity={isDark ? "0.2" : "0.25"} />
             </linearGradient>
 
             <linearGradient id="lbLeftAmbientFill" x1="0" y1="300" x2="300" y2="900" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#BAE6FD" stopOpacity="0.4" />
-              <stop offset="60%" stopColor="#E0F2FE" stopOpacity="0.6" />
+              <stop offset="0%" stopColor={isDark ? "#0284C7" : "#BAE6FD"} stopOpacity={isDark ? "0.15" : "0.4"} />
+              <stop offset="60%" stopColor={isDark ? "#0B0D10" : "#E0F2FE"} stopOpacity={isDark ? "0.45" : "0.6"} />
               <stop offset="100%" stopColor={isDark ? "#0B0D10" : "#FFFFFF"} stopOpacity={isDark ? "0.9" : "0.95"} />
             </linearGradient>
           </defs>
@@ -68,7 +70,7 @@ export const LeaderboardSideWaves: React.FC<{ theme?: 'light' | 'dark' }> = ({ t
                C 180 810, 220 890, 260 950
                Z"
             fill="url(#lbLeftWaveGradSecondary)"
-            opacity="0.85"
+            opacity={isDark ? "0.6" : "0.85"}
           />
 
           {/* Main Electric Blue Ribbon Wave */}
@@ -79,7 +81,7 @@ export const LeaderboardSideWaves: React.FC<{ theme?: 'light' | 'dark' }> = ({ t
                C 160 820, 100 880, 180 950
                Z"
             fill="url(#lbLeftWaveGradPrimary)"
-            opacity="0.9"
+            opacity={isDark ? "0.75" : "0.9"}
           />
 
           {/* Crest Highlight Line */}
@@ -106,22 +108,22 @@ export const LeaderboardSideWaves: React.FC<{ theme?: 'light' | 'dark' }> = ({ t
         >
           <defs>
             <linearGradient id="lbRightWaveGradPrimary" x1="440" y1="350" x2="90" y2="700" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.8" />
-              <stop offset="35%" stopColor="#0284C7" stopOpacity="0.9" />
-              <stop offset="75%" stopColor="#0066FF" stopOpacity="0.92" />
-              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.75" />
+              <stop offset="0%" stopColor="#38BDF8" stopOpacity={isDark ? "0.7" : "0.8"} />
+              <stop offset="35%" stopColor="#0284C7" stopOpacity={isDark ? "0.85" : "0.9"} />
+              <stop offset="75%" stopColor="#0066FF" stopOpacity={isDark ? "0.8" : "0.92"} />
+              <stop offset="100%" stopColor="#38BDF8" stopOpacity={isDark ? "0.6" : "0.75"} />
             </linearGradient>
 
             <linearGradient id="lbRightWaveGradSecondary" x1="440" y1="300" x2="20" y2="750" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#E0F2FE" stopOpacity="0.8" />
-              <stop offset="40%" stopColor="#7DD3FC" stopOpacity="0.65" />
-              <stop offset="75%" stopColor="#0284C7" stopOpacity="0.45" />
-              <stop offset="100%" stopColor="#0066FF" stopOpacity="0.25" />
+              <stop offset="0%" stopColor={isDark ? "#0284C7" : "#E0F2FE"} stopOpacity={isDark ? "0.4" : "0.8"} />
+              <stop offset="40%" stopColor={isDark ? "#0EA5E9" : "#7DD3FC"} stopOpacity={isDark ? "0.5" : "0.65"} />
+              <stop offset="75%" stopColor="#0284C7" stopOpacity={isDark ? "0.35" : "0.45"} />
+              <stop offset="100%" stopColor="#0066FF" stopOpacity={isDark ? "0.2" : "0.25"} />
             </linearGradient>
 
             <linearGradient id="lbRightAmbientFill" x1="440" y1="250" x2="140" y2="900" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#BAE6FD" stopOpacity="0.4" />
-              <stop offset="60%" stopColor="#E0F2FE" stopOpacity="0.55" />
+              <stop offset="0%" stopColor={isDark ? "#0284C7" : "#BAE6FD"} stopOpacity={isDark ? "0.15" : "0.4"} />
+              <stop offset="60%" stopColor={isDark ? "#0B0D10" : "#E0F2FE"} stopOpacity={isDark ? "0.45" : "0.55"} />
               <stop offset="100%" stopColor={isDark ? "#0B0D10" : "#FFFFFF"} stopOpacity={isDark ? "0.9" : "0.95"} />
             </linearGradient>
           </defs>
@@ -144,7 +146,7 @@ export const LeaderboardSideWaves: React.FC<{ theme?: 'light' | 'dark' }> = ({ t
                C 230 780, 180 870, 140 950
                Z"
             fill="url(#lbRightWaveGradSecondary)"
-            opacity="0.85"
+            opacity={isDark ? "0.6" : "0.85"}
           />
 
           {/* Main Electric Blue Ribbon Wave */}
@@ -155,7 +157,7 @@ export const LeaderboardSideWaves: React.FC<{ theme?: 'light' | 'dark' }> = ({ t
                C 260 810, 310 880, 230 950
                Z"
             fill="url(#lbRightWaveGradPrimary)"
-            opacity="0.9"
+            opacity={isDark ? "0.75" : "0.9"}
           />
 
           {/* Crest Highlight Line */}

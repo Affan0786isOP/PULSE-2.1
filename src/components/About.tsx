@@ -78,8 +78,8 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
       <div className="w-full flex flex-col gap-12">
         {/* Header / Intro */}
         <header className="border-b border-slate-200/80 pb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[#BFDBFE] bg-[#E0F2FE] text-[#0066FF] text-xs font-mono mb-4 font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0066FF]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[#BFDBFE] dark:border-[#22C7D6]/40 bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] text-xs font-mono mb-4 font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0066FF] dark:bg-[#22C7D6]" />
             <span>PULSE {APP_VERSION} &bull; Scientific Benchmarking</span>
           </div>
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#090D1A] mb-4">
