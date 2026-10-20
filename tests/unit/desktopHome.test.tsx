@@ -14,9 +14,13 @@ vi.mock('../../src/lib/useAuthoritativeStats', () => ({
   useAuthoritativeStats: () => mockStats,
 }));
 
-vi.mock('../../src/lib/settingsStore', () => ({
-  useReducedMotionPreference: () => false,
-}));
+vi.mock('../../src/lib/settingsStore', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/lib/settingsStore')>();
+  return {
+    ...actual,
+    useReducedMotionPreference: () => false,
+  };
+});
 
 function CurrentPath() {
   const location = useLocation();
