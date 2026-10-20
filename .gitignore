@@ -24,3 +24,5 @@ pulse-leaderboard-audit/
 
 # Scratch & temporary scripts
 scratch/
+.worktrees/
+worktrees/
