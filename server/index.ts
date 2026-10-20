@@ -9,6 +9,7 @@ import { applyDeviceRoutingMiddleware } from './middleware/deviceRouting';
 import { registerResearchRoutes } from './routes/researchRoutes';
 import { registerLeaderboardRoutes } from './routes/leaderboardRoutes';
 import { registerAdminRoutes } from './routes/adminRoutes';
+import { registerTelemetryRoutes } from './routes/telemetryRoutes';
 import { registerStaticRoutes } from './routes/staticRoutes';
 import { createServerContainer } from './container';
 
@@ -45,10 +46,15 @@ async function startServer() {
   registerResearchRoutes(app, {
     sessionService: container.sessionService,
     personalBestService: container.personalBestService,
-    researchService: container.researchService
+    researchService: container.researchService,
+    telegramService: container.telegramNotifierService
   });
   registerLeaderboardRoutes(app, {
-    leaderboardService: container.leaderboardService
+    leaderboardService: container.leaderboardService,
+    telegramService: container.telegramNotifierService
+  });
+  registerTelemetryRoutes(app, {
+    telegramService: container.telegramNotifierService
   });
   registerAdminRoutes(app, {
     adminService: container.adminService,

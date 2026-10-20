@@ -7,6 +7,9 @@ import { safeCompareHex, signProvenancePayload } from '../services/provenanceSer
 import type { ISessionService } from '../services/interfaces/ISessionService';
 import type { IPersonalBestService } from '../services/interfaces/IPersonalBestService';
 import type { IResearchService } from '../services/interfaces/IResearchService';
+import type { ITelegramNotifierService } from '../services/interfaces/ITelegramNotifierService';
+import { isValidDeviceId } from '../../shared/telemetry/deviceId';
+import type { AssessmentNotificationType } from '../../shared/types/telemetry';
 import { SessionAlreadyConsumedError, AppError } from '../models/replayContracts';
 import { getAdminDiagnosticMessage } from '../config/firebaseAdmin';
 
@@ -16,6 +19,7 @@ export function registerResearchRoutes(
     sessionService: ISessionService;
     personalBestService: IPersonalBestService;
     researchService: IResearchService;
+    telegramService?: ITelegramNotifierService;
   }
 ): void {
   // Authoritative Experiment Session Issuance
@@ -95,7 +99,7 @@ export function registerResearchRoutes(
         return res.status(401).json({ success: false, error: 'Authentication required: missing or invalid Firebase ID token' });
       }
 
-      const { assessmentType, ageGroup, trials, sessionId, idempotencyKey } = req.body || {};
+      const { assessmentType, ageGroup, trials, sessionId, idempotencyKey, deviceId } = req.body || {};
 
       if (!sessionId || typeof sessionId !== 'string' || !sessionId.trim()) {
         return res.status(400).json({ success: false, error: 'sessionId is required and must be a valid non-empty string' });
@@ -131,6 +135,37 @@ export function registerResearchRoutes(
           idempotencyKey: validIdempKey,
           serverDeviceCategory
         });
+
+        if (services.telegramService && result) {
+          const validatedDeviceId = isValidDeviceId(deviceId) ? deviceId : undefined;
+          const dm = (result.derivedMetrics || {}) as Record<string, unknown>;
+          const metricsPayload = {
+            meanReactionTimeMs: typeof dm.meanReactionTime === 'number' ? dm.meanReactionTime : (typeof dm.meanReactionTimeMs === 'number' ? dm.meanReactionTimeMs : null),
+            medianReactionTimeMs: typeof dm.medianReactionTime === 'number' ? dm.medianReactionTime : (typeof dm.medianReactionTimeMs === 'number' ? dm.medianReactionTimeMs : null),
+            fastestReactionTimeMs: typeof dm.fastestReactionTime === 'number' ? dm.fastestReactionTime : null,
+            slowestReactionTimeMs: typeof dm.slowestReactionTime === 'number' ? dm.slowestReactionTime : null,
+            falseStartsCount: typeof dm.falseStartsCount === 'number' ? dm.falseStartsCount : undefined,
+            validTrialsCount: typeof dm.validTrialsCount === 'number' ? dm.validTrialsCount : undefined,
+            accuracyPercentage: typeof dm.accuracyPercentage === 'number' ? dm.accuracyPercentage : (typeof dm.accuracy === 'number' ? dm.accuracy * 100 : null),
+            conflictCostMs: typeof dm.conflictCost === 'number' ? dm.conflictCost : null,
+            interferenceCostMs: typeof dm.interferenceCost === 'number' ? dm.interferenceCost : null,
+            maxSpan: typeof dm.maxSpan === 'number' ? dm.maxSpan : null,
+            highestLevelAchieved: typeof dm.highestLevelAchieved === 'number' ? dm.highestLevelAchieved : null
+          };
+
+          void services.telegramService.enqueueAssessmentResult({
+            notificationId: result.sessionId || result.docId,
+            assessmentType: assessmentType as AssessmentNotificationType,
+            ageGroup: ageGroup || 'Unknown',
+            deviceCategory: serverDeviceCategory === 'mobile' ? 'phone' : 'computer',
+            surface: serverDeviceCategory === 'mobile' ? 'mobile' : 'desktop',
+            deviceId: validatedDeviceId,
+            completedAtIso: new Date(result.completedAtTimestamp || Date.now()).toISOString(),
+            metrics: metricsPayload
+          }).catch((err: unknown) => {
+            console.error('[Telemetry Assessment Enqueue Error]:', err instanceof Error ? err.message : String(err));
+          });
+        }
 
         return res.json({
           success: true,
