@@ -333,7 +333,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       setStatusMessage('Wait');
       setInputPrompt("Wait for the next arrow");
 
-      const prng = seedPRNG(sessionId + "-direction-" + (currentTrialRef.current - 1));
+      const prng = seedPRNG(sessionId + "-direction-" + (currentTrialRef.current - 1) + "-a" + attemptNumberRef.current);
       const windowDelay = prng() * (MAX_DELAY - MIN_DELAY) + MIN_DELAY;
       const nextDir = DIRECTIONS[Math.floor(prng() * DIRECTIONS.length)];
       setCurrentDirection(nextDir);

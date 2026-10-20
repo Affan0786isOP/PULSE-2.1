@@ -220,7 +220,7 @@ export function AssessmentResultReward({
           type="button"
           onClick={onRetry}
           id="result-retry-button"
-          className="flex-1 h-10 px-3 rounded-lg bg-slate-100 hover:bg-slate-200/80 active:bg-slate-200 active:scale-[0.98] text-slate-700 border border-slate-200 hover:border-slate-300 text-xs font-mono font-medium uppercase tracking-wider transition-[background-color,border-color,transform] inline-flex items-center justify-center gap-1.5 cursor-pointer"
+          className="flex-1 h-10 px-3 rounded-lg bg-slate-100 hover:bg-slate-200/80 active:bg-slate-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] text-slate-700 border border-slate-200 hover:border-slate-300 text-xs font-mono font-medium uppercase tracking-wider transition-[background-color,border-color,transform] inline-flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <RotateCcw size={13} />
           <span>Try Again</span>
@@ -230,7 +230,7 @@ export function AssessmentResultReward({
           type="button"
           onClick={onNext}
           id="result-next-button"
-          className="flex-1 h-10 px-4 rounded-lg bg-[#0066FF] hover:bg-[#0052CC] active:opacity-90 active:scale-[0.98] text-white text-xs font-mono font-bold uppercase tracking-wider transition-[background-color,opacity,transform] inline-flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+          className="flex-1 h-10 px-4 rounded-lg bg-[#0066FF] hover:bg-[#0052CC] active:opacity-90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] text-white text-xs font-mono font-bold uppercase tracking-wider transition-[background-color,opacity,transform] inline-flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
         >
           <span className="truncate">{nextAssessmentName}</span>
           <ArrowRight size={13} className="shrink-0" />
@@ -241,7 +241,7 @@ export function AssessmentResultReward({
             type="button"
             onClick={onViewLeaderboard}
             id="result-leaderboard-button"
-            className="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200/80 active:bg-slate-200 active:scale-[0.97] text-slate-600 hover:text-slate-900 border border-slate-200 flex items-center justify-center transition-[background-color,color,transform] cursor-pointer shrink-0"
+            className="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200/80 active:bg-slate-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] text-slate-600 hover:text-slate-900 border border-slate-200 flex items-center justify-center transition-[background-color,color,transform] cursor-pointer shrink-0"
             title="View leaderboard"
             aria-label="View leaderboard"
           >

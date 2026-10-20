@@ -107,7 +107,7 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
                 key={group}
                 type="button"
                 onClick={() => handleSelect(group)}
-                className={`group flex items-center justify-between p-2.5 sm:p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                className={`group flex items-center justify-between p-2.5 sm:p-3 rounded-xl border text-left transition-all cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
                   isSelected
                     ? 'border-[#0066FF] bg-blue-50/70 shadow-xs ring-1 ring-[#0066FF]'
                     : 'border-slate-200 bg-slate-50/60 hover:border-slate-300 hover:bg-slate-100/80'

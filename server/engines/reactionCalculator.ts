@@ -73,12 +73,7 @@ export function deriveVisualReactionMetrics(ctx: DerivationContext): DerivationR
       const t = trials[i];
 
       const trialNumber = Number(t.trialNumber);
-      let attemptNumber = 1;
-      if (i > 0) {
-        const prevTrialNumber = Number(trials[i - 1].trialNumber);
-        const prevAttempt = Number(trials[i - 1].attemptNumber) || 1;
-        attemptNumber = (trialNumber === prevTrialNumber) ? prevAttempt + 1 : 1;
-      }
+      const attemptNumber = Number(t.attemptNumber) || 1;
 
       const prng = seedPRNG(`${sessionId}-reaction-delays-t${trialNumber}-a${attemptNumber}`);
       const expectedForeperiod = generateVrtForeperiod(prng);

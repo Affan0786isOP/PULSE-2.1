@@ -667,7 +667,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
                 }`}
               >
                 <Info size={14} />
-                <span>About</span>
+                <span>Info</span>
               </button>
             </div>
           </div>
@@ -684,7 +684,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] text-xs text-cyan-400 hover:text-cyan-300 hover:border-cyan-500/50 bg-[var(--surface-1)] cursor-pointer"
             >
               <Info size={14} />
-              <span>About</span>
+              <span>Info</span>
             </button>
           </div>
         )}
