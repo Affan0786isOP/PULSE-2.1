@@ -219,7 +219,8 @@ describe('Desktop Theme System Architecture & View Transitions', () => {
         expect(animateMock).toHaveBeenCalled();
         const callArgs = animateMock.mock.calls[0];
         expect(callArgs[0].clipPath[0]).toContain('circle(0px at 500px 500px)');
-        expect(callArgs[1].duration).toBe(280);
+        expect(callArgs[1].duration).toBe(900);
+        expect(callArgs[1].easing).toBe('cubic-bezier(0.22, 1, 0.36, 1)');
         expect(callArgs[1].pseudoElement).toBe('::view-transition-new(root)');
       });
     });
