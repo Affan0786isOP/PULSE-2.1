@@ -331,6 +331,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         try {
           document.cookie = "pulse_force_desktop=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
           document.cookie = "pulse_force_mobile=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          document.cookie = "pulse_user_settings=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         } catch {}
       }
 

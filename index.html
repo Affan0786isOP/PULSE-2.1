@@ -202,8 +202,26 @@
             var path = window.location.pathname || '';
             var isDarkApparatus = /^\/(mobile\/)?(reaction-test|visual-reaction|direction-test|direction|colour-recognition|color-recognition|color-test|block-memory|block-memory-test|number-memory|number-memory-test)(\/|$)/.test(path);
 
-            var raw = localStorage.getItem('pulse_user_settings');
-            var settings = raw ? JSON.parse(raw) : null;
+            var settings = null;
+            try {
+              var raw = localStorage.getItem('pulse_user_settings');
+              if (raw) settings = JSON.parse(raw);
+            } catch(e) {}
+
+            if (!settings && typeof document !== 'undefined' && document.cookie) {
+              try {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                  var c = cookies[i].trim();
+                  if (c.indexOf('pulse_user_settings=') === 0) {
+                    var val = c.substring(20);
+                    if (val) settings = JSON.parse(decodeURIComponent(val));
+                    break;
+                  }
+                }
+              } catch(e) {}
+            }
+
             var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
             var theme = 'light';
@@ -229,7 +247,7 @@
             if (meta) {
               meta.setAttribute('content', theme === 'dark' ? (isDarkApparatus ? '#12161B' : '#0B0D10') : '#FFFFFF');
             }
-            var settings = raw ? JSON.parse(raw) : null;
+
             var prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             var isReducedMotion = settings && typeof settings.reducedMotionEnabled === 'boolean' ? settings.reducedMotionEnabled : prefersReduce;
 

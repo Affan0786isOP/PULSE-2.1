@@ -68,22 +68,83 @@ function sanitizeSettings(raw: unknown, fallback: UserSettings = DEFAULT_SETTING
   return result;
 }
 
+export function readSettingsCookie(): unknown | null {
+  if (typeof document === 'undefined') return null;
+  try {
+    const rawCookies = document.cookie ? document.cookie.split(';') : [];
+    for (let i = 0; i < rawCookies.length; i++) {
+      const cookie = rawCookies[i].trim();
+      if (cookie.startsWith(SETTINGS_STORAGE_KEY + '=')) {
+        const val = cookie.substring(SETTINGS_STORAGE_KEY.length + 1);
+        if (!val) return null;
+        return JSON.parse(decodeURIComponent(val));
+      }
+    }
+  } catch {
+    // Malformed cookie string or URI decoding issue
+  }
+  return null;
+}
+
+export function writeSettingsCookie(settings: UserSettings): void {
+  if (typeof document === 'undefined') return;
+  try {
+    const serialized = encodeURIComponent(JSON.stringify(settings));
+    document.cookie = SETTINGS_STORAGE_KEY + '=' + serialized + '; path=/; max-age=31536000; SameSite=Lax';
+  } catch {
+    // Quota / document.cookie restricted context fallback
+  }
+}
+
+export function clearSettingsCookie(): void {
+  if (typeof document === 'undefined') return;
+  try {
+    document.cookie = SETTINGS_STORAGE_KEY + '=; path=/; max-age=0; SameSite=Lax';
+  } catch {
+    // Ignore clearing error
+  }
+}
+
 export function loadSettings(): UserSettings {
   if (typeof window === 'undefined') {
     return { ...DEFAULT_SETTINGS };
   }
 
+  let localRaw: unknown = null;
+  let hasLocalStorage = false;
   try {
     const serialized = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (serialized) {
-      const parsed = JSON.parse(serialized);
-      return sanitizeSettings(parsed, {
-        ...DEFAULT_SETTINGS,
-        reducedMotionEnabled: getDefaultReducedMotion(),
-      });
+      localRaw = JSON.parse(serialized);
+      hasLocalStorage = true;
     }
   } catch {
-    // Malformed localStorage gracefully falls back to sanitized defaults
+    // Malformed localStorage or private-mode storage restrictions
+  }
+
+  const cookieRaw = readSettingsCookie();
+  const hasCookie = cookieRaw !== null;
+
+  const candidateRaw = localRaw ?? cookieRaw;
+
+  if (candidateRaw) {
+    const sanitized = sanitizeSettings(candidateRaw, {
+      ...DEFAULT_SETTINGS,
+      reducedMotionEnabled: getDefaultReducedMotion(),
+    });
+
+    // Dual-storage self-healing: re-synchronize if one store was cleared or out-of-sync
+    if (hasLocalStorage && !hasCookie) {
+      writeSettingsCookie(sanitized);
+    } else if (!hasLocalStorage && hasCookie) {
+      try {
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(sanitized));
+      } catch {
+        // Ignore localStorage write errors in private mode
+      }
+    }
+
+    return sanitized;
   }
 
   return { ...DEFAULT_SETTINGS, reducedMotionEnabled: getDefaultReducedMotion() };
@@ -158,6 +219,7 @@ export function updateSettings(partial: Partial<UserSettings>): UserSettings {
     } catch {
       // Ignore quota/private mode write issues
     }
+    writeSettingsCookie(next);
     window.dispatchEvent(new CustomEvent('pulse_settings_changed', { detail: next }));
   }
 
@@ -169,6 +231,7 @@ export function resetSettingsToDefaults(): UserSettings {
     try {
       localStorage.removeItem(SETTINGS_STORAGE_KEY);
     } catch {}
+    clearSettingsCookie();
   }
   cachedSettings = { ...DEFAULT_SETTINGS, reducedMotionEnabled: getDefaultReducedMotion() };
   applyDOMSettings(cachedSettings);
@@ -225,12 +288,22 @@ export function hasExplicitStoredReducedMotionPreference(): boolean {
   if (typeof window === 'undefined') return false;
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
-    if (!raw) return false;
-    const settings = JSON.parse(raw);
-    return Boolean(settings && typeof settings.reducedMotionEnabled === 'boolean');
-  } catch {
-    return false;
-  }
+    if (raw) {
+      const settings = JSON.parse(raw);
+      if (settings && typeof settings.reducedMotionEnabled === 'boolean') {
+        return true;
+      }
+    }
+  } catch {}
+
+  try {
+    const cookieSettings = readSettingsCookie() as any;
+    if (cookieSettings && typeof cookieSettings.reducedMotionEnabled === 'boolean') {
+      return true;
+    }
+  } catch {}
+
+  return false;
 }
 
 export function useReducedMotionPreference(): boolean {
