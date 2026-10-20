@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export type ThemeMode = 'dark';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 export interface UserSettings {
   soundEnabled: boolean;
@@ -23,7 +23,7 @@ export function getDefaultReducedMotion(): boolean {
 const DEFAULT_SETTINGS: UserSettings = {
   soundEnabled: true,
   hapticsEnabled: true,
-  themeMode: 'dark',
+  themeMode: 'system',
   exhibitionModeEnabled: false,
   reducedMotionEnabled: getDefaultReducedMotion(),
   fontScale: 1.0,
@@ -49,8 +49,11 @@ function sanitizeSettings(raw: unknown, fallback: UserSettings = DEFAULT_SETTING
   if (typeof obj.hapticsEnabled === 'boolean') {
     result.hapticsEnabled = obj.hapticsEnabled;
   }
-  // Dark-only architecture: themeMode is always 'dark'
-  result.themeMode = 'dark';
+  if (obj.themeMode === 'light' || obj.themeMode === 'dark' || obj.themeMode === 'system') {
+    result.themeMode = obj.themeMode;
+  } else {
+    result.themeMode = fallback.themeMode ?? 'system';
+  }
 
   if (typeof obj.exhibitionModeEnabled === 'boolean') {
     result.exhibitionModeEnabled = obj.exhibitionModeEnabled;
@@ -151,7 +154,7 @@ export function getSettings(): UserSettings {
   if (!cachedSettings) {
     cachedSettings = loadSettings();
   }
-  return { ...cachedSettings, themeMode: 'dark' };
+  return { ...cachedSettings };
 }
 
 export function isReducedMotionActive(): boolean {
@@ -165,18 +168,7 @@ export function isHapticsSupported(): boolean {
 export function applyDOMSettings(settings: UserSettings = getSettings()) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-  // 1. Truthful Theme: ALWAYS Dark Mode
-  document.documentElement.setAttribute('data-theme', 'dark');
-  document.documentElement.style.colorScheme = 'dark';
-  document.documentElement.classList.add('dark');
-  document.documentElement.classList.remove('light');
-
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) {
-    meta.setAttribute('content', '#0B0D10');
-  }
-
-  // 2. Authoritative Reduced Motion
+  // 1. Authoritative Reduced Motion
   if (settings.reducedMotionEnabled) {
     document.documentElement.setAttribute('data-reduced-motion', 'true');
     document.documentElement.classList.add('reduced-motion');
@@ -210,6 +202,7 @@ export function updateSettings(partial: Partial<UserSettings>): UserSettings {
   if (
     current.soundEnabled === next.soundEnabled &&
     current.hapticsEnabled === next.hapticsEnabled &&
+    current.themeMode === next.themeMode &&
     current.exhibitionModeEnabled === next.exhibitionModeEnabled &&
     current.reducedMotionEnabled === next.reducedMotionEnabled &&
     current.fontScale === next.fontScale

@@ -1,9 +1,10 @@
 import React, { useState, Suspense } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Activity, ArrowLeft, Settings, Info, WifiOff } from 'lucide-react';
+import { Activity, ArrowLeft, Settings, Info, WifiOff, Sun, Moon } from 'lucide-react';
 import { PulseLogo } from './brand';
 import { triggerHaptic } from '../lib/settingsStore';
 import { usePwaInstall } from '../lib/usePwaInstall';
+import { useSystemTheme } from '../lib/useSystemTheme';
 
 import { resolveActiveNavId } from '../lib/navigation';
 export { resolveActiveNavId };
@@ -32,6 +33,22 @@ export function Navbar({
   const pwa = usePwaInstall();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { activeTheme, isDarkApparatus: isRouteApparatus, toggleTheme } = useSystemTheme(location.pathname);
+  const isDarkActive = activeTheme === 'dark';
+  const showThemeToggle = !isAssessmentActive && !isRouteApparatus;
+
+  const handleToggleTheme = (e: React.MouseEvent<HTMLButtonElement>) => {
+    triggerHaptic('tap');
+    let origin: { x: number; y: number } | undefined;
+    if (e.clientX !== 0 || e.clientY !== 0) {
+      origin = { x: e.clientX, y: e.clientY };
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }
+    toggleTheme(origin);
+  };
 
   const activeId = resolveActiveNavId(currentView, location.pathname);
 
@@ -125,6 +142,18 @@ export function Navbar({
 
         <div className="flex items-center gap-1.5 shrink-0">
           {rightContent}
+          {showThemeToggle && (
+            <button
+              type="button"
+              id="mobile-nav-theme-toggle-btn"
+              onClick={handleToggleTheme}
+              aria-label={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
+              title={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
+              className={iconBtnClass}
+            >
+              {isDarkActive ? <Sun size={15} strokeWidth={2.2} /> : <Moon size={15} strokeWidth={2.2} />}
+            </button>
+          )}
           {pwa.isOffline && (
             <button
               type="button"

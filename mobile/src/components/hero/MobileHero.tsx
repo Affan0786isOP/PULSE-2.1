@@ -9,8 +9,11 @@ import {
   Globe, 
   ChevronDown, 
   Menu, 
-  Download 
+  Download,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useSystemTheme } from '../../lib/useSystemTheme';
 import { triggerHaptic } from '../../lib/settingsStore';
 import { useAuthoritativeStats } from '../../lib/useAuthoritativeStats';
 import { AnimatedResultCount } from '../ui/AnimatedResultCount';
@@ -33,6 +36,20 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
 }) => {
   const navigate = useNavigate();
   const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
+  const { activeTheme, toggleTheme } = useSystemTheme('/');
+  const isDarkActive = activeTheme === 'dark';
+
+  const handleToggleTheme = (e: React.MouseEvent<HTMLButtonElement>) => {
+    triggerHaptic('tap');
+    let origin: { x: number; y: number } | undefined;
+    if (e.clientX !== 0 || e.clientY !== 0) {
+      origin = { x: e.clientX, y: e.clientY };
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }
+    toggleTheme(origin);
+  };
 
   const handleStartTesting = () => {
     triggerHaptic();
@@ -61,7 +78,11 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
   return (
     <section 
       aria-label="PULSE Mobile Hero"
-      className="relative w-full min-h-[100dvh] flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A] font-sans selection:bg-[#0066FF]/20"
+      className={`relative w-full min-h-[100dvh] flex flex-col justify-between overflow-hidden ${
+        isDarkActive 
+          ? 'bg-[#0B0D10] text-[var(--text-primary)]' 
+          : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A]'
+      } font-sans selection:bg-[#0066FF]/20`}
     >
       {/* Background Neural Brain Graphic */}
       <NeuralGraphic />
@@ -73,7 +94,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           className="flex items-center text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] group"
           aria-label="PULSE Home"
         >
-          <PulseLogo variant="horizontal" size={26} color="#0066FF" textColor="#090D1A" />
+          <PulseLogo variant="horizontal" size={26} color="#0066FF" textColor={isDarkActive ? "#F5F7FA" : "#090D1A"} />
         </button>
 
         <div className="flex items-center gap-1">
@@ -86,6 +107,17 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
               <Download size={20} strokeWidth={2} />
             </button>
           )}
+
+          <button
+            type="button"
+            id="mobile-hero-theme-toggle-btn"
+            onClick={handleToggleTheme}
+            aria-label={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
+            title={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
+            className="p-2 text-[#475569] hover:text-[#090D1A] rounded-full active:scale-90 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
+          >
+            {isDarkActive ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
+          </button>
 
           <button 
             onClick={() => { triggerHaptic(); onOpenMenu(); }}

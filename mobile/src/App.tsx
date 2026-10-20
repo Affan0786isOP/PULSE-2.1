@@ -58,8 +58,9 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [settings] = useSettings();
-  const isDark = isDarkApparatusRoute(location.pathname);
-  useSystemTheme(location.pathname);
+  const isDarkApparatus = isDarkApparatusRoute(location.pathname);
+  const { activeTheme } = useSystemTheme(location.pathname);
+  const isDark = activeTheme === 'dark';
 
   React.useEffect(() => {
     try {
@@ -133,7 +134,7 @@ function App() {
         <div
           className={`min-h-[100dvh] ${
             isDark
-              ? 'bg-[#12161B] text-[var(--text-main)]'
+              ? (isDarkApparatus ? 'bg-[#12161B] text-[var(--text-main)]' : 'bg-[#0B0D10] text-[var(--text-primary)]')
               : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A]'
           } relative font-sans flex flex-col selection:bg-cyan-500/30`}
         >
