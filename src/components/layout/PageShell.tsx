@@ -148,13 +148,13 @@ export const PageShell: React.FC<PageShellProps> = ({
 
       {/* Navigation Bar */}
       {showNavbar && (
-        <div className={isDarkApparatus ? 'w-full bg-white border-b border-slate-200/80 shadow-xs relative z-30' : 'w-full'}>
+        <div className="w-full">
           <Navbar
             currentView={currentView}
             onNavigate={onNavigate}
             onBack={isAssessmentActive ? onBack : undefined}
             isAssessmentActive={isAssessmentActive}
-            theme={isDarkApparatus ? 'light' : effectiveTheme}
+            theme={effectiveTheme}
           />
         </div>
       )}
