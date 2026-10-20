@@ -75,7 +75,7 @@ describe('Mobile Leaderboard Laboratory Light', () => {
     // Trigger refresh button after initial load finishes
     const refreshBtn = screen.getByRole('button', { name: /Refresh Leaderboard/i });
     await waitFor(() => {
-      expect(refreshBtn).not.toBeDisabled();
+      expect(refreshBtn.hasAttribute('disabled')).toBe(false);
     });
 
     await act(async () => {

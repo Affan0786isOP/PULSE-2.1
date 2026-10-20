@@ -29,29 +29,66 @@ let inFlightStatsPromise: Promise<number> | null = null;
 const STATS_TTL_MS = 60_000;
 
 function readPersistedStats(): CachedStats | null {
-  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(STATS_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (typeof parsed?.count === 'number' && Number.isSafeInteger(parsed.count) && parsed.count >= 0) {
-      return {
-        count: parsed.count,
-        storedAt: typeof parsed.storedAt === 'number' ? parsed.storedAt : 0,
-      };
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(STATS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed?.count === 'number' && Number.isSafeInteger(parsed.count) && parsed.count >= 0) {
+          return {
+            count: parsed.count,
+            storedAt: typeof parsed.storedAt === 'number' ? parsed.storedAt : 0,
+          };
+        }
+      }
+    } catch {
+      // Ignore localStorage parse errors
     }
-  } catch {
-    // Ignore localStorage parse errors
   }
+
+  if (typeof document !== 'undefined' && document.cookie) {
+    try {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const c = cookies[i].trim();
+        if (c.startsWith(STATS_STORAGE_KEY + '=')) {
+          const val = c.substring(STATS_STORAGE_KEY.length + 1);
+          if (val) {
+            const parsed = JSON.parse(decodeURIComponent(val));
+            if (typeof parsed?.count === 'number' && Number.isSafeInteger(parsed.count) && parsed.count >= 0) {
+              return {
+                count: parsed.count,
+                storedAt: typeof parsed.storedAt === 'number' ? parsed.storedAt : 0,
+              };
+            }
+          }
+          break;
+        }
+      }
+    } catch {
+      // Ignore cookie parse errors
+    }
+  }
+
   return null;
 }
 
 function persistStats(stats: CachedStats): void {
-  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
-  try {
-    localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(stats));
-  } catch {
-    // Ignore storage quota errors
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(stats));
+    } catch {
+      // Ignore storage quota errors
+    }
+  }
+
+  if (typeof document !== 'undefined') {
+    try {
+      const serialized = encodeURIComponent(JSON.stringify(stats));
+      document.cookie = `${STATS_STORAGE_KEY}=${serialized}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch {
+      // Ignore cookie write errors
+    }
   }
 }
 
@@ -61,6 +98,13 @@ export function clearAuthoritativeStatsCache(): void {
   if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
     try {
       localStorage.removeItem(STATS_STORAGE_KEY);
+    } catch {
+      // Ignore
+    }
+  }
+  if (typeof document !== 'undefined') {
+    try {
+      document.cookie = `${STATS_STORAGE_KEY}=; path=/; max-age=0; SameSite=Lax`;
     } catch {
       // Ignore
     }
@@ -126,12 +170,7 @@ export function useAuthoritativeStats(): AuthoritativeHeroStats {
           return count;
         })
         .catch((err) => {
-          statsCache = null;
-          if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-            try {
-              localStorage.removeItem(STATS_STORAGE_KEY);
-            } catch {}
-          }
+          // Preserve stale-while-revalidate persisted cache on transient network failure
           throw err;
         })
         .finally(() => {
@@ -149,7 +188,7 @@ export function useAuthoritativeStats(): AuthoritativeHeroStats {
       .catch((err) => {
         console.warn('[useAuthoritativeStats] Could not fetch public results count:', err);
         if (active) {
-          setResultsCount(null);
+          setResultsCount((prev) => (prev !== null ? prev : (statsCache !== null ? statsCache.count : null)));
           setIsLoadingResults(false);
         }
       });

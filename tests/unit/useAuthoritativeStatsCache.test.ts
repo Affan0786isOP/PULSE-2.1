@@ -71,7 +71,7 @@ describe('useAuthoritativeStats 60s Cache (Tier 5)', () => {
     expect(firestore.getCountFromServer).toHaveBeenCalledTimes(1);
   });
 
-  it('transitions to null (unavailable) on expired revalidation failure rather than serving indefinitely stale numbers', async () => {
+  it('preserves stale cached count from localStorage on revalidation failure (stale-while-revalidate)', async () => {
     let now = 1000;
     vi.spyOn(Date, 'now').mockImplementation(() => now);
 
@@ -87,14 +87,14 @@ describe('useAuthoritativeStats 60s Cache (Tier 5)', () => {
     // Advance clock past 60s TTL
     now += 61_000;
 
-    // Next fetch fails
+    // Next fetch fails (transient network glitch)
     vi.mocked(firestore.getCountFromServer).mockRejectedValueOnce(new Error('Network error'));
 
     const { result: result2 } = renderHook(() => useAuthoritativeStats());
     await waitFor(() => expect(result2.current.isLoadingResults).toBe(false));
 
-    // Must transition to null (unavailable) to prevent stale number drift
-    expect(result2.current.resultsCount).toBeNull();
+    // Stale-while-revalidate preserves last known authoritative count so user never sees blank/skeleton
+    expect(result2.current.resultsCount).toBe(1250);
   });
 
   it('loads persisted count from localStorage on cold start immediately while refreshing in background', async () => {
