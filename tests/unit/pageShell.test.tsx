@@ -53,27 +53,29 @@ describe('PageShell Layout & Architecture', () => {
     expect(nav).toBeDefined();
   });
 
-  it('conditionally controls Footer rendering based on showFooter prop', () => {
+  it('never renders the site footer, regardless of the legacy showFooter prop', () => {
     const { unmount } = render(
       <MemoryRouter initialEntries={['/assessments']}>
         <PageShell currentView="assessments" showFooter={true}>
-          <div>With Footer</div>
-        </PageShell>
-      </MemoryRouter>
-    );
-
-    expect(screen.getByRole('contentinfo', { name: /pulse platform footer/i })).toBeDefined();
-    unmount();
-
-    render(
-      <MemoryRouter initialEntries={['/reaction-test']}>
-        <PageShell currentView="reaction-test" showFooter={false}>
-          <div>Without Footer</div>
+          <div>Assessment Body</div>
         </PageShell>
       </MemoryRouter>
     );
 
     expect(screen.queryByRole('contentinfo', { name: /pulse platform footer/i })).toBeNull();
+    expect(screen.getByText('Assessment Body')).toBeDefined();
+    unmount();
+
+    render(
+      <MemoryRouter initialEntries={['/reaction-test']}>
+        <PageShell currentView="reaction-test" showFooter={false}>
+          <div>Reaction Test Body</div>
+        </PageShell>
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByRole('contentinfo', { name: /pulse platform footer/i })).toBeNull();
+    expect(screen.getByText('Reaction Test Body')).toBeDefined();
   });
 
   it('renders appropriate decorative wave component based on decorativeWaves prop', () => {
