@@ -32,7 +32,7 @@ flowchart TD
 
 ## 3. Querying & Filtering Engine
 
-The React hook [`src/lib/dataset/index.ts`](../../src/lib/dataset/index.ts) (`useDatasetPipeline`) provides reactive data slicing:
+The open dataset explorer interface is provided by the public dataset view ([src/components/DatasetComingSoon.tsx](../../src/components/DatasetComingSoon.tsx)), displaying release readiness and research protocol availability prior to open data table indexing. When fully enabled, the pipeline provides reactive data slicing:
 
 ### Filter Dimensions
 1. **Assessment Protocol:** `visual-reaction`, `direction`, `colour-recognition`, `block-memory`, `number-memory`.

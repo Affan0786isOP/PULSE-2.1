@@ -56,3 +56,13 @@ This file records verified architectural and engineering decisions established i
 - **Consequences:** Minimizes attack surface and eliminates admin passcode session management from client/server HTTP routing.
 - **Evidence:** [`docs/breach-runbook.md`](../docs/breach-runbook.md), [`docs/specs/LEADERBOARD_PROVENANCE.md`](../docs/specs/LEADERBOARD_PROVENANCE.md).
 
+
+---
+
+### Decision: Dual-Tier Theme Architecture with Radial Transitions & Dark Apparatus Protection
+- **Status:** Accepted
+- **Context:** Cognitive research apparatuses require stable, high-contrast dark visual backgrounds to prevent pupil constriction and luminance glare during millisecond reaction benchmarks, while landing, about, and exploration pages benefit from user-selectable light, dark, and system themes.
+- **Decision:** Implement a user-controlled theme system via settingsStore.ts and useSystemTheme.ts persisting to localStorage and pulse_settings cookies. Theme changes leverage the CSS View Transitions API (startViewTransition) to animate an outward circular radial reveal centered on the user's click position. Routes specified in 
+outeTheme.ts (/reaction-test, /direction-test, /block-memory, etc.) are designated protected dark apparatuses and locked to dark mode regardless of global theme preference.
+- **Consequences:** Theme switching is fluid and accessible (bypassed when prefers-reduced-motion is active); assessment accuracy is shielded from ambient luminance shifts.
+- **Evidence:** [src/lib/useSystemTheme.ts](../src/lib/useSystemTheme.ts), [src/lib/routeTheme.ts](../src/lib/routeTheme.ts), [src/lib/settingsStore.ts](../src/lib/settingsStore.ts), [	ests/unit/desktopThemeSystem.test.tsx](../tests/unit/desktopThemeSystem.test.tsx), [	ests/unit/mobileThemeSystem.test.tsx](../tests/unit/mobileThemeSystem.test.tsx).

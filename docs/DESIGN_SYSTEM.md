@@ -74,3 +74,5 @@ import { PulseLogo, StimulusReticle } from '@/components/brand';
 1. **Zero Animation During Stimuli:** No transitions or layout reflows may occur between stimulus presentation and response capture.
 2. **Tactile Feedback:** All interactive buttons and cards implement immediate `:active` scale reduction (`active:scale-[0.98]`).
 3. **Reduced Motion Compliance:** Wrapped in `<MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'user'}>`. Ambient motion is fully suppressed when requested.
+4. **Theme Transitions & Circular Reveals:** Theme changes (light <-> dark) on non-apparatus routes invoke pplyThemeWithRadialTransition() using the CSS View Transitions API (::view-transition-new(root) and ::view-transition-old(root)). If reduced motion is preferred or the View Transitions API is unsupported, the transition falls back immediately without visual disruption.
+5. **Dark Apparatus Invariant:** Active cognitive measurement apparatus routes (/reaction-test, /direction-test, /block-memory, /number-memory, /colour-recognition) are protected from light-mode presentation to safeguard dark-adapted contrast and millisecond visual response accuracy.

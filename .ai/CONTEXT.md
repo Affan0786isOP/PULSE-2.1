@@ -58,10 +58,8 @@
 ├── src/                      # Desktop React Application
 │   ├── components/           # UI Components & Assessment Protocols
 │   │   ├── brand/            # Unified logo, reticle, telemetry cards
-│   │   ├── dataset/          # Research dataset explorer subcomponents
 │   │   └── home/             # Homepage views, 3D assessment carousel
 │   ├── lib/                  # State stores, Firebase client, timing utilities
-│   │   └── dataset/          # Data normalization pipeline & React hooks
 │   └── styles/               # CSS variables & aesthetic rules
 ├── mobile/                   # Mobile PWA Subproject (Dedicated Vite config)
 │   └── src/                  # Mobile-tailored screens and touch layouts

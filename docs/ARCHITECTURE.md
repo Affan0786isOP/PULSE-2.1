@@ -80,7 +80,7 @@ sequenceDiagram
 
 State is partitioned across four clear tiers:
 1. **In-Memory Volatile State:** [`src/lib/inMemorySessionStore.ts`](../src/lib/inMemorySessionStore.ts) holds active session trial arrays during assessment runs to prevent unnecessary I/O during timing loops.
-2. **Local Client Storage:** [`src/lib/settingsStore.ts`](../src/lib/settingsStore.ts) manages user preferences (selected age cohort, reduced motion, sound effects, system dark/light theme) in `localStorage`.
+2. **Local Client Storage & Cookie Sync:** [src/lib/settingsStore.ts](../src/lib/settingsStore.ts) and [src/lib/useSystemTheme.ts](../src/lib/useSystemTheme.ts) manage user preferences (themeMode: light/dark/system, reduced motion, sound effects, exhibition mode) synchronized across localStorage and pulse_settings cookies with reactive DOM bindings (data-theme, color-scheme).
 3. **PWA Offline Store:** [`src/lib/pwaStore.ts`](../src/lib/pwaStore.ts) tracks install prompt readiness and service worker updates.
 4. **Cloud Database:** Google Cloud Firestore holds persistent assessment trials, results, public datasets, leaderboards, and admin audit logs.
 
