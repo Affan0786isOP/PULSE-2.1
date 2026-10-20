@@ -458,15 +458,15 @@ export function Improve({
                 </div>
 
                 {/* Carousel Controls */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200/80">
-                  <span className="text-xs text-slate-500 font-mono hidden sm:inline-block">
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 dark:border-slate-800">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-mono hidden sm:inline-block">
                     Citation
                   </span>
                   <div className="flex items-center gap-2 ml-auto">
                     <button
                       type="button"
                       onClick={handlePrevSlide}
-                      className="w-8 h-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 text-[#090D1A] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] cursor-pointer flex items-center justify-center"
+                      className="w-8 h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#181D23] hover:bg-slate-50 dark:hover:bg-[#222831] active:scale-95 text-[#090D1A] dark:text-slate-200 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] cursor-pointer flex items-center justify-center"
                       aria-label="Previous observation"
                     >
                       <ChevronLeft size={16} />
@@ -474,7 +474,7 @@ export function Improve({
                     <button
                       type="button"
                       onClick={handleNextSlide}
-                      className="w-8 h-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 text-[#090D1A] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] cursor-pointer flex items-center justify-center"
+                      className="w-8 h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#181D23] hover:bg-slate-50 dark:hover:bg-[#222831] active:scale-95 text-[#090D1A] dark:text-slate-200 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] cursor-pointer flex items-center justify-center"
                       aria-label="Next observation"
                     >
                       <ChevronRight size={16} />

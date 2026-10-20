@@ -324,7 +324,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         {/* Assessment Carousel / Protocol Selector */}
         <div 
           role="region"
-          className="flex items-center justify-between gap-2 sm:gap-4 mb-6 bg-white/95 backdrop-blur-xs border border-slate-200/80 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-[0_4px_20px_rgba(0,102,255,0.03)]"
+          className="flex items-center justify-between gap-2 sm:gap-4 mb-6 bg-white/95 dark:bg-[#12161B]/95 backdrop-blur-xs border border-slate-200/80 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-[0_4px_20px_rgba(0,102,255,0.03)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
           onKeyDown={(e) => {
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
@@ -354,7 +354,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             id="leaderboard-prev-btn"
             onClick={handlePrevProtocol}
             aria-label="Previous Protocol"
-            className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200/80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] transition-all cursor-pointer shrink-0"
+            className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-[#181D23] hover:bg-slate-100 dark:hover:bg-[#222831] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-[#22C7D6] border border-slate-200/80 dark:border-slate-700/80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] transition-all cursor-pointer shrink-0"
           >
             <ChevronLeft size={18} strokeWidth={2.4} />
           </button>
@@ -370,7 +370,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
               return (
                 <React.Fragment key={p.id}>
                   {idx > 0 && (
-                    <div className="h-8 w-px bg-slate-200/60 hidden sm:block shrink-0" aria-hidden="true" />
+                    <div className="h-8 w-px bg-slate-200/60 dark:bg-slate-800 hidden sm:block shrink-0" aria-hidden="true" />
                   )}
                   <button 
                     type="button"
@@ -381,10 +381,10 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                     aria-controls="leaderboard-panel"
                     tabIndex={isSelected ? 0 : -1}
                     aria-selected={isSelected}
-                    className={`relative flex flex-col items-center justify-center py-2 px-3 sm:px-5 rounded-2xl cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] min-w-[72px] sm:min-w-[110px] ${
+                    className={`relative flex flex-col items-center justify-center py-2 px-3 sm:px-5 rounded-2xl cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] min-w-[72px] sm:min-w-[110px] ${
                       isSelected 
-                        ? 'bg-[#EBF5FF] shadow-xs' 
-                        : 'hover:bg-slate-50/80'
+                        ? 'bg-[#EBF5FF] dark:bg-[#181D23] dark:border dark:border-[#22C7D6]/40 shadow-xs' 
+                        : 'hover:bg-slate-50/80 dark:hover:bg-[#181D23]/60'
                     }`}
                   >
                     <img 
@@ -395,14 +395,14 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                       }`}
                     />
                     <span className={`text-xs sm:text-[13px] font-medium tracking-tight whitespace-nowrap ${
-                      isSelected ? 'text-slate-900 font-semibold' : 'text-slate-600'
+                      isSelected ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-600 dark:text-slate-400'
                     }`}>
                       {p.shortLabel}
                     </span>
                     {isSelected && (
                       <span 
                         aria-hidden="true"
-                        className="h-[2.5px] w-8 bg-[#0066FF] rounded-full mt-1.5 transition-all"
+                        className="h-[2.5px] w-8 bg-[#0066FF] dark:bg-[#22C7D6] rounded-full mt-1.5 transition-all"
                       />
                     )}
                   </button>
@@ -417,7 +417,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             id="leaderboard-next-btn"
             onClick={handleNextProtocol}
             aria-label="Next Protocol"
-            className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200/80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] transition-all cursor-pointer shrink-0"
+            className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-[#181D23] hover:bg-slate-100 dark:hover:bg-[#222831] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-[#22C7D6] border border-slate-200/80 dark:border-slate-700/80 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] transition-all cursor-pointer shrink-0"
           >
             <ChevronRight size={18} strokeWidth={2.4} />
           </button>
