@@ -157,15 +157,15 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
                 onClick={() => handleSelect(age)}
                 className={`w-full min-h-[46px] text-left px-3 py-2 rounded-xl border text-xs font-mono transition-all duration-150 cursor-pointer flex items-center justify-between gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] ${
                   isSelected 
-                    ? 'bg-sky-50/70 dark:bg-sky-950/40 border-[#0066FF] text-[#090D1A] dark:text-[#F5F7FA] shadow-xs' 
-                    : 'bg-white dark:bg-[#181D23] border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#20262E] hover:border-slate-300 dark:hover:border-slate-700'
+                    ? 'bg-sky-50/70 dark:bg-[#181D23] border-[#0066FF] dark:border-[#22C7D6] text-[#090D1A] dark:text-[#F5F7FA] shadow-xs' 
+                    : 'bg-white dark:bg-[#12161B] border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#181D23] hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${
                     isSelected
-                      ? 'bg-[#0066FF] text-white border-[#0066FF]'
-                      : 'bg-slate-50 dark:bg-[#12161B] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                      ? 'bg-[#0066FF] dark:bg-[#22C7D6] text-white dark:text-black border-[#0066FF] dark:border-[#22C7D6]'
+                      : 'bg-slate-50 dark:bg-[#181D23] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                   }`}>
                     <IconComponent size={14} strokeWidth={2.2} />
                   </div>
@@ -181,7 +181,7 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
 
                 <div className="shrink-0">
                   {isSelected ? (
-                    <div className="w-5 h-5 rounded-full bg-[#0066FF] flex items-center justify-center text-white">
+                    <div className="w-5 h-5 rounded-full bg-[#0066FF] dark:bg-[#22C7D6] flex items-center justify-center text-white dark:text-black">
                       <Check size={12} strokeWidth={3} />
                     </div>
                   ) : (
@@ -201,7 +201,7 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
           disabled={!selectedAge}
           className={`w-full min-h-[44px] h-11 px-4 rounded-full font-sans font-bold text-xs tracking-wider uppercase inline-flex items-center justify-center gap-2 transition-all shrink-0 ${
             selectedAge 
-              ? 'bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white cursor-pointer shadow-[0_4px_16px_rgba(0,102,255,0.3)] active:scale-[0.98]' 
+              ? 'bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] dark:from-[#22C7D6] dark:to-[#00D2FF] text-white dark:text-black font-semibold cursor-pointer shadow-[0_4px_16px_rgba(0,102,255,0.3)] dark:shadow-[0_4px_16px_rgba(34,199,214,0.3)] active:scale-[0.98]' 
               : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60 border border-slate-200 dark:border-slate-700'
           }`}
         >
