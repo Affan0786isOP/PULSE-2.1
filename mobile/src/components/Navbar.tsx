@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Activity, ArrowLeft, Settings, Info, WifiOff, Sun, Moon } from 'lucide-react';
+import { Activity, ArrowLeft, LogOut, Settings, Info, WifiOff, Sun, Moon } from 'lucide-react';
 import { PulseLogo } from './brand';
 import { triggerHaptic } from '../lib/settingsStore';
 import { usePwaInstall } from '../lib/usePwaInstall';
@@ -30,6 +30,7 @@ export function Navbar({
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const pwa = usePwaInstall();
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,8 +53,9 @@ export function Navbar({
 
   const activeId = resolveActiveNavId(currentView, location.pathname);
 
-  const handleBack = () => {
+  const performExit = () => {
     triggerHaptic('tap');
+    setShowExitConfirm(false);
     if (onBack) {
       onBack();
       return;
@@ -65,6 +67,15 @@ export function Navbar({
     } else {
       onNavigate('home');
     }
+  };
+
+  const handleBack = () => {
+    if (isAssessmentActive) {
+      triggerHaptic('tap');
+      setShowExitConfirm(true);
+      return;
+    }
+    performExit();
   };
 
   const isHome = activeId === 'home' || location.pathname === '/' || location.pathname === '/mobile/' || location.pathname === '/mobile';
@@ -99,36 +110,55 @@ export function Navbar({
             <button 
               type="button" 
               onClick={handleBack}
-              aria-label="Go Back"
-              title="Go Back"
-              className={iconBtnClass}
+              aria-label={isAssessmentActive ? "Exit assessment" : "Go Back"}
+              title={isAssessmentActive ? "Exit assessment" : "Go Back"}
+              className={isAssessmentActive 
+                ? 'px-2.5 h-8 flex items-center gap-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/20 active:bg-red-500/25 active:scale-[0.96] border border-red-500/30 text-red-400 hover:text-red-300 transition-all cursor-pointer' 
+                : iconBtnClass
+              }
             >
-              <ArrowLeft size={16} strokeWidth={2.2} />
+              {isAssessmentActive ? (
+                <>
+                  <LogOut size={14} strokeWidth={2.2} className="shrink-0" />
+                  <span className="text-xs font-semibold">Exit</span>
+                </>
+              ) : (
+                <ArrowLeft size={16} strokeWidth={2.2} />
+              )}
             </button>
           )}
           
-          <Link 
-            to="/"
-            onClick={(e) => {
-              if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
-                onNavigate('home');
-              }
-            }}
-            aria-label="PULSE Home"
-            aria-current={isHome ? 'page' : undefined}
-            title="Go to Home"
-            className={`flex items-center cursor-pointer group p-0.5 shrink-0 rounded-lg ${isHome ? 'ring-1 ring-[#0066FF]/40' : ''}`}
-          >
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-              isAssessmentActive 
-                ? 'bg-white/10 border border-white/15 text-[#0066FF]' 
-                : isDarkActive
+          {isAssessmentActive ? (
+            <span 
+              aria-label="PULSE Home (Disabled during active assessment)"
+              className="flex items-center opacity-40 cursor-not-allowed p-0.5 shrink-0 rounded-lg select-none"
+            >
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/10 border border-white/15 text-[#0066FF]">
+                <PulseLogo variant="mark" size={16} color="#0066FF" />
+              </div>
+            </span>
+          ) : (
+            <Link 
+              to="/"
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                  onNavigate('home');
+                }
+              }}
+              aria-label="PULSE Home"
+              aria-current={isHome ? 'page' : undefined}
+              title="Go to Home"
+              className={`flex items-center cursor-pointer group p-0.5 shrink-0 rounded-lg ${isHome ? 'ring-1 ring-[#0066FF]/40' : ''}`}
+            >
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                isDarkActive
                   ? 'bg-[#181D23] border border-slate-700 text-[#0066FF]'
                   : 'bg-sky-50 border border-sky-100/90 text-[#0066FF]'
-            }`}>
-              <PulseLogo variant="mark" size={16} color="#0066FF" />
-            </div>
-          </Link>
+              }`}>
+                <PulseLogo variant="mark" size={16} color="#0066FF" />
+              </div>
+            </Link>
+          )}
 
           {title && (
             typeof title === 'string' ? (
@@ -181,13 +211,19 @@ export function Navbar({
           <button 
             type="button"
             id="mobile-nav-info-btn"
+            disabled={isAssessmentActive}
+            aria-disabled={isAssessmentActive}
             onClick={() => {
-              triggerHaptic('tap');
-              setIsWelcomeOpen(true);
+              if (!isAssessmentActive) {
+                triggerHaptic('tap');
+                setIsWelcomeOpen(true);
+              }
             }}
             aria-label="App Info"
-            title="Welcome & Info"
-            className={iconBtnClass}
+            title={isAssessmentActive ? "Info unavailable during active assessment" : "Welcome & Info"}
+            className={`${iconBtnClass} ${
+              isAssessmentActive ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''
+            }`}
           >
             <Info size={15} strokeWidth={2.2} />
           </button>
@@ -229,6 +265,50 @@ export function Navbar({
             onClose={() => setIsWelcomeOpen(false)}
           />
         </Suspense>
+      )}
+
+      {showExitConfirm && (
+        <div 
+          role="dialog" 
+          aria-modal="true" 
+          aria-labelledby="exit-assessment-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="w-full max-w-sm rounded-2xl bg-[#181D23] border border-slate-700/80 p-5 shadow-2xl flex flex-col gap-4 text-left">
+            <div className="flex items-center gap-3 text-amber-400">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                <LogOut size={18} strokeWidth={2.4} />
+              </div>
+              <h2 id="exit-assessment-title" className="text-base font-bold text-white tracking-tight">
+                Exit Assessment?
+              </h2>
+            </div>
+            
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Your active test is currently in progress. Exiting now will discard this run and active trial data will not be recorded.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('tap');
+                  setShowExitConfirm(false);
+                }}
+                className="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 transition-colors cursor-pointer"
+              >
+                Resume Test
+              </button>
+              <button
+                type="button"
+                onClick={performExit}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-500 active:bg-red-700 shadow-xs transition-colors cursor-pointer"
+              >
+                Exit Now
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
