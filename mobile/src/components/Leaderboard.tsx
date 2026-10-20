@@ -47,9 +47,25 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [, setRelativeTick] = useState(0);
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tapCountRef = useRef(0);
   const lastTapTimeRef = useRef(0);
   const activeFetchIdRef = useRef(0);
+
+  const triggerToast = useCallback((msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastMessage(msg);
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   // Keep "Updated just now / Xm ago" relative time actively updating
   useEffect(() => {
@@ -154,6 +170,12 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
     selectProtocol(PROTOCOLS[nextIdx].id);
   };
 
+  const handleManualRefresh = async () => {
+    triggerHaptic('tap');
+    await fetchLeaderboard(undefined, { bypassCache: true });
+    triggerToast('Leaderboard updated • just now');
+  };
+
   return (
     <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] dark:from-[#0B0D10] dark:via-[#0B0D10] dark:to-[#0B0D10] text-[#090D1A] dark:text-[#F5F7FA] font-sans min-h-[100dvh] w-full overflow-x-hidden flex flex-col selection:bg-[#0066FF]/20">
       <SEO 
@@ -169,29 +191,22 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             onClick={handleTitleTap}
             role="button"
             tabIndex={0}
-            className="cursor-pointer select-none font-heading font-bold text-sm tracking-tight text-[#090D1A] dark:text-[#F5F7FA]"
+            className="cursor-pointer select-none font-heading font-bold text-sm tracking-tight text-[#090D1A] dark:text-[#F5F7FA] truncate"
           >
             LEADERBOARD
           </span>
         }
         rightContent={
-          <div className="flex items-center gap-2">
-            {lastUpdated && (
-              <span className="text-[11px] text-slate-400 font-medium tracking-tight whitespace-nowrap">
-                {formatRelativeTime(lastUpdated)}
-              </span>
-            )}
-            <button type="button"
-              id="mobile-leaderboard-refresh-btn"
-              onClick={() => fetchLeaderboard(undefined, { bypassCache: true })}
-              disabled={loading}
-              aria-label="Refresh Leaderboard"
-              title="Refresh Leaderboard"
-              className="w-8 h-8 rounded-lg bg-white dark:bg-[#181D23] border border-slate-200/90 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#090D1A] dark:hover:text-white active:scale-95 transition-all cursor-pointer disabled:opacity-50 shadow-2xs flex items-center justify-center shrink-0"
-            >
-              <RefreshCw size={15} strokeWidth={2.2} className={loading ? 'animate-spin text-[#0066FF]' : ''} />
-            </button>
-          </div>
+          <button type="button"
+            id="mobile-leaderboard-refresh-btn"
+            onClick={handleManualRefresh}
+            disabled={loading}
+            aria-label="Refresh Leaderboard"
+            title="Refresh Leaderboard"
+            className="w-8 h-8 rounded-lg bg-white dark:bg-[#181D23] border border-slate-200/90 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#090D1A] dark:hover:text-white active:scale-95 transition-all cursor-pointer disabled:opacity-50 shadow-2xs flex items-center justify-center shrink-0"
+          >
+            <RefreshCw size={15} strokeWidth={2.2} className={loading ? 'animate-spin text-[#0066FF]' : ''} />
+          </button>
         }
       />
 
@@ -381,6 +396,24 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
           window.location.assign('/admin');
         }}
       />
+
+      {/* Auto-Dismiss Floating Toast */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.95 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            role="status"
+            aria-live="polite"
+            className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-white/95 dark:bg-[#181D23]/95 border border-slate-200/90 dark:border-slate-700 text-[#090D1A] dark:text-[#F5F7FA] text-xs font-mono font-semibold shadow-lg shadow-black/10 dark:shadow-black/50 backdrop-blur-md flex items-center gap-2 pointer-events-none whitespace-nowrap"
+          >
+            <span className="w-2 h-2 rounded-full bg-[#0066FF] animate-pulse" />
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

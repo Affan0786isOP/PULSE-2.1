@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Leaderboard } from '../../mobile/src/components/Leaderboard';
 import { getLeaderboardResults } from '../../mobile/src/lib/firestore';
@@ -58,5 +58,31 @@ describe('Mobile Leaderboard Laboratory Light', () => {
     const panel = container.querySelector('#leaderboard-panel');
     expect(panel?.className).toContain('bg-white');
     expect(panel?.className).toContain('border-slate-200/80');
+  });
+
+  it('triggers an auto-dismissing toast pill on refresh instead of crowding the navbar', async () => {
+    vi.mocked(getLeaderboardResults).mockResolvedValue([] as any);
+
+    render(
+      <MemoryRouter initialEntries={['/leaderboard']}>
+        <Leaderboard onNavigate={() => {}} />
+      </MemoryRouter>
+    );
+
+    // Verify timestamp string is NOT rendered in the navigation header
+    expect(screen.queryByText(/Updated just now/i)).toBeNull();
+
+    // Trigger refresh button after initial load finishes
+    const refreshBtn = screen.getByRole('button', { name: /Refresh Leaderboard/i });
+    await waitFor(() => {
+      expect(refreshBtn).not.toBeDisabled();
+    });
+
+    await act(async () => {
+      fireEvent.click(refreshBtn);
+    });
+
+    // Verify toast pill appears
+    expect(await screen.findByText(/Leaderboard updated • just now/i)).toBeDefined();
   });
 });

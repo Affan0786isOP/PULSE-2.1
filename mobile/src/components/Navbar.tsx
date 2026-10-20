@@ -141,7 +141,9 @@ export function Navbar({
                 {title}
               </span>
             ) : (
-              title
+              <div className="min-w-0 truncate ml-1 flex items-center">
+                {title}
+              </div>
             )
           )}
         </div>
