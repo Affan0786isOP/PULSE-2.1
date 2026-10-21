@@ -22,8 +22,6 @@ import {
 import { useSystemTheme } from '../lib/useSystemTheme';
 import { useRefreshRate } from '../lib/useRefreshRate';
 import { detectRefreshRate, resetRefreshRateCache, cancelRefreshRateDetection } from '../lib/refreshRateDetector';
-import { resetPendingSyncQueue } from '../lib/trialStore';
-import { clearInMemorySessionTrials } from '../lib/inMemorySessionStore';
 import { 
   useSettings, 
   playAudioCue, 
@@ -331,9 +329,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       }
 
       resetRefreshRateCache();
-      resetPendingSyncQueue();
-      clearInMemorySessionTrials();
-      resetSettingsToDefaults();
+      try { localStorage.removeItem('pulse_pending_sync_queue'); sessionStorage.removeItem('pulse_pending_sync_queue'); } catch {}
+            resetSettingsToDefaults();
       clearClientLeaderboardCache();
       clearAuthoritativeStatsCache();
 

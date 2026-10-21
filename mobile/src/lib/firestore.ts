@@ -1,6 +1,5 @@
 import { doc, setDoc, getDoc, waitForPendingWrites, serverTimestamp, collection, query, where, orderBy, getDocs, getDocsFromServer, limit, Firestore, Timestamp } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
-import { getInMemorySessionTrials } from './inMemorySessionStore';
 import { db, auth, isConfigured, authInitPromise } from './firebase';
 import { reportError } from './errorReporter';
 import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, normalizeLeaderboardAssessmentType, safeLeaderboardDisplayNameForRead, validateLeaderboardDisplayName } from '../../../shared/domain/leaderboardEligibility';
@@ -345,7 +344,7 @@ export const submitAssessmentResult = async (payload: BasePayload): Promise<{
   try {
     const activeSessionId = payload.sessionId || payload.idempotencyKey;
     const activeIdempotencyKey = payload.idempotencyKey ? `${payload.idempotencyKey}-submit` : safeRandomUUID();
-    const trials = payload.trials || getInMemorySessionTrials(activeSessionId || '');
+    const trials = payload.trials || [];
     const res = await fetchWithAuth('/api/research/submit', {
       method: 'POST',
       headers: {
@@ -412,7 +411,7 @@ export const submitLeaderboardResult = async (payload: BasePayload & { trials?: 
     const uid = auth?.currentUser?.uid;
     const activeSessionId = payload.sessionId || payload.idempotencyKey;
     const activeIdempotencyKey = payload.idempotencyKey ? `${payload.idempotencyKey}-leaderboard` : safeRandomUUID();
-    const trials = payload.trials || getInMemorySessionTrials(activeSessionId || '');
+    const trials = payload.trials || [];
     const res = await fetchWithAuth('/api/leaderboard/submit', {
       method: 'POST',
       headers: {
@@ -621,81 +620,7 @@ export const getLeaderboardResults = async (
     console.warn('[Leaderboard] API query notice:', apiErr?.message || apiErr);
   }
 
-  // 2. Direct Firestore query for opted-in leaderboard submissions from leaderboardResults
-  if (!apiSucceeded && isFirestoreAvailable() && db) {
-    try {
-      const ready = await ensureFirebaseReady();
-      if (ready) {
-        await ensureAuthenticatedUser();
-        const aliases = PROTOCOL_ALIASES[canonicalType] || [canonicalType];
-        const colRef = collection(db, 'leaderboardResults');
-        let querySuccessCount = 0;
-
-        for (const alias of aliases) {
-          const aliasIsSpeed = alias === 'visual-reaction' || alias === 'direction' || alias === 'color-recognition' || alias === 'colour-recognition' || alias === 'color-test';
-          const aliasDirection: 'asc' | 'desc' = aliasIsSpeed ? 'asc' : 'desc';
-
-          try {
-            const q = query(
-              colRef,
-              where('assessmentType', '==', alias),
-              where('hidden', '==', false),
-              orderBy('scoreMetric', aliasDirection),
-              limit(100)
-            );
-            const snapshot = await getDocsFromServer(q);
-            querySuccessCount++;
-
-            snapshot.docs.forEach(docSnap => {
-              const data = docSnap.data();
-              if (!data || data.hidden === true) return;
-
-              if (typeof data.scoreMetric !== 'number') return;
-              const score = data.scoreMetric;
-              if (!isValidLeaderboardScoreMetric(canonicalType, score)) return;
-
-              const displayName = String(data.displayName || '').trim();
-              const safeDisplayName = safeLeaderboardDisplayNameForRead(displayName);
-              if (safeDisplayName === null) return;
-
-              const rawType = String(data.assessmentType || canonicalType);
-              const normalizedType = normalizeAssessmentType(rawType);
-              if (!normalizedType || normalizedType !== canonicalType) return;
-
-              if (!entriesMap.has(docSnap.id)) {
-                entriesMap.set(docSnap.id, {
-                  id: docSnap.id,
-                  displayName: safeDisplayName,
-                  assessmentType: normalizedType,
-                  scoreMetric: score,
-                  ageGroup: String(data.ageGroup || ''),
-                  createdAt: data.createdAt,
-                  source: 'cloud'
-                });
-              }
-            });
-          } catch (qErr: any) {
-            lastError = qErr instanceof Error ? qErr : new Error(String(qErr));
-            console.warn('[Leaderboard] Direct Firestore alias query failed:', qErr?.message || qErr);
-          }
-        }
-
-        if (querySuccessCount === aliases.length) {
-          firestoreSucceeded = true;
-          allAliasesSucceeded = true;
-        } else if (querySuccessCount > 0) {
-          firestoreSucceeded = true;
-          allAliasesSucceeded = false;
-        }
-      }
-    } catch (fsErr: any) {
-      lastError = fsErr instanceof Error ? fsErr : new Error(String(fsErr));
-      console.warn('[Leaderboard] Firestore query notice:', fsErr?.message || fsErr);
-    }
-  }
-
-  // If neither API nor direct Firestore query succeeded, throw an error
-  if (!apiSucceeded && !firestoreSucceeded) {
+  if (!apiSucceeded) {
     throw (lastError || new Error("Unable to load leaderboard data."));
   }
 
