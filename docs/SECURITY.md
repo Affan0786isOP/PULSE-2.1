@@ -19,6 +19,7 @@ This document outlines the security controls, cryptographic attestation mechanis
 - **No User Credentials:** The platform does not collect, store, or process user email addresses, passwords, phone numbers, or physical identities.
 - **Anonymous Tokens:** Participants are provisioned anonymous Firebase Authentication tokens (`request.auth.uid`).
 - **Research Dataset Sanitization:** The public benchmark collection (`publicDataset`) contains zero user IDs, zero session IDs, zero IP addresses, and aggregates completion dates to coarse year-months (`YYYY-MM`).
+- **Telemetry Safeguards & Opt-Out:** Operational activity tracking is strictly limited to four allowlisted pages (`/`, `/about`, `/assessments`, `/leaderboard`), assessment results, and leaderboard uploads. Device identification uses a pseudonymous random profile ID (`dev_uuid`) stored in `localStorage` without tracking physical hardware or personal identity. Participants can opt out at any time via `setTelemetryOptOut(true)`, which immediately purges the identifier from storage and halts future telemetry dispatches.
 
 ### 1.3 Rate Limiting & Denial of Service Protection
 - API endpoints use a Firestore-backed shared counter store so limits are shared across serverless instances. Authenticated session/research/leaderboard endpoints are partitioned by decoded UID + IP for accounting; the route still performs authoritative Firebase token verification. A separate per-IP aggregate limit caps unauthenticated traffic.
