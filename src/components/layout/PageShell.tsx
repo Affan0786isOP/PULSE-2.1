@@ -123,6 +123,7 @@ export const PageShell: React.FC<PageShellProps> = ({
         canonicalUrl={canonicalUrl}
         noindex={effectiveNoindex}
         schema={schema}
+        includeMobileAlternate={!(typeof window !== 'undefined' && window.location.pathname.startsWith('/mobile'))}
       />
 
       {/* Decorative Wave & Dot Grid Primitives */}
