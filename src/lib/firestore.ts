@@ -1,4 +1,5 @@
-import { doc, setDoc, getDoc, waitForPendingWrites, serverTimestamp, collection, query, where, orderBy, getDocs, getDocsFromServer, limit, Firestore, Timestamp } from 'firebase/firestore';
+import { getOrCreateDeviceId } from '@shared/telemetry/deviceId';
+import {  } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import { db, auth, isConfigured, authInitPromise } from './firebase';
 import { reportError } from './errorReporter';
@@ -356,7 +357,8 @@ export const submitAssessmentResult = async (payload: BasePayload): Promise<{
         deviceCategory: 'mobile',
         trials,
         sessionId: activeSessionId,
-        idempotencyKey: activeIdempotencyKey
+        idempotencyKey: activeIdempotencyKey,
+        deviceId: getOrCreateDeviceId()
       })
     });
 
@@ -425,7 +427,8 @@ export const submitLeaderboardResult = async (payload: BasePayload & { trials?: 
         trials,
         userId: uid,
         sessionId: activeSessionId,
-        idempotencyKey: activeIdempotencyKey
+        idempotencyKey: activeIdempotencyKey,
+        deviceId: getOrCreateDeviceId()
       })
     });
 
@@ -558,7 +561,6 @@ export const getLeaderboardResults = async (
   const requestPromise = (async () => {
     const isSpeed = canonicalType === 'visual-reaction' || canonicalType === 'direction' || canonicalType === 'color-recognition';
     const entriesMap = new Map<string, LeaderboardEntry>();
-    let firestoreSucceeded = false;
     let apiSucceeded = false;
     let lastError: Error | null = null;
     let allAliasesSucceeded = false;
