@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import metadata from '../../shared/seoMetadata.json';
 import { buildRouteSchema } from '../../shared/seoSchema.mjs';
+import { resolveRoute } from '../../shared/registries/routeRegistry';
 
 let nextOwnerId = 0;
 
@@ -10,18 +11,8 @@ export function getCanonicalPath(pathname: string): string {
   if (!clean.startsWith('/')) clean = '/' + clean;
   if (clean.length > 1 && clean.endsWith('/')) clean = clean.slice(0, -1);
 
-  switch (clean) {
-    case '/visual-reaction': return '/reaction-test';
-    case '/direction': return '/direction-test';
-    case '/color-recognition':
-    case '/color-test': return '/colour-recognition';
-    case '/block-memory-test': return '/block-memory';
-    case '/number-memory-test': return '/number-memory';
-    case '/research-privacy':
-    case '/privacy-policy': return '/privacy';
-    case '/analytics': return '/dataset';
-    default: return clean;
-  }
+  const route = resolveRoute(clean);
+  return route?.canonicalPath ?? route?.path ?? clean;
 }
 
 export function isProductionHost(): boolean {
