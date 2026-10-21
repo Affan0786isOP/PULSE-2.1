@@ -11,22 +11,6 @@ import { Link } from 'react-router-dom';
 import { APP_VERSION } from '../lib/version';
 import { PageShell } from './layout/PageShell';
 
-const ABOUT_SCHEMA = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "AboutPage",
-      "@id": "https://pulse-lab.in/about#webpage",
-      "url": "https://pulse-lab.in/about",
-      "name": "About PULSE — Cognitive Benchmarking Suite",
-      "description": "Learn about PULSE (Precision User Latency & Stimulus Evaluator), our standardized browser-based cognitive tests, telemetry engine, and privacy standards.",
-      "isPartOf": { "@id": "https://pulse-lab.in/#website" },
-      "about": { "@id": "https://pulse-lab.in/#organization" },
-      "inLanguage": "en"
-    }
-  ]
-};
-
 const PROTOCOLS = [
   {
     id: 'reaction-test',
@@ -70,7 +54,6 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
     <PageShell
       currentView="about"
       onNavigate={onNavigate}
-      schema={ABOUT_SCHEMA}
       decorativeWaves="side"
       maxWidth="5xl"
       contentClassName="py-10 sm:py-14 flex flex-col gap-12"
