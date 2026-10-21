@@ -85,7 +85,6 @@ const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({
 const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
-const AdminPage = React.lazy(() => import('./components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 
 
 import { isDarkApparatusRoute } from './lib/routeTheme';
@@ -208,7 +207,7 @@ function App() {
                 <Route path="/index.html" element={<RedirectIndexHtml />} />
                 <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                 <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
-                <Route path="/admin" element={<AdminPage />} />
+
                 <Route path="/dataset" element={<DatasetComingSoon />} />
                 <Route path="/analytics" element={<DatasetComingSoon />} />
                 <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
