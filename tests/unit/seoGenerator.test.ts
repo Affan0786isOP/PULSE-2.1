@@ -178,7 +178,7 @@ describe('SEO Shell Generator Output Verification', () => {
     expect(mobileRoot).toContain(`<title>${metadata.routes['/'].title}</title>`);
     expect(mobileRoot).toContain('link rel="canonical" href="https://pulse-lab.in"');
     expect(mobileRoot).not.toContain('rel="alternate" media="only screen and (max-width: 768px)"');
-    expect(mobileRoot).toContain('name="twitter:url" content="https://pulse-lab.in"');
+    expect(mobileRoot).toContain('name="twitter:url" content="https://pulse-lab.in/"');
   });
 
   it('builds the sitemap only from canonical, indexable public routes', () => {
@@ -186,7 +186,7 @@ describe('SEO Shell Generator Output Verification', () => {
     const locations = Array.from(sitemap.matchAll(/<loc>(.*?)<\/loc>/g), match => match[1]);
     const expected = Object.entries(metadata.routes)
       .filter(([, route]) => route.indexable)
-      .map(([pathname]) => 'https://pulse-lab.in' + (pathname === '/' ? '' : pathname));
+      .map(([pathname]) => 'https://pulse-lab.in' + (pathname === '/' ? '/' : pathname));
 
     expect(locations).toEqual(expected);
     expect(locations).not.toContain('https://pulse-lab.in/dataset');
