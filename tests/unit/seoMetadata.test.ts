@@ -45,6 +45,7 @@ describe('SEO route registry', () => {
     for (const [pathname, route] of routes) {
       expect(route.title.length, `Title too long for ${pathname}`).toBeLessThanOrEqual(65);
       expect(route.description.length, `Description too short for ${pathname}`).toBeGreaterThanOrEqual(100);
+      expect(route.description.length, `Description too long for ${pathname}`).toBeLessThanOrEqual(160);
     }
   });
 
