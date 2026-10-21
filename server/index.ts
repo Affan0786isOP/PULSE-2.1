@@ -8,7 +8,6 @@ import { applyRateLimits } from './config/rateLimits';
 import { applyDeviceRoutingMiddleware } from './middleware/deviceRouting';
 import { registerResearchRoutes } from './routes/researchRoutes';
 import { registerLeaderboardRoutes } from './routes/leaderboardRoutes';
-import { registerAdminRoutes } from './routes/adminRoutes';
 import { registerTelemetryRoutes } from './routes/telemetryRoutes';
 import { registerStaticRoutes } from './routes/staticRoutes';
 import { createServerContainer } from './container';
@@ -56,12 +55,7 @@ async function startServer() {
   registerTelemetryRoutes(app, {
     telegramService: container.telegramNotifierService
   });
-  registerAdminRoutes(app, {
-    adminService: container.adminService,
-    invalidateLeaderboardCache: container.leaderboardService.invalidateCache?.bind(container.leaderboardService)
-  });
-
-  applyDeviceRoutingMiddleware(app);
+applyDeviceRoutingMiddleware(app);
   await registerStaticRoutes(app);
 
   // Centralized Global Error Handler (Prevents stack trace leaks to client)
