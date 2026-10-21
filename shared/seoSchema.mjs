@@ -65,11 +65,11 @@ export function buildHomeSchema(metadata) {
   };
 }
 
-export function buildRouteSchema(metadata, pathname) {
+export function buildRouteSchema(metadata, pathname, canonicalUrlOverride) {
   if (pathname === '/') return buildHomeSchema(metadata);
 
   const { site, routes } = metadata;
-  const canonicalUrl = site.url.replace(/\/$/, '') + pathname;
+  const canonicalUrl = canonicalUrlOverride || site.url.replace(/\/$/, '') + pathname;
   const route = routes[pathname];
   const isKnownRoute = Boolean(route);
 
