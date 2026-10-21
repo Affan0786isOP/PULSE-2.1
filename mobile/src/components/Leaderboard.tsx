@@ -8,7 +8,6 @@ import { triggerHaptic } from '../lib/settingsStore';
 import { SkeletonTable } from './ui/Skeleton';
 import { SEO } from './SEO';
 import { getDisplayedLeaderboardRank } from '../../../shared/domain/leaderboardRanking';
-import { AdminPasscodeModal } from '../../../src/components/admin/AdminPasscodeModal';
 const PROTOCOLS: { id: AssessmentType; route: string; name: string; shortName: string; unit: string; logo: string }[] = [
   { id: 'visual-reaction', route: 'reaction-test', name: 'VISUAL REACTION', shortName: 'Reaction', unit: 'ms', logo: '/brand/assessments/visual-reaction.png' },
   { id: 'direction', route: 'direction-test', name: 'DIRECTION', shortName: 'Direction', unit: 'ms', logo: '/brand/assessments/directional-choice.png' },
@@ -46,11 +45,8 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [, setRelativeTick] = useState(0);
-  const [showAdminModal, setShowAdminModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const tapCountRef = useRef(0);
-  const lastTapTimeRef = useRef(0);
   const activeFetchIdRef = useRef(0);
 
   const triggerToast = useCallback((msg: string) => {
@@ -75,22 +71,6 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
     }, 10_000);
     return () => clearInterval(interval);
   }, [lastUpdated]);
-
-  const handleTitleTap = () => {
-    const now = Date.now();
-    if (now - lastTapTimeRef.current > 3000) {
-      tapCountRef.current = 1;
-    } else {
-      tapCountRef.current += 1;
-    }
-    lastTapTimeRef.current = now;
-
-    if (tapCountRef.current >= 5) {
-      tapCountRef.current = 0;
-      triggerHaptic('tap');
-      setShowAdminModal(true);
-    }
-  };
 
   useEffect(() => {
     const fromUrl = PROTOCOLS.find(p => p.id === searchParams.get('assessmentType'))?.id;
@@ -187,14 +167,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         onNavigate={onNavigate} 
         onBack={() => onNavigate('home')} 
         title={
-          <span
-            onClick={handleTitleTap}
-            role="button"
-            tabIndex={0}
-            className="cursor-pointer select-none font-heading font-bold text-sm tracking-tight text-[#090D1A] dark:text-[#F5F7FA] truncate"
-          >
-            LEADERBOARD
-          </span>
+          <span className="font-heading font-bold text-sm tracking-tight text-[#090D1A] dark:text-[#F5F7FA] truncate">LEADERBOARD</span>
         }
         rightContent={
           <button type="button"
@@ -387,15 +360,6 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
           )}
         </div>
       </main>
-
-      <AdminPasscodeModal
-        isOpen={showAdminModal}
-        onClose={() => setShowAdminModal(false)}
-        onSuccess={() => {
-          setShowAdminModal(false);
-          window.location.assign('/admin');
-        }}
-      />
 
       {/* Auto-Dismiss Floating Toast */}
       <AnimatePresence>
