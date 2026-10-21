@@ -58,7 +58,7 @@
     },
     "/direction-test": {
       "title": "Directional Choice Test: Response Speed | PULSE",
-      "description": "Measure choice reaction time and directional accuracy with PULSE's arrow-based task, designed to test how quickly you recognize and respond to visual direction cues.",
+      "description": "Measure choice reaction time and directional accuracy with PULSE's arrow task, testing how quickly you respond to visual direction cues.",
       "indexable": true,
       "clientFallback": true
     },
