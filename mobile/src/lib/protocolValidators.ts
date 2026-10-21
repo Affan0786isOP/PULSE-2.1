@@ -171,7 +171,9 @@ export function isValidReactionMetrics(obs: Record<string, unknown>): boolean {
     typeof obs.medianReactionTime === 'number' &&
     Number.isFinite(obs.medianReactionTime) &&
     obs.medianReactionTime >= 80 &&
-    obs.medianReactionTime <= 3600000
+    obs.medianReactionTime <= 3600000 &&
+    obs.medianReactionTime >= (obs.fastestReactionTime as number) &&
+    obs.medianReactionTime <= (obs.slowestReactionTime as number)
   );
 }
 
