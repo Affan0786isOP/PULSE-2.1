@@ -181,6 +181,18 @@ describe('SEO Shell Generator Output Verification', () => {
     expect(mobileRoot).toContain('name="twitter:url" content="https://pulse-lab.in"');
   });
 
+  it('builds the sitemap only from canonical, indexable public routes', () => {
+    const sitemap = fs.readFileSync(path.join(distDir, 'sitemap.xml'), 'utf8');
+    const locations = Array.from(sitemap.matchAll(/<loc>(.*?)<\\/loc>/g), match => match[1]);
+    const expected = Object.entries(metadata.routes)
+      .filter(([, route]) => route.indexable)
+      .map(([pathname]) => 'https://pulse-lab.in' + (pathname === '/' ? '' : pathname));
+
+    expect(locations).toEqual(expected);
+    expect(locations).not.toContain('https://pulse-lab.in/dataset');
+    expect(locations).not.toContain('https://pulse-lab.in/analytics');
+  });
+
   it('does not advertise non-indexable pages as mobile alternates', () => {
     const content = fs.readFileSync(path.join(distDir, 'seo', 'dataset.html'), 'utf8');
     expect(content).toContain('<meta name="robots" content="noindex, follow" />');
