@@ -4,7 +4,6 @@ import { SessionService } from './services/sessionService';
 import { PersonalBestService } from './services/personalBestService';
 import { ResearchService } from './services/researchService';
 import { LeaderboardAppService } from './services/leaderboardAppService';
-import { AdminService } from './services/adminService';
 import type { Firestore } from 'firebase-admin/firestore';
 
 describe('Server Container', () => {
@@ -18,9 +17,7 @@ describe('Server Container', () => {
     expect(container.sessionService).toBeInstanceOf(SessionService);
     expect(container.personalBestService).toBeInstanceOf(PersonalBestService);
     expect(container.researchService).toBeInstanceOf(ResearchService);
-    expect(container.leaderboardService).toBeInstanceOf(LeaderboardAppService);
-    expect(container.adminService).toBeInstanceOf(AdminService);
-  });
+    expect(container.leaderboardService).toBeInstanceOf(LeaderboardAppService);  });
 
   it('should initialize successfully with the default db provider', () => {
     // Calling without arguments should use getAdminDb implicitly
@@ -32,7 +29,5 @@ describe('Server Container', () => {
     expect(container.sessionService).toBeInstanceOf(SessionService);
     expect(container.personalBestService).toBeInstanceOf(PersonalBestService);
     expect(container.researchService).toBeInstanceOf(ResearchService);
-    expect(container.leaderboardService).toBeInstanceOf(LeaderboardAppService);
-    expect(container.adminService).toBeInstanceOf(AdminService);
-  });
+    expect(container.leaderboardService).toBeInstanceOf(LeaderboardAppService);  });
 });

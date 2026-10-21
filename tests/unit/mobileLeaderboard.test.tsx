@@ -24,7 +24,6 @@ vi.mock('../../mobile/src/components/Navbar', () => ({
 }));
 
 vi.mock('../../mobile/src/components/SEO', () => ({ SEO: () => null }));
-vi.mock('../../src/components/admin/AdminPasscodeModal', () => ({ AdminPasscodeModal: () => null }));
 
 describe('Mobile Leaderboard Laboratory Light', () => {
   beforeEach(() => {
