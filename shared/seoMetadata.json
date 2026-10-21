@@ -21,14 +21,14 @@
       "clientFallback": false
     },
     "/assessments": {
-      "title": "Assessments | PULSE",
+      "title": "Cognitive Tests for Reaction Time & Memory | PULSE",
       "description": "Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory.",
       "indexable": true,
       "clientFallback": false
     },
     "/leaderboard": {
       "title": "Verified Leaderboard & Cohort Rankings | PULSE",
-      "description": "Compare your cognitive performance results against our global anonymous cohort rankings in real-time.",
+      "description": "Compare anonymous PULSE assessment results across reaction time, attention, and memory with verified cohort rankings.",
       "indexable": true,
       "clientFallback": false
     },
@@ -39,7 +39,7 @@
       "clientFallback": false
     },
     "/improve": {
-      "title": "Performance Guide | PULSE",
+      "title": "Improve Reaction Time & Memory | PULSE",
       "description": "Review research, physiological factors, and preparation habits that affect response time and measurement consistency.",
       "indexable": true,
       "clientFallback": false
@@ -58,25 +58,25 @@
     },
     "/direction-test": {
       "title": "Directional Choice Test: Response Speed | PULSE",
-      "description": "Measure directional choice reaction time and accuracy with PULSE's directional arrow assessment.",
+      "description": "Measure choice reaction time and directional accuracy with PULSE's arrow-based task, designed to test how quickly you recognize and respond to visual direction cues.",
       "indexable": true,
       "clientFallback": true
     },
     "/colour-recognition": {
       "title": "Colour Recognition Test: Stroop Task | PULSE",
-      "description": "Evaluate selective attention and cognitive conflict with PULSE's interactive colour recognition assessment.",
+      "description": "Test selective attention and Stroop interference by identifying colour stimuli in PULSE's browser-based colour recognition assessment.",
       "indexable": true,
       "clientFallback": true
     },
     "/block-memory": {
       "title": "Block Memory Test: Spatial Sequence Recall | PULSE",
-      "description": "Test spatial sequence recall with PULSE's 9-block tapping assessment.",
+      "description": "Test visuospatial working memory with PULSE's block sequence recall task: observe the pattern, then repeat the blocks in the correct order.",
       "indexable": true,
       "clientFallback": true
     },
     "/number-memory": {
       "title": "Number Memory Test: Forward Digit Recall | PULSE",
-      "description": "Measure working memory capacity with PULSE's forward digit span assessment.",
+      "description": "Measure short-term memory with PULSE's forward digit-span test, which asks you to recall increasingly long number sequences in their original order.",
       "indexable": true,
       "clientFallback": true
     }
