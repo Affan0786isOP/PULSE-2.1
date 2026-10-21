@@ -71,8 +71,6 @@ export function buildRouteSchema(metadata, pathname, canonicalUrlOverride) {
   const { site, routes } = metadata;
   const canonicalUrl = canonicalUrlOverride || site.url.replace(/\/$/, '') + pathname;
   const route = routes[pathname];
-  const isKnownRoute = Boolean(route);
-
   return {
     '@context': 'https://schema.org',
     '@type': pathname === '/about' ? 'AboutPage' : 'WebPage',
@@ -83,7 +81,6 @@ export function buildRouteSchema(metadata, pathname, canonicalUrlOverride) {
     image: site.ogImage,
     isPartOf: { '@id': site.url.replace(/\/$/, '') + '/#website' },
     about: { '@id': site.url.replace(/\/$/, '') + '/#organization' },
-    inLanguage: 'en',
-    ...(isKnownRoute ? {} : { robots: 'noindex' })
+    inLanguage: 'en'
   };
 }
