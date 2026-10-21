@@ -78,6 +78,7 @@
 - **Client writes are rejected:** `firestore.rules` enforces `allow write: if false` on all canonical collections. All mutations must occur via `server.ts`.
 - **Zero PII in open dataset:** Public records omit user IDs, session IDs, emails, and exact timestamps (aggregated to `completedAtMonth` YYYY-MM).
 - **Administrative operations:** Web admin routes and UI have been audited and removed to minimize attack surface. Moderation actions are executed directly via server CLI scripts utilizing Firebase Admin credentials (`FIREBASE_SERVICE_ACCOUNT`).
+- **Targeted Telegram Telemetry:** Real-time observability streams low-noise events (page visits to `/`, `/about`, `/assessments`, `/leaderboard`, plus canonical assessment completions and leaderboard uploads) to a Telegram Forum Supergroup via `TelegramNotifierService` and durable outbox pacing.
 
 ---
 
