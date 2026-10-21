@@ -12,7 +12,7 @@ function getAbsoluteCanonical(pathname: string): string {
       : (typeof window !== 'undefined' && window.location.origin
         ? window.location.origin
         : SITE_URL);
-  return base + (canonicalPath === '/' ? '' : canonicalPath);
+  return base + (canonicalPath === '/' ? '/' : canonicalPath);
 }
 
 type RouteMetadata = {
@@ -26,7 +26,7 @@ type RouteMetadata = {
  * Supplies head metadata when a route is entered through client-side navigation.
  * Direct production loads are pre-rendered by the build-time SEO shell generator.
  */
-export function RouteSEO() {
+export function RouteSEO({ includeMobileAlternate = true }: { includeMobileAlternate?: boolean } = {}) {
   const location = useLocation();
   const canonicalPath = getCanonicalPath(location.pathname);
 
@@ -43,6 +43,7 @@ export function RouteSEO() {
         title="Page Not Found | PULSE"
         description="The requested PULSE page could not be found."
         noindex
+        includeMobileAlternate={includeMobileAlternate}
       />
     );
   }
@@ -67,6 +68,7 @@ export function RouteSEO() {
       description={route.description}
       canonicalUrl={expectedCanonical}
       noindex={!route.indexable}
+      includeMobileAlternate={includeMobileAlternate}
     />
   );
 }
