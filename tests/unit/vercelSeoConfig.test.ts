@@ -49,25 +49,29 @@ describe('Vercel technical SEO routing', () => {
     expect(serialized).toContain('noindex');
     expect(serialized).toContain('/api/:path*');
 
-    // Base rule sets noindex, nofollow for all environments
-    const baseRule = headers.find(h => h.source === '/:path*' && !h.has);
+    // The noindex default must apply only when the production apex host is absent.
+    // This avoids emitting conflicting X-Robots-Tag values on production responses.
+    const baseRule = headers.find(h => h.source === '/:path*' && h.missing);
     expect(baseRule).toBeDefined();
     expect(JSON.stringify(baseRule)).toContain('noindex, nofollow');
+    expect(JSON.stringify(baseRule)).toContain('"type":"host"');
+    expect(JSON.stringify(baseRule)).toContain('"value":"pulse-lab.in"');
 
-    // Production override applies strictly to apex pulse-lab.in
-    const prodOverride = headers.find(h => {
-      const has = h.has as Array<Record<string, string>> | undefined;
-      return has?.some(cond => cond.type === 'host' && cond.value === 'pulse-lab.in');
-    });
-    expect(prodOverride).toBeDefined();
-    expect(JSON.stringify(prodOverride)).toContain('index, follow');
+    // Production indexability is controlled by the page's meta robots directive;
+    // there must not be a second wildcard header that can contradict it.
+    const wildcardRobots = headers.filter(h =>
+      h.source === '/:path*' && h.headers?.some((header: { key: string }) => header.key.toLowerCase() === 'x-robots-tag')
+    );
+    expect(wildcardRobots).toHaveLength(1);
 
-    // www.pulse-lab.in must NOT have an independent indexable header override
-    const wwwOverride = headers.find(h => {
-      const has = h.has as Array<Record<string, string>> | undefined;
-      return has?.some(cond => cond.type === 'host' && cond.value === 'www.pulse-lab.in');
-    });
-    expect(wwwOverride).toBeUndefined();
+    // Production-only route overrides mark intentionally non-indexable pages and APIs.
+    for (const source of ['/dataset', '/analytics', '/mobile/dataset', '/mobile/analytics', '/api/:path*']) {
+      const rule = headers.find(h =>
+        h.source === source && h.headers?.some((header: { key: string }) => header.key.toLowerCase() === 'x-robots-tag')
+      );
+      expect(rule, `Missing robots policy for ${source}`).toBeDefined();
+      expect(JSON.stringify(rule)).toContain('"value":"pulse-lab.in"');
+    }
   });
 
   it('correctly routes and rewrites /about and /mobile/about', () => {
