@@ -12,6 +12,7 @@ export { resolveActiveNavId };
 // Defer modal loading until user interaction
 const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
+const AddToHomeScreenModal = React.lazy(() => import('./AddToHomeScreenModal').then(m => ({ default: m.AddToHomeScreenModal })));
 
 // Non-blocking, accessible fallback when modal code chunks are loading
 const ModalLoadingFallback = () => (
@@ -633,6 +634,27 @@ export function Navbar({
         </Suspense>
       )}
 
-      </header>
+      {/* PWA Add to Home Screen Install Guide Modal */}
+      {pwa.isGuideOpen && (
+        <Suspense fallback={<ModalLoadingFallback />}>
+          <AddToHomeScreenModal
+            isOpen={pwa.isGuideOpen}
+            onClose={pwa.closeInstallGuide}
+            isInstalled={pwa.isInstalled}
+            isIos={pwa.isIos}
+            isSafari={pwa.isSafari}
+            isIosSafari={pwa.isIosSafari}
+            isIosChrome={pwa.isIosChrome}
+            isIosOtherBrowser={pwa.isIosOtherBrowser}
+            isInstallable={pwa.isInstallable}
+            hasNativePrompt={pwa.hasNativePrompt}
+            isInstallPromptSupported={pwa.isInstallPromptSupported}
+            isUnsupportedBrowser={pwa.isUnsupportedBrowser}
+            isOffline={pwa.isOffline}
+            onPromptInstall={pwa.promptInstall}
+          />
+        </Suspense>
+      )}
+    </header>
   );
 }
