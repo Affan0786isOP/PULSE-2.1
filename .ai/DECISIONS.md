@@ -66,3 +66,12 @@ This file records verified architectural and engineering decisions established i
 outeTheme.ts (/reaction-test, /direction-test, /block-memory, etc.) are designated protected dark apparatuses and locked to dark mode regardless of global theme preference.
 - **Consequences:** Theme switching is fluid and accessible (bypassed when prefers-reduced-motion is active); assessment accuracy is shielded from ambient luminance shifts.
 - **Evidence:** [src/lib/useSystemTheme.ts](../src/lib/useSystemTheme.ts), [src/lib/routeTheme.ts](../src/lib/routeTheme.ts), [src/lib/settingsStore.ts](../src/lib/settingsStore.ts), [	ests/unit/desktopThemeSystem.test.tsx](../tests/unit/desktopThemeSystem.test.tsx), [	ests/unit/mobileThemeSystem.test.tsx](../tests/unit/mobileThemeSystem.test.tsx).
+
+---
+
+### Decision: Targeted Server-Authoritative Telegram Activity Observability
+- **Status:** Accepted
+- **Context:** Real-time production observability of user engagement and assessment completions was needed across both Desktop and Mobile without compromising participant privacy or cognitive timing precision.
+- **Decision:** Implement low-noise targeted operational telemetry streaming to dedicated topics in a Telegram Forum Supergroup (`TELEGRAM_TOPIC_VISITS`, `TELEGRAM_TOPIC_RESULTS`, `TELEGRAM_TOPIC_LEADERBOARD`). Page views are restricted strictly to four allowlisted routes (`/`, `/about`, `/assessments`, `/leaderboard`) using a pseudonymous, opt-out-capable browser-profile ID (`dev_uuid`). Assessment and leaderboard alerts are enqueued strictly server-side from canonical committed records after database writes succeed. Outbound sends are paced by a global chat rate-limiter (~18 msgs/min) with a durable outbox.
+- **Consequences:** Provides instant operational visibility with zero client-side PII leakage and zero latency overhead on millisecond cognitive tests.
+- **Evidence:** [`shared/types/telemetry.ts`](../shared/types/telemetry.ts), [`server/services/telegramNotifierService.ts`](../server/services/telegramNotifierService.ts), [`server/routes/telemetryRoutes.ts`](../server/routes/telemetryRoutes.ts).
