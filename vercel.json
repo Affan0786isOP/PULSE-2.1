@@ -7,7 +7,6 @@
       "includeFiles": "dist/server.js"
     }
   },
-
   "redirects": [
     {
       "source": "/:path*",
@@ -345,20 +344,11 @@
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow"
         }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
+      ],
+      "missing": [
         {
           "type": "host",
           "value": "pulse-lab.in"
-        }
-      ],
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
         }
       ]
     },
@@ -369,6 +359,12 @@
           "key": "X-Robots-Tag",
           "value": "noindex, follow"
         }
+      ],
+      "has": [
+        {
+          "type": "host",
+          "value": "pulse-lab.in"
+        }
       ]
     },
     {
@@ -377,6 +373,12 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, follow"
+        }
+      ],
+      "has": [
+        {
+          "type": "host",
+          "value": "pulse-lab.in"
         }
       ]
     },
@@ -387,6 +389,12 @@
           "key": "X-Robots-Tag",
           "value": "noindex, follow"
         }
+      ],
+      "has": [
+        {
+          "type": "host",
+          "value": "pulse-lab.in"
+        }
       ]
     },
     {
@@ -396,6 +404,12 @@
           "key": "X-Robots-Tag",
           "value": "noindex, follow"
         }
+      ],
+      "has": [
+        {
+          "type": "host",
+          "value": "pulse-lab.in"
+        }
       ]
     },
     {
@@ -404,6 +418,12 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow"
+        }
+      ],
+      "has": [
+        {
+          "type": "host",
+          "value": "pulse-lab.in"
         }
       ]
     },
