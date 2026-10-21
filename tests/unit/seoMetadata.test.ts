@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import metadata from '../../shared/seoMetadata.json';
 import { buildRouteSchema } from '../../shared/seoSchema.mjs';
 import { getCanonicalPath } from '../../src/components/SEO';
+import { resolveRoute } from '../../shared/registries/routeRegistry';
 
 describe('SEO route registry', () => {
   it('uses apex domain as canonical site URL', () => {
@@ -49,6 +50,14 @@ describe('SEO route registry', () => {
     expect(getCanonicalPath('/mobile/color-test/')).toBe('/colour-recognition');
     expect(getCanonicalPath('/analytics')).toBe('/dataset');
     expect(getCanonicalPath('/privacy-policy')).toBe('/privacy');
+  });
+
+  it('keeps route indexability aligned between SEO metadata and the shared route registry', () => {
+    for (const [pathname, routeMeta] of Object.entries(metadata.routes)) {
+      const route = resolveRoute(pathname);
+      expect(route, `Missing shared route definition for ${pathname}`).toBeDefined();
+      expect(route?.seoBehavior.index, `Indexability mismatch for ${pathname}`).toBe(routeMeta.indexable);
+    }
   });
 
   it('gives dynamic assessment routes a client metadata fallback', () => {
