@@ -27,6 +27,7 @@ describe('Shared Library Parity & Chunk Leakage Guards', () => {
     // Must preload mobile components
     expect(mobileRouteTheme).toContain("import('../components/Assessments')");
     expect(mobileRouteTheme).toContain("import('../components/Leaderboard')");
+    expect(mobileRouteTheme).not.toContain("../../../src/components/About");
   });
 
   it('keeps the desktop AddToHomeScreenModal reachable from Navbar and Settings', () => {
