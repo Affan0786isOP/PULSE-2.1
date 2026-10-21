@@ -12,7 +12,6 @@ import type { ISessionService } from './services/interfaces/ISessionService';
 import type { IPersonalBestService } from './services/interfaces/IPersonalBestService';
 import type { IResearchService } from './services/interfaces/IResearchService';
 import type { ILeaderboardService } from './services/interfaces/ILeaderboardService';
-import type { IAdminService } from './services/interfaces/IAdminService';
 import type { ITelegramNotifierService } from './services/interfaces/ITelegramNotifierService';
 import { TelegramNotifierService } from './services/telegramNotifierService';
 
@@ -20,14 +19,12 @@ import { SessionService } from './services/sessionService';
 import { PersonalBestService } from './services/personalBestService';
 import { ResearchService } from './services/researchService';
 import { LeaderboardAppService } from './services/leaderboardAppService';
-import { AdminService } from './services/adminService';
 
 export interface ServerContainer {
   sessionService: ISessionService;
   personalBestService: IPersonalBestService;
   researchService: IResearchService;
   leaderboardService: ILeaderboardService;
-  adminService: IAdminService;
   telegramNotifierService: ITelegramNotifierService;
 }
 
@@ -54,7 +51,6 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
     leaderboardRepository,
     leaderboardSubmissionRepository
   );
-  const adminService = new AdminService(leaderboardRepository);
 
   const telegramNotifierService = new TelegramNotifierService();
 
@@ -63,7 +59,6 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
     personalBestService,
     researchService,
     leaderboardService,
-    adminService,
     telegramNotifierService
   };
 }
