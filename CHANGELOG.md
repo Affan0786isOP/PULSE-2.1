@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.4.0] - 2026-10-21
+
+### Added
+- **Targeted Telegram Activity Observability:** Added low-noise operational notifications dispatched to dedicated topics in a Telegram Forum Supergroup (`TELEGRAM_TOPIC_VISITS`, `TELEGRAM_TOPIC_RESULTS`, `TELEGRAM_TOPIC_LEADERBOARD`).
+- **Durable Telegram Outbox & Rate-Limiter:** Added `TelegramNotifierService` with persistent in-memory outbox, HTML parse mode escaping, bounded exponential backoff, priority-based dispatching, and a global chat rate-limiter target (~18 msgs/min).
+- **Targeted Page View Telemetry:** Mounted `PageViewTracker` across Desktop and Mobile surfaces, restricted strictly to allowlisted views (`/`, `/about`, `/assessments`, `/leaderboard`) with route normalization and React 19 StrictMode deduplication.
+- **Pseudonymous Browser Profile ID:** Added `getOrCreateDeviceId()` in `shared/telemetry/deviceId.ts` generating persistent `dev_` UUIDs in `localStorage` with explicit telemetry opt-out controls (`setTelemetryOptOut`).
+- **Telemetry Ingestion Route:** Added `POST /api/telemetry/page-view` with strict payload schema validation, route allowlisting, and 48-hour event-ID idempotency deduplication.
+
+### Changed
+- **Server Dependency Container:** Wired `ITelegramNotifierService` into `server/container.ts` and `server/index.ts`.
+- **Authoritative Event Hooks:** Connected non-blocking telemetry outbox enqueueing directly to canonical committed writes in `POST /api/research/submit` and `POST /api/leaderboard/submit`.
+
 ## [2.3.0] - 2026-10-20
 
 ### Added
