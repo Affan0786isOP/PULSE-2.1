@@ -1,6 +1,7 @@
-export function buildHomeSchema(metadata) {
+export function buildHomeSchema(metadata, canonicalUrlOverride) {
   const { site, routes } = metadata;
   const homeUrl = site.url.replace(/\/$/, '');
+  const rootCanonical = canonicalUrlOverride || homeUrl + '/';
 
   return {
     '@context': 'https://schema.org',
@@ -8,7 +9,7 @@ export function buildHomeSchema(metadata) {
       {
         '@type': 'WebSite',
         '@id': homeUrl + '/#website',
-        url: homeUrl + '/',
+        url: rootCanonical,
         name: site.name,
         alternateName: site.legalName,
         description: site.description,
@@ -19,7 +20,7 @@ export function buildHomeSchema(metadata) {
         '@id': homeUrl + '/#organization',
         name: site.name,
         alternateName: site.legalName,
-        url: homeUrl + '/',
+        url: rootCanonical,
         logo: {
           '@type': 'ImageObject',
           url: site.logo,
@@ -32,7 +33,7 @@ export function buildHomeSchema(metadata) {
         '@id': homeUrl + '/#software',
         name: site.name,
         description: site.description,
-        url: homeUrl + '/',
+        url: rootCanonical,
         applicationCategory: 'EducationalApplication',
         operatingSystem: 'Web',
         offers: {
@@ -53,7 +54,7 @@ export function buildHomeSchema(metadata) {
       {
         '@type': 'WebPage',
         '@id': homeUrl + '/#webpage',
-        url: homeUrl + '/',
+        url: rootCanonical,
         name: routes['/']?.title ?? site.name,
         description: routes['/']?.description ?? site.description,
         image: site.ogImage,
@@ -66,7 +67,7 @@ export function buildHomeSchema(metadata) {
 }
 
 export function buildRouteSchema(metadata, pathname, canonicalUrlOverride) {
-  if (pathname === '/') return buildHomeSchema(metadata);
+  if (pathname === '/') return buildHomeSchema(metadata, canonicalUrlOverride);
 
   const { site, routes } = metadata;
   const canonicalUrl = canonicalUrlOverride || site.url.replace(/\/$/, '') + pathname;
