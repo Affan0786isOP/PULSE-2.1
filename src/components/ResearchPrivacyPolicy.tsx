@@ -8,7 +8,6 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate?: (view: stri
     <PageShell
       currentView="privacy"
       onNavigate={onNavigate}
-      canonicalUrl="https://pulse-lab.in/privacy"
       decorativeWaves="bottom"
       maxWidth="4xl"
       contentClassName="py-8"
