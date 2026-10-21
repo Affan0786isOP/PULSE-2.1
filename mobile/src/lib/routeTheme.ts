@@ -28,9 +28,6 @@ export function preloadRoute(path: string): void {
     case '/assessments':
       import('../components/Assessments').catch(() => {});
       break;
-    case '/about':
-      import('../../../src/components/About').catch(() => {});
-      break;
     case '/leaderboard':
       import('../components/Leaderboard').catch(() => {});
       break;
