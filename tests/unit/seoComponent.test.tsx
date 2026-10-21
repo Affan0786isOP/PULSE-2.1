@@ -66,6 +66,22 @@ describe('client SEO lifecycle', () => {
     expect(document.querySelectorAll('link[rel="canonical"]')).toHaveLength(1);
   });
 
+  it('uses a slash-terminated canonical for the home page and supports disabling mobile alternates', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <SEO includeMobileAlternate={false} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href)
+        .toBe('https://pulse-lab.in/');
+    });
+    expect(document.querySelector('link[rel="alternate"][media="only screen and (max-width: 768px)"]')).toBeNull();
+    expect(document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.content).toBe('https://pulse-lab.in/');
+    expect(document.querySelector<HTMLMetaElement>('meta[name="twitter:url"]')?.content).toBe('https://pulse-lab.in/');
+  });
+
   it('cleans up owned JSON-LD when the SEO owner unmounts', async () => {
     const view = render(
       <MemoryRouter initialEntries={['/reaction-test']}>
