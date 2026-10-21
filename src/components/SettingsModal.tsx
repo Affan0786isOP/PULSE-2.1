@@ -35,6 +35,7 @@ import {
   isHapticsSupported 
 } from '../lib/settingsStore';
 import { usePwaInstall } from '../lib/usePwaInstall';
+import { AddToHomeScreenModal } from './AddToHomeScreenModal';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 import { clearClientLeaderboardCache } from '../lib/firestore';
 import { clearAuthoritativeStatsCache } from '../lib/useAuthoritativeStats';
@@ -333,8 +334,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       }
 
       resetRefreshRateCache();
-      try { localStorage.removeItem('pulse_pending_sync_queue'); sessionStorage.removeItem('pulse_pending_sync_queue'); } catch {}
-            resetSettingsToDefaults();
+      resetSettingsToDefaults();
       clearClientLeaderboardCache();
       clearAuthoritativeStatsCache();
 
@@ -1009,6 +1009,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       )}
 
       {/* Add to Home Screen Guided Modal */}
-          </>
+      <AddToHomeScreenModal
+        isOpen={pwa.isGuideOpen}
+        onClose={pwa.closeInstallGuide}
+        isInstalled={pwa.isInstalled}
+        isIos={pwa.isIos}
+        isSafari={pwa.isSafari}
+        isIosSafari={pwa.isIosSafari}
+        isIosChrome={pwa.isIosChrome}
+        isIosOtherBrowser={pwa.isIosOtherBrowser}
+        isInstallable={pwa.isInstallable}
+        hasNativePrompt={pwa.hasNativePrompt}
+        isInstallPromptSupported={pwa.isInstallPromptSupported}
+        isUnsupportedBrowser={pwa.isUnsupportedBrowser}
+        isOffline={pwa.isOffline}
+        onPromptInstall={pwa.promptInstall}
+      />
+    </>
   );
 }
