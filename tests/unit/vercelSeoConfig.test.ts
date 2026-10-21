@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { ROUTE_REGISTRY } from '../../shared/registries/routeRegistry';
 
 describe('Vercel technical SEO routing', () => {
   const config = JSON.parse(
@@ -92,6 +93,24 @@ describe('Vercel technical SEO routing', () => {
       source: '/mobile/about',
       destination: '/seo/mobile/about.html'
     });
+  });
+
+  it('keeps deployed alias redirects aligned with the shared route registry', () => {
+    const redirects = config.redirects as Array<{ source: string; destination: string }>;
+    const pairs = new Set(redirects.map(rule => `${rule.source} -> ${rule.destination}`));
+    const mobilePath = (pathname: string) => pathname === '/' ? '/mobile/' : '/mobile' + pathname;
+
+    for (const route of ROUTE_REGISTRY) {
+      const canonicalPath = route.canonicalPath ?? route.path;
+      if (canonicalPath !== route.path) {
+        expect(pairs.has(`${route.path} -> ${canonicalPath}`), `Missing redirect for ${route.path}`).toBe(true);
+        expect(pairs.has(`${mobilePath(route.path)} -> ${mobilePath(canonicalPath)}`), `Missing mobile redirect for ${route.path}`).toBe(true);
+      }
+      for (const alias of route.aliases) {
+        expect(pairs.has(`${alias} -> ${canonicalPath}`), `Missing redirect for ${alias}`).toBe(true);
+        expect(pairs.has(`${mobilePath(alias)} -> ${mobilePath(canonicalPath)}`), `Missing mobile redirect for ${alias}`).toBe(true);
+      }
+    }
   });
 
   it('contains zero duplicate top-level keys in vercel.json (M1 fix)', () => {
