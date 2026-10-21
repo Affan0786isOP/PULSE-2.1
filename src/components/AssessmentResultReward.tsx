@@ -153,7 +153,6 @@ export function AssessmentResultReward({
         </div>
       )}
 
-      
       {/* Primary Authoritative Score */}
       <div className="flex items-baseline justify-center gap-1.5 my-2 z-10 relative">
         <span className="text-4xl sm:text-5xl font-mono font-bold tracking-tight text-[#090D1A]">
