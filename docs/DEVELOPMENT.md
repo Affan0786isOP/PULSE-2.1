@@ -45,6 +45,15 @@ PULSE_PROVENANCE_SECRET="replace-with-a-strong-random-signing-key"
 
 # Server-Side Firebase Admin Credentials (Optional for offline preview, required for production writes)
 FIREBASE_SERVICE_ACCOUNT='{"type":"service_account","project_id":"pulse-lab-36920",...}'
+
+# Telegram Activity Telemetry (Optional server-side observability)
+TELEGRAM_BOT_TOKEN="your_telegram_bot_token"
+TELEGRAM_CHAT_ID="-100xxxxxxxxxx"
+TELEGRAM_TOPIC_VISITS="42"
+TELEGRAM_TOPIC_RESULTS="43"
+TELEGRAM_TOPIC_LEADERBOARD="44"
+TELEGRAM_ALLOW_GENERAL_TOPIC_FALLBACK="false"
+TELEGRAM_MODE="dry-run" # 'live', 'dry-run' (default), or 'disabled'
 ```
 
 ---
