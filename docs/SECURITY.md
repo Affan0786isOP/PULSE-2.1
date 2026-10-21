@@ -31,16 +31,10 @@ This document outlines the security controls, cryptographic attestation mechanis
 - The counter collection `_rateLimitCounters` uses hashed document IDs and a Firestore TTL policy on `resetAt`; deploy the updated Firestore index/TTL configuration for automatic cleanup.
 
 ### 1.4 Administrative & Operational Access Control
-- Web-facing moderation is served via a hardened, secret-triggered moderation console (`/admin`), strictly guarded by server-authoritative authentication:
-  - **Passcode & Timing Protection:** Constant-time SHA-256 digest comparison (`crypto.timingSafeEqual`) prevents side-channel timing leaks. Development fallback passcode (`180611`) is strictly forbidden and fails closed in production (`NODE_ENV !== 'development'`).
-  - **Cryptographic Session Tokens:** HMACC-SHA256 authenticated tokens (`PULSE_ADMIN_SESSION_SECRET`) with a maximum 2-hour lifespan and unique nonces.
-  - **Stateful Revocation:** Authoritative server-side Firestore revocation check (`adminSessionRevocations`) on every request. Idempotent logout writes nonces to Firestore with automatic TTL deletion.
-  - **Data Minimization:** Admin API projections (`AdminLeaderboardDTO`) strictly filter out participant UIDs, session IDs, trial digests, quality flags, and internal verification hashes.
-  - **Provenance Integrity:** Display name edits do not modify scores or age cohorts, and preserve immutable `attestedDisplayName` so cryptographic provenance remains verifiable over historical submissions.
-  - **Audit Logging:** Every administrative action (alias edit, soft-hide, unhide, delete) writes an immutable record to `adminAuditLogs`.
-- Backend operations and deep migrations also remain accessible via backend operator CLI scripts using Firebase Admin SDK credentials.
 
----
+- **Web admin decommissioned:** The `/admin` browser console, browser passcode login, and `/api/admin/*` routes are removed. Do not configure or depend on web-admin session secrets.
+- **Operational moderation:** Privileged moderation and migrations are performed through operator-controlled server-side CLI scripts using Firebase Admin credentials; never expose service-account credentials or admin capabilities to browser code.
+- **Least privilege and auditability:** Keep CLI execution restricted to trusted operators, validate all requested mutations, and retain operational logs and documented review records for changes to leaderboard data.
 
 ## 2. Statutory Compliance & Breach Response
 PULSE operates in compliance with international privacy mandates:
@@ -62,7 +56,7 @@ PULSE operates in compliance with international privacy mandates:
 | 4 | Synthetic/automated reaction and memory scores | Plausibility floors and suspicious-score moderation; no server-secret per-trial challenge yet | **MITIGATED; RESIDUAL RISK** |
 | 5 | Direct leaderboard-document reads or writes | Firestore rules deny client access; public data goes through the display-only API | **BLOCKED BY RULES** |
 | 6 | Identity leakage in open research data | Dataset schema minimization and separate private leaderboard metadata | **MITIGATED; VERIFY DEPLOYED DATA** |
-| 7 | Attack surface on administrative interfaces | Hardened secret console, constant-time checks, short-lived HMAC session tokens, authoritative revocation store, strict rate limits, and audit logs | **MITIGATED & HARDENED** |
+| 7 | Attack surface on administrative interfaces | Public web-admin UI and routes removed; privileged changes restricted to trusted server-side CLI operations with Firebase Admin credentials and operational logging | **REDUCED; CLI ACCESS REMAINS PRIVILEGED** |
 
 ---
 
