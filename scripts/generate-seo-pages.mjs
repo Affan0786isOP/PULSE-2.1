@@ -70,7 +70,7 @@ function replaceHead(html, pathname, route, isMobile, replaceShell = true) {
     .replace(/<link\s+rel=["']alternate["'][^>]*>\s*/gi, '')
     .replace(/<script\s+id=["']pulse-seo-jsonld["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
 
-  const alternate = !isMobile
+  const alternate = !isMobile && route.indexable
     ? '\n    <link rel="alternate" media="only screen and (max-width: 768px)" href="' +
       escapeHtml(absoluteUrl(mobilePathFor(pathname))) +
       '" />'
