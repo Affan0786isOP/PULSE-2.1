@@ -15,4 +15,4 @@ export interface SeoMetadata {
   }>;
 }
 export function buildHomeSchema(metadata: SeoMetadata): Record<string, any>;
-export function buildRouteSchema(metadata: SeoMetadata, pathname: string): Record<string, any>;
+export function buildRouteSchema(metadata: SeoMetadata, pathname: string, canonicalUrlOverride?: string): Record<string, any>;
