@@ -14,5 +14,5 @@ export interface SeoMetadata {
     clientFallback?: boolean;
   }>;
 }
-export function buildHomeSchema(metadata: SeoMetadata): Record<string, any>;
+export function buildHomeSchema(metadata: SeoMetadata, canonicalUrlOverride?: string): Record<string, any>;
 export function buildRouteSchema(metadata: SeoMetadata, pathname: string, canonicalUrlOverride?: string): Record<string, any>;
