@@ -8,6 +8,7 @@ import { applyRateLimits } from './config/rateLimits';
 import { applyDeviceRoutingMiddleware } from './middleware/deviceRouting';
 import { registerResearchRoutes } from './routes/researchRoutes';
 import { registerLeaderboardRoutes } from './routes/leaderboardRoutes';
+import { registerTelemetryRoutes } from './routes/telemetryRoutes';
 import { registerStaticRoutes } from './routes/staticRoutes';
 import { createServerContainer } from './container';
 
@@ -44,13 +45,17 @@ async function startServer() {
   registerResearchRoutes(app, {
     sessionService: container.sessionService,
     personalBestService: container.personalBestService,
-    researchService: container.researchService
+    researchService: container.researchService,
+    telegramService: container.telegramNotifierService
   });
   registerLeaderboardRoutes(app, {
-    leaderboardService: container.leaderboardService
+    leaderboardService: container.leaderboardService,
+    telegramService: container.telegramNotifierService
   });
-
-  applyDeviceRoutingMiddleware(app);
+  registerTelemetryRoutes(app, {
+    telegramService: container.telegramNotifierService
+  });
+applyDeviceRoutingMiddleware(app);
   await registerStaticRoutes(app);
 
   // Centralized Global Error Handler (Prevents stack trace leaks to client)
