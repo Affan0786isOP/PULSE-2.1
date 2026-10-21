@@ -65,7 +65,13 @@ export function SEO({
   const finalDescription = description ?? routeMeta?.description ?? 'The requested PULSE page could not be found.';
   const defaultCanonical = siteUrl + (canonicalPath === '/' ? '' : canonicalPath);
   const finalCanonical = canonicalUrl || defaultCanonical;
-  const effectiveNoindex = !isProd || (noindex ?? (routeMeta ? !routeMeta.indexable : true));
+  const routeNoindex = noindex ?? (routeMeta ? !routeMeta.indexable : true);
+  const effectiveNoindex = !isProd || routeNoindex;
+  const robotsContent = !isProd
+    ? 'noindex, nofollow'
+    : routeNoindex
+      ? 'noindex, follow'
+      : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 
   const schemaMetadata = useMemo(() => ({
     ...metadata,
@@ -110,9 +116,7 @@ export function SEO({
 
     document.title = finalTitle;
     upsertMeta('name', 'description', finalDescription);
-    upsertMeta('name', 'robots', effectiveNoindex
-      ? 'noindex, nofollow'
-      : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+    upsertMeta('name', 'robots', robotsContent);
     upsertLink('canonical', finalCanonical);
 
     upsertMeta('property', 'og:title', finalTitle);
