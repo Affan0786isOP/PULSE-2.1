@@ -6,6 +6,7 @@ import { useSettings } from './lib/settingsStore';
 import { useSystemTheme } from './lib/useSystemTheme';
 import { Home } from './components/Home';
 import { RouteSEO } from './components/RouteSEO';
+import { PageViewTracker } from './components/PageViewTracker';
 import { DatasetComingSoon } from './components/DatasetComingSoon';
 
 import { resolveDeviceRedirect } from './lib/deviceRouting';
@@ -140,6 +141,7 @@ function App() {
       case 'about': navigate('/about'); break;
       case 'assessments': navigate('/assessments'); break;
       case 'leaderboard': navigate('/leaderboard'); break;
+      case 'admin': navigate('/admin'); break;
       case 'dataset':
       case 'analytics':
         navigate('/dataset');
@@ -198,12 +200,14 @@ function App() {
             >
               <React.Suspense fallback={<RouteFallback isDark={isDark} />}>
               <RouteSEO />
+              <PageViewTracker surface="desktop" />
               <Routes location={location}>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About onNavigate={handleNavigate} />} />
                 <Route path="/index.html" element={<RedirectIndexHtml />} />
                 <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                 <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
+
                 <Route path="/dataset" element={<DatasetComingSoon />} />
                 <Route path="/analytics" element={<DatasetComingSoon />} />
                 <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
