@@ -47,8 +47,6 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
   const [, setRelativeTick] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const tapCountRef = useRef(0);
-  const lastTapTimeRef = useRef(0);
   const activeFetchIdRef = useRef(0);
 
   const triggerToast = useCallback((msg: string) => {
@@ -169,14 +167,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
         onNavigate={onNavigate} 
         onBack={() => onNavigate('home')} 
         title={
-          <span
-            
-            role="button"
-            tabIndex={0}
-            className="cursor-pointer select-none font-heading font-bold text-sm tracking-tight text-[#090D1A] dark:text-[#F5F7FA] truncate"
-          >
-            LEADERBOARD
-          </span>
+          <span className="font-heading font-bold text-sm tracking-tight text-[#090D1A] dark:text-[#F5F7FA] truncate">LEADERBOARD</span>
         }
         rightContent={
           <button type="button"
