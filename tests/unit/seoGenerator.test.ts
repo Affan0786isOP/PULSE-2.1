@@ -183,7 +183,7 @@ describe('SEO Shell Generator Output Verification', () => {
 
   it('builds the sitemap only from canonical, indexable public routes', () => {
     const sitemap = fs.readFileSync(path.join(distDir, 'sitemap.xml'), 'utf8');
-    const locations = Array.from(sitemap.matchAll(/<loc>(.*?)<\\/loc>/g), match => match[1]);
+    const locations = Array.from(sitemap.matchAll(/<loc>(.*?)<\/loc>/g), match => match[1]);
     const expected = Object.entries(metadata.routes)
       .filter(([, route]) => route.indexable)
       .map(([pathname]) => 'https://pulse-lab.in' + (pathname === '/' ? '' : pathname));
