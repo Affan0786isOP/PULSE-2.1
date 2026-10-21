@@ -29,11 +29,11 @@ describe('Shared Library Parity & Chunk Leakage Guards', () => {
     expect(mobileRouteTheme).toContain("import('../components/Leaderboard')");
   });
 
-  it('confirms desktop AddToHomeScreenModal is not mounted in desktop Navbar or Settings', () => {
+  it('keeps the desktop AddToHomeScreenModal reachable from Navbar and Settings', () => {
     const navbarSource = readSource('src/components/Navbar.tsx');
-    expect(navbarSource).not.toContain('AddToHomeScreenModal');
+    expect(navbarSource).toContain('AddToHomeScreenModal');
 
     const settingsSource = readSource('src/components/SettingsModal.tsx');
-    expect(settingsSource).not.toContain('AddToHomeScreenModal');
+    expect(settingsSource).toContain('AddToHomeScreenModal');
   });
 });
