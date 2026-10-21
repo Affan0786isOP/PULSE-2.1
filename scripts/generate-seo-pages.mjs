@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import metadata from '../shared/seoMetadata.json' with { type: 'json' };
 import assessmentContent from '../shared/content/assessmentContent.json' with { type: 'json' };
+import { buildRouteSchema } from '../shared/seoSchema.mjs';
 
 const root = process.cwd();
 const distDir = process.env.PULSE_SEO_DIST_DIR
@@ -36,84 +37,8 @@ const navigationHtml = indexedPublicRoutes
   })
   .join('');
 
-const homeSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'WebSite',
-      '@id': siteUrl + '/#website',
-      'url': siteUrl + '/',
-      'name': metadata.site.name,
-      'alternateName': metadata.site.legalName,
-      'description': metadata.site.description,
-      'inLanguage': 'en'
-    },
-    {
-      '@type': 'Organization',
-      '@id': siteUrl + '/#organization',
-      'name': metadata.site.name,
-      'alternateName': metadata.site.legalName,
-      'url': siteUrl + '/',
-      'logo': {
-        '@type': 'ImageObject',
-        'url': metadata.site.logo,
-        'width': 512,
-        'height': 512
-      }
-    },
-    {
-      '@type': 'SoftwareApplication',
-      '@id': siteUrl + '/#software',
-      'name': metadata.site.name,
-      'description': metadata.site.description,
-      'url': siteUrl + '/',
-      'applicationCategory': 'EducationalApplication',
-      'operatingSystem': 'Web',
-      'offers': {
-        '@type': 'Offer',
-        'price': '0',
-        'priceCurrency': 'USD',
-        'url': siteUrl + '/'
-      },
-      'featureList': [
-        'Visual Reaction Test',
-        'Directional Choice Test',
-        'Colour Recognition Test',
-        'Block Memory Test',
-        'Number Memory Test'
-      ]
-    },
-    {
-      '@type': 'WebPage',
-      '@id': siteUrl + '/#webpage',
-      'url': siteUrl + '/',
-      'name': metadata.routes['/'].title,
-      'description': metadata.routes['/'].description,
-      'image': metadata.site.ogImage,
-      'isPartOf': { '@id': siteUrl + '/#website' },
-      'about': { '@id': siteUrl + '/#organization' },
-      'inLanguage': 'en'
-    }
-  ]
-};
-
-function schemaFor(pathname, route) {
-  if (pathname === '/') return homeSchema;
-
-  const canonical = absoluteUrl(pathname);
-  const type = pathname === '/about' ? 'AboutPage' : 'WebPage';
-  return {
-    '@context': 'https://schema.org',
-    '@type': type,
-    '@id': canonical + '#webpage',
-    'url': canonical,
-    'name': route.title,
-    'description': route.description,
-    'image': metadata.site.ogImage,
-    'isPartOf': { '@id': siteUrl + '/#website' },
-    'about': { '@id': siteUrl + '/#organization' },
-    'inLanguage': 'en'
-  };
+function schemaFor(pathname) {
+  return buildRouteSchema(metadata, pathname);
 }
 
 function robotsFor(route) {
@@ -126,14 +51,14 @@ function slugFor(pathname) {
   return pathname === '/' ? 'home' : pathname.replace(/^\//, '').replaceAll('/', '--');
 }
 
-function replaceHead(html, pathname, route, isMobile) {
+function replaceHead(html, pathname, route, isMobile, replaceShell = true) {
   const title = escapeHtml(route.title);
   const description = escapeHtml(route.description);
   const canonical = escapeHtml(absoluteUrl(pathname));
   const robots = escapeHtml(robotsFor(route));
   const ogImage = escapeHtml(metadata.site.ogImage);
   const ogImageAlt = escapeHtml('PULSE cognitive benchmarking');
-  const jsonLd = JSON.stringify(schemaFor(pathname, route)).replaceAll('</', '<\\/');
+  const jsonLd = JSON.stringify(schemaFor(pathname)).replaceAll('</', '<\\/');
 
   let output = html
     .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + title + '</title>')
@@ -176,6 +101,9 @@ function replaceHead(html, pathname, route, isMobile) {
     '\n    <script id="pulse-seo-jsonld" type="application/ld+json">' + jsonLd + '</script>';
 
   output = output.replace(/<\/head>/i, headTags + '\n  </head>');
+
+  // Keep entry HTML's authored body intact when only regenerating its head.
+  if (!replaceShell) return output;
 
   const fallbackHeading = escapeHtml(route.title.replace(/\s*\|\s*PULSE$/, ''));
   let innerContentHtml = '';
@@ -267,6 +195,19 @@ async function writeSitemap() {
 
 const desktopBase = await fs.readFile(path.join(distDir, 'index.html'), 'utf8');
 const mobileBase = await fs.readFile(path.join(distDir, 'mobile', 'index.html'), 'utf8');
+
+// Keep the root entry templates' bodies intact, but generate their SEO heads from
+// the same metadata/schema source as direct-route shells.
+await fs.writeFile(
+  path.join(distDir, 'index.html'),
+  replaceHead(desktopBase, '/', metadata.routes['/'], false, false),
+  'utf8'
+);
+await fs.writeFile(
+  path.join(distDir, 'mobile', 'index.html'),
+  replaceHead(mobileBase, '/', metadata.routes['/'], true, false),
+  'utf8'
+);
 
 await Promise.all(
   Object.entries(metadata.routes).map(([pathname, route]) =>
