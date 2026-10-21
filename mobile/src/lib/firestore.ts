@@ -1,5 +1,5 @@
 import { getOrCreateDeviceId } from '@shared/telemetry/deviceId';
-import {  } from 'firebase/firestore';
+import { doc, setDoc, getDoc, waitForPendingWrites, serverTimestamp, collection, query, where, orderBy, getDocs, getDocsFromServer, limit, Firestore, Timestamp } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import { db, auth, isConfigured, authInitPromise } from './firebase';
 import { reportError } from './errorReporter';
