@@ -72,8 +72,8 @@ export function SEO({
     site: { ...metadata.site, url: siteUrl }
   }), [siteUrl]);
   const effectiveSchema = useMemo(
-    () => schema ?? buildRouteSchema(schemaMetadata, canonicalPath),
-    [schema, schemaMetadata, canonicalPath]
+    () => schema ?? buildRouteSchema(schemaMetadata, canonicalPath, canonicalUrl ? finalCanonical : undefined),
+    [schema, schemaMetadata, canonicalPath, canonicalUrl, finalCanonical]
   );
   const serializedSchema = useMemo(() => JSON.stringify(effectiveSchema), [effectiveSchema]);
 
