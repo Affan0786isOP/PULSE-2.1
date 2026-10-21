@@ -329,8 +329,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       }
 
       resetRefreshRateCache();
-      try { localStorage.removeItem('pulse_pending_sync_queue'); sessionStorage.removeItem('pulse_pending_sync_queue'); } catch {}
-            resetSettingsToDefaults();
+      resetSettingsToDefaults();
       clearClientLeaderboardCache();
       clearAuthoritativeStatsCache();
 
