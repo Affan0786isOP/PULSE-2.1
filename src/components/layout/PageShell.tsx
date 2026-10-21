@@ -85,7 +85,7 @@ export const PageShell: React.FC<PageShellProps> = ({
 
   const title = customTitle || routeMeta?.title || 'PULSE';
   const description = customDescription || routeMeta?.description || 'Precision User Latency & Stimulus Evaluator';
-  const effectiveNoindex = noindex !== undefined ? noindex : (routeMeta ? !routeMeta.indexable : false);
+  const effectiveNoindex = noindex !== undefined ? noindex : (routeMeta ? !routeMeta.indexable : true);
 
   const { activeTheme: globalActiveTheme, isDarkApparatus: isRouteApparatus } = useSystemTheme(location.pathname);
   const isDarkApparatus = theme === 'dark-apparatus' || isRouteApparatus;
