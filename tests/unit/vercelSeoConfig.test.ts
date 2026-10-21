@@ -59,15 +59,16 @@ describe('Vercel technical SEO routing', () => {
 
     // Production indexability is controlled by the page's meta robots directive;
     // there must not be a second wildcard header that can contradict it.
-    const wildcardRobots = headers.filter(h =>
-      h.source === '/:path*' && h.headers?.some((header: { key: string }) => header.key.toLowerCase() === 'x-robots-tag')
-    );
+    const hasRobotsHeader = (rule: Record<string, unknown>) =>
+      Array.isArray(rule.headers) &&
+      (rule.headers as Array<{ key: string }>).some(header => header.key.toLowerCase() === 'x-robots-tag');
+    const wildcardRobots = headers.filter(h => h.source === '/:path*' && hasRobotsHeader(h));
     expect(wildcardRobots).toHaveLength(1);
 
     // Production-only route overrides mark intentionally non-indexable pages and APIs.
     for (const source of ['/dataset', '/analytics', '/mobile/dataset', '/mobile/analytics', '/api/:path*']) {
       const rule = headers.find(h =>
-        h.source === source && h.headers?.some((header: { key: string }) => header.key.toLowerCase() === 'x-robots-tag')
+        h.source === source && hasRobotsHeader(h)
       );
       expect(rule, `Missing robots policy for ${source}`).toBeDefined();
       expect(JSON.stringify(rule)).toContain('"value":"pulse-lab.in"');
