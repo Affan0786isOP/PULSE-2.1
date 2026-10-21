@@ -37,5 +37,10 @@ describe('Web Admin Surface Decommissioning & Invariant Alignment', () => {
     const serverIndex = readSource('server/index.ts');
     expect(serverIndex).not.toContain('registerAdminRoutes');
     expect(serverIndex).not.toContain('adminRoutes');
+
+    const rateLimitSource = readSource('server/config/rateLimits.ts');
+    expect(rateLimitSource).not.toContain('adminLoginLimiter');
+    expect(rateLimitSource).not.toContain('adminMutationLimiter');
+    expect(rateLimitSource).not.toContain("app.use('/api/admin/");
   });
 });
