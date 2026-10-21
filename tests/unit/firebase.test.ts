@@ -44,10 +44,22 @@ describe('Firebase Integration Tests (Mocked)', () => {
     localStorageSpy = vi.spyOn(Storage.prototype, 'getItem');
     
     // Polyfill fetch for API calls in the fallback
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      json: async () => ({ success: false, error: 'API failed' })
-    });
+    global.fetch = vi.fn().mockImplementation(() => Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        entries: [{
+          id: 'doc1',
+          displayName: 'Test User',
+          assessmentType: 'visual-reaction',
+          scoreMetric: 200,
+          ageGroup: 'Adults (26–40)',
+          createdAt: Date.now(),
+          hidden: false
+        }]
+      })
+    }));
   });
   
   afterEach(() => {
@@ -55,22 +67,6 @@ describe('Firebase Integration Tests (Mocked)', () => {
   });
 
   it('fetches leaderboard successfully using getLeaderboardResults', async () => {
-    const mockDoc = {
-      id: 'doc1',
-      data: () => ({
-        displayName: 'Test User',
-        assessmentType: 'visual-reaction',
-        scoreMetric: 200,
-        ageGroup: 'Adults (26–40)',
-        createdAt: Date.now(),
-        hidden: false
-      })
-    };
-
-    (firestore.getDocsFromServer as any).mockResolvedValue({
-      docs: [mockDoc]
-    });
-
     const data = await getLeaderboardResults('visual-reaction');
     expect(data).toHaveLength(1);
     expect(data[0].scoreMetric).toBe(200);
@@ -79,13 +75,9 @@ describe('Firebase Integration Tests (Mocked)', () => {
   });
 
   it('fails loudly on Firebase failure, protecting the invariant against localStorage fallback', async () => {
-    // Force Firestore query to reject
-    (firestore.getDocsFromServer as any).mockRejectedValue(new Error('Network error'));
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
-    // Should throw error and NOT fallback to localStorage or return local fake data
     await expect(getLeaderboardResults('visual-reaction')).rejects.toThrow('Network error');
-    
-    // Explicitly verify no local storage fallback was attempted
     expect(localStorageSpy).not.toHaveBeenCalledWith('pulse_leaderboard_fallback');
   });
 
