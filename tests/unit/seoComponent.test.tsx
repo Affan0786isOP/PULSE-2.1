@@ -75,11 +75,11 @@ describe('client SEO lifecycle', () => {
 
     await waitFor(() => {
       expect(document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href)
-        .toBe('https://pulse-lab.in/');
+        .toBe(window.location.origin + '/');
     });
     expect(document.querySelector('link[rel="alternate"][media="only screen and (max-width: 768px)"]')).toBeNull();
-    expect(document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.content).toBe('https://pulse-lab.in/');
-    expect(document.querySelector<HTMLMetaElement>('meta[name="twitter:url"]')?.content).toBe('https://pulse-lab.in/');
+    expect(document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.content).toBe(window.location.origin + '/');
+    expect(document.querySelector<HTMLMetaElement>('meta[name="twitter:url"]')?.content).toBe(window.location.origin + '/');
   });
 
   it('cleans up owned JSON-LD when the SEO owner unmounts', async () => {
