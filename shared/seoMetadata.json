@@ -38,12 +38,6 @@
       "indexable": false,
       "clientFallback": false
     },
-    "/analytics": {
-      "title": "Dataset Coming Soon | PULSE",
-      "description": "The public PULSE research dataset is being prepared for release.",
-      "indexable": false,
-      "clientFallback": false
-    },
     "/improve": {
       "title": "Performance Guide | PULSE",
       "description": "Review research, physiological factors, and preparation habits that affect response time and measurement consistency.",
