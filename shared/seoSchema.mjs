@@ -40,7 +40,7 @@ export function buildHomeSchema(metadata, canonicalUrlOverride) {
           '@type': 'Offer',
           price: '0',
           priceCurrency: 'USD',
-          url: homeUrl + '/'
+          url: rootCanonical
         },
         featureList: [
           'Visual Reaction Test',
