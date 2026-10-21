@@ -176,6 +176,21 @@ describe('PageShell Layout & Architecture', () => {
     expect(jsonLd?.textContent).toContain('Test Scientific Schema');
   });
 
+  it('marks unknown routes as noindex when PageShell owns metadata', () => {
+    render(
+      <MemoryRouter initialEntries={['/unknown-seo-route']}>
+        <PageShell currentView="404" customTitle="404 - Page Not Found | PULSE">
+          <div>Not found</div>
+        </PageShell>
+      </MemoryRouter>
+    );
+
+    expect(document.title).toBe('404 - Page Not Found | PULSE');
+    expect(document.querySelector<HTMLMetaElement>('meta[name="robots"]')?.content).toContain('noindex');
+    expect(document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href)
+      .toBe(window.location.origin + '/unknown-seo-route');
+  });
+
   it('applies uniform baseline scaling by default on desktop viewports and allows disabling via disableScaling', () => {
     const originalW = window.innerWidth;
     const originalH = window.innerHeight;
