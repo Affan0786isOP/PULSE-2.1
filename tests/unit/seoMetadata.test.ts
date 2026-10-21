@@ -35,6 +35,19 @@ describe('SEO route registry', () => {
   });
 
 
+  it('keeps indexable titles and descriptions unique and useful', () => {
+    const routes = Object.entries(metadata.routes).filter(([, route]) => route.indexable);
+    const titles = routes.map(([, route]) => route.title);
+    const descriptions = routes.map(([, route]) => route.description);
+
+    expect(new Set(titles).size).toBe(titles.length);
+    expect(new Set(descriptions).size).toBe(descriptions.length);
+    for (const [pathname, route] of routes) {
+      expect(route.title.length, `Title too long for ${pathname}`).toBeLessThanOrEqual(65);
+      expect(route.description.length, `Description too short for ${pathname}`).toBeGreaterThanOrEqual(100);
+    }
+  });
+
   it('builds consistent structured data for home and assessment routes', () => {
     const homeSchema = buildRouteSchema(metadata, '/');
     expect(homeSchema['@graph'].map((node: { '@type': string }) => node['@type'])).toContain('SoftwareApplication');
