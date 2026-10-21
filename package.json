@@ -23,7 +23,6 @@
     "generate-icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
-    "@rive-app/react-canvas": "^4.36.0",
     "@sentry/react": "^11.7.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vercel/analytics": "^2.0.1",

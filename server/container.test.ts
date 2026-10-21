@@ -4,7 +4,7 @@ import { SessionService } from './services/sessionService';
 import { PersonalBestService } from './services/personalBestService';
 import { ResearchService } from './services/researchService';
 import { LeaderboardAppService } from './services/leaderboardAppService';
-import { AdminService } from './services/adminService';
+import { TelegramNotifierService } from './services/telegramNotifierService';
 import type { Firestore } from 'firebase-admin/firestore';
 
 describe('Server Container', () => {
@@ -19,7 +19,7 @@ describe('Server Container', () => {
     expect(container.personalBestService).toBeInstanceOf(PersonalBestService);
     expect(container.researchService).toBeInstanceOf(ResearchService);
     expect(container.leaderboardService).toBeInstanceOf(LeaderboardAppService);
-    expect(container.adminService).toBeInstanceOf(AdminService);
+    expect(container.telegramNotifierService).toBeInstanceOf(TelegramNotifierService);
   });
 
   it('should initialize successfully with the default db provider', () => {
@@ -33,6 +33,6 @@ describe('Server Container', () => {
     expect(container.personalBestService).toBeInstanceOf(PersonalBestService);
     expect(container.researchService).toBeInstanceOf(ResearchService);
     expect(container.leaderboardService).toBeInstanceOf(LeaderboardAppService);
-    expect(container.adminService).toBeInstanceOf(AdminService);
+    expect(container.telegramNotifierService).toBeInstanceOf(TelegramNotifierService);
   });
 });
