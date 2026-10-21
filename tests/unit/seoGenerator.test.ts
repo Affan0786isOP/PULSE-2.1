@@ -169,7 +169,7 @@ describe('SEO Shell Generator Output Verification', () => {
     expect(rootHtml.match(/<link rel="canonical"/g)?.length).toBe(1);
     expect(rootHtml).toContain('name="twitter:url" content="https://pulse-lab.in"');
 
-    const schemaMatch = rootHtml.match(/<script id="pulse-seo-jsonld" type="application\/ld\+json">([\\s\\S]*?)<\\/script>/);
+    const schemaMatch = rootHtml.match(/<script id="pulse-seo-jsonld" type="application\/ld\+json">([\s\S]*?)<\/script>/);
     expect(schemaMatch).not.toBeNull();
     const schema = JSON.parse(schemaMatch![1]);
     expect(schema['@graph'].map((node: { '@type': string }) => node['@type'])).toContain('SoftwareApplication');
