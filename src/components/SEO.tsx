@@ -63,7 +63,7 @@ export function SEO({
 
   const finalTitle = title ?? routeMeta?.title ?? 'Page Not Found | PULSE';
   const finalDescription = description ?? routeMeta?.description ?? 'The requested PULSE page could not be found.';
-  const defaultCanonical = siteUrl + (canonicalPath === '/' ? '' : canonicalPath);
+  const defaultCanonical = siteUrl + (canonicalPath === '/' ? '/' : canonicalPath);
   const finalCanonical = canonicalUrl || defaultCanonical;
   const routeNoindex = noindex ?? (routeMeta ? !routeMeta.indexable : true);
   const effectiveNoindex = !isProd || routeNoindex;
