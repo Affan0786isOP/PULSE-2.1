@@ -30,7 +30,7 @@ describe('SEO route registry', () => {
     ]);
 
     expect(metadata.routes['/dataset'].indexable).toBe(false);
-    expect(metadata.routes['/analytics'].indexable).toBe(false);
+    expect(metadata.routes).not.toHaveProperty('/analytics');
     expect(Object.keys(metadata.routes).some(pathname => pathname.startsWith('/admin'))).toBe(false);
   });
 
@@ -43,6 +43,11 @@ describe('SEO route registry', () => {
     expect(reactionSchema['@type']).toBe('WebPage');
     expect(reactionSchema.url).toBe('https://pulse-lab.in/reaction-test');
     expect(reactionSchema.name).toBe(metadata.routes['/reaction-test'].title);
+  });
+
+  it('keeps redirected aliases out of the canonical metadata registry', () => {
+    expect(resolveRoute('/analytics')?.canonicalPath).toBe('/dataset');
+    expect(metadata.routes).not.toHaveProperty('/analytics');
   });
 
   it('uses the route registry for canonical aliases and mobile-prefixed paths', () => {
