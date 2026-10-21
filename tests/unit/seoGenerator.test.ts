@@ -167,7 +167,7 @@ describe('SEO Shell Generator Output Verification', () => {
     const rootHtml = fs.readFileSync(path.join(distDir, 'index.html'), 'utf8');
     expect(rootHtml).toContain(`<title>${metadata.routes['/'].title}</title>`);
     expect(rootHtml.match(/<link rel="canonical"/g)?.length).toBe(1);
-    expect(rootHtml).toContain('name="twitter:url" content="https://pulse-lab.in"');
+    expect(rootHtml).toContain('name="twitter:url" content="https://pulse-lab.in/"');
 
     const schemaMatch = rootHtml.match(/<script id="pulse-seo-jsonld" type="application\/ld\+json">([\s\S]*?)<\/script>/);
     expect(schemaMatch).not.toBeNull();
