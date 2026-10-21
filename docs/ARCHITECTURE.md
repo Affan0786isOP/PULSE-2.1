@@ -138,6 +138,7 @@ server/
 ├── routes/
 │   ├── researchRoutes.ts        session/start, submit, personal-best, verify-provenance, dataset (+summary)
 │   ├── leaderboardRoutes.ts     leaderboard read, submit, mine (erasure), verify-provenance
+│   ├── telemetryRoutes.ts       targeted page view tracking (/api/telemetry/page-view)
 │   └── staticRoutes.ts          Vite dev middleware or dist/ static serving + SPA/PWA fallbacks
 ├── repositories/
 │   ├── firestore/               Firestore persistence implementations (sessions, submissions, leaderboards)
@@ -148,7 +149,8 @@ server/
 │   ├── researchService.ts       Dataset query filtering, trial validation, and aggregation
 │   ├── personalBestService.ts   Personal best retrieval and ranking derivation
 │   ├── idempotencyService.ts    Bounded process-local idempotency cache
-│   └── leaderboardAppService.ts Opt-in rules, best-per-owner filtering, and score-metric validation
+│   ├── leaderboardAppService.ts Opt-in rules, best-per-owner filtering, and score-metric validation
+│   └── telegramNotifierService.ts Durable outbox worker, HTML parse mode, chat rate-limiting
 └── engines/                     Pure functions: no Express, no Firestore
     ├── assessmentEngine.ts      Structural / chronological / physiological trial checks + protocol dispatch
     ├── reactionCalculator.ts    Visual reaction time, foreperiod generation, temporal dynamics
