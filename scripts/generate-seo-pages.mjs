@@ -20,7 +20,7 @@ function escapeHtml(value) {
 }
 
 function absoluteUrl(pathname) {
-  return siteUrl + (pathname === '/' ? '' : pathname);
+  return siteUrl.replace(/\\/$/, '') + (pathname === '/' ? '/' : pathname);
 }
 
 function mobilePathFor(pathname) {
