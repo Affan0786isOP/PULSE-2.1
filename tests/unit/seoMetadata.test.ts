@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import metadata from '../../shared/seoMetadata.json';
+import { buildRouteSchema } from '../../shared/seoSchema.mjs';
+import { getCanonicalPath } from '../../src/components/SEO';
 
 describe('SEO route registry', () => {
   it('uses apex domain as canonical site URL', () => {
@@ -29,6 +31,24 @@ describe('SEO route registry', () => {
     expect(metadata.routes['/dataset'].indexable).toBe(false);
     expect(metadata.routes['/analytics'].indexable).toBe(false);
     expect(Object.keys(metadata.routes).some(pathname => pathname.startsWith('/admin'))).toBe(false);
+  });
+
+
+  it('builds consistent structured data for home and assessment routes', () => {
+    const homeSchema = buildRouteSchema(metadata, '/');
+    expect(homeSchema['@graph'].map((node: { '@type': string }) => node['@type'])).toContain('SoftwareApplication');
+
+    const reactionSchema = buildRouteSchema(metadata, '/reaction-test');
+    expect(reactionSchema['@type']).toBe('WebPage');
+    expect(reactionSchema.url).toBe('https://pulse-lab.in/reaction-test');
+    expect(reactionSchema.name).toBe(metadata.routes['/reaction-test'].title);
+  });
+
+  it('uses the route registry for canonical aliases and mobile-prefixed paths', () => {
+    expect(getCanonicalPath('/visual-reaction')).toBe('/reaction-test');
+    expect(getCanonicalPath('/mobile/color-test/')).toBe('/colour-recognition');
+    expect(getCanonicalPath('/analytics')).toBe('/dataset');
+    expect(getCanonicalPath('/privacy-policy')).toBe('/privacy');
   });
 
   it('gives dynamic assessment routes a client metadata fallback', () => {
