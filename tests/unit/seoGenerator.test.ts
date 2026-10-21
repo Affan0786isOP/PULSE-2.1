@@ -163,6 +163,30 @@ describe('SEO Shell Generator Output Verification', () => {
     expect(content).toContain('<meta name="robots" content="noindex, follow" />');
   });
 
+  it('generates root entry metadata and schema from the shared SEO registry', () => {
+    const rootHtml = fs.readFileSync(path.join(distDir, 'index.html'), 'utf8');
+    expect(rootHtml).toContain(`<title>${metadata.routes['/'].title}</title>`);
+    expect(rootHtml.match(/<link rel="canonical"/g)?.length).toBe(1);
+    expect(rootHtml).toContain('name="twitter:url" content="https://pulse-lab.in"');
+
+    const schemaMatch = rootHtml.match(/<script id="pulse-seo-jsonld" type="application\/ld\+json">([\\s\\S]*?)<\\/script>/);
+    expect(schemaMatch).not.toBeNull();
+    const schema = JSON.parse(schemaMatch![1]);
+    expect(schema['@graph'].map((node: { '@type': string }) => node['@type'])).toContain('SoftwareApplication');
+
+    const mobileRoot = fs.readFileSync(path.join(distDir, 'mobile', 'index.html'), 'utf8');
+    expect(mobileRoot).toContain(`<title>${metadata.routes['/'].title}</title>`);
+    expect(mobileRoot).toContain('link rel="canonical" href="https://pulse-lab.in"');
+    expect(mobileRoot).not.toContain('rel="alternate" media="only screen and (max-width: 768px)"');
+    expect(mobileRoot).toContain('name="twitter:url" content="https://pulse-lab.in"');
+  });
+
+  it('does not advertise non-indexable pages as mobile alternates', () => {
+    const content = fs.readFileSync(path.join(distDir, 'seo', 'dataset.html'), 'utf8');
+    expect(content).toContain('<meta name="robots" content="noindex, follow" />');
+    expect(content).not.toContain('rel="alternate" media="only screen and (max-width: 768px)"');
+  });
+
   it('fails fast when base shell is missing from input template', () => {
     // Calling script on invalid base template would throw
     // Verify that the generator script throws when pulse-seo-shell is absent
