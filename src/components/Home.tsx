@@ -17,6 +17,7 @@ import { HowItWorksScene } from './home/HowItWorksScene';
 import { FAQScene } from './home/FAQScene';
 import { FinalCTAScene } from './home/FinalCTAScene';
 import { HomeFooter } from './home/HomeFooter';
+import { DesktopWaveGraphic } from './home/DesktopWaveGraphic';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -86,12 +87,12 @@ export function Home() {
     <PageShell
       currentView="home"
       schema={HOME_SCHEMA}
-      decorativeWaves="bottom"
+      decorativeWaves="none"
       showFooter={false}
       contentClassName="min-h-[100dvh] overflow-x-hidden px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 pb-4 sm:pb-6"
     >
-      <section id="hero" aria-label="PULSE homepage hero" className="min-h-[100dvh] w-full flex items-center justify-center">
-      <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
+      <section id="hero" aria-label="PULSE homepage hero" className="relative min-h-[100dvh] w-full flex items-center justify-center">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
         {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
         <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[2560px]:max-w-[580px]">
           {/* Eyebrow Badge */}
@@ -192,6 +193,7 @@ export function Home() {
           <AssessmentHero3D />
         </section>
         </div>
+        <DesktopWaveGraphic />
       </section>
       <ProofScene />
       <AssessmentsScene />
