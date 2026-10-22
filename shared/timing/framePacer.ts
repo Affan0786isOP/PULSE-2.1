@@ -30,8 +30,13 @@ export function createFramePacer(targetFps = 60) {
       lastTimestamp = now;
       accumulator += elapsed;
 
-      if (accumulator >= targetInterval) {
+      // Floating-point RAF intervals can land a few ulps below the target.
+      const tolerance = targetInterval * Number.EPSILON * 8;
+      if (accumulator + tolerance >= targetInterval) {
         accumulator %= targetInterval;
+        if (accumulator < tolerance || targetInterval - accumulator < tolerance) {
+          accumulator = 0;
+        }
         return true;
       }
 
