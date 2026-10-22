@@ -65,7 +65,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       expect((proceedBtn as HTMLButtonElement).disabled).toBe(true);
     }, 15000);
 
-    it('transitions to calibrated dark apparatus after age cohort selection', async () => {
+    it('transitions to assessment-ready dark apparatus after age cohort selection', async () => {
       const onNavigate = vi.fn();
       const { container } = render(
         <MemoryRouter initialEntries={['/reaction-test']}>
