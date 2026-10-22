@@ -23,8 +23,7 @@ function seedPRNG(seedStr: string): () => number {
     return ((z ^ (z >>> 14)) >>> 0) / 4294967296;
   };
 }
-import { getCachedRefreshRate } from '../lib/refreshRateDetector';
-import { useRefreshRate } from '../lib/useRefreshRate';
+import { createFramePacer } from '@shared/timing/framePacer';
 import { CountdownOverlay } from './CountdownOverlay';
 
 type EngineState = 'READY' | 'STARTING' | 'STIMULUS_ACTIVE' | 'FEEDBACK' | 'REPORT' | 'UNMOUNTED';
@@ -46,7 +45,6 @@ const COLORS = [
 
 
 export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }) {
-  useRefreshRate();
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(false);
@@ -91,21 +89,14 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   const timeStimulusFired = useRef<number>(0);
   const stimulusWallTimestamp = useRef<number>(0);
   const animationFrameId = useRef<number | null>(null);
+  const framePacerRef = useRef(createFramePacer(60));
   const engineStateRef = useRef<EngineState>('READY');
   const countdownInterval = useRef<NodeJS.Timeout | null>(null);
   const feedbackTimeout = useRef<NodeJS.Timeout | null>(null);
   const stimulusTimeout = useRef<NodeJS.Timeout | null>(null);
   const [shuffledOptions, setShuffledOptions] = useState<typeof COLORS>([]);
 
-  const sessionTimingOffsetRef = useRef<{
-    displayDelayOffsetMs: number;
-    displayDelayOffsetEstimated: boolean;
-    displayDelayOffsetSource: 'measured' | 'estimated' | 'fallback';
-  }>({
-    displayDelayOffsetMs: 8.33,
-    displayDelayOffsetEstimated: true,
-    displayDelayOffsetSource: 'fallback'
-  });
+
 
   useEffect(() => {
     engineStateRef.current = engineState;
@@ -115,12 +106,6 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     setIsSessionLoading(true);
     setSessionError(null);
     try {
-      const snap = getCachedRefreshRate();
-      sessionTimingOffsetRef.current = {
-        displayDelayOffsetMs: snap?.displayDelayOffsetMs || 0,
-        displayDelayOffsetEstimated: Boolean(snap?.isEstimated || snap?.source === 'fallback'),
-        displayDelayOffsetSource: snap?.source || 'fallback'
-      };
       const res = await startExperimentSession('color-recognition', age);
       if (res?.success && res?.sessionId) {
         setSessionId(res.sessionId);
@@ -151,11 +136,14 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     };
   }, []);
 
-  const updateLiveTimer = useCallback(() => {
+  const updateLiveTimer = useCallback((paintTime?: number) => {
     if (engineStateRef.current === 'STIMULUS_ACTIVE') {
-      const delta = performance.now() - timeStimulusFired.current;
-      if (timerRef.current) {
-        timerRef.current.textContent = delta.toFixed(1);
+      const now = paintTime ?? performance.now();
+      if (framePacerRef.current.shouldUpdate(now)) {
+        const delta = Math.max(0, now - timeStimulusFired.current);
+        if (timerRef.current) {
+          timerRef.current.textContent = delta.toFixed(1);
+        }
       }
       animationFrameId.current = requestAnimationFrame(updateLiveTimer);
     }
@@ -240,10 +228,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         ? e.timeStamp
         : performance.now();
       const rawDelta = Math.max(0, timeTriggered - timeStimulusFired.current);
-      const offsetMs = sessionTimingOffsetRef.current.displayDelayOffsetMs;
-      const offsetEstimated = sessionTimingOffsetRef.current.displayDelayOffsetEstimated;
-      const offsetSource = sessionTimingOffsetRef.current.displayDelayOffsetSource;
-      const netDelta = Math.max(0, Number((rawDelta - offsetMs).toFixed(2)));
+      const netDelta = Number(rawDelta.toFixed(2));
       if (timerRef.current) timerRef.current.textContent = netDelta.toFixed(1);
       
       const expected = currentInstruction === 'WORD' ? currentWord.name : currentColor.name;
@@ -303,9 +288,9 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         responseTimestamp: responseWallTime,
         reactionTime: netDelta,
         rawReactionTime: Number(rawDelta.toFixed(2)),
-        displayDelayOffsetMs: offsetMs,
-        displayDelayOffsetEstimated: offsetEstimated,
-        displayDelayOffsetSource: offsetSource,
+        displayDelayOffsetMs: null,
+        displayDelayOffsetEstimated: null,
+        displayDelayOffsetSource: null,
         accuracy: correct ? 1 : 0,
         correct,
         falseStart: isFalseStart,
@@ -377,6 +362,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   };
 
   function startTrialSequence() {
+    framePacerRef.current.reset();
     setCurrentTrial(prev => prev + 1);
     setFeedbackResult(null);
     setEngineState('STIMULUS_ACTIVE'); engineStateRef.current = 'STIMULUS_ACTIVE';
@@ -413,7 +399,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     // Synchronize stimulus timestamp with frame paint to eliminate pre-paint offset
     requestAnimationFrame((paintTime) => {
       if (engineStateRef.current === 'STIMULUS_ACTIVE') {
-        timeStimulusFired.current = paintTime || performance.now();
+        timeStimulusFired.current = paintTime ?? performance.now();
       }
     });
     // Stimulus cues are visual-only to avoid multisensory response bias
