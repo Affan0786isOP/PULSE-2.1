@@ -1,10 +1,10 @@
 import { MobileSceneFrame } from './MobileSceneFrame';
 
 const stages = [
-  ['01', 'Present', 'Visual prompts follow the browser rendering cycle; the displayed frame cadence depends on the device.'],
+  ['01', 'Present', 'Display refresh cadence is estimated from requestAnimationFrame samples, while actual display and input latency remain device- and browser-dependent.'],
   ['02', 'Timestamp', 'Responses are recorded with performance.now(), a monotonic browser clock.'],
   ['03', 'Validate', 'Protocol rules flag invalid or timed-out trials. Values below the 80 ms reaction-time validity floor are not counted as valid responses.'],
-  ['04', 'Summarize', 'Review the session metric with spread and consistency information where the protocol provides it.'],
+  ['04', 'Summarize', 'For visual reaction results, sample variance uses Bessel’s N−1 correction. Spread, consistency and valid-trial information help contextualize the average where available.'],
 ];
 
 export function MobileProofScene() {

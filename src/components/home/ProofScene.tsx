@@ -2,7 +2,7 @@ const stages = [
   {
     number: '01',
     title: 'Stimulus presentation',
-    description: 'Visual prompts are coordinated with the browser rendering cycle. Actual display cadence still depends on the device and browser.',
+    description: 'Display refresh cadence is estimated by sampling requestAnimationFrame. This helps characterize browser rendering, but it does not eliminate display or input latency.',
   },
   {
     number: '02',
@@ -17,7 +17,7 @@ const stages = [
   {
     number: '04',
     title: 'Session summary',
-    description: 'A result is easier to interpret when central response time is considered alongside spread, consistency, and trial validity where available.',
+    description: 'For visual reaction results, sample variance uses Bessel’s N−1 correction; standard deviation, consistency and valid-trial information help contextualize the average.',
   },
 ];
 
