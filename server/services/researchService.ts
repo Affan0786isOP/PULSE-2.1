@@ -20,6 +20,7 @@ import { computeCanonicalTrialsDigest, signProvenancePayload } from './provenanc
 import { getIdempotency, setIdempotency } from './idempotencyService';
 import { ISessionService } from './interfaces/ISessionService';
 import { AppError } from '../models/replayContracts';
+import { getAssessmentVersionMetadata } from '../../shared/contracts/common';
 
 export class ResearchService implements IResearchService {
   constructor(
@@ -280,14 +281,12 @@ export class ResearchService implements IResearchService {
       }
     });
 
+    const versionMetadata = getAssessmentVersionMetadata(assessmentType);
     const publicDatasetDoc = {
       ageGroup: authoritativeAgeGroup,
       assessmentType,
       schemaVersion: 1,
-      assessmentVersion: 'v1.0.0',
-      protocolVersion: 'v1.0.0',
-      datasetSchemaVersion: 'v1.0.0',
-      metricsVersion: 'v1.0.0',
+      ...versionMetadata,
       provenanceVersion: 'v2.0.0',
       completedAtMonth,
       provenanceToken,
