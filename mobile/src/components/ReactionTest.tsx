@@ -23,8 +23,7 @@ function seedPRNG(seedStr: string): () => number {
     return ((z ^ (z >>> 14)) >>> 0) / 4294967296;
   };
 }
-import { getCachedRefreshRate } from '../lib/refreshRateDetector';
-import { useRefreshRate } from '../lib/useRefreshRate';
+import { createFramePacer } from '@shared/timing/framePacer';
 import { safeUUID } from '../lib/utils';
 import { VRT_MIN_FOREPERIOD_MS, VRT_MAX_FOREPERIOD_MS, VRT_TIMEOUT_MS, VRT_MIN_VALID_RT_MS, generateVrtForeperiod, ForeperiodCategory } from '../lib/protocolValidators';
 import { CountdownOverlay } from './CountdownOverlay';
@@ -46,7 +45,6 @@ const MAX_DELAY = VRT_MAX_FOREPERIOD_MS;
 
 
 export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => void }) {
-  useRefreshRate();
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(false);
@@ -83,20 +81,13 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   const timeStimulusFired = useRef<number>(0);
   const stimulusWallTimestamp = useRef<number>(0);
   const animationFrameId = useRef<number | null>(null);
+  const framePacerRef = useRef(createFramePacer(60));
   const stimulusTimeout = useRef<NodeJS.Timeout | null>(null);
   const finalizeTimeout = useRef<NodeJS.Timeout | null>(null);
   
   const countdownInterval = useRef<NodeJS.Timeout | null>(null);
   const engineStateRef = useRef<EngineState>('READY');
-  const sessionTimingOffsetRef = useRef<{
-    displayDelayOffsetMs: number;
-    displayDelayOffsetEstimated: boolean;
-    displayDelayOffsetSource: 'measured' | 'estimated' | 'fallback';
-  }>({
-    displayDelayOffsetMs: 8.33,
-    displayDelayOffsetEstimated: true,
-    displayDelayOffsetSource: 'fallback'
-  });
+
     
   // Sync state to ref for callbacks
   useEffect(() => {
@@ -107,12 +98,6 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     setIsSessionLoading(true);
     setSessionError(null);
     try {
-      const snap = getCachedRefreshRate();
-      sessionTimingOffsetRef.current = {
-        displayDelayOffsetMs: snap?.displayDelayOffsetMs || 0,
-        displayDelayOffsetEstimated: Boolean(snap?.isEstimated || snap?.source === 'fallback'),
-        displayDelayOffsetSource: snap?.source || 'fallback'
-      };
       const res = await startExperimentSession('visual-reaction', ageGroup);
       if (res?.success && res?.sessionId) {
         setSessionId(res.sessionId);
@@ -147,11 +132,14 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   }, []);
 
   
-  const updateLiveTimer = useCallback(() => {
+  const updateLiveTimer = useCallback((paintTime?: number) => {
     if (engineStateRef.current === 'STIMULUS_ACTIVE') {
-      const delta = performance.now() - timeStimulusFired.current;
-      if (timerRef.current) {
-        timerRef.current.textContent = delta.toFixed(1);
+      const now = paintTime ?? performance.now();
+      if (framePacerRef.current.shouldUpdate(now)) {
+        const delta = Math.max(0, now - timeStimulusFired.current);
+        if (timerRef.current) {
+          timerRef.current.textContent = delta.toFixed(1);
+        }
       }
       animationFrameId.current = requestAnimationFrame(updateLiveTimer);
     }
@@ -200,6 +188,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   };
 
   const fireStimulus = () => {
+    framePacerRef.current.reset();
     setEngineState('STIMULUS_ACTIVE'); engineStateRef.current = 'STIMULUS_ACTIVE';
     const initialStimPerf = performance.now();
     timeStimulusFired.current = initialStimPerf;
@@ -208,7 +197,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     // High-resolution monotonic timing from paint frame callback
     requestAnimationFrame((paintTime) => {
       if (engineStateRef.current === 'STIMULUS_ACTIVE') {
-        const accuratePaintTime = paintTime || performance.now();
+        const accuratePaintTime = paintTime ?? performance.now();
         timeStimulusFired.current = accuratePaintTime;
         stimulusPresentedAtRef.current = accuratePaintTime;
       }
@@ -397,10 +386,8 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
 
     const stimPerf = stimulusPresentedAtRef.current || timeStimulusFired.current;
     const rawLatency = Math.max(0, timeTriggered - stimPerf);
-    const offsetMs = sessionTimingOffsetRef.current.displayDelayOffsetMs;
-    const offsetEstimated = sessionTimingOffsetRef.current.displayDelayOffsetEstimated;
-    const offsetSource = sessionTimingOffsetRef.current.displayDelayOffsetSource;
-    const netLatency = Math.max(0, Number((rawLatency - offsetMs).toFixed(2)));
+    const measuredLatencyMs = Number(rawLatency.toFixed(2));
+    const netLatency = measuredLatencyMs;
 
     // Ensure timing-domain consistency: responseTimestamp = stimulusTimestamp + Math.round(rawLatency)
     const stimWall = stimulusWallTimestamp.current || (Date.now() - Math.round(rawLatency));
@@ -438,9 +425,9 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         responseTimestamp: responseWallTime,
         reactionTime: netLatency,
         rawReactionTime: Number(rawLatency.toFixed(2)),
-        displayDelayOffsetMs: offsetMs,
-        displayDelayOffsetEstimated: offsetEstimated,
-        displayDelayOffsetSource: offsetSource,
+        displayDelayOffsetMs: null,
+        displayDelayOffsetEstimated: null,
+        displayDelayOffsetSource: null,
         accuracy: 0,
         falseStart: true,
         timedOut: false,
@@ -485,9 +472,9 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
       responseTimestamp: responseWallTime,
       reactionTime: netLatency,
       rawReactionTime: Number(rawLatency.toFixed(2)),
-      displayDelayOffsetMs: offsetMs,
-      displayDelayOffsetEstimated: offsetEstimated,
-      displayDelayOffsetSource: offsetSource,
+      displayDelayOffsetMs: null,
+      displayDelayOffsetEstimated: null,
+      displayDelayOffsetSource: null,
       accuracy: 1,
       falseStart: false,
       timedOut: false,
