@@ -49,13 +49,13 @@ PULSE separates desktop and mobile web experiences into distinct build pipelines
 
 ## 3. Assessment Execution & Timing Pipeline
 
-Measurement integrity is maintained through hardware-synchronized sampling:
+Measurement integrity relies on high-resolution browser timestamps. Live-timer text updates are paced independently to approximately 60 updates per second on average:
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant UI as React Assessment UI
-    participant Timer as Performance API (Hardware)
+    participant Timer as Browser Performance API
     participant Server as Express Provenance API
     participant DB as Cloud Firestore
 
@@ -63,8 +63,8 @@ sequenceDiagram
     Server-->>UI: Return sessionId + PRNG Seed
     Note over UI,Timer: Assessment Protocol Starts
     UI->>Timer: Schedule stimulus presentation
-    Timer-->>UI: Stimulus painted (performance.now())
-    UI->>Timer: User input event detected (performance.now())
+    Timer-->>UI: Stimulus presentation timestamp captured from requestAnimationFrame
+    UI->>Timer: User input event timestamp captured from the browser
     Note over UI: Calculate rawLatencyMs = response - stimulus
     Note over UI: Check physiological floor (RT >= 80ms)
     UI->>Server: POST /api/research/submit (Payload with raw trials)

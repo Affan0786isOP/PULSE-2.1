@@ -72,11 +72,13 @@ interface AssessmentTrialDoc {
   experimentId: string;        // Linked sessionId
   test: AssessmentType;        // Protocol identifier
   trialNumber: number;         // 1-indexed trial number
-  stimulusTimestamp: number | null; // performance.now() epoch mark
-  responseTimestamp: number | null; // performance.now() epoch mark
+  stimulusTimestamp: number | null; // Wall-clock epoch ms for chronology; not used for latency subtraction
+  responseTimestamp: number | null; // Wall-clock epoch ms for chronology; not used for latency subtraction
   reactionTime: number | null; // Browser-measured latency in milliseconds; unadjusted in v1.1.0
   rawReactionTime?: number | null; // Raw browser-measured latency; matches reactionTime in v1.1.0
   displayDelayOffsetMs?: number | null; // Legacy offset metadata; null for new v1.1.0 observations
+  displayDelayOffsetEstimated?: boolean | null; // Legacy estimate flag; null for new v1.1.0 observations
+  displayDelayOffsetSource?: string | null; // Legacy source metadata; null for new v1.1.0 observations
   accuracy: number;            // 1 (correct) or 0 (incorrect)
   falseStart: boolean;         // True if clicked before stimulus or < 80ms
   timedOut?: boolean;          // True if response exceeded 3000ms
