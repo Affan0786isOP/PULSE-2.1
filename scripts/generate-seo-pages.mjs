@@ -100,7 +100,21 @@ function replaceHead(html, pathname, route, isMobile, replaceShell = true) {
     alternate +
     '\n    <script id="pulse-seo-jsonld" type="application/ld+json">' + jsonLd + '</script>';
 
-  output = output.replace(/<\/head>/i, headTags + '\n  </head>');
+  const closingHeadIndex = output.toLowerCase().indexOf('</head>');
+  if (closingHeadIndex < 0) {
+    throw new Error('Expected </head> was not found in HTML template for ' + (isMobile ? 'mobile ' : 'desktop ') + pathname);
+  }
+  output =
+    output.slice(0, closingHeadIndex) +
+    headTags +
+    '\n  </head>' +
+    output.slice(closingHeadIndex + '</head>'.length);
+
+  // Guard the entry-point path as well as the generated route shells: if a future
+  // template change breaks insertion, fail the build instead of shipping missing SEO.
+  if (!output.includes('<link rel="canonical" href="' + canonical + '" />')) {
+    throw new Error('Canonical link was not generated for ' + (isMobile ? 'mobile ' : 'desktop ') + pathname);
+  }
 
   // Keep entry HTML's authored body intact when only regenerating its head.
   if (!replaceShell) return output;
