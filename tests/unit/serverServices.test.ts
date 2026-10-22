@@ -6,6 +6,9 @@ import type { ISessionRepository } from '../../server/repositories/interfaces/IS
 import type { ILeaderboardRepository } from '../../server/repositories/interfaces/ILeaderboardRepository';
 import type { ILeaderboardSubmissionRepository } from '../../server/repositories/interfaces/ILeaderboardSubmissionRepository';
 import type { ExperimentSessionRecord } from '../../server/models/sessionModels';
+import { ResearchService } from '../../server/services/researchService';
+import { seedPRNG } from '../../server/engines/prng';
+import { generateVrtForeperiod } from '../../server/engines/reactionCalculator';
 
 describe('Server Application Services Unit Tests', () => {
   it('SessionService validates session parameters and lifecycle', async () => {
@@ -338,6 +341,110 @@ describe('Server Application Services Unit Tests', () => {
       .resolves.toEqual({ receiptAvailable: true, entryAvailable: false, leaderboardDocId: null, leaderboardProvenanceToken: null, pendingReview: false });
     await expect(service.getSubmissionReplayState('erased-attempt', null, 'user-replay', 'visual-reaction'))
       .resolves.toEqual({ receiptAvailable: false, entryAvailable: false, leaderboardDocId: null, leaderboardProvenanceToken: null, pendingReview: false });
+  });
+
+  it('versions the publicDataset document through ResearchService for raw-latency protocols', async () => {
+    const previousSecret = process.env.PULSE_PROVENANCE_SECRET;
+    process.env.PULSE_PROVENANCE_SECRET = 'unit-test-provenance-secret';
+
+    try {
+      const sessionId = 'vrt-versioning-session';
+      const userId = 'vrt-versioning-user';
+      const ageGroup = 'Young adults (18–25)';
+      const startedAt = Date.now();
+      const session = {
+        sessionId,
+        uid: userId,
+        assessmentType: 'visual-reaction',
+        ageGroup,
+        createdAt: startedAt - 60_000,
+        expiresAt: startedAt + 60 * 60_000,
+        consumed: false,
+      };
+      let capturedSubmission: any = null;
+
+      const executeSubmissionTransaction = vi.fn(async (input: any) => ({
+        success: true as const,
+        docId: input.docId,
+        sessionId: input.sessionId,
+        completedAtTimestamp: input.completedAtTimestamp,
+        completedAtMonth: input.completedAtMonth,
+        provenanceToken: input.provenanceToken,
+        trialsDigest: input.trialsDigest,
+        derivedMetrics: input.derivedMetrics,
+        scoreMetric: input.currentScore,
+        isNewPersonalBest: input.isNewPersonalBest,
+        previousPersonalBest: input.previousPersonalBest,
+        personalBest: input.personalBest,
+      }));
+
+      const service = new ResearchService(
+        {
+          getAndValidateSession: vi.fn(async () => ({ valid: true, session })),
+        } as any,
+        {
+          findUserConsumedSessions: vi.fn(async () => []),
+        } as any,
+        {
+          executeSubmissionTransaction: vi.fn(async (input: any) => {
+            capturedSubmission = input;
+            return executeSubmissionTransaction(input);
+          }),
+        } as any,
+        {} as any,
+      );
+
+      const trials = Array.from({ length: 10 }, (_, index) => {
+        const trialNumber = index + 1;
+        const foreperiod = generateVrtForeperiod(
+          seedPRNG(`${sessionId}-reaction-delays-t${trialNumber}-a1`)
+        );
+        const stimulusTimestamp = startedAt - 5_000 + index * 1_000;
+        return {
+          trialNumber,
+          trialIndex: trialNumber,
+          sequenceNumber: trialNumber,
+          attemptNumber: 1,
+          test: 'visual-reaction',
+          stimulusTimestamp,
+          responseTimestamp: stimulusTimestamp + 250,
+          reactionTime: 250,
+          reactionTimeMs: 250,
+          rawReactionTime: 250,
+          rawLatencyMs: 250,
+          foreperiodMs: foreperiod.foreperiodMs,
+          foreperiodCategory: foreperiod.foreperiodCategory,
+          displayDelayOffsetMs: null,
+          displayDelayOffsetEstimated: null,
+          displayDelayOffsetSource: null,
+          falseStart: false,
+          timedOut: false,
+          valid: true,
+          accuracy: 1,
+        };
+      });
+
+      await service.submitResearch({
+        sessionId,
+        userId,
+        assessmentType: 'visual-reaction',
+        ageGroup,
+        trials,
+        serverDeviceCategory: 'desktop',
+      });
+
+      expect(capturedSubmission).not.toBeNull();
+      expect(capturedSubmission.publicDatasetDoc).toMatchObject({
+        assessmentVersion: 'v1.0.0',
+        protocolVersion: 'v1.1.0',
+        datasetSchemaVersion: 'v1.0.0',
+        metricsVersion: 'v1.1.0',
+      });
+      expect(executeSubmissionTransaction).toHaveBeenCalledTimes(1);
+    } finally {
+      if (previousSecret === undefined) delete process.env.PULSE_PROVENANCE_SECRET;
+      else process.env.PULSE_PROVENANCE_SECRET = previousSecret;
+    }
   });
 
 });
