@@ -1,10 +1,10 @@
 import { MobileSceneFrame } from './MobileSceneFrame';
 
 const steps = [
-  ['Choose', 'Pick the protocol that interests you.'],
-  ['Test', 'Follow the instructions and complete the trials.'],
-  ['Measure', 'Review the metrics produced by the session.'],
-  ['Understand', 'Interpret them in the context of the task and device.'],
+  ['Choose a protocol', 'Select the assessment that interests you.'],
+  ['Complete the test', 'Follow the instructions and finish the trial sequence.'],
+  ['Review your telemetry', 'Explore the metrics the protocol reports, with trial context where available.'],
+  ['Optional research contribution', 'Where PULSE offers research sharing, choose voluntarily whether to contribute data. Testing itself does not require sharing.'],
 ];
 
 export function MobileHowItWorksScene() {

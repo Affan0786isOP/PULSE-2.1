@@ -1,8 +1,8 @@
 const steps = [
-  ['01', 'Choose', 'Pick the protocol that interests you.'],
-  ['02', 'Test', 'Follow the on-screen instructions and complete the trials.'],
-  ['03', 'Measure', 'Review the metrics produced by your session.'],
-  ['04', 'Understand', 'Interpret the result in the context of the task and your device.'],
+  ['01', 'Choose a protocol', 'Select the assessment that interests you.'],
+  ['02', 'Complete the test', 'Follow the instructions and finish the trial sequence.'],
+  ['03', 'Review your telemetry', 'Explore the metrics this protocol reports, with spread and trial-validity context where available.'],
+  ['04', 'Contribute, if you choose', 'Where PULSE offers research sharing, decide voluntarily whether to contribute data. Testing itself does not require sharing.'],
 ];
 
 export function HowItWorksScene() {
