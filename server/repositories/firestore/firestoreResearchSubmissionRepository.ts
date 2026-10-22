@@ -4,6 +4,7 @@ import type { ResearchSubmissionTxInput, ResearchSubmissionTxResult } from '../.
 import type { ExperimentSessionRecord } from '../../models/sessionModels';
 import { normalizeAssessmentType } from '../../engines/assessmentTypes';
 import { SessionAlreadyConsumedError } from '../../models/replayContracts';
+import { getAssessmentVersionMetadata } from '../../../shared/contracts/common';
 
 export class FirestoreResearchSubmissionRepository implements IResearchSubmissionRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
@@ -17,6 +18,7 @@ export class FirestoreResearchSubmissionRepository implements IResearchSubmissio
     const sessionDocRef = db.collection('experimentSessions').doc(input.sessionId);
     const publicDatasetDocRef = db.collection('publicDataset').doc(input.docId);
     const assessmentResultDocRef = db.collection('assessmentResults').doc(input.docId);
+    const versionMetadata = getAssessmentVersionMetadata(input.assessmentType);
 
     await db.runTransaction(async (tx) => {
       const sessionSnap = await tx.get(sessionDocRef);
@@ -46,10 +48,7 @@ export class FirestoreResearchSubmissionRepository implements IResearchSubmissio
         participantId: input.userId,
         assessmentType: input.assessmentType,
         ageGroup: input.ageGroup,
-        assessmentVersion: 'v1.0.0',
-        protocolVersion: 'v1.0.0',
-        datasetSchemaVersion: 'v1.0.0',
-        metricsVersion: 'v1.0.0',
+        ...versionMetadata,
         derivedMetrics: input.derivedMetrics,
         temporalDynamics: input.derivedMetrics['temporalDynamics'] ?? null,
         scoreMetric: input.currentScore,
