@@ -237,6 +237,102 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
     }
   }, 15000);
 
+  it('submits unadjusted rounded Direction latency and null offsets, including a pre-stimulus false start', async () => {
+    vi.useFakeTimers();
+
+    render(
+      <MemoryRouter initialEntries={['/direction-test']}>
+        <DirectionTest onNavigate={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /young adults/i }));
+    fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(screen.getByText('Starting in 3')).toBeDefined();
+
+    const advanceUntilText = async (matcher: RegExp, maxTicks = 420) => {
+      for (let tick = 0; tick < maxTicks; tick++) {
+        if (screen.queryByText(matcher)) return;
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(16);
+        });
+      }
+      throw new Error(`Timed out waiting for Direction status: ${matcher}`);
+    };
+
+    // An arrow pressed while the stimulus is still waiting is recorded with no measured latency.
+    await advanceUntilText(/^Wait$/);
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+    expect(screen.getByText('False start')).toBeDefined();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(800);
+    });
+
+    for (let trial = 0; trial < 10; trial++) {
+      await advanceUntilText(/Press the matching arrow/i);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(120);
+      });
+
+      const response = createEvent.keyDown(window, { key: 'ArrowUp' });
+      Object.defineProperty(response, 'timeStamp', {
+        configurable: true,
+        value: performance.now(),
+      });
+      fireEvent(window, response);
+
+      if (trial < 9) {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(800);
+        });
+      }
+    }
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(800);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(vi.mocked(submitAssessmentResult)).toHaveBeenCalledTimes(1);
+    const payload = vi.mocked(submitAssessmentResult).mock.calls[0][0] as {
+      assessmentType: string;
+      trials: Array<Record<string, unknown>>;
+    };
+    expect(payload.assessmentType).toBe('direction');
+
+    const preStimulusFalseStart = payload.trials.find(
+      trial => trial.notes === 'premature_trigger_before_stimulus'
+    );
+    expect(preStimulusFalseStart).toMatchObject({
+      reactionTime: null,
+      rawReactionTime: null,
+      displayDelayOffsetMs: null,
+      displayDelayOffsetEstimated: null,
+      displayDelayOffsetSource: null,
+    });
+
+    const measuredTrials = payload.trials.filter(
+      trial => trial.falseStart !== true && trial.timedOut !== true
+    );
+    expect(measuredTrials).toHaveLength(10);
+    for (const trial of payload.trials) {
+      expect(trial.displayDelayOffsetMs).toBeNull();
+      expect(trial.displayDelayOffsetEstimated).toBeNull();
+      expect(trial.displayDelayOffsetSource).toBeNull();
+    }
+    for (const trial of measuredTrials) {
+      const expectedLatency = Number((trial.rawReactionTime as number).toFixed(2));
+      expect(trial.reactionTime).toBe(expectedLatency);
+      expect(trial.rawReactionTime).toBe(expectedLatency);
+    }
+  }, 30000);
+
   describe('DirectionTest (Directional Choice Engine)', () => {
     it('renders AgeSelection dialog and proceeds to dark apparatus with pad controls', async () => {
       const onNavigate = vi.fn();
