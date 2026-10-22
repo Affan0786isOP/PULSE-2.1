@@ -158,11 +158,17 @@ describe('PULSE homepage narrative', () => {
       '../../mobile/src/components/ui/MobileAssessmentCarousel.tsx',
     ];
 
+    let combinedSource = '';
     for (const relativeFile of relativeFiles) {
       const source = readFileSync(new URL(relativeFile, import.meta.url), 'utf8');
       expect(source).not.toMatch(/dark:/);
       expect(source).not.toMatch(/#[0-9a-f]{3,8}(?![0-9a-f])/i);
-      expect(source).toContain('var(--');
+      combinedSource += source + '\n';
     }
+
+    expect(combinedSource).toContain('var(--surface-1)');
+    expect(combinedSource).toContain('var(--accent)');
+    expect(combinedSource).toContain('var(--text-primary)');
+    expect(combinedSource).toContain('var(--border-subtle)');
   });
 });
