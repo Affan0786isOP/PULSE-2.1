@@ -66,10 +66,7 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
 
   return (
     <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] dark:from-[#0B0D10] dark:via-[#0B0D10] dark:to-[#0B0D10] text-[#090D1A] dark:text-[#F5F7FA] min-h-[100dvh] w-full flex flex-col font-sans relative selection:bg-[#0066FF]/20 pb-20">
-      <SEO 
-        title="Assessments | PULSE"
-        description="Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory."
-      />
+      <SEO />
       
       <Navbar currentView="assessments" onNavigate={onNavigate} />
 

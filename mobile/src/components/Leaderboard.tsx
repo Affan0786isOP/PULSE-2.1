@@ -158,10 +158,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
   return (
     <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] dark:from-[#0B0D10] dark:via-[#0B0D10] dark:to-[#0B0D10] text-[#090D1A] dark:text-[#F5F7FA] font-sans min-h-[100dvh] w-full overflow-x-hidden flex flex-col selection:bg-[#0066FF]/20">
-      <SEO 
-        title="Verified Leaderboard & Cohort Rankings | PULSE"
-        description="Compare participant-selected leaderboard aliases against age-cohort results across five cognitive assessments."
-      />
+      <SEO />
       <Navbar 
         currentView="leaderboard" 
         onNavigate={onNavigate} 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { ROUTE_REGISTRY } from '../../shared/registries/routeRegistry';
 
 describe('Vercel technical SEO routing', () => {
   const config = JSON.parse(
@@ -48,25 +49,30 @@ describe('Vercel technical SEO routing', () => {
     expect(serialized).toContain('noindex');
     expect(serialized).toContain('/api/:path*');
 
-    // Base rule sets noindex, nofollow for all environments
-    const baseRule = headers.find(h => h.source === '/:path*' && !h.has);
+    // The noindex default must apply only when the production apex host is absent.
+    // This avoids emitting conflicting X-Robots-Tag values on production responses.
+    const baseRule = headers.find(h => h.source === '/:path*' && h.missing);
     expect(baseRule).toBeDefined();
     expect(JSON.stringify(baseRule)).toContain('noindex, nofollow');
+    expect(JSON.stringify(baseRule)).toContain('"type":"host"');
+    expect(JSON.stringify(baseRule)).toContain('"value":"pulse-lab.in"');
 
-    // Production override applies strictly to apex pulse-lab.in
-    const prodOverride = headers.find(h => {
-      const has = h.has as Array<Record<string, string>> | undefined;
-      return has?.some(cond => cond.type === 'host' && cond.value === 'pulse-lab.in');
-    });
-    expect(prodOverride).toBeDefined();
-    expect(JSON.stringify(prodOverride)).toContain('index, follow');
+    // Production indexability is controlled by the page's meta robots directive;
+    // there must not be a second wildcard header that can contradict it.
+    const hasRobotsHeader = (rule: Record<string, unknown>) =>
+      Array.isArray(rule.headers) &&
+      (rule.headers as Array<{ key: string }>).some(header => header.key.toLowerCase() === 'x-robots-tag');
+    const wildcardRobots = headers.filter(h => h.source === '/:path*' && hasRobotsHeader(h));
+    expect(wildcardRobots).toHaveLength(1);
 
-    // www.pulse-lab.in must NOT have an independent indexable header override
-    const wwwOverride = headers.find(h => {
-      const has = h.has as Array<Record<string, string>> | undefined;
-      return has?.some(cond => cond.type === 'host' && cond.value === 'www.pulse-lab.in');
-    });
-    expect(wwwOverride).toBeUndefined();
+    // Production-only route overrides mark intentionally non-indexable pages and APIs.
+    for (const source of ['/dataset', '/analytics', '/mobile/dataset', '/mobile/analytics', '/api/:path*']) {
+      const rule = headers.find(h =>
+        h.source === source && hasRobotsHeader(h)
+      );
+      expect(rule, `Missing robots policy for ${source}`).toBeDefined();
+      expect(JSON.stringify(rule)).toContain('"value":"pulse-lab.in"');
+    }
   });
 
   it('correctly routes and rewrites /about and /mobile/about', () => {
@@ -92,6 +98,24 @@ describe('Vercel technical SEO routing', () => {
       source: '/mobile/about',
       destination: '/seo/mobile/about.html'
     });
+  });
+
+  it('keeps deployed alias redirects aligned with the shared route registry', () => {
+    const redirects = config.redirects as Array<{ source: string; destination: string }>;
+    const pairs = new Set(redirects.map(rule => `${rule.source} -> ${rule.destination}`));
+    const mobilePath = (pathname: string) => pathname === '/' ? '/mobile/' : '/mobile' + pathname;
+
+    for (const route of ROUTE_REGISTRY) {
+      const canonicalPath = route.canonicalPath ?? route.path;
+      if (canonicalPath !== route.path) {
+        expect(pairs.has(`${route.path} -> ${canonicalPath}`), `Missing redirect for ${route.path}`).toBe(true);
+        expect(pairs.has(`${mobilePath(route.path)} -> ${mobilePath(canonicalPath)}`), `Missing mobile redirect for ${route.path}`).toBe(true);
+      }
+      for (const alias of route.aliases) {
+        expect(pairs.has(`${alias} -> ${canonicalPath}`), `Missing redirect for ${alias}`).toBe(true);
+        expect(pairs.has(`${mobilePath(alias)} -> ${mobilePath(canonicalPath)}`), `Missing mobile redirect for ${alias}`).toBe(true);
+      }
+    }
   });
 
   it('contains zero duplicate top-level keys in vercel.json (M1 fix)', () => {

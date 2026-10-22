@@ -7,6 +7,8 @@ export interface SeoBehavior {
 export interface RouteDefinition {
   routeId: string;
   path: string;
+  /** Canonical destination when a legacy route exists only to redirect. */
+  canonicalPath?: string;
   domain?: DomainName;
   navigationLabel: string;
   aliases: readonly string[];
@@ -70,6 +72,7 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
   {
     routeId: 'analytics',
     path: '/analytics',
+    canonicalPath: '/dataset',
     domain: 'analytics',
     navigationLabel: 'Analytics',
     aliases: [],

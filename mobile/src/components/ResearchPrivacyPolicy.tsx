@@ -6,11 +6,7 @@ import { SEO } from './SEO';
 export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: string) => void }) {
   return (
     <div className="bg-transparent text-[var(--text-main)] font-sans min-h-[100dvh] w-full flex flex-col">
-      <SEO 
-        title="Research Data Ethics & Privacy Policy | PULSE"
-        description="Our commitment to transparent research standards, strict data anonymization, telemetry consent guidelines, and open scientific integrity."
-        canonicalUrl="https://pulse-lab.in/privacy"
-      />
+      <SEO />
       <Navbar currentView="privacy" onNavigate={onNavigate} />
       
       <main 

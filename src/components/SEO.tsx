@@ -1,183 +1,182 @@
 import { useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
+import metadata from '../../shared/seoMetadata.json';
+import { buildRouteSchema } from '../../shared/seoSchema.mjs';
+import { resolveRoute } from '../../shared/registries/routeRegistry';
 
 let nextOwnerId = 0;
 
 export function getCanonicalPath(pathname: string): string {
   let clean = pathname.replace(/^\/mobile(?:\/|$)/, '/');
   if (!clean.startsWith('/')) clean = '/' + clean;
-  if (clean.length > 1 && clean.endsWith('/')) {
-    clean = clean.slice(0, -1);
-  }
+  if (clean.length > 1 && clean.endsWith('/')) clean = clean.slice(0, -1);
 
-  switch (clean) {
-    case '/visual-reaction':
-      return '/reaction-test';
-    case '/direction':
-      return '/direction-test';
-    case '/color-recognition':
-    case '/color-test':
-      return '/colour-recognition';
-    case '/block-memory-test':
-      return '/block-memory';
-    case '/number-memory-test':
-      return '/number-memory';
-    case '/research-privacy':
-    case '/privacy-policy':
-      return '/privacy';
-    case '/analytics':
-      return '/dataset';
-    default:
-      return clean;
-  }
+  const route = resolveRoute(clean);
+  return route?.canonicalPath ?? route?.path ?? clean;
 }
 
 export function isProductionHost(): boolean {
   if (typeof window === 'undefined') return true;
-  const hostname = window.location.hostname;
-  return hostname === 'pulse-lab.in';
+  return window.location.hostname === 'pulse-lab.in';
 }
 
 export function isStagingOrTestHost(): boolean {
-  if (typeof window === 'undefined') return false;
   return !isProductionHost();
 }
 
-interface SEOProps {
-  title: string;
-  description: string;
+export interface SEOProps {
+  title?: string;
+  description?: string;
   canonicalUrl?: string;
   noindex?: boolean;
   ogType?: string;
   ogImage?: string;
   schema?: Record<string, any>;
+  /** Disable the desktop-to-mobile alternate link for the dedicated mobile app. */
+  includeMobileAlternate?: boolean;
 }
 
 export function SEO({
   title,
   description,
   canonicalUrl,
-  noindex = false,
+  noindex,
   ogType = 'website',
-  ogImage = 'https://pulse-lab.in/og-image.png',
-  schema
+  ogImage = metadata.site.ogImage,
+  schema,
+  includeMobileAlternate = true
 }: SEOProps) {
   const location = useLocation();
+  const canonicalPath = getCanonicalPath(location.pathname);
+  const routeMeta = (metadata.routes as Record<string, {
+    title: string;
+    description: string;
+    indexable: boolean;
+  }>)[canonicalPath];
 
   const isProd = isProductionHost();
-  const isNonProd = !isProd;
-
-  // Determine standard canonical URL if not explicitly provided
-  // Production canonical is strictly https://pulse-lab.in
-  // Non-production deployment uses its own origin and must not advertise itself as the production canonical
   const siteUrl = isProd
-    ? 'https://pulse-lab.in'
-    : (typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pulse-lab.in');
+    ? metadata.site.url.replace(/\/$/, '')
+    : (typeof window !== 'undefined' && window.location.origin
+      ? window.location.origin.replace(/\/$/, '')
+      : metadata.site.url.replace(/\/$/, ''));
 
-  const canonicalPath = getCanonicalPath(location.pathname);
-  const defaultCanonical = `${siteUrl}${canonicalPath === '/' ? '' : canonicalPath}`;
+  const finalTitle = title ?? routeMeta?.title ?? 'Page Not Found | PULSE';
+  const finalDescription = description ?? routeMeta?.description ?? 'The requested PULSE page could not be found.';
+  const defaultCanonical = siteUrl + (canonicalPath === '/' ? '/' : canonicalPath);
   const finalCanonical = canonicalUrl || defaultCanonical;
+  const routeNoindex = noindex ?? (routeMeta ? !routeMeta.indexable : true);
+  const effectiveNoindex = !isProd || routeNoindex;
+  const robotsContent = !isProd
+    ? 'noindex, nofollow'
+    : routeNoindex
+      ? 'noindex, follow'
+      : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 
-  // Non-production deployments (previews, staging, local) strictly force noindex, nofollow
-  const effectiveNoindex = isNonProd || noindex;
-
-  // Memoize serialized schema string to avoid unnecessary effect triggers when schema object is recreated on render
-  const serializedSchema = useMemo(() => {
-    return schema ? JSON.stringify(schema) : '';
-  }, [schema]);
+  const schemaMetadata = useMemo(() => ({
+    ...metadata,
+    site: { ...metadata.site, url: siteUrl }
+  }), [siteUrl]);
+  const effectiveSchema = useMemo(
+    () => schema ?? buildRouteSchema(schemaMetadata, canonicalPath, canonicalUrl ? finalCanonical : undefined),
+    [schema, schemaMetadata, canonicalPath, canonicalUrl, finalCanonical]
+  );
+  const serializedSchema = useMemo(() => JSON.stringify(effectiveSchema), [effectiveSchema]);
 
   useEffect(() => {
-    // 1. Update Title
-    document.title = title;
-
-    // Helper to update or create meta tags
-    const updateMetaTag = (attributeName: string, attributeValue: string, contentValue: string, keyName = 'name') => {
-      let element = document.querySelector(`meta[${keyName}="${attributeValue}"]`);
-      if (!element) {
-        element = document.createElement('meta');
+    const upsertMeta = (keyName: 'name' | 'property', attributeValue: string, contentValue: string) => {
+      const matches = Array.from(document.querySelectorAll<HTMLMetaElement>(
+        `meta[${keyName}="${attributeValue}"]`
+      ));
+      const element = matches.shift() ?? document.createElement('meta');
+      if (!element.isConnected) {
         element.setAttribute(keyName, attributeValue);
         document.head.appendChild(element);
       }
       element.setAttribute('content', contentValue);
+      matches.forEach(duplicate => duplicate.remove());
     };
 
-    // Helper to update or create link tags
-    const updateLinkTag = (relValue: string, hrefValue: string) => {
-      let element = document.querySelector(`link[rel="${relValue}"]`);
-      if (!element) {
-        element = document.createElement('link');
+    const upsertLink = (relValue: string, hrefValue: string, extraSelector = '') => {
+      const matches = Array.from(document.querySelectorAll<HTMLLinkElement>(
+        `link[rel="${relValue}"]${extraSelector}`
+      ));
+      const element = matches.shift() ?? document.createElement('link');
+      if (!element.isConnected) {
         element.setAttribute('rel', relValue);
+        if (extraSelector.includes('media=')) {
+          element.setAttribute('media', 'only screen and (max-width: 768px)');
+        }
         document.head.appendChild(element);
       }
       element.setAttribute('href', hrefValue);
+      matches.forEach(duplicate => duplicate.remove());
+      return element;
     };
 
-    // 2. Update Meta Description
-    updateMetaTag('name', 'description', description);
+    document.title = finalTitle;
+    upsertMeta('name', 'description', finalDescription);
+    upsertMeta('name', 'robots', robotsContent);
+    upsertLink('canonical', finalCanonical);
 
-    // 3. Update Canonical URL
-    updateLinkTag('canonical', finalCanonical);
+    upsertMeta('property', 'og:title', finalTitle);
+    upsertMeta('property', 'og:description', finalDescription);
+    upsertMeta('property', 'og:url', finalCanonical);
+    upsertMeta('property', 'og:type', ogType);
+    upsertMeta('property', 'og:site_name', metadata.site.name);
+    upsertMeta('property', 'og:locale', 'en_US');
+    upsertMeta('property', 'og:image', ogImage);
+    upsertMeta('property', 'og:image:width', '1200');
+    upsertMeta('property', 'og:image:height', '630');
+    upsertMeta('property', 'og:image:type', 'image/png');
+    upsertMeta('property', 'og:image:alt', 'PULSE cognitive benchmarking');
 
-    // 4. Update Robots Tag
-    updateMetaTag('name', 'robots', effectiveNoindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
-
-    // 5. Open Graph Meta Tags
-    updateMetaTag('property', 'og:title', title, 'property');
-    updateMetaTag('property', 'og:description', description, 'property');
-    updateMetaTag('property', 'og:url', finalCanonical, 'property');
-    updateMetaTag('property', 'og:type', ogType, 'property');
-    updateMetaTag('property', 'og:site_name', 'PULSE', 'property');
-    updateMetaTag('property', 'og:locale', 'en_US', 'property');
-    updateMetaTag('property', 'og:image', ogImage, 'property');
-    updateMetaTag('property', 'og:image:width', '1200', 'property');
-    updateMetaTag('property', 'og:image:height', '630', 'property');
-    updateMetaTag('property', 'og:image:type', 'image/png', 'property');
-    updateMetaTag('property', 'og:image:alt', 'PULSE cognitive benchmarking', 'property');
-
-    // Desktop pages advertise the dedicated mobile equivalent while keeping desktop canonical.
-    const mobileAlternateHref = siteUrl + (canonicalPath === '/' ? '/mobile/' : '/mobile' + canonicalPath);
-    let mobileAlternate = document.querySelector<HTMLLinkElement>('link[rel="alternate"][media="only screen and (max-width: 768px)"]');
-    if (!mobileAlternate) {
-      mobileAlternate = document.createElement('link');
-      mobileAlternate.setAttribute('rel', 'alternate');
-      mobileAlternate.setAttribute('media', 'only screen and (max-width: 768px)');
-      document.head.appendChild(mobileAlternate);
-    }
-    mobileAlternate.setAttribute('href', mobileAlternateHref);
-
-    // 6. Twitter Meta Tags
-    updateMetaTag('name', 'twitter:card', 'summary_large_image');
-    updateMetaTag('name', 'twitter:title', title);
-    updateMetaTag('name', 'twitter:description', description);
-    updateMetaTag('name', 'twitter:url', finalCanonical);
-    updateMetaTag('name', 'twitter:image', ogImage);
-    updateMetaTag('name', 'twitter:image:alt', 'PULSE cognitive benchmarking');
-
-    // 7. Structured Data (JSON-LD)
-    const currentOwnerId = String(++nextOwnerId);
-    let jsonLdScript = document.getElementById('pulse-seo-jsonld') as HTMLScriptElement;
-    if (serializedSchema) {
-      if (!jsonLdScript) {
-        jsonLdScript = document.createElement('script');
-        jsonLdScript.id = 'pulse-seo-jsonld';
-        jsonLdScript.type = 'application/ld+json';
-        document.head.appendChild(jsonLdScript);
-      }
-      jsonLdScript.setAttribute('data-owner-id', currentOwnerId);
-      jsonLdScript.textContent = serializedSchema;
+    const mobileAlternateSelector = '[media="only screen and (max-width: 768px)"]';
+    const shouldAdvertiseMobile = includeMobileAlternate && Boolean(routeMeta?.indexable) && !effectiveNoindex;
+    if (shouldAdvertiseMobile) {
+      const mobilePath = canonicalPath === '/' ? '/mobile/' : '/mobile' + canonicalPath;
+      upsertLink('alternate', siteUrl + mobilePath, mobileAlternateSelector);
     } else {
-      // Preserve build-time JSON-LD on direct page loads. A page-level SEO component
-      // without a schema must not erase structured data already present in the HTML shell.
+      document.querySelectorAll<HTMLLinkElement>(
+        `link[rel="alternate"]${mobileAlternateSelector}`
+      ).forEach(link => link.remove());
     }
+
+    upsertMeta('name', 'twitter:card', 'summary_large_image');
+    upsertMeta('name', 'twitter:title', finalTitle);
+    upsertMeta('name', 'twitter:description', finalDescription);
+    upsertMeta('name', 'twitter:url', finalCanonical);
+    upsertMeta('name', 'twitter:image', ogImage);
+    upsertMeta('name', 'twitter:image:alt', 'PULSE cognitive benchmarking');
+
+    const currentOwnerId = String(++nextOwnerId);
+    let jsonLdScript = document.getElementById('pulse-seo-jsonld') as HTMLScriptElement | null;
+    if (!jsonLdScript) {
+      jsonLdScript = document.createElement('script');
+      jsonLdScript.id = 'pulse-seo-jsonld';
+      jsonLdScript.type = 'application/ld+json';
+      document.head.appendChild(jsonLdScript);
+    }
+    jsonLdScript.setAttribute('data-owner-id', currentOwnerId);
+    jsonLdScript.textContent = serializedSchema;
 
     return () => {
-      // Cleanup JSON-LD on unmount only if this effect is still the owner
       const script = document.getElementById('pulse-seo-jsonld');
-      if (script && script.getAttribute('data-owner-id') === currentOwnerId) {
-        script.remove();
-      }
+      if (script?.getAttribute('data-owner-id') === currentOwnerId) script.remove();
     };
-  }, [title, description, finalCanonical, effectiveNoindex, ogType, ogImage, serializedSchema]);
+  }, [
+    finalTitle,
+    finalDescription,
+    finalCanonical,
+    effectiveNoindex,
+    ogType,
+    ogImage,
+    serializedSchema,
+    includeMobileAlternate,
+    routeMeta?.indexable,
+    canonicalPath,
+    siteUrl
+  ]);
 
   return null;
 }

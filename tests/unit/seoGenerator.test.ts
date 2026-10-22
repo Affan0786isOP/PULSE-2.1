@@ -37,8 +37,8 @@ describe('SEO Shell Generator Output Verification', () => {
     {
       file: 'seo/assessments.html',
       mobileFile: 'seo/mobile/assessments.html',
-      expectedTitlePart: 'Assessments',
-      expectedHeading: 'Assessments',
+      expectedTitlePart: 'Cognitive Tests for Reaction Time &amp; Memory | PULSE',
+      expectedHeading: 'Cognitive Tests for Reaction Time &amp; Memory',
       expectedFragment: 'PULSE'
     },
     {
@@ -161,6 +161,42 @@ describe('SEO Shell Generator Output Verification', () => {
     expect(fs.existsSync(datasetPath)).toBe(true);
     const content = fs.readFileSync(datasetPath, 'utf8');
     expect(content).toContain('<meta name="robots" content="noindex, follow" />');
+  });
+
+  it('generates root entry metadata and schema from the shared SEO registry', () => {
+    const rootHtml = fs.readFileSync(path.join(distDir, 'index.html'), 'utf8');
+    expect(rootHtml).toContain(`<title>${metadata.routes['/'].title.replaceAll('&', '&amp;')}</title>`);
+    expect(rootHtml.match(/<link rel="canonical" href="([^"]+)"/)?.[1]).toBe("https://pulse-lab.in/");
+    expect(rootHtml).toContain('name="twitter:url" content="https://pulse-lab.in/"');
+
+    const schemaMatch = rootHtml.match(/<script id="pulse-seo-jsonld" type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    expect(schemaMatch).not.toBeNull();
+    const schema = JSON.parse(schemaMatch![1]);
+    expect(schema['@graph'].map((node: { '@type': string }) => node['@type'])).toContain('SoftwareApplication');
+
+    const mobileRoot = fs.readFileSync(path.join(distDir, 'mobile', 'index.html'), 'utf8');
+    expect(mobileRoot).toContain(`<title>${metadata.routes['/'].title.replaceAll('&', '&amp;')}</title>`);
+    expect(mobileRoot.match(/<link rel="canonical" href="([^"]+)"/)?.[1]).toBe("https://pulse-lab.in/");
+    expect(mobileRoot).not.toContain('rel="alternate" media="only screen and (max-width: 768px)"');
+    expect(mobileRoot).toContain('name="twitter:url" content="https://pulse-lab.in/"');
+  });
+
+  it('builds the sitemap only from canonical, indexable public routes', () => {
+    const sitemap = fs.readFileSync(path.join(distDir, 'sitemap.xml'), 'utf8');
+    const locations = Array.from(sitemap.matchAll(/<loc>(.*?)<\/loc>/g), match => match[1]);
+    const expected = Object.entries(metadata.routes)
+      .filter(([, route]) => route.indexable)
+      .map(([pathname]) => 'https://pulse-lab.in' + (pathname === '/' ? '/' : pathname));
+
+    expect(locations).toEqual(expected);
+    expect(locations).not.toContain('https://pulse-lab.in/dataset');
+    expect(locations).not.toContain('https://pulse-lab.in/analytics');
+  });
+
+  it('does not advertise non-indexable pages as mobile alternates', () => {
+    const content = fs.readFileSync(path.join(distDir, 'seo', 'dataset.html'), 'utf8');
+    expect(content).toContain('<meta name="robots" content="noindex, follow" />');
+    expect(content).not.toContain('rel="alternate" media="only screen and (max-width: 768px)"');
   });
 
   it('fails fast when base shell is missing from input template', () => {

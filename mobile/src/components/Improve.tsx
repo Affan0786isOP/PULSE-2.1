@@ -139,10 +139,7 @@ export function Improve({
 
   return (
     <div className="bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] dark:from-[#0B0D10] dark:via-[#0B0D10] dark:to-[#0B0D10] text-[#090D1A] dark:text-[#F5F7FA] min-h-[100dvh] w-full flex flex-col font-sans selection:bg-[#0066FF]/20 relative">
-      <SEO 
-        title="Performance Guide | PULSE"
-        description="Review research, physiological factors, and preparation habits that affect response time and measurement consistency."
-      />
+      <SEO />
       {/* Navbar Header */}
       <Navbar currentView="improve" onNavigate={onNavigate} title="IMPROVE" />
 
