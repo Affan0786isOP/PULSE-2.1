@@ -838,7 +838,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   )}
                 </div>
 
-                {/* Footer: PULSE Latency Engine + Precision Calibration */}
+                {/* Footer: PULSE Latency Engine + Precision Timing */}
                 <div className="flex items-center justify-between pt-4 mt-3 border-t border-slate-100 dark:border-slate-800 text-xs shrink-0">
                   <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-md bg-[#090D1A] dark:bg-[#181D23] border border-transparent dark:border-slate-700 flex items-center justify-center text-[#00D2FF]">
@@ -853,7 +853,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   </div>
 
                   <span className="text-[11px] font-mono font-semibold text-[#0066FF] dark:text-[#22C7D6] tracking-wider">
-                    Precision Calibration
+                    Precision Timing
                   </span>
                 </div>
               </motion.div>
