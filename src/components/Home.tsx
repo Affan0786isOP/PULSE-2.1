@@ -4,6 +4,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useReducedMotionPreference } from '../lib/settingsStore';
+import { useBaselineScale } from '../lib/useBaselineScale';
 import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
 import { AnimatedResultCount } from './ui/AnimatedResultCount';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
@@ -81,6 +82,7 @@ const HOME_SCHEMA = {
 
 export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
+  const { style: heroScaleStyle } = useBaselineScale();
   const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
 
   return (
@@ -89,9 +91,10 @@ export function Home() {
       schema={HOME_SCHEMA}
       decorativeWaves="none"
       showFooter={false}
+      disableScaling
       contentClassName="min-h-[100dvh] overflow-x-hidden px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 pb-4 sm:pb-6"
     >
-      <section id="hero" aria-label="PULSE homepage hero" className="relative min-h-[100dvh] w-full flex items-center justify-center">
+      <section id="hero" aria-label="PULSE homepage hero" className="relative min-h-[100dvh] w-full flex items-center justify-center" style={heroScaleStyle}>
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
         {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
         <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[2560px]:max-w-[580px]">
