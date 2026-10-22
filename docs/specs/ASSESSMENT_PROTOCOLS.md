@@ -106,3 +106,16 @@ Measures verbal short-term memory and phonological loop capacity.
 ### 5.3 Computed Metrics
 - **Digit Span:** Maximum digit length successfully reproduced.
 - **Highest Level Reached:** Level index achieved.
+
+
+## 6. Timing Measurement and Versioning
+
+For Visual Reaction, Direction, and Color Recognition protocol/metrics `v1.1.0`:
+
+- Response latency is the unadjusted browser-measured stimulus-to-response interval, rounded to two decimal places.
+- Do not subtract theoretical half-frame display offsets or quantize stimulus presentation timestamps to a display-frame boundary.
+- Pre-stimulus false starts and timeouts with no response interval have null latency. A measured post-stimulus response below 80 ms retains its observed interval while remaining classified as anticipatory/invalid by the physiological floor.
+- The live timer's text update loop uses a shared software pacer targeting an average of approximately 60 updates per second. UI pacing must not gate response detection or change the timestamp used for scoring. This mechanism neither controls physical display refresh nor guarantees uniform intervals.
+- Use the canonical assessment IDs `visual-reaction`, `direction`, and `color-recognition` for `v1.1.0` protocol/metrics metadata. `block-memory` and `number-memory` stay at `v1.0.0`.
+
+Historical trial normalization and provenance digests remain unchanged. New null-offset trials and older numeric-offset trials need not have identical canonical digests.

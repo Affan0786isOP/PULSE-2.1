@@ -279,7 +279,7 @@ export const startExperimentSession = async (assessmentType: AssessmentType, age
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     return {
       success: false,
-      error: 'Internet connection required to initiate a calibrated assessment session. Please reconnect and retry.',
+      error: 'Internet connection required to initiate a server-validated assessment session. Please reconnect and retry.',
       status: 0
     };
   }

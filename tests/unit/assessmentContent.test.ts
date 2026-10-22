@@ -58,6 +58,10 @@ describe('Assessment Content Model & Data Integrity', () => {
     expect(textCorpus).toContain('80'); // 80ms false start floor
     expect(textCorpus).toContain('display refresh');
     expect(textCorpus).toContain('frame');
+    expect(textCorpus).toContain('unadjusted browser-measured stimulus-to-response interval');
+    expect(textCorpus).toContain('60 UI updates per second');
+    expect(textCorpus).not.toContain('estimated display refresh adjustment');
+    expect(textCorpus).not.toContain('accounts for display frame intervals');
 
     // No unsupported polling rate hardware claims or medical claims
     expect(textCorpus).not.toContain('125Hz');

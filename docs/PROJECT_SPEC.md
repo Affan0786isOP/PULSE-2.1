@@ -6,7 +6,7 @@
 ---
 
 ## 1. Product Overview & Purpose
-PULSE is a high-precision cognitive assessment platform, empirical research engine, and cryptographic latency benchmark suite. Designed for both desktop workstations and mobile touchscreen devices, it delivers sub-millisecond visual reaction timing, executive function evaluation, attentional conflict measurement, and working memory analysis across normalized demographic age cohorts.
+PULSE is a high-precision cognitive assessment platform, empirical research engine, and cryptographic latency benchmark suite. Designed for both desktop workstations and mobile touchscreen devices, it delivers browser-measured visual reaction latency, executive function evaluation, attentional conflict measurement, and working memory analysis across normalized demographic age cohorts.
 
 ### Core Objectives
 1. **Precision Cognitive Baselining:** Provide laboratory-grade measurement of motor response speed, flanker interference, Stroop inhibition, and spatial/verbal memory span.
@@ -129,7 +129,8 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 | **Desktop Home & Hero** | `/` | `IMPLEMENTED` | Awwwards-tier animated canvas background, 3D assessment carousel, interactive live reticle, quick-start CTAs, and canonical unified Navbar with assessment lockouts. |
 | **Mobile PWA Sub-App** | `/mobile/` | `IMPLEMENTED` | Dedicated mobile entry point, touch-optimized layouts, service worker caching, standalone PWA install prompt. |
 | **Device Auto-Routing** | Middleware & Client | `IMPLEMENTED` | Client-side routing applies viewport/device checks; the server preserves normal page navigation and redirects only for explicit routing flags/preferences. |
-| **Hardware Calibrator** | Background Hook | `IMPLEMENTED` | RAF sampling detects screen refresh rate (60Hz–240Hz) and display latency offset. |
+| **Display Refresh-Rate Calibrator** | Settings / background hook | `REMOVED` | Dynamic refresh-rate detection and theoretical display-offset subtraction are no longer used for new assessment submissions. Legacy local keys may still be cleared. |
+| **Assessment Live-Timer Pacing** | Desktop and mobile assessment engines | `IMPLEMENTED` | Shared software pacer targets an average of approximately 60 live-timer UI updates per second without changing physical display refresh or quantizing stimulus timestamps. |
 | **Research Dataset Explorer** | `/dataset`, `/analytics` | `IMPLEMENTED` | Real-time multi-filter distribution curves (Visx/Recharts), cohort slicing, and CSV/JSON export. |
 | **Global Leaderboard** | `/leaderboard` | `IMPLEMENTED` | Top 100 rankings per assessment type, verified server HMAC tokens, strict opt-in alias validation. |
 | **Leaderboard Opt-In** | Modal UI | `IMPLEMENTED` | Self-selected public alias modal with profanity filter; guest/anonymous submissions excluded from public rank. |
@@ -142,6 +143,11 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 ---
 
 ## 6. Technical Constraints & Invariants
-1. **Timing Accuracy:** Timing must use `window.performance.now()`. Browser timers (`setTimeout`, `setInterval`) are strictly prohibited for reaction latency measurement.
+1. **Timing Accuracy:** Stimulus and response latency measurements use high-resolution monotonic browser timestamps (`performance.now()` / RAF timestamps), never `Date.now()` or timer callbacks for latency measurement. The live-timer UI is paced to an average of approximately 60 updates per second; this does not force hardware refresh rates or guarantee uniform intervals.
 2. **Database Write Authority:** Direct client writes to Firestore are blocked by security rules (`allow write: if false`). All writes are signed and executed server-side via `server.ts`.
 3. **Storage Fallback:** If offline or Firestore is unavailable, local session history is stored in-memory and in `localStorage` without blocking the user.
+
+
+## 7. Assessment Timing Protocol Versioning
+
+As of protocol/metrics version `v1.1.0`, Visual Reaction, Direction, and Color Recognition scores use the unadjusted browser-measured stimulus-to-response latency rounded to two decimal places. New client observations set the legacy `displayDelayOffset*` metadata to null and do not subtract theoretical half-frame offsets. `block-memory` and `number-memory` remain at protocol/metrics `v1.0.0`. Historical offset values remain part of their original canonical provenance normalization and are not rewritten.

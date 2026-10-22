@@ -31,3 +31,26 @@ export type DomainName =
   | 'leaderboard'
   | 'user';
 
+
+
+/**
+ * Version metadata scoped to canonical assessment protocols.
+ * Raw-latency scoring changes in v1.1.0; memory scoring and schema remain v1.0.0.
+ */
+export function getAssessmentVersionMetadata(assessmentType: string) {
+  if (!(CANONICAL_ASSESSMENT_IDS as readonly string[]).includes(assessmentType)) {
+    throw new Error(`Unsupported canonical assessment type: ${assessmentType}`);
+  }
+
+  const isRawLatencyAssessment =
+    assessmentType === 'visual-reaction' ||
+    assessmentType === 'direction' ||
+    assessmentType === 'color-recognition';
+
+  return {
+    assessmentVersion: 'v1.0.0',
+    protocolVersion: isRawLatencyAssessment ? 'v1.1.0' : 'v1.0.0',
+    datasetSchemaVersion: 'v1.0.0',
+    metricsVersion: isRawLatencyAssessment ? 'v1.1.0' : 'v1.0.0',
+  };
+}

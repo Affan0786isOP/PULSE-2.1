@@ -17,7 +17,8 @@
         "heading": "How the PULSE Test Works",
         "paragraphs": [
           "The PULSE visual reaction assessment consists of 10 trials designed to measure rapid visual detection.",
-          "Each trial displays a waiting state followed by a randomized foreperiod delay between 100ms and 3000ms. When the interface transitions to the active stimulus, respond immediately using the spacebar or screen tap."
+          "Each trial displays a waiting state followed by a randomized foreperiod delay between 100ms and 3000ms. When the interface transitions to the active stimulus, respond immediately using the spacebar or screen tap.",
+          "The live timer text targets an average of approximately 60 UI updates per second. This is software pacing only: it does not set the physical display refresh rate, quantize stimulus timestamps, or guarantee uniform frame intervals."
         ],
         "listItems": [
           "10 discrete trials per assessment session",
@@ -30,7 +31,7 @@
         "heading": "How Results Are Measured",
         "paragraphs": [
           "Latency is captured using browser performance timestamps recorded at stimulus onset and input event dispatch.",
-          "To account for display refresh intervals, PULSE applies an estimated display refresh adjustment modeled at half the estimated frame interval. This correction represents a mathematical model of display presentation rather than physical hardware sensor telemetry."
+          "Reported reaction latency is the unadjusted browser-measured stimulus-to-response interval, rounded to two decimal places; no theoretical display-frame offset is subtracted."
         ]
       },
       {
@@ -42,10 +43,10 @@
       },
       {
         "id": "hardware-variances",
-        "heading": "Hardware and Environmental Latency",
+        "heading": "Hardware and Environmental Timing",
         "paragraphs": [
           "Browser-based benchmarks are subject to external latency factors outside software control. Input-device polling intervals, display refresh rates, browser rendering pipelines, wireless connections, and operating system event scheduling all introduce variance.",
-          "While PULSE accounts for display frame intervals, local hardware transmission delays cannot be eliminated."
+          "PULSE reports the browser-measured stimulus-to-response interval without subtracting a theoretical display-frame offset; device, display, browser, and input timing can still affect results."
         ]
       },
       {

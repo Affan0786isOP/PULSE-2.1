@@ -10,7 +10,7 @@ import {
   Smartphone, 
   Maximize2, 
   Minimize2, 
-  RefreshCw, 
+
   Trash2, 
   Check,
   Download,
@@ -20,8 +20,6 @@ import {
   Moon
 } from 'lucide-react';
 import { useSystemTheme } from '../lib/useSystemTheme';
-import { useRefreshRate } from '../lib/useRefreshRate';
-import { detectRefreshRate, resetRefreshRateCache, cancelRefreshRateDetection } from '../lib/refreshRateDetector';
 import { 
   useSettings, 
   playAudioCue, 
@@ -41,20 +39,13 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
-type SettingsTab = 'general' | 'feedback' | 'calibration';
+type SettingsTab = 'general' | 'feedback' | 'system';
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const refreshInfo = useRefreshRate();
   const pwa = usePwaInstall();
   const [settings, updateSettingsState] = useSettings();
   const { activeTheme, setThemeMode } = useSystemTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
-  const [isRecalibrating, setIsRecalibrating] = useState(false);
-  const isRecalibratingRef = useRef(false);
-  useEffect(() => {
-    isRecalibratingRef.current = isRecalibrating;
-  }, [isRecalibrating]);
-  const [calibrationError, setCalibrationError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
     if (typeof document === 'undefined') return false;
     const doc = document as any;
@@ -71,7 +62,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [mounted, setMounted] = useState(false);
   const wasOpenRef = useRef(false);
   const isMountedRef = useRef(true);
-  const recalibrateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -82,14 +72,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     setMounted(true);
     return () => {
       isMountedRef.current = false;
-      if (recalibrateTimeoutRef.current) {
-        clearTimeout(recalibrateTimeoutRef.current);
-      }
       if (fullscreenNoticeTimerRef.current) {
         clearTimeout(fullscreenNoticeTimerRef.current);
-      }
-      if (isRecalibratingRef.current) {
-        cancelRefreshRateDetection();
       }
     };
   }, []);
@@ -99,20 +83,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     if (isOpen) {
       wasOpenRef.current = true;
       setActiveTab('general');
-      setCalibrationError(null);
-      setIsRecalibrating(false);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('pulse_settings_open'));
       }
     } else if (wasOpenRef.current) {
       wasOpenRef.current = false;
-      if (recalibrateTimeoutRef.current) {
-        clearTimeout(recalibrateTimeoutRef.current);
-      }
-      if (isRecalibratingRef.current) {
-        cancelRefreshRateDetection();
-        setIsRecalibrating(false);
-      }
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('pulse_settings_close'));
       }
@@ -193,35 +168,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   const handleTestSound = () => {
     playAudioCue('success');
-  };
-
-  const handleRecalibrateDisplay = async () => {
-    setIsRecalibrating(true);
-    setCalibrationError(null);
-    playAudioCue('click');
-    try {
-      const fresh = await detectRefreshRate(true);
-      if (recalibrateTimeoutRef.current) {
-        clearTimeout(recalibrateTimeoutRef.current);
-      }
-      recalibrateTimeoutRef.current = setTimeout(() => {
-        if (isMountedRef.current) {
-          setIsRecalibrating(false);
-          if (fresh.status === 'ready' && fresh.source !== 'fallback') {
-            playAudioCue('success');
-          } else if (fresh.status === 'error' || fresh.source === 'fallback') {
-            setCalibrationError(fresh.error || 'Calibration used fallback estimation');
-            playAudioCue('error');
-          }
-        }
-      }, 400);
-    } catch {
-      if (isMountedRef.current) {
-        setIsRecalibrating(false);
-        setCalibrationError('Calibration failed');
-        playAudioCue('error');
-      }
-    }
   };
 
   const handleToggleFullscreen = async () => {
@@ -328,7 +274,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         } catch {}
       }
 
-      resetRefreshRateCache();
       resetSettingsToDefaults();
       clearClientLeaderboardCache();
       clearAuthoritativeStatsCache();
@@ -410,7 +355,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     System Configuration
                   </h2>
                   <p className="text-[10px] text-[var(--text-muted)] font-mono">
-                    Preferences &amp; Display Timing
+                    Preferences &amp; System
                   </p>
                 </div>
               </div>
@@ -455,9 +400,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </button>
 
                 <button type="button"
-                  onClick={() => { playAudioCue('click'); setActiveTab('calibration'); }}
+                  onClick={() => { playAudioCue('click'); setActiveTab('system'); }}
                   className={`py-1.5 px-2 rounded-md font-medium flex items-center justify-center gap-1.5 transition-[background-color,color,border-color,transform] cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                    activeTab === 'calibration'
+                    activeTab === 'system'
                       ? 'bg-[var(--surface-1)] text-[var(--accent)] border border-[var(--border-default)] shadow-xs'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--surface-3)]'
                   }`}
@@ -775,74 +720,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </motion.div>
               )}
 
-              {/* TAB 3: CALIBRATION & SYSTEM */}
-              {activeTab === 'calibration' && (
+              {/* TAB 3: SYSTEM */}
+              {activeTab === 'system' && (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.12 }}
                   className="space-y-3.5"
                 >
-                  {/* Display Hardware Calibration Card */}
-                  <div className="p-3.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Monitor size={14} className="text-[var(--accent)]" />
-                        <span className="font-mono font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]">
-                          Display Frame Timing
-                        </span>
-                      </div>
-                      <button type="button"
-                        id="recalibrate-display-btn"
-                        onClick={handleRecalibrateDisplay}
-                        disabled={isRecalibrating}
-                        className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--surface-1)] hover:bg-[var(--surface-3)] border border-[var(--border-subtle)] text-[var(--accent)] font-mono text-xs font-medium cursor-pointer transition-colors disabled:opacity-50"
-                      >
-                        <RefreshCw size={11} className={isRecalibrating ? 'animate-spin' : ''} />
-                        <span>{isRecalibrating ? 'Calibrating...' : 'Recalibrate'}</span>
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 pt-0.5">
-                      <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
-                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Display Refresh Rate</div>
-                        <div className="text-base font-mono font-bold text-[var(--accent)] mt-0.5">
-                          {isRecalibrating || refreshInfo.status === 'detecting' ? (
-                            <span className="text-xs text-[var(--text-muted)] ">Detecting…</span>
-                          ) : (
-                            `${refreshInfo.hz} Hz`
-                          )}
-                        </div>
-                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">
-                          {isRecalibrating || refreshInfo.status === 'detecting'
-                            ? 'Measuring frames…'
-                            : refreshInfo.source === 'measured'
-                            ? 'Measured cadence'
-                            : refreshInfo.source === 'estimated'
-                            ? 'Calculated cadence'
-                            : 'Fallback default'}
-                        </div>
-                      </div>
-                      <div className="p-2.5 rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)] text-center">
-                        <div className="text-[10px] text-[var(--text-muted)] font-mono uppercase">Estimated Display Midpoint</div>
-                        <div className="text-base font-mono font-bold text-emerald-400 mt-0.5">
-                          {isRecalibrating || refreshInfo.status === 'detecting' ? (
-                            <span className="text-xs text-[var(--text-muted)] ">Computing…</span>
-                          ) : (
-                            `~${refreshInfo.displayDelayOffsetMs} ms`
-                          )}
-                        </div>
-                        <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">Theoretical midpoint</div>
-                      </div>
-                    </div>
-
-                    {calibrationError && (
-                      <div className="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-mono">
-                        {calibrationError}
-                      </div>
-                    )}
-                  </div>
-
                   {/* System Toggles */}
                   <div className="rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)] overflow-hidden">
                     {/* Reduced Motion */}
@@ -930,7 +815,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             {/* Footer */}
             <div className="px-5 py-2.5 border-t border-[var(--border-subtle)] bg-[var(--surface-1)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)] shrink-0">
               <span>PULSE Latency Engine</span>
-              <span className="text-[var(--accent)]">Precision Calibration</span>
+              <span className="text-[var(--accent)]">Precision Timing</span>
             </div>
 
           </motion.div>

@@ -24,8 +24,7 @@ function seedPRNG(seedStr: string): () => number {
     return ((z ^ (z >>> 14)) >>> 0) / 4294967296;
   };
 }
-import { getCachedRefreshRate } from '../lib/refreshRateDetector';
-import { useRefreshRate } from '../lib/useRefreshRate';
+import { createFramePacer } from '@shared/timing/framePacer';
 import { CountdownOverlay } from './CountdownOverlay';
 
 type EngineState = 'READY' | 'STARTING' | 'AWAITING_STIMULUS' | 'STIMULUS_ACTIVE' | 'TRIAL_COMPLETE' | 'REPORT' | 'UNMOUNTED';
@@ -48,7 +47,6 @@ const DIRECTIONS = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
 
 
 export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => void }) {
-  useRefreshRate();
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(false);
@@ -82,19 +80,12 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   const timeStimulusFired = useRef<number>(0);
   const stimulusWallTimestamp = useRef<number>(0);
   const animationFrameId = useRef<number | null>(null);
+  const framePacerRef = useRef(createFramePacer(60));
   const stimulusTimeout = useRef<NodeJS.Timeout | null>(null);
   const countdownInterval = useRef<NodeJS.Timeout | null>(null);
   const autoAdvanceTimer = useRef<NodeJS.Timeout | null>(null);
   const engineStateRef = useRef<EngineState>('READY');
-  const sessionTimingOffsetRef = useRef<{
-    displayDelayOffsetMs: number;
-    displayDelayOffsetEstimated: boolean;
-    displayDelayOffsetSource: 'measured' | 'estimated' | 'fallback';
-  }>({
-    displayDelayOffsetMs: 8.33,
-    displayDelayOffsetEstimated: true,
-    displayDelayOffsetSource: 'fallback'
-  });
+
   
   useEffect(() => {
     engineStateRef.current = engineState;
@@ -104,12 +95,6 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     setIsSessionLoading(true);
     setSessionError(null);
     try {
-      const snap = getCachedRefreshRate();
-      sessionTimingOffsetRef.current = {
-        displayDelayOffsetMs: snap?.displayDelayOffsetMs || 0,
-        displayDelayOffsetEstimated: Boolean(snap?.isEstimated || snap?.source === 'fallback'),
-        displayDelayOffsetSource: snap?.source || 'fallback'
-      };
       const res = await startExperimentSession('direction', age);
       if (res?.success && res?.sessionId) {
         setSessionId(res.sessionId);
@@ -142,11 +127,14 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
 
 
 
-  const updateLiveTimer = useCallback(() => {
+  const updateLiveTimer = useCallback((paintTime?: number) => {
     if (engineStateRef.current === 'STIMULUS_ACTIVE') {
-      const delta = performance.now() - timeStimulusFired.current;
-      if (timerRef.current) {
-        timerRef.current.textContent = delta.toFixed(1);
+      const now = paintTime ?? performance.now();
+      if (framePacerRef.current.shouldUpdate(now)) {
+        const delta = Math.max(0, now - timeStimulusFired.current);
+        if (timerRef.current) {
+          timerRef.current.textContent = delta.toFixed(1);
+        }
       }
       animationFrameId.current = requestAnimationFrame(updateLiveTimer);
     }
@@ -198,13 +186,14 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   };
 
   const fireStimulus = () => {
+    framePacerRef.current.reset();
     setEngineState('STIMULUS_ACTIVE'); engineStateRef.current = 'STIMULUS_ACTIVE';
     timeStimulusFired.current = performance.now();
     stimulusWallTimestamp.current = Date.now();
     // High-resolution monotonic timing from paint frame callback
     requestAnimationFrame((paintTime) => {
       if (engineStateRef.current === 'STIMULUS_ACTIVE') {
-        timeStimulusFired.current = paintTime || performance.now();
+        timeStimulusFired.current = paintTime ?? performance.now();
       }
     });
     
@@ -368,7 +357,8 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       trialNumber: currentTrialRef.current,
       stimulusTimestamp: null,
       responseTimestamp: Date.now(),
-      reactionTime: 0,
+      reactionTime: null,
+      rawReactionTime: null,
       displayDelayOffsetMs: null,
       displayDelayOffsetEstimated: null,
       displayDelayOffsetSource: null,
@@ -390,10 +380,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
 
     const rawLatency = Math.max(0, timeTriggered - timeStimulusFired.current);
-    const offsetMs = sessionTimingOffsetRef.current.displayDelayOffsetMs;
-    const offsetEstimated = sessionTimingOffsetRef.current.displayDelayOffsetEstimated;
-    const offsetSource = sessionTimingOffsetRef.current.displayDelayOffsetSource;
-    const netLatency = Math.max(0, Number((rawLatency - offsetMs).toFixed(2)));
+    const netLatency = Number(rawLatency.toFixed(2));
 
     const stimWall = stimulusWallTimestamp.current || (Date.now() - Math.round(rawLatency));
     const responseWallTime = stimWall + Math.round(rawLatency);
@@ -423,9 +410,9 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
         responseTimestamp: responseWallTime,
         reactionTime: netLatency,
         rawReactionTime: Number(rawLatency.toFixed(2)),
-        displayDelayOffsetMs: offsetMs,
-        displayDelayOffsetEstimated: offsetEstimated,
-        displayDelayOffsetSource: offsetSource,
+        displayDelayOffsetMs: null,
+        displayDelayOffsetEstimated: null,
+        displayDelayOffsetSource: null,
         accuracy: 0,
         falseStart: true,
         timedOut: false,
@@ -478,9 +465,9 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       responseTimestamp: responseWallTime,
       reactionTime: netLatency,
       rawReactionTime: Number(rawLatency.toFixed(2)),
-      displayDelayOffsetMs: offsetMs,
-      displayDelayOffsetEstimated: offsetEstimated,
-      displayDelayOffsetSource: offsetSource,
+      displayDelayOffsetMs: null,
+      displayDelayOffsetEstimated: null,
+      displayDelayOffsetSource: null,
       accuracy: isCorrect ? 1 : 0,
       correct: isCorrect,
       falseStart: false,

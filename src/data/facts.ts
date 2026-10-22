@@ -75,7 +75,7 @@ export const RESEARCH_LEDGER_ENTRIES: ResearchEntry[] = [
   },
   {
     id: "hardware-latency-measurement",
-    statement: "Display refresh intervals, OS compositors, and USB polling rates introduce deterministic delays that must be calibrated in browser-based timing.",
+    statement: "Display refresh intervals, OS compositors, and input polling can affect browser-measured response times, so results should be interpreted in the context of their timing method.",
     citation: {
       source: "Behavior Research Methods",
       year: 2014,
@@ -83,7 +83,7 @@ export const RESEARCH_LEDGER_ENTRIES: ResearchEntry[] = [
       doi: "10.3758/s13428-013-0433-2"
     },
     evidenceType: "established",
-    domain: "Hardware Calibration"
+    domain: "Timing Limitations"
   },
   {
     id: "hydration-attention",

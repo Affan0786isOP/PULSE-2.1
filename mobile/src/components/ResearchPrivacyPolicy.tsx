@@ -31,7 +31,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
               This policy explains how PULSE (Precision User Latency &amp; Stimulus Evaluator) handles local settings, research records, and optional public leaderboard entries, including the limits of the current removal process.
             </p>
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-[var(--text-muted)] pt-1">
-              <span>Last updated: September 2026</span>
+              <span>Last updated: October 2026</span>
               <span>•</span>
               <span>Data &amp; methodology information</span>
             </div>
@@ -62,13 +62,13 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
                     <tr>
                       <td className="py-3 pr-4 font-mono font-medium text-[var(--cyan-primary)]">1. Local Client State</td>
                       <td className="py-3 px-4">Browser Storage / Cookies</td>
-                      <td className="py-3 px-4">User preferences, welcome dismissal flag, hardware calibration cache, routing flags</td>
+                      <td className="py-3 px-4">User preferences, welcome dismissal flag, legacy timing cache keys, routing flags</td>
                       <td className="py-3 pl-4 text-xs">Client-only; never uploaded automatically to databases</td>
                     </tr>
                     <tr>
                       <td className="py-3 pr-4 font-mono font-medium text-emerald-400">2. Cloud Research Records</td>
                       <td className="py-3 px-4">Firestore (<code className="text-xs bg-[var(--cyan-badge-bg)] px-1 py-0.5 rounded">publicDataset</code>)</td>
-                      <td className="py-3 px-4">Assessment trials, response latencies, accuracy, display delay corrections, coarsened cohort (<code className="text-xs bg-[var(--cyan-badge-bg)] px-1 py-0.5 rounded">YYYY-MM</code>)</td>
+                      <td className="py-3 px-4">Assessment trials, unadjusted response latencies, accuracy, and coarsened cohort (<code className="text-xs bg-[var(--cyan-badge-bg)] px-1 py-0.5 rounded">YYYY-MM</code>)</td>
                       <td className="py-3 pl-4 text-xs">Fully anonymized; no PII, IP addresses, or persistent user IDs</td>
                     </tr>
                     <tr>
@@ -89,23 +89,23 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate: (view: strin
             </div>
           </section>
 
-          {/* Section 2: Telemetry & Calibration Parameters */}
+          {/* Section 2: Assessment Timing & Telemetry */}
           <section className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <Database size={20} className="text-[var(--cyan-primary)]" />
-              <h2 className="font-heading font-bold text-xl text-[var(--text-main)] tracking-wide">Telemetry &amp; Calibration Parameters</h2>
+              <h2 className="font-heading font-bold text-xl text-[var(--text-main)] tracking-wide">Assessment Timing &amp; Telemetry</h2>
             </div>
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 space-y-4">
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                To ensure the assessments are accurate across different devices, PULSE records test scores alongside device and display settings:
+                PULSE records task responses and selected device context needed to interpret assessment results:
               </p>
               <ul className="text-sm text-[var(--text-secondary)] list-disc pl-5 space-y-2">
                 <li>
                   <strong className="text-[var(--text-primary)]">Cognitive Assessment Metrics:</strong> Reaction times (raw latency in milliseconds), foreperiod delay categories (e.g. short vs. long randomized preparatory intervals), directional discrimination choices, colour recognition accuracy, spatial sequence spans, and number memory spans.
                 </li>
                 <li>
-                  <strong className="text-[var(--text-primary)]">Display Calibration &amp; Timing Correction:</strong> Measured or estimated display refresh rate (Hz), frame intervals, and calibrated display delay offsets (<code className="text-xs bg-[var(--cyan-badge-bg)] px-1 py-0.5 rounded">displayDelayOffsetMs</code>) to account for visual delay on different screens.
-                </li>
+                <strong className="text-[var(--text-primary)]">Live-Timer Pacing &amp; Response Timing:</strong> PULSE targets an average of approximately 60 live-timer UI updates per second using browser animation-frame timestamps. This software pacing does not force the physical display refresh rate or guarantee uniform frame intervals. Reaction latency is measured from high-resolution monotonic browser timestamps without theoretical hardware-dependent offset subtraction. PULSE no longer actively measures screen cadence; legacy <code>pulse_refresh_rate_*</code> local keys may still be cleared.
+              </li>
                 <li>
                   <strong className="text-[var(--text-primary)]">Device &amp; Input Environment:</strong> Viewport dimensions, input modality (pointer coarse vs. fine, touch capability), and general operating system family. We do not inspect device serial numbers, MAC addresses, or persistent advertising identifiers.
                 </li>
