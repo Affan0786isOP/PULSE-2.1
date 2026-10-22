@@ -88,7 +88,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate?: (view: stri
           </div>
         </section>
 
-        {/* Section 2: Telemetry & Calibration Parameters */}
+        {/* Section 2: Assessment Timing & Telemetry */}
         <section className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <Database size={20} className="text-[#0066FF] dark:text-[#22C7D6]" />
