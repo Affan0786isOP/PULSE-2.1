@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { normalizeAssessmentType } from '../../server/engines/assessmentTypes';
+import { CANONICAL_ASSESSMENT_IDS, getAssessmentVersionMetadata } from '../../shared/contracts/common';
 import { seedPRNG } from '../../server/engines/prng';
 import { deriveForeperiodCategory, generateVrtForeperiod } from '../../server/engines/reactionCalculator';
 import { validateAndDeriveAssessmentFromTrials } from '../../server/engines/assessmentEngine';
@@ -57,6 +58,23 @@ describe('deterministic server PRNG & foreperiods', () => {
   });
 });
 
+describe('canonical assessment version metadata', () => {
+  it('versions only the raw-latency assessment protocols at v1.1.0', () => {
+    for (const assessmentType of CANONICAL_ASSESSMENT_IDS) {
+      const metadata = getAssessmentVersionMetadata(assessmentType);
+      const rawLatencyAssessment = ['visual-reaction', 'direction', 'color-recognition'].includes(assessmentType);
+      expect(metadata).toEqual({
+        assessmentVersion: 'v1.0.0',
+        protocolVersion: rawLatencyAssessment ? 'v1.1.0' : 'v1.0.0',
+        datasetSchemaVersion: 'v1.0.0',
+        metricsVersion: rawLatencyAssessment ? 'v1.1.0' : 'v1.0.0',
+      });
+    }
+
+    expect(() => getAssessmentVersionMetadata('unknown-assessment')).toThrow(/Unsupported canonical assessment type/);
+  });
+});
+
 describe('provenance service (HMAC-SHA256)', () => {
   it('signs deterministically and verifies in constant time', () => {
     const sig = signProvenancePayload('payload');
@@ -79,6 +97,48 @@ describe('provenance service (HMAC-SHA256)', () => {
     const d1 = computeCanonicalTrialsDigest(trials);
     expect(d1).toBe(computeCanonicalTrialsDigest(JSON.parse(JSON.stringify(trials))));
     expect(computeCanonicalTrialsDigest([{ trialNumber: 1, reactionTime: 250 }, { trialNumber: 2, reactionTime: 301 }])).not.toBe(d1);
+  });
+
+  it('preserves a fixed historical digest for numeric display-offset metadata', () => {
+    const historicalTrials = [{
+      trialNumber: 1,
+      reactionTime: 250,
+      rawReactionTime: 241.67,
+      displayDelayOffsetMs: 8.33,
+      displayDelayOffsetEstimated: true,
+      displayDelayOffsetSource: 'measured',
+      test: 'visual-reaction',
+      valid: true,
+    }];
+
+    // Fixed golden SHA-256 generated from the pre-v1.1.0 canonical normalization.
+    expect(computeCanonicalTrialsDigest(historicalTrials))
+      .toBe('394a4998ade0ad3314d803e6e767695a2d3fc91c770afd63a44a482a614b54ca');
+  });
+
+  it('produces deterministic digests for new null-offset trials without rewriting historical values', () => {
+    const newTrials = [{
+      trialNumber: 1,
+      reactionTime: 250,
+      rawReactionTime: 250,
+      displayDelayOffsetMs: null,
+      displayDelayOffsetEstimated: null,
+      displayDelayOffsetSource: null,
+      test: 'visual-reaction',
+      valid: true,
+    }];
+    const first = computeCanonicalTrialsDigest(newTrials);
+    expect(first).toBe(computeCanonicalTrialsDigest(JSON.parse(JSON.stringify(newTrials))));
+    expect(first).not.toBe(computeCanonicalTrialsDigest([{
+      trialNumber: 1,
+      reactionTime: 250,
+      rawReactionTime: 241.67,
+      displayDelayOffsetMs: 8.33,
+      displayDelayOffsetEstimated: true,
+      displayDelayOffsetSource: 'measured',
+      test: 'visual-reaction',
+      valid: true,
+    }]));
   });
 });
 
