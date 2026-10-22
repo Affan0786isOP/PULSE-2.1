@@ -61,7 +61,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate?: (view: stri
                   <tr>
                     <td className="py-3 px-3 font-mono font-semibold text-[#0066FF] dark:text-[#22C7D6]">1. Local Client State</td>
                     <td className="py-3 px-3">Browser Storage / Cookies</td>
-                    <td className="py-3 px-3">User preferences, welcome dismissal flag, hardware calibration cache, routing flags</td>
+                    <td className="py-3 px-3">User preferences, welcome dismissal flag, legacy timing cache keys, routing flags</td>
                     <td className="py-3 px-3 text-xs">Client-only; never uploaded automatically to databases</td>
                   </tr>
                   <tr>
