@@ -3,6 +3,8 @@ import * as crypto from 'crypto';
 import type { Firestore } from 'firebase-admin/firestore';
 import { FirestoreSessionRepository } from '../../server/repositories/firestore/firestoreSessionRepository';
 import { FirestoreResearchDatasetRepository } from '../../server/repositories/firestore/firestoreResearchDatasetRepository';
+import { FirestoreResearchSubmissionRepository } from '../../server/repositories/firestore/firestoreResearchSubmissionRepository';
+import { getAssessmentVersionMetadata } from '../../shared/contracts/common';
 import { FirestoreLeaderboardRepository } from '../../server/repositories/firestore/firestoreLeaderboardRepository';
 import { FirestoreLeaderboardSubmissionRepository } from '../../server/repositories/firestore/firestoreLeaderboardSubmissionRepository';
 
@@ -547,5 +549,71 @@ describe('Firestore Repositories Unit Tests', () => {
     await expect(repo.linkOwnerToEntry('legacy-ownerless', ownerUid, 'session-legacy')).resolves.toBe(false);
     expect((await mockDb.collection('leaderboardPrivateMeta').doc('legacy-ownerless').get()).exists).toBe(false);
   });
+
+
+  it('writes matching canonical version metadata to publicDataset and assessmentResults for all protocols', async () => {
+    const assessmentTypes = [
+      'visual-reaction',
+      'direction',
+      'color-recognition',
+      'block-memory',
+      'number-memory',
+    ] as const;
+
+    for (const assessmentType of assessmentTypes) {
+      const mockDb = createMockDb();
+      const repo = new FirestoreResearchSubmissionRepository(() => mockDb);
+      const suffix = assessmentType.replace(/-/g, '_');
+      const sessionId = `version-session-${suffix}`;
+      const docId = `version-result-${suffix}`;
+      const completedAtTimestamp = Date.now();
+      const ageGroup = 'Young adults (18–25)';
+      const versionMetadata = getAssessmentVersionMetadata(assessmentType);
+
+      await mockDb.collection('experimentSessions').doc(sessionId).set({
+        sessionId,
+        uid: 'version-test-user',
+        assessmentType,
+        ageGroup,
+        createdAt: completedAtTimestamp - 1000,
+        expiresAt: completedAtTimestamp + 15 * 60 * 1000,
+        consumed: false,
+      });
+
+      await repo.executeSubmissionTransaction({
+        docId,
+        sessionId,
+        userId: 'version-test-user',
+        assessmentType,
+        ageGroup,
+        derivedMetrics: {},
+        currentScore: 200,
+        isNewPersonalBest: false,
+        previousPersonalBest: null,
+        personalBest: 200,
+        completedAtTimestamp,
+        completedAtMonth: new Date(completedAtTimestamp).toISOString().slice(0, 7),
+        provenanceToken: 'version-test-provenance',
+        trialsDigest: 'version-test-digest',
+        publicDatasetDoc: {
+          assessmentType,
+          ...versionMetadata,
+        },
+        trialPayloads: [],
+      });
+
+      const publicRecord = await mockDb.collection('publicDataset').doc(docId).get();
+      const assessmentResult = await mockDb.collection('assessmentResults').doc(docId).get();
+      expect(publicRecord.data()).toMatchObject(versionMetadata);
+      expect(assessmentResult.data()).toMatchObject(versionMetadata);
+      expect(assessmentResult.data()).toMatchObject({
+        assessmentVersion: publicRecord.data()?.assessmentVersion,
+        protocolVersion: publicRecord.data()?.protocolVersion,
+        datasetSchemaVersion: publicRecord.data()?.datasetSchemaVersion,
+        metricsVersion: publicRecord.data()?.metricsVersion,
+      });
+    }
+  });
+
 
 });
