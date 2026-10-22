@@ -10,7 +10,7 @@ import {
   Smartphone, 
   Maximize2, 
   Minimize2, 
-  RefreshCw, 
+
   Trash2, 
   Check,
   Download,
@@ -19,8 +19,7 @@ import {
   Clock,
   Moon,
   Sun,
-  Activity,
-  Timer
+
 } from 'lucide-react';
 import { PulseLogo } from './brand';
 import { useSystemTheme } from '../lib/useSystemTheme';
