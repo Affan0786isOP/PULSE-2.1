@@ -132,8 +132,6 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
   });
 
   it('submits unadjusted rounded latency and null timing offsets, including a pre-stimulus false start', async () => {
-    vi.useFakeTimers();
-
     render(
       <MemoryRouter initialEntries={['/reaction-test']}>
         <ReactionTest onNavigate={vi.fn()} />
@@ -149,6 +147,9 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
     });
 
     expect(screen.getByText('Click to start')).toBeDefined();
+
+    // Start fake clocks only after the async session initialization and UI transition.
+    vi.useFakeTimers();
     const stimulusArea = screen.getByRole('button', { name: /Reaction test stimulus area/i });
 
     const pointerDownAtNow = () => {
