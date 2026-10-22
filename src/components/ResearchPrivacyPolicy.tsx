@@ -30,7 +30,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate?: (view: stri
             This policy explains how PULSE (Precision User Latency &amp; Stimulus Evaluator) handles local settings, research records, and optional public leaderboard entries, including the limits of the current removal process.
           </p>
           <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-slate-500 dark:text-slate-400 pt-1">
-            <span>Last updated: September 2026</span>
+            <span>Last updated: October 2026</span>
             <span>•</span>
             <span>Data &amp; methodology information</span>
           </div>
@@ -67,7 +67,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate?: (view: stri
                   <tr>
                     <td className="py-3 px-3 font-mono font-semibold text-emerald-600">2. Cloud Research Records</td>
                     <td className="py-3 px-3">Firestore (<code className="text-xs bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] px-1 py-0.5 rounded font-mono border border-[#BFDBFE] dark:border-slate-700">publicDataset</code>)</td>
-                    <td className="py-3 px-3">Assessment trials, response latencies, accuracy, display delay corrections, coarsened cohort (<code className="text-xs bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] px-1 py-0.5 rounded font-mono border border-[#BFDBFE] dark:border-slate-700">YYYY-MM</code>)</td>
+                    <td className="py-3 px-3">Assessment trials, unadjusted response latencies, accuracy, and coarsened cohort (<code className="text-xs bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] px-1 py-0.5 rounded font-mono border border-[#BFDBFE] dark:border-slate-700">YYYY-MM</code>)</td>
                     <td className="py-3 px-3 text-xs">Fully anonymized; no PII, IP addresses, or persistent user IDs</td>
                   </tr>
                   <tr>
@@ -92,18 +92,18 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate?: (view: stri
         <section className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <Database size={20} className="text-[#0066FF] dark:text-[#22C7D6]" />
-            <h2 className="font-heading font-bold text-xl text-[#090D1A] dark:text-white tracking-wide">Telemetry &amp; Calibration Parameters</h2>
+            <h2 className="font-heading font-bold text-xl text-[#090D1A] dark:text-white tracking-wide">Assessment Timing &amp; Telemetry</h2>
           </div>
           <div className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
             <p className="text-sm text-[#334155] dark:text-slate-300 leading-relaxed">
-              To ensure the assessments are accurate across different devices, PULSE records test scores alongside device and display settings:
+              PULSE records task responses and selected device context needed to interpret assessment results:
             </p>
             <ul className="text-sm text-[#334155] dark:text-slate-300 list-disc pl-5 space-y-2">
               <li>
                 <strong className="text-[#090D1A] dark:text-white">Cognitive Assessment Metrics:</strong> Reaction times (raw latency in milliseconds), foreperiod delay categories (e.g. short vs. long randomized preparatory intervals), directional discrimination choices, colour recognition accuracy, spatial sequence spans, and number memory spans.
               </li>
               <li>
-                <strong className="text-[#090D1A] dark:text-white">Display Calibration &amp; Timing Correction:</strong> Measured or estimated display refresh rate (Hz), frame intervals, and calibrated display delay offsets (<code className="text-xs bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] px-1 py-0.5 rounded font-mono border border-[#BFDBFE] dark:border-slate-700">displayDelayOffsetMs</code>) to account for visual delay on different screens.
+                <strong className="text-[#090D1A] dark:text-white">Live-Timer Pacing &amp; Response Timing:</strong> PULSE targets an average of approximately 60 live-timer UI updates per second using browser animation-frame timestamps. This software pacing does not force the physical display refresh rate or guarantee uniform frame intervals. Reaction latency is measured from high-resolution monotonic browser timestamps without theoretical hardware-dependent offset subtraction. PULSE no longer actively measures screen cadence; legacy <code>pulse_refresh_rate_*</code> local keys may still be cleared.
               </li>
               <li>
                 <strong className="text-[#090D1A] dark:text-white">Device &amp; Input Environment:</strong> Viewport dimensions, input modality (pointer coarse vs. fine, touch capability), and general operating system family. We do not inspect device serial numbers, MAC addresses, or persistent advertising identifiers.
