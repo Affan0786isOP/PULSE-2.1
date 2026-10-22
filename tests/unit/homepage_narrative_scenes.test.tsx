@@ -71,6 +71,32 @@ describe('PULSE homepage narrative', () => {
     expect(sceneOrder(container)).toEqual(['proof', 'assessments', 'problem', 'result', 'why-pulse', 'how-it-works', 'faq', 'final-cta', 'footer']);
   });
 
+  it('scopes baseline viewport scaling to the desktop hero, not the narrative', () => {
+    const originalWidth = window.innerWidth;
+    const originalHeight = window.innerHeight;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 768 });
+
+    let unmount: (() => void) | undefined;
+    try {
+      const rendered = render(
+        <MemoryRouter initialEntries={['/']}>
+          <Home />
+        </MemoryRouter>
+      );
+      unmount = rendered.unmount;
+      const shell = rendered.container.querySelector<HTMLElement>('[data-theme]');
+      const hero = rendered.container.querySelector<HTMLElement>('#hero');
+      expect(shell?.style.zoom ?? '').toBe('');
+      expect(hero?.style.zoom).toBe('0.8');
+      expect(hero?.style.minHeight).toContain('125dvh');
+    } finally {
+      unmount?.();
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
+      Object.defineProperty(window, 'innerHeight', { configurable: true, value: originalHeight });
+    }
+  });
+
   it('keeps the mobile hero and appends the same narrative order', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/']}>
