@@ -123,3 +123,20 @@ export function isValidAssessmentId(identifier: string | null | undefined): iden
 export function getAssessmentDefinition(id: AssessmentId): AssessmentDefinition {
   return ASSESSMENT_DEFINITIONS[id];
 }
+
+
+/**
+ * Returns the canonical in-app launch path for an assessment.
+ * Keep this map aligned with the routes registered by both app shells.
+ */
+const ASSESSMENT_LAUNCH_ROUTES: Record<AssessmentId, string> = {
+  'visual-reaction': '/reaction-test',
+  'direction': '/direction-test',
+  'color-recognition': '/colour-recognition',
+  'block-memory': '/block-memory',
+  'number-memory': '/number-memory',
+};
+
+export function getAssessmentLaunchRoute(id: AssessmentId): string {
+  return ASSESSMENT_LAUNCH_ROUTES[id];
+}

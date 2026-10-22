@@ -8,6 +8,15 @@ import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
 import { AnimatedResultCount } from './ui/AnimatedResultCount';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { PageShell } from './layout/PageShell';
+import { ProofScene } from './home/ProofScene';
+import { AssessmentsScene } from './home/AssessmentsScene';
+import { ProblemScene } from './home/ProblemScene';
+import { ResultScene } from './home/ResultScene';
+import { WhyPulseScene } from './home/WhyPulseScene';
+import { HowItWorksScene } from './home/HowItWorksScene';
+import { FAQScene } from './home/FAQScene';
+import { FinalCTAScene } from './home/FinalCTAScene';
+import { HomeFooter } from './home/HomeFooter';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -79,8 +88,9 @@ export function Home() {
       schema={HOME_SCHEMA}
       decorativeWaves="bottom"
       showFooter={false}
-      contentClassName="h-[100dvh] overflow-x-hidden justify-center px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 pb-4 sm:pb-6"
+      contentClassName="min-h-[100dvh] overflow-x-hidden px-6 sm:px-8 xl:px-14 min-[2560px]:px-20 pb-4 sm:pb-6"
     >
+      <section id="hero" aria-label="PULSE homepage hero" className="min-h-[100dvh] w-full flex items-center justify-center">
       <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
         {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
         <section aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[2560px]:max-w-[580px]">
@@ -182,6 +192,16 @@ export function Home() {
           <AssessmentHero3D />
         </section>
         </div>
+      </section>
+      <ProofScene />
+      <AssessmentsScene />
+      <ProblemScene />
+      <ResultScene />
+      <WhyPulseScene />
+      <HowItWorksScene />
+      <FAQScene />
+      <FinalCTAScene />
+      <HomeFooter />
     </PageShell>
   );
 }

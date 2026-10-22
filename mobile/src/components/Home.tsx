@@ -4,6 +4,15 @@ import { usePwaInstall } from '../lib/usePwaInstall';
 import { isMobileWelcomeSeen } from '../lib/welcomeStore';
 import { SEO } from './SEO';
 import { MobileHero } from './hero/MobileHero';
+import { MobileProofScene } from './home/MobileProofScene';
+import { MobileAssessmentsScene } from './home/MobileAssessmentsScene';
+import { MobileProblemScene } from './home/MobileProblemScene';
+import { MobileResultScene } from './home/MobileResultScene';
+import { MobileWhyPulseScene } from './home/MobileWhyPulseScene';
+import { MobileHowItWorksScene } from './home/MobileHowItWorksScene';
+import { MobileFAQScene } from './home/MobileFAQScene';
+import { MobileFinalCTAScene } from './home/MobileFinalCTAScene';
+import { MobileHomeFooter } from './home/MobileHomeFooter';
 
 const HOME_SCHEMA = {
   "@context": "https://schema.org",
@@ -64,13 +73,24 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
         schema={HOME_SCHEMA}
       />
 
-      {/* Complete Light Mobile Hero */}
-      <MobileHero 
-        onOpenMenu={() => setIsSettingsOpen(true)}
-        pwaInstallable={pwa.isInstallable}
-        onPromptInstall={() => pwa.promptInstall()}
-        onExploreTests={() => navigate('/assessments')}
-      />
+      {/* Existing mobile hero is retained intact; the wrapper supplies the #hero anchor. */}
+      <div id="hero" className="w-full">
+        <MobileHero 
+          onOpenMenu={() => setIsSettingsOpen(true)}
+          pwaInstallable={pwa.isInstallable}
+          onPromptInstall={() => pwa.promptInstall()}
+          onExploreTests={() => navigate('/assessments')}
+        />
+      </div>
+      <MobileProofScene />
+      <MobileAssessmentsScene />
+      <MobileProblemScene />
+      <MobileResultScene />
+      <MobileWhyPulseScene />
+      <MobileHowItWorksScene />
+      <MobileFAQScene />
+      <MobileFinalCTAScene />
+      <MobileHomeFooter />
 
       {/* Modals Container */}
       <Suspense fallback={null}>
