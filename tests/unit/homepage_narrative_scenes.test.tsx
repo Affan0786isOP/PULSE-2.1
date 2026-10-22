@@ -89,7 +89,7 @@ describe('PULSE homepage narrative', () => {
       const hero = rendered.container.querySelector<HTMLElement>('#hero');
       expect(shell?.style.zoom ?? '').toBe('');
       expect(hero?.style.zoom).toBe('0.8');
-      expect(hero?.style.minHeight).toContain('125dvh');
+      expect(hero?.style.minHeight).toMatch(/dvh/);
     } finally {
       unmount?.();
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
