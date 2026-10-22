@@ -146,7 +146,9 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       await Promise.resolve();
     });
 
-    expect(screen.getByText('Click to start')).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByText('Click to start')).toBeDefined();
+    }, { timeout: 5000 });
 
     // Start fake clocks only after the async session initialization and UI transition.
     vi.useFakeTimers();
