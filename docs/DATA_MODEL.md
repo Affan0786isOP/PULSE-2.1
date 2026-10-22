@@ -74,9 +74,9 @@ interface AssessmentTrialDoc {
   trialNumber: number;         // 1-indexed trial number
   stimulusTimestamp: number | null; // performance.now() epoch mark
   responseTimestamp: number | null; // performance.now() epoch mark
-  reactionTime: number | null; // Calculated latency in milliseconds
-  rawReactionTime?: number;    // Uncorrected hardware latency
-  displayDelayOffsetMs?: number; // Hardware frame delay offset
+  reactionTime: number | null; // Browser-measured latency in milliseconds; unadjusted in v1.1.0
+  rawReactionTime?: number | null; // Raw browser-measured latency; matches reactionTime in v1.1.0
+  displayDelayOffsetMs?: number | null; // Legacy offset metadata; null for new v1.1.0 observations
   accuracy: number;            // 1 (correct) or 0 (incorrect)
   falseStart: boolean;         // True if clicked before stimulus or < 80ms
   timedOut?: boolean;          // True if response exceeded 3000ms
@@ -187,3 +187,10 @@ flowchart LR
     HMAC --> Split2[Anonymize & Write publicDataset]
     HMAC --> Split3[If Opted-In: Write leaderboardResults]
 ```
+
+
+## 5. Response Latency and Version Metadata
+
+For `visual-reaction`, `direction`, and `color-recognition`, new submissions use protocol and metrics version `v1.1.0`. Both `reactionTime` and the raw-latency field represent the browser-measured stimulus-to-response interval rounded to two decimal places. New observations do not subtract theoretical display half-frame offsets and use null for legacy `displayDelayOffsetMs`, `displayDelayOffsetEstimated`, and `displayDelayOffsetSource` metadata. Pre-stimulus false starts and timeouts without a measured response interval store null latency; post-stimulus responses below the 80 ms physiological floor retain their measured interval but are marked anticipatory/invalid.
+
+The schema and assessment version metadata remain `v1.0.0` for all five assessment types. Only the protocol and metrics versions of the three raw-latency assessments advance to `v1.1.0`; `block-memory` and `number-memory` remain `v1.0.0`. Historical records and their canonical provenance digest normalization are preserved. A new record with different normalized fields (such as null rather than a numeric historical offset) correctly has a different digest.
