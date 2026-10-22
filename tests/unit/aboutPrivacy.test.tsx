@@ -71,7 +71,9 @@ describe('About and Privacy Light Design System Migration', () => {
 
       expect(screen.getByText('Research Privacy Policy')).toBeDefined();
       expect(screen.getByText(/Data Architecture & Classification/i)).toBeDefined();
-      expect(screen.getByText(/Telemetry & Calibration Parameters/i)).toBeDefined();
+      expect(screen.getByText(/Assessment Timing & Telemetry/i)).toBeDefined();
+      expect(screen.getByText(/average of approximately 60 live-timer UI updates per second/i)).toBeDefined();
+      expect(screen.queryByText(/Display Calibration & Timing Correction/i)).toBeNull();
       expect(screen.getByText(/Anonymization & Authentication Boundary/i)).toBeDefined();
       expect(screen.getByText(/Age Cohorts & Minor Safeguards/i)).toBeDefined();
 
