@@ -8,21 +8,9 @@ import {
   resetSettingsToDefaults,
   isReducedMotionActive,
 } from '../../src/lib/settingsStore';
-import * as refreshDetector from '../../src/lib/refreshRateDetector';
 
 // Mock dependencies
-const mockRefreshInfo = {
-  hz: 120,
-  displayDelayOffsetMs: 4.17,
-  source: 'measured' as const,
-  status: 'ready' as const,
-  error: null,
-};
-
-vi.mock('../../src/lib/useRefreshRate', () => ({
-  useRefreshRate: () => mockRefreshInfo,
-}));
-
+// Mock dependencies
 const mockPwa = {
   isInstalled: false,
   isGuideOpen: false,
@@ -75,7 +63,7 @@ describe('SettingsModal Component & Functional Audit', () => {
       // Switch to System tab
       const systemTabBtn = screen.getByRole('button', { name: /System/i });
       fireEvent.click(systemTabBtn);
-      expect(screen.getByText('DISPLAY FRAME TIMING')).toBeDefined();
+      expect(screen.queryByText('DISPLAY FRAME TIMING')).toBeNull();
       expect(screen.getByText('Reduced Motion')).toBeDefined();
       expect(screen.getByText('Exhibition Kiosk Mode')).toBeDefined();
       expect(screen.getByText('Clear Local Cache')).toBeDefined();
@@ -179,36 +167,18 @@ describe('SettingsModal Component & Functional Audit', () => {
     });
   });
 
-  // 5. Recalibration and Display Timing
-  describe('Display Timing & Recalibration', () => {
-    it('renders truthful measured refresh rate and calculated midpoint', () => {
+  // 5. System tab no longer exposes hardware calibration.
+  describe('System settings', () => {
+    it('keeps accessibility controls and removes refresh-rate calibration UI', () => {
       render(<SettingsModal isOpen={true} onClose={vi.fn()} />);
       fireEvent.click(screen.getByRole('button', { name: /System/i }));
 
-      expect(screen.getByText('120 Hz')).toBeDefined();
-      expect(screen.getByText('Measured cadence')).toBeDefined();
-      expect(screen.getByText('~4.17 ms')).toBeDefined();
-      expect(screen.getByText('Theoretical midpoint')).toBeDefined();
-    });
-
-    it('triggers detectRefreshRate on Recalibrate button click', async () => {
-      const detectSpy = vi.spyOn(refreshDetector, 'detectRefreshRate').mockResolvedValue({
-        hz: 144,
-        frameTimeMs: 6.94,
-        source: 'measured',
-        status: 'ready',
-        isEstimated: false,
-        displayDelayOffsetMs: 3.47,
-      });
-
-      render(<SettingsModal isOpen={true} onClose={vi.fn()} />);
-      fireEvent.click(screen.getByRole('button', { name: /System/i }));
-
-      const recalibrateBtn = screen.getByRole('button', { name: /Recalibrate/i });
-      fireEvent.click(recalibrateBtn);
-
-      expect(detectSpy).toHaveBeenCalledWith(true);
-      detectSpy.mockRestore();
+      expect(screen.getByText('Reduced Motion')).toBeDefined();
+      expect(screen.getByText('Exhibition Kiosk Mode')).toBeDefined();
+      expect(screen.getByText('Clear Local Cache')).toBeDefined();
+      expect(screen.queryByText(/DISPLAY FRAME TIMING|Display Frame Timing/i)).toBeNull();
+      expect(screen.queryByRole('button', { name: /Recalibrate/i })).toBeNull();
+      expect(screen.queryByText(/Display Refresh Rate|Estimated Display Midpoint|Theoretical midpoint/i)).toBeNull();
     });
   });
 
