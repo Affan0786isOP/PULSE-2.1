@@ -815,7 +815,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             {/* Footer */}
             <div className="px-5 py-2.5 border-t border-[var(--border-subtle)] bg-[var(--surface-1)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)] shrink-0">
               <span>PULSE Latency Engine</span>
-              <span className="text-[var(--accent)]">Precision Calibration</span>
+              <span className="text-[var(--accent)]">Precision Timing</span>
             </div>
 
           </motion.div>
