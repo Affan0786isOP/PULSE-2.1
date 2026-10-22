@@ -10,7 +10,7 @@ import {
   Smartphone, 
   Maximize2, 
   Minimize2, 
-  RefreshCw, 
+
   Trash2, 
   Check,
   Download,
@@ -720,7 +720,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </motion.div>
               )}
 
-              {/* TAB 3: CALIBRATION & SYSTEM */}
+              {/* TAB 3: SYSTEM */}
               {activeTab === 'system' && (
                 <motion.div 
                   initial={{ opacity: 0 }}
