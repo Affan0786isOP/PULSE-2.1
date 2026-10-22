@@ -37,8 +37,8 @@ describe('SEO Shell Generator Output Verification', () => {
     {
       file: 'seo/assessments.html',
       mobileFile: 'seo/mobile/assessments.html',
-      expectedTitlePart: 'Assessments',
-      expectedHeading: 'Assessments',
+      expectedTitlePart: 'Cognitive Tests for Reaction Time &amp; Memory | PULSE',
+      expectedHeading: 'Cognitive Tests for Reaction Time &amp; Memory',
       expectedFragment: 'PULSE'
     },
     {
@@ -165,7 +165,7 @@ describe('SEO Shell Generator Output Verification', () => {
 
   it('generates root entry metadata and schema from the shared SEO registry', () => {
     const rootHtml = fs.readFileSync(path.join(distDir, 'index.html'), 'utf8');
-    expect(rootHtml).toContain(`<title>${metadata.routes['/'].title}</title>`);
+    expect(rootHtml).toContain(`<title>${metadata.routes['/'].title.replaceAll('&', '&amp;')}</title>`);
     expect(rootHtml.match(/<link rel="canonical"/g)?.length).toBe(1);
     expect(rootHtml).toContain('name="twitter:url" content="https://pulse-lab.in/"');
 
@@ -175,7 +175,7 @@ describe('SEO Shell Generator Output Verification', () => {
     expect(schema['@graph'].map((node: { '@type': string }) => node['@type'])).toContain('SoftwareApplication');
 
     const mobileRoot = fs.readFileSync(path.join(distDir, 'mobile', 'index.html'), 'utf8');
-    expect(mobileRoot).toContain(`<title>${metadata.routes['/'].title}</title>`);
+    expect(mobileRoot).toContain(`<title>${metadata.routes['/'].title.replaceAll('&', '&amp;')}</title>`);
     expect(mobileRoot).toContain('link rel="canonical" href="https://pulse-lab.in"');
     expect(mobileRoot).not.toContain('rel="alternate" media="only screen and (max-width: 768px)"');
     expect(mobileRoot).toContain('name="twitter:url" content="https://pulse-lab.in/"');
