@@ -69,15 +69,13 @@ export function applyAppTheme(pathname?: string, mode?: ThemeMode): 'dark' | 'li
     meta.setAttribute('content', activeTheme === 'dark' ? (isDarkApparatus ? '#12161B' : '#0B0D10') : '#FFFFFF');
   }
 
-  // Swap SVG favicon to match active theme
+  // Swap SVG favicon to match active theme (cache-busted so browser re-fetches)
   const svgFavicon = document.querySelector<HTMLLinkElement>('link[rel="icon"][type="image/svg+xml"]');
   if (svgFavicon) {
+    const targetFile = activeTheme === 'light' ? 'favicon-light.svg' : 'favicon.svg';
     const currentHref = svgFavicon.getAttribute('href') ?? '';
     const base = currentHref.replace(/favicon(-light)?\.svg(\?.*)?$/, '');
-    const targetFavicon = activeTheme === 'light' ? `${base}favicon-light.svg` : `${base}favicon.svg`;
-    if (svgFavicon.getAttribute('href') !== targetFavicon) {
-      svgFavicon.setAttribute('href', targetFavicon);
-    }
+    svgFavicon.setAttribute('href', `${base}${targetFile}?v=${activeTheme}`);
   }
 
   return activeTheme;
