@@ -314,7 +314,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     // the method was processing a different assessment.
     await db.runTransaction(async tx => {
       const snapshots = [];
-      for (const { ref } of ownerIndexRefs) snapshots.push(await tx.get(ref));
+      if (ownerIndexRefs.length > 0) snapshots.push(...await tx.getAll(...ownerIndexRefs.map(r => r.ref)));
       if (snapshots.some(snap => snap.data()?.deleting === true)) {
         throw new Error('OWNER_ERASURE_IN_PROGRESS');
       }
@@ -359,7 +359,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     } finally {
       await db.runTransaction(async tx => {
         const snapshots = [];
-        for (const { ref } of ownerIndexRefs) snapshots.push(await tx.get(ref));
+        if (ownerIndexRefs.length > 0) snapshots.push(...await tx.getAll(...ownerIndexRefs.map(r => r.ref)));
         ownerIndexRefs.forEach(({ type, ref }, idx) => {
           const data = snapshots[idx].data();
           if (data?.ownerUid === ownerUid && data?.assessmentType === type) {
