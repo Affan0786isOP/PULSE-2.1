@@ -216,7 +216,7 @@ export class LeaderboardAppService implements ILeaderboardService {
     } else {
       // Best-effort migration of all legacy rows linked from server-owned sessions
       // before applying the erasure across all five canonical assessments.
-      for (const type of VALID_ASSESSMENT_TYPES) await this.backfillLegacyOwnership(userId, type);
+      await Promise.all(VALID_ASSESSMENT_TYPES.map(type => this.backfillLegacyOwnership(userId, type)));
     }
 
     try {
