@@ -86,19 +86,52 @@ export class LeaderboardAppService implements ILeaderboardService {
   }
 
   private async backfillLegacyOwnership(userId: string, assessmentType: string): Promise<void> {
-    if (!this.leaderboardRepo.linkOwnerToEntry) return;
+    const linkOwnerToEntry = this.leaderboardRepo.linkOwnerToEntry;
+    if (!linkOwnerToEntry) return;
 
     // Earlier row documents did not store an owner, but the authoritative
-    // session still records both uid and leaderboardDocId. Backfill only from
-    // that server-written pairing, and never overwrite a different owner.
+    // session still records the server-written leaderboardDocId pairing.
     const sessions = await this.sessionRepo.findUserConsumedSessions(userId, assessmentType);
+    const candidatesByEntry = new Map<string, ExperimentSessionRecord[]>();
+
     for (const session of sessions) {
-      if (!session.leaderboardDocId) continue;
+      const entryId = typeof session.leaderboardDocId === 'string' ? session.leaderboardDocId : '';
+      if (!entryId.trim()) continue;
+
       // A weaker/tied submission points at the retained best row, not a row
-      // created by this session. Do not let legacy ownership backfill rewrite
-      // the original best entry's source session using that pointer.
-      if (session.leaderboardSubmissionId && session.leaderboardSubmissionId !== session.leaderboardDocId) continue;
-      await this.leaderboardRepo.linkOwnerToEntry(session.leaderboardDocId, userId, session.sessionId);
+      // created by this session. Do not claim that row for the weaker attempt.
+      if (session.leaderboardSubmissionId && session.leaderboardSubmissionId !== entryId) continue;
+
+      const candidates = candidatesByEntry.get(entryId) || [];
+      candidates.push(session);
+      candidatesByEntry.set(entryId, candidates);
+    }
+
+    const jobs: Array<{ entryId: string; sessionId: string }> = [];
+    for (const [entryId, candidates] of candidatesByEntry) {
+      // Prefer the uniquely attested source session when one exists. If old
+      // records leave multiple sessions pointing at one row without an
+      // attestation, the source is ambiguous; skip it rather than racing writes
+      // to private metadata and nondeterministically replacing sessionId.
+      const attested = candidates.filter(session => session.leaderboardSubmissionId === entryId);
+      const source = attested.length === 1
+        ? attested[0]
+        : attested.length === 0 && candidates.length === 1
+          ? candidates[0]
+          : null;
+      if (source) jobs.push({ entryId, sessionId: source.sessionId });
+    }
+
+    // Bound concurrent Firestore transactions so legacy accounts with many
+    // sessions cannot create an unbounded request burst. The all-assessment
+    // deletion path also processes assessment types sequentially, keeping this
+    // cap meaningful across the full erasure workflow.
+    const concurrencyLimit = 5;
+    for (let offset = 0; offset < jobs.length; offset += concurrencyLimit) {
+      const batch = jobs.slice(offset, offset + concurrencyLimit);
+      await Promise.all(batch.map(job =>
+        linkOwnerToEntry.call(this.leaderboardRepo, job.entryId, userId, job.sessionId)
+      ));
     }
   }
 
