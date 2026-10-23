@@ -313,8 +313,9 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     // the gap where an all-assessment erasure could miss a new row created while
     // the method was processing a different assessment.
     await db.runTransaction(async tx => {
-      const snapshots = [];
-      for (const { ref } of ownerIndexRefs) snapshots.push(await tx.get(ref));
+      const snapshots = ownerIndexRefs.length > 0
+        ? await tx.getAll(...ownerIndexRefs.map(r => r.ref))
+        : [];
       if (snapshots.some(snap => snap.data()?.deleting === true)) {
         throw new Error('OWNER_ERASURE_IN_PROGRESS');
       }
@@ -358,8 +359,9 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
       return idsToDelete.length;
     } finally {
       await db.runTransaction(async tx => {
-        const snapshots = [];
-        for (const { ref } of ownerIndexRefs) snapshots.push(await tx.get(ref));
+        const snapshots = ownerIndexRefs.length > 0
+          ? await tx.getAll(...ownerIndexRefs.map(r => r.ref))
+          : [];
         ownerIndexRefs.forEach(({ type, ref }, idx) => {
           const data = snapshots[idx].data();
           if (data?.ownerUid === ownerUid && data?.assessmentType === type) {
