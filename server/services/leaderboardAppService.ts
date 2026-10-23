@@ -92,14 +92,15 @@ export class LeaderboardAppService implements ILeaderboardService {
     // session still records both uid and leaderboardDocId. Backfill only from
     // that server-written pairing, and never overwrite a different owner.
     const sessions = await this.sessionRepo.findUserConsumedSessions(userId, assessmentType);
-    for (const session of sessions) {
-      if (!session.leaderboardDocId) continue;
+    const promises = sessions.map(async (session) => {
+      if (!session.leaderboardDocId) return;
       // A weaker/tied submission points at the retained best row, not a row
       // created by this session. Do not let legacy ownership backfill rewrite
       // the original best entry's source session using that pointer.
-      if (session.leaderboardSubmissionId && session.leaderboardSubmissionId !== session.leaderboardDocId) continue;
-      await this.leaderboardRepo.linkOwnerToEntry(session.leaderboardDocId, userId, session.sessionId);
-    }
+      if (session.leaderboardSubmissionId && session.leaderboardSubmissionId !== session.leaderboardDocId) return;
+      await this.leaderboardRepo.linkOwnerToEntry!(session.leaderboardDocId, userId, session.sessionId);
+    });
+    await Promise.all(promises);
   }
 
   async getMyLeaderboardRank(userId: string, assessmentType: string): Promise<{
