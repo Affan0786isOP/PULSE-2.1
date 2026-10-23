@@ -142,6 +142,100 @@ describe('Server Application Services Unit Tests', () => {
     expect(entries[0].displayName).toBe('Alice');
     expect(entries[0].scoreMetric).toBe(205);
   });
+  it('backfills each legacy leaderboard entry once and skips ambiguous source sessions', async () => {
+    const makeSession = (
+      sessionId: string,
+      leaderboardDocId: string,
+      leaderboardSubmissionId?: string
+    ): ExperimentSessionRecord => ({
+      sessionId,
+      uid: 'backfill-user',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Adults (26–40)',
+      createdAt: 1,
+      expiresAt: 10_000,
+      consumed: true,
+      leaderboardDocId,
+      ...(leaderboardSubmissionId ? { leaderboardSubmissionId } : {})
+    });
+    const sessions = [
+      makeSession('ambiguous-a', 'entry-ambiguous'),
+      makeSession('ambiguous-b', 'entry-ambiguous'),
+      makeSession('unattested-duplicate', 'entry-attested'),
+      makeSession('source-attested', 'entry-attested', 'entry-attested'),
+      makeSession('single-legacy-source', 'entry-legacy'),
+      // A weaker/tied attempt must not be used as the retained row's source.
+      makeSession('weaker-attempt', 'entry-legacy', 'different-attempt')
+    ];
+    const mockSessionRepo: ISessionRepository = {
+      findById: vi.fn(async () => null),
+      create: vi.fn(async r => r as ExperimentSessionRecord),
+      findUserConsumedSessions: vi.fn(async () => sessions)
+    };
+    const linkOwnerToEntry = vi.fn(async () => true);
+    const deleteEntriesByOwner = vi.fn(async () => 0);
+    const mockLbRepo = {
+      linkOwnerToEntry,
+      deleteEntriesByOwner
+    } as unknown as ILeaderboardRepository;
+    const service = new LeaderboardAppService(
+      mockSessionRepo,
+      mockLbRepo,
+      {} as ILeaderboardSubmissionRepository
+    );
+
+    await expect(service.deleteMyLeaderboardEntries('backfill-user', 'visual-reaction'))
+      .resolves.toEqual({ deletedCount: 0 });
+
+    expect(linkOwnerToEntry).toHaveBeenCalledTimes(2);
+    expect(linkOwnerToEntry).toHaveBeenCalledWith('entry-attested', 'backfill-user', 'source-attested');
+    expect(linkOwnerToEntry).toHaveBeenCalledWith('entry-legacy', 'backfill-user', 'single-legacy-source');
+    expect(deleteEntriesByOwner).toHaveBeenCalledWith('backfill-user', 'visual-reaction');
+  });
+
+  it('bounds concurrent legacy ownership-link transactions', async () => {
+    const sessions: ExperimentSessionRecord[] = Array.from({ length: 12 }, (_, index) => ({
+      sessionId: `session-${index}`,
+      uid: 'backfill-user',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Adults (26–40)',
+      createdAt: index + 1,
+      expiresAt: 10_000,
+      consumed: true,
+      leaderboardDocId: `entry-${index}`
+    }));
+    const mockSessionRepo: ISessionRepository = {
+      findById: vi.fn(async () => null),
+      create: vi.fn(async r => r as ExperimentSessionRecord),
+      findUserConsumedSessions: vi.fn(async () => sessions)
+    };
+    let active = 0;
+    let maximumActive = 0;
+    const linkOwnerToEntry = vi.fn(async () => {
+      active += 1;
+      maximumActive = Math.max(maximumActive, active);
+      await new Promise(resolve => setTimeout(resolve, 1));
+      active -= 1;
+      return true;
+    });
+    const deleteEntriesByOwner = vi.fn(async () => sessions.length);
+    const mockLbRepo = {
+      linkOwnerToEntry,
+      deleteEntriesByOwner
+    } as unknown as ILeaderboardRepository;
+    const service = new LeaderboardAppService(
+      mockSessionRepo,
+      mockLbRepo,
+      {} as ILeaderboardSubmissionRepository
+    );
+
+    await service.deleteMyLeaderboardEntries('backfill-user', 'visual-reaction');
+
+    expect(linkOwnerToEntry).toHaveBeenCalledTimes(12);
+    expect(maximumActive).toBe(5);
+    expect(active).toBe(0);
+  });
+
   it('rejects missing or unknown protocol and distinguishes total query failure from an empty board', async () => {
     const emptyRepo = {
       getEntriesByAlias: vi.fn(async () => []),
