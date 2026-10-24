@@ -56,9 +56,9 @@ describe('Desktop Home Redesign', () => {
   it('renders the top navigation bar with brand, routes, Info, and Settings controls', () => {
     renderHome();
     expect(screen.getByRole('link', { name: /pulse home/i })).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Assessments' })).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Leaderboard' })).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Dataset' })).toBeDefined();
+    expect(screen.getAllByRole('link', { name: 'Assessments' })[0]).toBeDefined();
+    expect(screen.getAllByRole('link', { name: 'Leaderboard' })[0]).toBeDefined();
+    expect(screen.getAllByRole('link', { name: 'Dataset' })[0]).toBeDefined();
     expect(screen.getByRole('link', { name: 'Analytics' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'About' })).toBeDefined();
     expect(screen.getByRole('button', { name: /platform information/i })).toBeDefined();
