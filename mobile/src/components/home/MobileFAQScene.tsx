@@ -28,7 +28,7 @@ export function MobileFAQScene({ onNavigate }: MobileFAQSceneProps) {
       question: 'What is PULSE?',
       answer: (
         <p>
-          PULSE is an open behavioral testing framework providing standardized cognitive reaction and memory assessments directly in web browsers. It is designed for personal benchmarking, performance tracking, and open observational datasets.
+          PULSE offers short browser-based tasks for reaction speed, choice, colour recognition, and memory. No account is required.
         </p>
       ),
     },
@@ -37,7 +37,7 @@ export function MobileFAQScene({ onNavigate }: MobileFAQSceneProps) {
       question: 'What do the assessments measure?',
       answer: (
         <p>
-          The suite evaluates specific behavioral tasks including visual reaction latency, directional choice discrimination, inhibitory conflict control, and visual/numerical working memory spans.
+          Each task measures a specific response or memory skill. Results are descriptive and can vary by device and conditions.
         </p>
       ),
     },
@@ -46,7 +46,7 @@ export function MobileFAQScene({ onNavigate }: MobileFAQSceneProps) {
       question: 'How are my results presented?',
       answer: (
         <p>
-          Results are presented as task-specific descriptive performance metrics, including mean reaction time, sample median, standard deviation, and consistency ratios computed locally at the end of each session.
+          You’ll see task-specific statistics such as mean, median, and variability. The sample values on this page are illustrative.
         </p>
       ),
     },
@@ -55,7 +55,7 @@ export function MobileFAQScene({ onNavigate }: MobileFAQSceneProps) {
       question: 'Is PULSE a medical or diagnostic test?',
       answer: (
         <p>
-          No. PULSE is not a medical device, diagnostic test, clinical tool, or IQ assessment. It provides observational software benchmarking and does not replace medical consultation or certified neurological evaluation.
+          No. PULSE is not a medical, diagnostic, or IQ test.
         </p>
       ),
     },
@@ -64,7 +64,7 @@ export function MobileFAQScene({ onNavigate }: MobileFAQSceneProps) {
       question: 'How does PULSE handle research and privacy?',
       answer: (
         <p>
-          Assessment results are presented in the browser, while submitted assessment data is validated and processed by PULSE&apos;s research backend. For full disclosures, review our{' '}
+          You can view results in the browser. Sending data to the research dataset or leaderboard is optional. For details, review our{' '}
           <button 
             type="button"
             onClick={() => onNavigate ? onNavigate('privacy') : undefined}
@@ -109,7 +109,7 @@ export function MobileFAQScene({ onNavigate }: MobileFAQSceneProps) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.1 }}
         >
-          Key details on assessment mechanics, measurement scope, and privacy.
+          Quick answers about tests, results, and privacy.
         </motion.p>
       </div>
 

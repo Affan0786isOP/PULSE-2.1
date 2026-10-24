@@ -16,7 +16,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: 'What is PULSE?',
     answer: (
       <p>
-        PULSE is an open behavioral testing framework providing standardized cognitive reaction and memory assessments directly in web browsers. It is designed for personal benchmarking, performance tracking, and open observational datasets.
+        PULSE offers short browser-based tasks for reaction speed, choice, colour recognition, and memory. No account is required.
       </p>
     ),
   },
@@ -25,7 +25,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: 'What do the assessments measure?',
     answer: (
       <p>
-        The suite evaluates specific behavioral tasks including simple visual reaction latency, directional choice discrimination, inhibitory conflict control (color-word interference), and serial visual/numerical working memory spans.
+        Each task measures a specific response or memory skill. Results are descriptive and can vary by device and conditions.
       </p>
     ),
   },
@@ -34,7 +34,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: 'How are my results presented?',
     answer: (
       <p>
-        Results are presented as task-specific descriptive performance metrics, including mean reaction time, sample median, standard deviation, and consistency ratios computed locally at the end of each session.
+        You’ll see task-specific statistics such as mean, median, and variability. The sample values on this page are illustrative.
       </p>
     ),
   },
@@ -43,7 +43,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: 'Is PULSE a medical or diagnostic test?',
     answer: (
       <p>
-        No. PULSE is not a medical device, diagnostic test, clinical tool, or IQ assessment. It provides observational software benchmarking and does not replace medical consultation, laboratory tachistoscopes, or certified neurological examinations.
+        No. PULSE is not a medical, diagnostic, or IQ test.
       </p>
     ),
   },
@@ -52,7 +52,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: 'How does PULSE handle research and privacy?',
     answer: (
       <p>
-        Assessment results are presented in the browser, while submitted assessment data is validated and processed by PULSE&apos;s research backend. For full disclosures regarding telemetry, data storage, and observational dataset handling, please review our{' '}
+        You can view results in the browser. Sending data to the research dataset or leaderboard is optional. For details, read our{' '}
         <Link to="/privacy" className="text-[#0066FF] dark:text-[#22C7D6] underline underline-offset-2 hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]">
           Research Privacy Policy
         </Link>.
@@ -103,7 +103,7 @@ export function FAQScene() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.12 }}
           >
-            Essential information regarding assessment mechanics, measurement boundaries, and privacy practices.
+            Quick answers about tests, results, and privacy.
           </motion.p>
         </div>
 

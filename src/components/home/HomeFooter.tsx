@@ -23,7 +23,7 @@ export function HomeFooter() {
           </div>
 
           <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm mb-6">
-            A standardized behavioral testing suite implementing client-side cognitive reaction and memory benchmarking with transparent methodology.
+            Short browser-based behavioral tests for personal tracking and open research.
           </p>
 
           <span className="text-xs font-mono text-slate-400 dark:text-slate-500">
@@ -80,10 +80,10 @@ export function HomeFooter() {
           <ul className="space-y-2.5 text-sm">
             <li>
               <a 
-                href="#proof" 
+                href="#problem" 
                 className="text-slate-600 dark:text-slate-400 hover:text-[#0066FF] dark:hover:text-[#22C7D6] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded"
               >
-                Proof & Pipeline
+                Measurement
               </a>
             </li>
             <li>
@@ -96,18 +96,18 @@ export function HomeFooter() {
             </li>
             <li>
               <a 
-                href="#why-pulse" 
+                href="#problem" 
                 className="text-slate-600 dark:text-slate-400 hover:text-[#0066FF] dark:hover:text-[#22C7D6] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded"
               >
-                Why PULSE
+                How it works
               </a>
             </li>
             <li>
               <a 
-                href="#how-it-works" 
+                href="#result" 
                 className="text-slate-600 dark:text-slate-400 hover:text-[#0066FF] dark:hover:text-[#22C7D6] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded"
               >
-                How It Works
+                Results & Limits
               </a>
             </li>
             <li>

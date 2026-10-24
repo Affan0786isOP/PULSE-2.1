@@ -53,12 +53,12 @@ export function MobileFinalCTAScene({ onNavigate }: MobileFinalCTASceneProps) {
       </motion.h2>
 
       <motion.p 
-        className="text-[var(--text-secondary)] text-xs leading-relaxed max-w-xs mx-auto mb-6"
+        className="text-[var(--text-secondary)] text-xs leading-relaxed max-w-xs mx-auto mb-4"
         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.1 }}
       >
-        Begin with the visual reaction latency protocol or browse the full catalog of five cognitive instruments.
+        Free to try. No account required.
       </motion.p>
 
       <div className="flex flex-col gap-3">

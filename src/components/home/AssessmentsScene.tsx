@@ -19,7 +19,7 @@ export function AssessmentsScene() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <span>[ SUITE // CANONICAL PROTOCOLS ]</span>
+          <span>[ 5 QUICK TESTS ]</span>
         </motion.div>
 
         <motion.h2 
@@ -28,7 +28,7 @@ export function AssessmentsScene() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.06 }}
         >
-          Standardized Cognitive Assessments
+          Explore the five tests
         </motion.h2>
 
         <motion.p 
@@ -37,8 +37,7 @@ export function AssessmentsScene() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.12 }}
         >
-          Five behavioral instruments evaluating visual reaction latency, directional choice discrimination, 
-          semantic conflict, and visuospatial working memory. Select any protocol to review metrics and begin evaluation.
+          Try short tasks for reaction speed, direction, colour recognition, and memory. Pick a test to get started.
         </motion.p>
       </div>
 

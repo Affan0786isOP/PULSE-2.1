@@ -15,15 +15,15 @@ test.describe('Home Page', () => {
   test('loads and displays branding', async ({ page, isMobile }) => {
     await page.goto('/');
     if (!isMobile) {
-      await expect(page.getByText('PRECISION COGNITIVE BENCHMARKING', { exact: false }).first()).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Measure.*your mind/i })).toBeVisible();
       await expect(page).toHaveURL(/.*\/$/);
-      const scene2 = page.getByRole('heading', { name: /PULSE TURNS HUMAN RESPONSE/i });
+      const scene2 = page.getByRole('heading', { name: /Explore the five tests/i });
       await scene2.scrollIntoViewIfNeeded();
       await expect(scene2).toBeVisible();
     } else {
       await page.waitForURL(/\/mobile\/?/);
-      await expect(page.getByText('Precision cognitive benchmarking.', { exact: true })).toBeVisible();
-      const scene2 = page.getByRole('heading', { name: /PULSE TURNS HUMAN RESPONSE/i });
+      await expect(page.getByRole('heading', { name: /Measure.*your mind/i })).toBeVisible();
+      const scene2 = page.getByRole('heading', { name: /Explore the tests/i });
       await scene2.scrollIntoViewIfNeeded();
       await expect(scene2).toBeVisible();
     }

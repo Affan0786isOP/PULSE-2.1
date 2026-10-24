@@ -10,12 +10,9 @@ import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { PageShell } from './layout/PageShell';
 
 // Narrative Scenes below the fold
-import { ProofScene } from './home/ProofScene';
 import { AssessmentsScene } from './home/AssessmentsScene';
 import { ProblemScene } from './home/ProblemScene';
 import { ResultScene } from './home/ResultScene';
-import { WhyPulseScene } from './home/WhyPulseScene';
-import { HowItWorksScene } from './home/HowItWorksScene';
 import { FAQScene } from './home/FAQScene';
 import { FinalCTAScene } from './home/FinalCTAScene';
 import { HomeFooter } from './home/HomeFooter';
@@ -29,7 +26,7 @@ const HOME_SCHEMA = {
       "url": "https://pulse-lab.in/",
       "name": "PULSE",
       "alternateName": "Precision User Latency & Stimulus Evaluator",
-      "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing."
+      "description": "A browser-based set of short behavioral tests for reaction speed, choice response, colour recognition, and memory. Results are descriptive, not diagnostic."
     },
     {
       "@type": "Organization",
@@ -48,7 +45,7 @@ const HOME_SCHEMA = {
       "@type": "SoftwareApplication",
       "@id": "https://pulse-lab.in/#software",
       "name": "PULSE",
-      "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.",
+      "description": "A browser-based set of short behavioral tests for reaction speed, choice response, colour recognition, and memory. Results are descriptive, not diagnostic.",
       "url": "https://pulse-lab.in/",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
@@ -71,7 +68,7 @@ const HOME_SCHEMA = {
       "@id": "https://pulse-lab.in/#webpage",
       "url": "https://pulse-lab.in/",
       "name": "PULSE — Precision User Latency & Stimulus Evaluator",
-      "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.",
+      "description": "A browser-based set of short behavioral tests for reaction speed, choice response, colour recognition, and memory. Results are descriptive, not diagnostic.",
       "image": "https://pulse-lab.in/og-image.png",
       "isPartOf": { "@id": "https://pulse-lab.in/#website" },
       "about": { "@id": "https://pulse-lab.in/#organization" }
@@ -200,31 +197,22 @@ export function Home() {
         </div>
       </section>
 
-      {/* 02 — Proof: Client-side Measurement Pipeline */}
-      <ProofScene />
-
-      {/* 03 — Assessments: 2D Discovery Carousel */}
+      {/* 02 — Explore the tests */}
       <AssessmentsScene />
 
-      {/* 04 — Problem: Perception vs Measurement */}
-      <ProblemScene />
-
-      {/* 05 — Result: Empirical Telemetry & Feedback */}
+      {/* 03 — See a sample result */}
       <ResultScene />
 
-      {/* 06 — Why PULSE: Core Principles */}
-      <WhyPulseScene />
+      {/* 04 — How it works, with concise measurement limits */}
+      <ProblemScene />
 
-      {/* 07 — How It Works: 4-Step Process */}
-      <HowItWorksScene />
-
-      {/* 08 — FAQ: Accessible Accordion */}
+      {/* 05 — Essential questions */}
       <FAQScene />
 
-      {/* 09 — Final CTA: Low-friction Action */}
+      {/* 06 — Final action */}
       <FinalCTAScene />
 
-      {/* 10 — Home Footer */}
+      {/* 07 — Footer and useful links */}
       <HomeFooter />
     </PageShell>
   );

@@ -19,7 +19,7 @@ export function MobileAssessmentsScene() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <span>[ SUITE // 5 PROTOCOLS ]</span>
+          <span>[ 5 QUICK TESTS ]</span>
         </motion.div>
 
         <motion.h2 
@@ -28,7 +28,7 @@ export function MobileAssessmentsScene() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.05 }}
         >
-          Cognitive Protocols
+          Explore the tests
         </motion.h2>
 
         <motion.p 
@@ -37,7 +37,7 @@ export function MobileAssessmentsScene() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.1 }}
         >
-          Swipe or tap any card to explore behavioral metrics and launch an assessment.
+          Pick a test for reaction, direction, colour, or memory.
         </motion.p>
       </div>
 

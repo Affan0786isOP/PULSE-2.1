@@ -98,7 +98,7 @@ describe('Homepage Narrative Redesign Suite', () => {
   });
 
   describe('Desktop Home Sequential Integration', () => {
-    it('verifies desktop Home preserves hero and mounts all 8 narrative scenes plus footer in canonical order', () => {
+    it('verifies desktop Home keeps the concise sections in conversion-focused order', () => {
       const desktopHomePath = path.join(process.cwd(), 'src/components/Home.tsx');
       const content = fs.readFileSync(desktopHomePath, 'utf-8');
 
@@ -110,26 +110,23 @@ describe('Homepage Narrative Redesign Suite', () => {
 
       // Check sequential scene tags
       const heroIdx = content.indexOf('id="hero"');
-      const proofIdx = content.indexOf('<ProofScene');
       const assessmentsIdx = content.indexOf('<AssessmentsScene');
-      const problemIdx = content.indexOf('<ProblemScene');
       const resultIdx = content.indexOf('<ResultScene');
-      const whyPulseIdx = content.indexOf('<WhyPulseScene');
-      const howItWorksIdx = content.indexOf('<HowItWorksScene');
+      const problemIdx = content.indexOf('<ProblemScene');
       const faqIdx = content.indexOf('<FAQScene');
       const ctaIdx = content.indexOf('<FinalCTAScene');
       const footerIdx = content.indexOf('<HomeFooter');
 
       expect(heroIdx).toBeGreaterThan(-1);
-      expect(proofIdx).toBeGreaterThan(heroIdx);
-      expect(assessmentsIdx).toBeGreaterThan(proofIdx);
-      expect(problemIdx).toBeGreaterThan(assessmentsIdx);
-      expect(resultIdx).toBeGreaterThan(problemIdx);
-      expect(whyPulseIdx).toBeGreaterThan(resultIdx);
-      expect(howItWorksIdx).toBeGreaterThan(whyPulseIdx);
-      expect(faqIdx).toBeGreaterThan(howItWorksIdx);
+      expect(assessmentsIdx).toBeGreaterThan(heroIdx);
+      expect(resultIdx).toBeGreaterThan(assessmentsIdx);
+      expect(problemIdx).toBeGreaterThan(resultIdx);
+      expect(faqIdx).toBeGreaterThan(problemIdx);
       expect(ctaIdx).toBeGreaterThan(faqIdx);
       expect(footerIdx).toBeGreaterThan(ctaIdx);
+      expect(content).not.toContain('<ProofScene');
+      expect(content).not.toContain('<WhyPulseScene');
+      expect(content).not.toContain('<HowItWorksScene');
     });
 
     it('renders desktop Home into static markup containing live hero and narrative sections', () => {
@@ -142,19 +139,19 @@ describe('Homepage Narrative Redesign Suite', () => {
       expect(html).toContain('Start Testing');
 
       // Narrative sections
-      expect(html).toContain('How PULSE Measures Client-Side Reaction Latency');
-      expect(html).toContain('Standardized Cognitive Assessments');
-      expect(html).toContain('The Browser is an Uncalibrated Instrument');
-      expect(html).toContain('Interpretable Cognitive Telemetry');
-      expect(html).toContain('Built for Measurement Integrity');
-      expect(html).toContain('How the Assessment Flow Operates');
+      expect(html).toContain('Explore the five tests');
+      expect(html).toContain('See your results');
+      expect(html).toContain('How it works');
+      expect(html).toContain('SAMPLE RESULT');
+      expect(html).toContain('How browser timing works');
+      expect(html).not.toContain('How the Assessment Flow Operates');
       expect(html).toContain('Frequently Asked Questions');
       expect(html).toContain('Ready to see how you perform?');
     });
   });
 
   describe('Mobile Home Sequential Integration', () => {
-    it('verifies mobile Home preserves hero and mounts all 8 narrative scenes plus footer in canonical order', () => {
+    it('verifies mobile Home keeps the concise sections in conversion-focused order', () => {
       const mobileHomePath = path.join(process.cwd(), 'mobile/src/components/Home.tsx');
       const content = fs.readFileSync(mobileHomePath, 'utf-8');
 
@@ -163,26 +160,23 @@ describe('Homepage Narrative Redesign Suite', () => {
 
       // Check sequential scene tags
       const heroIdx = content.indexOf('<MobileHero');
-      const proofIdx = content.indexOf('<MobileProofScene');
       const assessmentsIdx = content.indexOf('<MobileAssessmentsScene');
-      const problemIdx = content.indexOf('<MobileProblemScene');
       const resultIdx = content.indexOf('<MobileResultScene');
-      const whyPulseIdx = content.indexOf('<MobileWhyPulseScene');
-      const howItWorksIdx = content.indexOf('<MobileHowItWorksScene');
+      const problemIdx = content.indexOf('<MobileProblemScene');
       const faqIdx = content.indexOf('<MobileFAQScene');
       const ctaIdx = content.indexOf('<MobileFinalCTAScene');
       const footerIdx = content.indexOf('<MobileHomeFooter');
 
       expect(heroIdx).toBeGreaterThan(-1);
-      expect(proofIdx).toBeGreaterThan(heroIdx);
-      expect(assessmentsIdx).toBeGreaterThan(proofIdx);
-      expect(problemIdx).toBeGreaterThan(assessmentsIdx);
-      expect(resultIdx).toBeGreaterThan(problemIdx);
-      expect(whyPulseIdx).toBeGreaterThan(resultIdx);
-      expect(howItWorksIdx).toBeGreaterThan(whyPulseIdx);
-      expect(faqIdx).toBeGreaterThan(howItWorksIdx);
+      expect(assessmentsIdx).toBeGreaterThan(heroIdx);
+      expect(resultIdx).toBeGreaterThan(assessmentsIdx);
+      expect(problemIdx).toBeGreaterThan(resultIdx);
+      expect(faqIdx).toBeGreaterThan(problemIdx);
       expect(ctaIdx).toBeGreaterThan(faqIdx);
       expect(footerIdx).toBeGreaterThan(ctaIdx);
+      expect(content).not.toContain('<MobileProofScene');
+      expect(content).not.toContain('<MobileWhyPulseScene');
+      expect(content).not.toContain('<MobileHowItWorksScene');
     });
 
     it('renders mobile Home into static markup containing live hero and narrative sections', () => {
@@ -191,12 +185,12 @@ describe('Homepage Narrative Redesign Suite', () => {
       );
 
       // Narrative sections
-      expect(html).toContain('The 4-Stage Evaluation Pipeline');
-      expect(html).toContain('Cognitive Protocols');
-      expect(html).toContain('The Browser as an Instrument');
-      expect(html).toContain('Session Telemetry Output');
-      expect(html).toContain('Core Measurement Standards');
-      expect(html).toContain('How It Works');
+      expect(html).toContain('Explore the tests');
+      expect(html).toContain('See your results');
+      expect(html).toContain('How it works');
+      expect(html).toContain('SAMPLE RESULT');
+      expect(html).toContain('Browser timing &amp; its limits');
+      expect(html).not.toContain('Core Measurement Standards');
       expect(html).toContain('Frequently Asked Questions');
       expect(html).toContain('Ready to see how you perform?');
     });

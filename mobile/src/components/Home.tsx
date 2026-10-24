@@ -6,12 +6,9 @@ import { SEO } from './SEO';
 import { MobileHero } from './hero/MobileHero';
 
 // Mobile Narrative Scenes
-import { MobileProofScene } from './home/MobileProofScene';
 import { MobileAssessmentsScene } from './home/MobileAssessmentsScene';
 import { MobileProblemScene } from './home/MobileProblemScene';
 import { MobileResultScene } from './home/MobileResultScene';
-import { MobileWhyPulseScene } from './home/MobileWhyPulseScene';
-import { MobileHowItWorksScene } from './home/MobileHowItWorksScene';
 import { MobileFAQScene } from './home/MobileFAQScene';
 import { MobileFinalCTAScene } from './home/MobileFinalCTAScene';
 import { MobileHomeFooter } from './home/MobileHomeFooter';
@@ -40,31 +37,22 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
 
       {/* Main Narrative Content Container */}
       <div className="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 px-5 pt-2 pb-8">
-        {/* 02 — Proof: Client-side Pipeline */}
-        <MobileProofScene />
-
-        {/* 03 — Assessments: 2D Discovery Carousel */}
+        {/* 02 — Explore the tests */}
         <MobileAssessmentsScene />
 
-        {/* 04 — Problem: Limitations & Mitigations */}
-        <MobileProblemScene />
-
-        {/* 05 — Result: Session Telemetry */}
+        {/* 03 — See a sample result */}
         <MobileResultScene />
 
-        {/* 06 — Why PULSE: Core Principles */}
-        <MobileWhyPulseScene />
+        {/* 04 — How it works, with concise measurement limits */}
+        <MobileProblemScene />
 
-        {/* 07 — How It Works: 4-Step Process */}
-        <MobileHowItWorksScene />
-
-        {/* 08 — FAQ: Accessible Accordion */}
+        {/* 05 — Essential questions */}
         <MobileFAQScene onNavigate={onNavigate} />
 
-        {/* 09 — Final CTA: Low-friction Action */}
+        {/* 06 — Final action */}
         <MobileFinalCTAScene onNavigate={onNavigate} />
 
-        {/* 10 — Mobile Footer */}
+        {/* 07 — Useful links */}
         <MobileHomeFooter onNavigate={onNavigate} />
       </div>
 

@@ -27,7 +27,7 @@ export function MobileHomeFooter({ onNavigate }: MobileHomeFooterProps) {
           PULSE <span className="text-xs font-mono text-[var(--accent)] font-normal">2.1</span>
         </span>
         <p className="text-xs text-[var(--text-secondary)] mt-2 max-w-xs leading-relaxed">
-          Standardized cognitive reaction and memory benchmarking with transparent local methodology.
+          Short browser-based behavioral tests for personal tracking and open research.
         </p>
       </div>
 

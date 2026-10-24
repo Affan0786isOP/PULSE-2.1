@@ -36,12 +36,12 @@ export function FinalCTAScene() {
         </motion.h2>
 
         <motion.p 
-          className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed text-pretty font-normal"
+          className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-6 leading-relaxed text-pretty font-normal"
           initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.12 }}
         >
-          Begin with the visual reaction latency protocol or browse the full catalog of five cognitive instruments.
+          Free to try. No account required.
         </motion.p>
 
         {/* Action Buttons */}
