@@ -6,7 +6,7 @@ import { useReducedMotionPreference } from '../../lib/settingsStore';
 const STEPS = [
   { number: '01', title: 'Choose a test', description: 'Five short tasks cover reaction, direction, colour, and memory.', icon: MousePointerClick },
   { number: '02', title: 'Complete a few trials', description: 'Respond to prompts while PULSE records browser event timing.', icon: Activity },
-  { number: '03', title: 'Review your result', description: 'See descriptive metrics from your valid trials.', icon: ChartNoAxesColumn },
+  { number: '03', title: 'Review your result', description: 'See descriptive metrics from your valid trials.', icon: BarChart3 },
 ];
 
 export function MobileProblemScene() {

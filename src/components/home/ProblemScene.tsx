@@ -21,7 +21,7 @@ const STEPS = [
     number: '03',
     title: 'Review your result',
     description: 'See descriptive metrics from your valid trials.',
-    icon: ChartNoAxesColumn,
+    icon: BarChart3,
   },
 ];
 
