@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useReducedMotionPreference } from '../lib/settingsStore';
 import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
+import { useBaselineScale } from '../lib/useBaselineScale';
 import { AnimatedResultCount } from './ui/AnimatedResultCount';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { PageShell } from './layout/PageShell';
@@ -79,6 +80,21 @@ const HOME_SCHEMA = {
 export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
   const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
+  const { scale } = useBaselineScale();
+  const [viewportHeight, setViewportHeight] = React.useState<number>(() => typeof window !== 'undefined' ? window.innerHeight : 900);
+
+  React.useEffect(() => {
+    const onResize = () => setViewportHeight(window.innerHeight);
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const heroStyle: React.CSSProperties = typeof window !== 'undefined' && window.innerWidth >= 768
+    ? {
+        minHeight: `${(viewportHeight / scale) - 88}px`,
+        height: `${(viewportHeight / scale) - 88}px`,
+      }
+    : {};
 
   return (
     <PageShell
@@ -92,7 +108,8 @@ export function Home() {
       <section 
         id="hero"
         aria-label="Homepage Hero"
-        className="min-h-[calc(100dvh-5rem)] flex items-center w-full"
+        style={heroStyle}
+        className="min-h-[calc(100dvh-5rem)] md:min-h-0 flex items-center w-full"
       >
         <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
           {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
