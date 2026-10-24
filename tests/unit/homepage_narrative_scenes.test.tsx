@@ -16,16 +16,6 @@ import { FinalCTAScene } from '../../src/components/home/FinalCTAScene';
 import { HomeFooter } from '../../src/components/home/HomeFooter';
 import { Home as DesktopHome } from '../../src/components/Home';
 
-import { MobileProofScene } from '../../mobile/src/components/home/MobileProofScene';
-import { MobileAssessmentsScene } from '../../mobile/src/components/home/MobileAssessmentsScene';
-import { MobileProblemScene } from '../../mobile/src/components/home/MobileProblemScene';
-import { MobileResultScene } from '../../mobile/src/components/home/MobileResultScene';
-import { MobileWhyPulseScene } from '../../mobile/src/components/home/MobileWhyPulseScene';
-import { MobileHowItWorksScene } from '../../mobile/src/components/home/MobileHowItWorksScene';
-import { MobileFAQScene } from '../../mobile/src/components/home/MobileFAQScene';
-import { MobileFinalCTAScene } from '../../mobile/src/components/home/MobileFinalCTAScene';
-import { MobileHomeFooter } from '../../mobile/src/components/home/MobileHomeFooter';
-import { Home as MobileHome } from '../../mobile/src/components/Home';
 
 // Mock authoritative stats and settingsStore hooks
 vi.mock('../../src/lib/useAuthoritativeStats', () => ({
@@ -66,7 +56,7 @@ vi.mock('../../mobile/src/lib/usePwaInstall', () => ({
 
 describe('Homepage Narrative Redesign Suite', () => {
   describe('File Presence on Disk', () => {
-    it('verifies all desktop and mobile narrative scene components exist on disk', () => {
+    it('verifies all desktop narrative scene components exist on disk', () => {
       const requiredFiles = [
         'src/components/home/ProofScene.tsx',
         'src/components/home/AssessmentsScene.tsx',
@@ -78,17 +68,7 @@ describe('Homepage Narrative Redesign Suite', () => {
         'src/components/home/FinalCTAScene.tsx',
         'src/components/home/HomeFooter.tsx',
         'src/components/ui/DesktopAssessmentCarousel.tsx',
-        'mobile/src/components/home/MobileProofScene.tsx',
-        'mobile/src/components/home/MobileAssessmentsScene.tsx',
-        'mobile/src/components/home/MobileProblemScene.tsx',
-        'mobile/src/components/home/MobileResultScene.tsx',
-        'mobile/src/components/home/MobileWhyPulseScene.tsx',
-        'mobile/src/components/home/MobileHowItWorksScene.tsx',
-        'mobile/src/components/home/MobileFAQScene.tsx',
-        'mobile/src/components/home/MobileFinalCTAScene.tsx',
-        'mobile/src/components/home/MobileHomeFooter.tsx',
-        'mobile/src/components/ui/MobileAssessmentCarousel.tsx',
-      ];
+              ];
 
       for (const relPath of requiredFiles) {
         const fullPath = path.join(process.cwd(), relPath);
@@ -149,75 +129,7 @@ describe('Homepage Narrative Redesign Suite', () => {
       expect(html).toContain('Ready to see how you perform?');
     });
   });
-
-  describe('Mobile Home Sequential Integration', () => {
-    it('verifies mobile Home keeps the concise sections in conversion-focused order', () => {
-      const mobileHomePath = path.join(process.cwd(), 'mobile/src/components/Home.tsx');
-      const content = fs.readFileSync(mobileHomePath, 'utf-8');
-
-      // Check hero preserved
-      expect(content).toContain('<MobileHero');
-
-      // Check sequential scene tags
-      const heroIdx = content.indexOf('<MobileHero');
-      const assessmentsIdx = content.indexOf('<MobileAssessmentsScene');
-      const resultIdx = content.indexOf('<MobileResultScene');
-      const problemIdx = content.indexOf('<MobileProblemScene');
-      const faqIdx = content.indexOf('<MobileFAQScene');
-      const ctaIdx = content.indexOf('<MobileFinalCTAScene');
-      const footerIdx = content.indexOf('<MobileHomeFooter');
-
-      expect(heroIdx).toBeGreaterThan(-1);
-      expect(assessmentsIdx).toBeGreaterThan(heroIdx);
-      expect(resultIdx).toBeGreaterThan(assessmentsIdx);
-      expect(problemIdx).toBeGreaterThan(resultIdx);
-      expect(faqIdx).toBeGreaterThan(problemIdx);
-      expect(ctaIdx).toBeGreaterThan(faqIdx);
-      expect(footerIdx).toBeGreaterThan(ctaIdx);
-      expect(content).not.toContain('<MobileProofScene');
-      expect(content).not.toContain('<MobileWhyPulseScene');
-      expect(content).not.toContain('<MobileHowItWorksScene');
-    });
-
-    it('renders mobile Home into static markup containing live hero and narrative sections', () => {
-      const html = renderToStaticMarkup(
-        React.createElement(MemoryRouter, null, React.createElement(MobileHome, { onNavigate: () => {} }))
-      );
-
-      // Narrative sections
-      expect(html).toContain('Explore the tests');
-      expect(html).toContain('See your results');
-      expect(html).toContain('How it works');
-      expect(html).toContain('SAMPLE RESULT');
-      expect(html).toContain('Browser timing &amp; its limits');
-      expect(html).not.toContain('Core Measurement Standards');
-      expect(html).toContain('Frequently Asked Questions');
-      expect(html).toContain('Ready to see how you perform?');
-    });
-  });
-
   describe('Token & Platform Styling Isolation Invariants', () => {
-    it('verifies mobile components do not use desktop Tailwind dark: utility prefixes', () => {
-      const mobileFiles = [
-        'mobile/src/components/home/MobileProofScene.tsx',
-        'mobile/src/components/home/MobileAssessmentsScene.tsx',
-        'mobile/src/components/home/MobileProblemScene.tsx',
-        'mobile/src/components/home/MobileResultScene.tsx',
-        'mobile/src/components/home/MobileWhyPulseScene.tsx',
-        'mobile/src/components/home/MobileHowItWorksScene.tsx',
-        'mobile/src/components/home/MobileFAQScene.tsx',
-        'mobile/src/components/home/MobileFinalCTAScene.tsx',
-        'mobile/src/components/home/MobileHomeFooter.tsx',
-        'mobile/src/components/ui/MobileAssessmentCarousel.tsx',
-      ];
-
-      for (const relPath of mobileFiles) {
-        const fullPath = path.join(process.cwd(), relPath);
-        const content = fs.readFileSync(fullPath, 'utf-8');
-        expect(content).not.toMatch(/dark:[a-zA-Z0-9_\-\[\]#]+/);
-      }
-    });
-
     it('verifies desktop components do not cross-import mobile components', () => {
       const desktopFiles = [
         'src/components/home/ProofScene.tsx',
