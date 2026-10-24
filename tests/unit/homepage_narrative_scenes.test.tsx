@@ -241,6 +241,19 @@ describe('Homepage Narrative Redesign Suite', () => {
     });
   });
 
+  describe('Homepage copy credibility', () => {
+    it('avoids unsupported precision and psychometric-standardization claims in shared assessment cards', () => {
+      const presentation = fs.readFileSync(
+        path.join(process.cwd(), 'shared/homepage/assessmentPresentation.ts'),
+        'utf-8',
+      );
+      expect(presentation).not.toContain('sub-millisecond precision');
+      expect(presentation).not.toContain('pure somatic');
+      expect(presentation).not.toContain('cognitive bifurcation');
+      expect(presentation).toContain('Device and browser timing can affect results.');
+    });
+  });
+
   describe('Accessibility & Route Registry Integration', () => {
     it('ensures Final CTA links use canonical getAssessmentLaunchRoute', async () => {
       const { getAssessmentLaunchRoute } = await import('../../shared/registries/routeRegistry');
