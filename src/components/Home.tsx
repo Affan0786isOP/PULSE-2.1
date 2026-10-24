@@ -95,7 +95,7 @@ export function Home() {
       <section 
         id="hero"
         aria-label="Homepage Hero"
-        className="min-h-[calc(100dvh-5rem)] flex items-center w-full py-6"
+        className="min-h-[calc(100dvh-5rem)] flex items-center w-full"
       >
         <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
           {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
