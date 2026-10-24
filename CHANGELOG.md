@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.5.0] - 2026-10-24
+
+### Changed
+- **Assessment Pacing Standardization:** Standardized desktop and mobile assessment live-timer loops to an average ~60 updates per second cadence via the shared `@shared/timing/framePacer.ts` utility.
+- **Unadjusted Latency Scoring (v1.1.0):** Eliminated theoretical display half-frame offset subtraction (`displayDelayOffsetMs`) across `visual-reaction`, `direction`, and `color-recognition`. Response latencies are now recorded as unadjusted browser-measured intervals rounded to two decimal places.
+- **Protocol & Metrics Versioning:** Advanced `protocolVersion` and `metricsVersion` to `v1.1.0` for raw-latency assessments in both `publicDataset` and `assessmentResults`, while preserving `v1.0.0` for working memory protocols.
+- **Provenance Normalization Compatibility:** Maintained canonical digest normalization in `provenanceService.ts` with nullified offset fields for new submissions, preserving deterministic HMAC signing and full backward compatibility with historical records.
+
+### Removed
+- **Display Refresh Rate Detection:** Permanently deleted `refreshRateDetector.ts` and `useRefreshRate.ts` from desktop and mobile surfaces.
+- **Hardware Calibration UI:** Removed display timing diagnostics cards, midpoint offset calculations, and recalibration buttons from `SettingsModal.tsx` across desktop and mobile, retaining core accessibility and cache-clearing controls in the System tab.
+
+---
+
 ## [2.4.0] - 2026-10-21
 
 ### Added

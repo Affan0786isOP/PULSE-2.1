@@ -31,12 +31,16 @@ This file records verified architectural and engineering decisions established i
 
 ---
 
-### Decision: High-Precision Hardware-Aware Timing
-- **Status:** Accepted
-- **Context:** Standard web timing using `Date.now()` and uncalibrated frame loops introduces jitter and display latency artifacts.
-- **Decision:** Stimulus presentation and response timestamps are captured using `performance.now()`. Display refresh rates are detected dynamically via `requestAnimationFrame` sampling (`refreshRateDetector.ts`) to calculate hardware frame presentation delays.
-- **Consequences:** Sub-millisecond timing resolution is preserved across supported hardware configurations.
-- **Evidence:** [`src/lib/refreshRateDetector.ts`](../src/lib/refreshRateDetector.ts), [`src/components/ReactionTest.tsx`](../src/components/ReactionTest.tsx).
+### Decision: Assessment Pacing Standardization & Unadjusted Latency Scoring
+- **Status:** Accepted (v1.1.0)
+- **Context:** Dynamic client-side display refresh rate detection (`requestAnimationFrame` frequency counting) and theoretical half-frame offset subtraction (`displayDelayOffsetMs`) introduced cross-device scoring discrepancies, fragile calibration loops, and unnecessary client-server coupling.
+- **Decision:**
+  1. Standardize desktop and mobile live-timer assessment loops to an average ~60 updates per second software pacing cadence via the shared `@shared/timing/framePacer.ts` helper.
+  2. Permanently delete `refreshRateDetector.ts` and `useRefreshRate.ts` from desktop and mobile. Remove display calibration UI and recalibration handlers from `SettingsModal.tsx`.
+  3. Adopt unadjusted browser-measured stimulus-to-response latency ($RT_{\text{net}} = RT_{\text{raw}}$ rounded to two decimal places) for `visual-reaction`, `direction`, and `color-recognition`, bumping their `protocolVersion` and `metricsVersion` to `v1.1.0`. Memory assessments remain at `v1.0.0`.
+  4. New observations set legacy `displayDelayOffset*` fields to `null`. Canonical provenance normalization in `provenanceService.ts` preserves deterministic digests for both historical records and new submissions.
+- **Consequences:** Eliminates hardware-dependent half-frame latency subtraction and active screen cadence telemetry while maintaining 100% backward compatibility for canonical provenance digests and historical research datasets.
+- **Evidence:** [`shared/timing/framePacer.ts`](../shared/timing/framePacer.ts), [`shared/contracts/common.ts`](../shared/contracts/common.ts), [`src/components/ReactionTest.tsx`](../src/components/ReactionTest.tsx), [`tests/unit/framePacer.test.ts`](../tests/unit/framePacer.test.ts).
 
 ---
 
