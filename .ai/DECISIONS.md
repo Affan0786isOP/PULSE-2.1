@@ -69,6 +69,15 @@ outeTheme.ts (/reaction-test, /direction-test, /block-memory, etc.) are designat
 
 ---
 
+### Decision: Homepage 10-Part Narrative Architecture with Preserved Live Hero
+- **Status:** Accepted
+- **Context:** The original single-viewport homepage lacked comprehensive explanation of PULSE's client-side measurement pipeline, protocol discovery, latency calibration, and privacy practices.
+- **Decision:** Implement the canonical 10-part product narrative (`Hero → Proof → Assessments → Problem → Result → Why PULSE → How It Works → FAQ → Final CTA → Footer`) sequentially across both Desktop (`src/components/home/`) and Mobile (`mobile/src/components/home/`). The existing live hero is retained intact, allowing natural vertical browser scrolling into subsequent scenes. Section 03 features an accessible 2D assessment carousel with keyboard and touch navigation, while all scenes adhere strictly to Observatory dual-mode tokens (Tailwind `dark:` on desktop, CSS custom property tokens on mobile).
+- **Consequences:** Provides comprehensive product understanding and objection handling without disturbing existing live hero conversion metrics.
+- **Evidence:** [`src/components/Home.tsx`](../src/components/Home.tsx), [`mobile/src/components/Home.tsx`](../mobile/src/components/Home.tsx), [`tests/unit/homepage_narrative_scenes.test.tsx`](../tests/unit/homepage_narrative_scenes.test.tsx), [`shared/homepage/assessmentPresentation.ts`](../shared/homepage/assessmentPresentation.ts).
+
+---
+
 ### Decision: Targeted Server-Authoritative Telegram Activity Observability
 - **Status:** Accepted
 - **Context:** Real-time production observability of user engagement and assessment completions was needed across both Desktop and Mobile without compromising participant privacy or cognitive timing precision.

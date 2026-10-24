@@ -58,11 +58,11 @@
 ├── src/                      # Desktop React Application
 │   ├── components/           # UI Components & Assessment Protocols
 │   │   ├── brand/            # Unified logo, reticle, telemetry cards
-│   │   └── home/             # Homepage views, 3D assessment carousel
+│   │   └── home/             # Homepage narrative scenes & system footer
 │   ├── lib/                  # State stores, Firebase client, timing utilities
 │   └── styles/               # CSS variables & aesthetic rules
 ├── mobile/                   # Mobile PWA Subproject (Dedicated Vite config)
-│   └── src/                  # Mobile-tailored screens and touch layouts
+│   └── src/                  # Mobile-tailored screens, touch layouts, and mobile narrative scenes
 ├── security/                 # Retention policies, data maps, processor inventories
 ├── docs/                     # Full project documentation suite
 │   ├── specs/                # Deep technical specifications
