@@ -14,6 +14,7 @@ import { MobileProblemScene } from './home/MobileProblemScene';
 import { MobileFAQScene } from './home/MobileFAQScene';
 import { MobileFinalCTAScene } from './home/MobileFinalCTAScene';
 import { MobileHomeFooter } from './home/MobileHomeFooter';
+import { MobileHeroWaveContinuation } from './home/MobileHeroWaveContinuation';
 
 const SettingsModal = React.lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ default: m.WelcomeModal })));
@@ -40,8 +41,11 @@ export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
       {/* Centered Mobile Content Column for Narrative Scenes */}
       <main
         id="main-content"
-        className="w-full max-w-md mx-auto px-4 pb-6 flex flex-col relative z-10"
+        className="w-full max-w-md mx-auto px-4 pt-3 pb-6 flex flex-col relative z-10"
       >
+        {/* Ambient Wave Continuation Layer */}
+        <MobileHeroWaveContinuation />
+
         {/* 1. Social proof */}
         <MobileProofScene />
 

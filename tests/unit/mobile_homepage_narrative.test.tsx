@@ -39,6 +39,7 @@ vi.mock('../../mobile/src/lib/settingsStore', async (importOriginal) => {
 describe('Mobile Homepage Narrative Redesign Suite', () => {
   const NEW_COMPONENT_FILES = [
     'mobile/src/components/ui/MobileAssessmentSwipeStrip.tsx',
+    'mobile/src/components/home/MobileHeroWaveContinuation.tsx',
     'mobile/src/components/home/MobileProofScene.tsx',
     'mobile/src/components/home/MobileAssessmentsScene.tsx',
     'mobile/src/components/home/MobileResultScene.tsx',
@@ -53,10 +54,12 @@ describe('Mobile Homepage Narrative Redesign Suite', () => {
     const homeFilePath = path.join(process.cwd(), 'mobile/src/components/Home.tsx');
     const content = fs.readFileSync(homeFilePath, 'utf-8');
 
-    // Hero must be present
+    // Hero and wave continuation must be present
     expect(content).toContain('<MobileHero');
+    expect(content).toContain('<MobileHeroWaveContinuation');
 
     const heroIdx = content.indexOf('<MobileHero');
+    const waveIdx = content.indexOf('<MobileHeroWaveContinuation');
     const proofIdx = content.indexOf('<MobileProofScene');
     const assessmentsIdx = content.indexOf('<MobileAssessmentsScene');
     const resultIdx = content.indexOf('<MobileResultScene');
@@ -67,7 +70,8 @@ describe('Mobile Homepage Narrative Redesign Suite', () => {
     const footerIdx = content.indexOf('<MobileHomeFooter');
 
     expect(heroIdx).toBeGreaterThan(-1);
-    expect(proofIdx).toBeGreaterThan(heroIdx);
+    expect(waveIdx).toBeGreaterThan(heroIdx);
+    expect(proofIdx).toBeGreaterThan(waveIdx);
     expect(assessmentsIdx).toBeGreaterThan(proofIdx);
     expect(resultIdx).toBeGreaterThan(assessmentsIdx);
     expect(whyPulseIdx).toBeGreaterThan(resultIdx);
@@ -127,6 +131,8 @@ describe('Mobile Homepage Narrative Redesign Suite', () => {
     );
 
     expect(html).toContain('id="main-content"');
+    expect(html).toContain('data-testid="hero-wave-continuation"');
+    expect(html).toContain('aria-hidden="true"');
     expect(html).toContain('Standardized Behavioral Tasks');
     expect(html).toContain('Explore the Assessments');
     expect(html).toContain('Understand Your Scores');

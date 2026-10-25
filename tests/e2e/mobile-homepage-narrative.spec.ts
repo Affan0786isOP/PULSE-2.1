@@ -33,9 +33,12 @@ for (const vp of MOBILE_VIEWPORTS) {
         await page.goto('/mobile');
         await page.waitForLoadState('domcontentloaded');
 
-        // 1. Verify hero is visible and intact
+        // 1. Verify hero is visible and intact, along with ambient wave continuation
         const hero = page.locator('section[aria-label="PULSE Mobile Hero"]');
         await expect(hero).toBeVisible();
+
+        const waveContinuation = page.locator('[data-testid="hero-wave-continuation"]');
+        await expect(waveContinuation).toBeAttached();
 
         // 2. Verify all 8 sections exist in document order
         const sectionIds = [
