@@ -72,10 +72,10 @@ async function capture() {
   });
   const page = await context.newPage();
 
-  // Suppress first-visit modal interruptions if needed
+  // Suppress first-visit modal interruptions if needed (e.g. welcome modals or onboarding tours)
   await page.addInitScript(() => {
-    localStorage.setItem('pulse_welcome_seen', 'true');
-    localStorage.setItem('pulse_welcome_dismissed', 'true');
+    localStorage.setItem('app_welcome_seen', 'true');
+    localStorage.setItem('app_welcome_dismissed', 'true');
   });
 
   await page.goto('http://127.0.0.1:5173/');

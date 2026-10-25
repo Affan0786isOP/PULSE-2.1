@@ -1,71 +1,91 @@
 ---
 name: precontext
-description: Tells the agent which critical project context, architecture, rules, and schema files to read before starting development or code modifications in PULSE.
+description: Tells the agent which critical project context, architecture, rules, and schema files to discover and read, and to use codebase-memory-mcp knowledge graph tools before starting development or code modifications in any codebase.
 ---
 
 # Precontext: Mandatory Orientation Before Development
 
-Before planning, modifying code, refactoring, or authoring features in the **PULSE** codebase, you must read and internalize the foundational project context files.
+Before planning, modifying code, refactoring, or authoring features in any codebase, an agent must discover, read, and internalize foundational project context files and leverage the codebase knowledge graph.
 
 This prevents common architectural violations such as:
-- Client-side direct database mutations (violating server-authoritative provenance).
-- Breaking dual-surface synchronization between desktop (`src/`) and mobile PWA (`mobile/src/`).
-- Using non-standard timing (`Date.now()` or `setTimeout`) instead of high-precision `performance.now()`.
-- Leaking PII into public research datasets.
-- Re-introducing deprecated surfaces (such as web admin `/api/admin/*` routes or passcodes).
+- Breaking core architectural invariants and boundaries (e.g. client vs server authority, unverified direct database writes).
+- Introducing breaking changes across multi-platform surfaces (e.g. desktop web vs mobile PWA vs API services).
+- Violating timing, precision, or strict latency requirements.
+- Leaking PII, sensitive credentials, or violating regulatory retention boundaries.
+- Re-introducing deprecated endpoints, outdated dependencies, or purged routines.
 
 ---
 
-## 1. Primary Required Reading (Read First)
+## 1. Codebase Knowledge Graph Orientation (codebase-memory-mcp)
 
-Every agent must inspect these core files prior to writing code or making non-trivial edits:
+Before jumping into manual file searches or grepping, **always prefer `codebase-memory-mcp` tools** to discover the project structure, symbol graph, and call paths:
+
+1. **High-Level Topology:**
+   - Call `get_architecture` or `index_status` / `list_projects` to review the architectural layers, module breakdown, and indexing generation.
+2. **Symbol & Dependency Tracing:**
+   - Use `search_graph` to locate handlers, classes, routes, models, or core services by pattern.
+   - Use `trace_path` (`direction="inbound"` or `"outbound"`) to map callers and dependencies before proposing any structural changes.
+   - Use `get_code_snippet` to retrieve targeted implementation snippets without dumping whole files.
+3. **Coverage Verification:**
+   - Run `check_index_coverage` on candidate paths. If a section is unindexed, stale, or excluded, fall back to targeted reads or grep.
+4. **Cypher Querying:**
+   - Use `query_graph` for multi-hop relationship queries (e.g. endpoints to database models).
+
+---
+
+## 2. Primary Required Reading (Discover & Read First)
+
+Every agent must inspect core guidance files in the repository root, `docs/`, or `.ai/`/`.github/` directories prior to authoring non-trivial changes:
 
 1. **AI Development Rules & Invariants:**
-   - [`file:///.ai/RULES.md`](file:///.ai/RULES.md)
-   - *Key topics:* Server-authoritative writes, zero PII, `performance.now()` hardware timing, $RT \ge 80\text{ms}$ floor, design tokens, screenshot verification loops.
+   - Look for: `RULES.md`, `.ai/RULES.md`, `.cursorrules`, `CLAUDE.md`, or `.agent/rules/`.
+   - *Key topics to extract:* Architecture boundaries, data mutation rules, security invariants, design token constraints, and verification requirements.
 
 2. **System Context & Technology Stack:**
-   - [`file:///.ai/CONTEXT.md`](file:///.ai/CONTEXT.md)
-   - *Key topics:* Dual-surface routing, Firebase anonymous auth + Express Admin SDK backend, directory layout, core dependencies.
+   - Look for: `CONTEXT.md`, `.ai/CONTEXT.md`, `README.md`, or `docs/ARCHITECTURE.md`.
+   - *Key topics to extract:* Platform architecture, authentication models, directory structure, dependency baselines, and deployment targets.
 
 3. **Architectural Decisions Ledger:**
-   - [`file:///.ai/DECISIONS.md`](file:///.ai/DECISIONS.md)
-   - *Key topics:* HMAC-SHA256 provenance signing, removal of web `/admin` surface, navbar unification, and anonymous participant modeling.
+   - Look for: `DECISIONS.md`, `.ai/DECISIONS.md`, or `docs/decisions/` (ADRs).
+   - *Key topics to extract:* Past architectural compromises, decommissioned endpoints, data flow designs, and why specific patterns were chosen.
 
 ---
 
-## 2. Domain-Specific Reading (Read Based on Task Scope)
+## 3. Domain-Specific Reading (Read Based on Task Scope)
 
-Depending on the specific area of development, inspect the relevant specifications:
+Depending on the specific area of development, discover and inspect the relevant repository specifications:
 
 ### A. Core Architecture & Environment
-- **Architecture Overview:** [`file:///docs/ARCHITECTURE.md`](file:///docs/ARCHITECTURE.md)
-- **Development Setup & Commands:** [`file:///docs/DEVELOPMENT.md`](file:///docs/DEVELOPMENT.md)
-- **Package Configuration:** [`file:///package.json`](file:///package.json)
+- **Architecture Overview:** `docs/ARCHITECTURE.md` or system diagrams in `docs/`.
+- **Development Setup & Commands:** `docs/DEVELOPMENT.md`, `CONTRIBUTING.md`, or `README.md`.
+- **Package & Dependency Manifests:** `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`, or equivalent.
 
 ### B. Data Models, Schemas & Security
-- **Data Model & Firestore Schema:** [`file:///docs/DATA_MODEL.md`](file:///docs/DATA_MODEL.md)
-- **Security Boundaries & Retention:** [`file:///docs/SECURITY.md`](file:///docs/SECURITY.md) and [`file:///security_spec.md`](file:///security_spec.md)
-- **Firestore Security Rules:** [`file:///firestore.rules`](file:///firestore.rules)
-- **Leaderboard Provenance Specification:** [`file:///docs/specs/LEADERBOARD_PROVENANCE.md`](file:///docs/specs/LEADERBOARD_PROVENANCE.md)
+- **Data Model & Database Schemas:** `docs/DATA_MODEL.md`, Prisma/Drizzle/SQL schemas, or ORM model directories.
+- **Security Boundaries & Retention:** `docs/SECURITY.md`, `security_spec.md`, or API auth middleware.
+- **Access Rules & Permissions:** `firestore.rules`, PostgreSQL RLS policies, IAM policies, or RBAC definitions.
+- **Data Provenance & Ingestion Specs:** Specifications governing data ingestion, provenance signing, and audit trails.
 
-### C. Cognitive Protocols & Assessment Engines
-- **Assessment Protocols Spec:** [`file:///docs/specs/ASSESSMENT_PROTOCOLS.md`](file:///docs/specs/ASSESSMENT_PROTOCOLS.md)
-- **Protocol Validators:** [`file:///src/lib/protocolValidators.ts`](file:///src/lib/protocolValidators.ts)
-- **Server Engines:** [`file:///server/engines/`](file:///server/engines/)
+### C. Domain Logic & Business Rules
+- **Core Domain Specifications:** Functional specifications in `docs/specs/` or equivalent domain folders.
+- **Validation Rules & Contracts:** Input validators, schema validations (Zod, Joi, Pydantic), and shared interfaces.
+- **Server Engines & Core Processing:** Backend calculation engines, worker queues, and orchestration layers.
 
 ### D. UI, Styling & Design System
-- **Design System & Observatory Theme:** [`file:///docs/DESIGN_SYSTEM.md`](file:///docs/DESIGN_SYSTEM.md)
-- **Brand Guidelines:** [`file:///docs/BRAND_GUIDELINES.md`](file:///docs/BRAND_GUIDELINES.md)
-- **Canonical Navigation Component:** [`file:///src/components/Navbar.tsx`](file:///src/components/Navbar.tsx)
-- **Mobile Dual-Surface Structure:** [`file:///mobile/src/`](file:///mobile/src/)
+- **Design System & Theme Tokens:** `docs/DESIGN_SYSTEM.md`, Tailwind config, CSS custom properties, or component library tokens.
+- **Brand Guidelines:** `docs/BRAND_GUIDELINES.md` or visual specifications.
+- **Canonical Navigation & Layouts:** Primary navigation shells and shared layouts.
+- **Multi-Surface Structure:** Separate surface directories (e.g. `src/` for web, `mobile/src/` for mobile, `admin/` for internal tooling).
 
 ---
 
-## 3. Quick Checklist Before Proposing or Executing Code
+## 4. Universal Pre-Modification Checklist
 
-- [ ] Have you verified the active vs deprecated routes (`/api/admin/*` is deleted; operator actions use CLI scripts)?
-- [ ] Are mutations routed via `server/` with Admin SDK HMAC attestation rather than direct Firestore client calls?
-- [ ] Does any new test or protocol preserve the $RT \ge 80\text{ms}$ physiological floor and `performance.now()` precision?
-- [ ] If modifying navigation or layouts, did you check active assessment lockout and dual-surface (`/` vs `/mobile/`) compatibility?
-- [ ] Are all dependencies verified against React 19, Vite 6, and Node 22/`npm`?
+Before proposing or executing code changes:
+
+- [ ] Have you queried `codebase-memory-mcp` (`get_architecture`, `search_graph`, `trace_path`) to understand relationships and callers?
+- [ ] Have you checked for active vs deprecated routes, functions, or parameters to avoid re-introducing dead patterns?
+- [ ] Are data mutations routed through authoritative backend/API handlers rather than untrusted client-side direct calls?
+- [ ] Are project-specific precision, performance, or timing constraints preserved?
+- [ ] If modifying shared components or layouts, did you check responsive viewports, multi-surface parity, and theme compatibility?
+- [ ] Are all dependency versions and package manager commands aligned with repository requirements?
