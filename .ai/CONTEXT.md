@@ -62,7 +62,7 @@
 │   ├── lib/                  # State stores, Firebase client, timing utilities
 │   └── styles/               # CSS variables & aesthetic rules
 ├── mobile/                   # Mobile PWA Subproject (Dedicated Vite config)
-│   └── src/                  # Mobile-tailored screens, touch layouts, and mobile narrative scenes
+│   └── src/                  # Mobile-tailored screens, touch layouts, 8 narrative scenes & wave continuation
 ├── security/                 # Retention policies, data maps, processor inventories
 ├── docs/                     # Full project documentation suite
 │   ├── specs/                # Deep technical specifications

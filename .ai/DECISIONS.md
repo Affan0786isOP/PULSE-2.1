@@ -66,19 +66,22 @@ This file records verified architectural and engineering decisions established i
 ### Decision: Dual-Tier Theme Architecture with Radial Transitions & Dark Apparatus Protection
 - **Status:** Accepted
 - **Context:** Cognitive research apparatuses require stable, high-contrast dark visual backgrounds to prevent pupil constriction and luminance glare during millisecond reaction benchmarks, while landing, about, and exploration pages benefit from user-selectable light, dark, and system themes.
-- **Decision:** Implement a user-controlled theme system via settingsStore.ts and useSystemTheme.ts persisting to localStorage and pulse_settings cookies. Theme changes leverage the CSS View Transitions API (startViewTransition) to animate an outward circular radial reveal centered on the user's click position. Routes specified in 
-outeTheme.ts (/reaction-test, /direction-test, /block-memory, etc.) are designated protected dark apparatuses and locked to dark mode regardless of global theme preference.
+- **Decision:** Implement a user-controlled theme system via settingsStore.ts and useSystemTheme.ts persisting to localStorage and pulse_settings cookies. Theme changes leverage the CSS View Transitions API (startViewTransition) to animate an outward circular radial reveal centered on the user's click position. Routes specified in `routeTheme.ts` (/reaction-test, /direction-test, /block-memory, etc.) are designated protected dark apparatuses and locked to dark mode regardless of global theme preference.
 - **Consequences:** Theme switching is fluid and accessible (bypassed when prefers-reduced-motion is active); assessment accuracy is shielded from ambient luminance shifts.
-- **Evidence:** [src/lib/useSystemTheme.ts](../src/lib/useSystemTheme.ts), [src/lib/routeTheme.ts](../src/lib/routeTheme.ts), [src/lib/settingsStore.ts](../src/lib/settingsStore.ts), [	ests/unit/desktopThemeSystem.test.tsx](../tests/unit/desktopThemeSystem.test.tsx), [	ests/unit/mobileThemeSystem.test.tsx](../tests/unit/mobileThemeSystem.test.tsx).
+- **Evidence:** [src/lib/useSystemTheme.ts](../src/lib/useSystemTheme.ts), [src/lib/routeTheme.ts](../src/lib/routeTheme.ts), [src/lib/settingsStore.ts](../src/lib/settingsStore.ts), [`tests/unit/desktopThemeSystem.test.tsx`](../tests/unit/desktopThemeSystem.test.tsx), [`tests/unit/mobileThemeSystem.test.tsx`](../tests/unit/mobileThemeSystem.test.tsx).
 
 ---
 
-### Decision: Homepage 10-Part Narrative Architecture with Preserved Live Hero
+### Decision: Homepage Narrative Architecture & Mobile Token Parity
 - **Status:** Accepted
 - **Context:** The original single-viewport homepage lacked comprehensive explanation of PULSE's client-side measurement pipeline, protocol discovery, latency calibration, and privacy practices.
-- **Decision:** Implement the canonical 10-part product narrative (`Hero → Proof → Assessments → Problem → Result → Why PULSE → How It Works → FAQ → Final CTA → Footer`) sequentially across both Desktop (`src/components/home/`) and Mobile (`mobile/src/components/home/`). The existing live hero is retained intact, allowing natural vertical browser scrolling into subsequent scenes. Section 03 features an accessible 2D assessment carousel with keyboard and touch navigation, while all scenes adhere strictly to Observatory dual-mode tokens (Tailwind `dark:` on desktop, CSS custom property tokens on mobile).
+- **Decision:** Implement product narrative architecture across both Desktop and Mobile while strictly preserving existing live heroes:
+  - **Desktop (`src/components/home/`):** 10-part product narrative (`Hero → Proof → Assessments → Problem → Result → Why PULSE → How It Works → FAQ → Final CTA → Footer`) using Tailwind `dark:` utilities and `DesktopAssessmentCarousel`.
+  - **Mobile (`mobile/src/components/home/`):** 8 concise scenes (`MobileProofScene`, `MobileAssessmentsScene` with native CSS scroll-snap `MobileAssessmentSwipeStrip`, `MobileResultScene`, `MobileWhyPulseScene`, `MobileProblemScene`, `MobileFAQScene`, `MobileFinalCTAScene`, `MobileHomeFooter`) rendered in `<main id="main-content">` below an untouched `MobileHero`.
+  - **Ambient Wave Extension:** `MobileHeroWaveContinuation` extends the hero's cyan/electric-blue SVG wave into the top narrative scenes behind cards (`pointer-events-none -z-0 aria-hidden="true"`).
+  - **Styling Invariant:** Newly authored mobile narrative components strictly enforce mobile CSS tokens (`var(--surface-1)`, `var(--surface-2)`, `var(--accent)`, `var(--text-primary)`, `var(--text-secondary)`) with zero desktop `dark:` utility bleed and zero desktop cross-imports.
 - **Consequences:** Provides comprehensive product understanding and objection handling without disturbing existing live hero conversion metrics.
-- **Evidence:** [`src/components/Home.tsx`](../src/components/Home.tsx), [`mobile/src/components/Home.tsx`](../mobile/src/components/Home.tsx), [`tests/unit/homepage_narrative_scenes.test.tsx`](../tests/unit/homepage_narrative_scenes.test.tsx), [`shared/homepage/assessmentPresentation.ts`](../shared/homepage/assessmentPresentation.ts).
+- **Evidence:** [`src/components/Home.tsx`](../src/components/Home.tsx), [`mobile/src/components/Home.tsx`](../mobile/src/components/Home.tsx), [`tests/unit/mobile_homepage_narrative.test.tsx`](../tests/unit/mobile_homepage_narrative.test.tsx), [`tests/e2e/mobile-homepage-narrative.spec.ts`](../tests/e2e/mobile-homepage-narrative.spec.ts), [`shared/homepage/assessmentPresentation.ts`](../shared/homepage/assessmentPresentation.ts).
 
 ---
 
