@@ -37,7 +37,7 @@ const PROTOCOLS = [
 ];
 
 export function AdminPage() {
-  const { isAuthenticated, logout, token } = useAdminAuth();
+  const { isAuthenticated, logout, token, refreshAuth } = useAdminAuth();
   const [showLoginModal, setShowLoginModal] = useState(!isAuthenticated);
 
   // Table State
@@ -211,6 +211,22 @@ export function AdminPage() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+        {/* Error Feedback */}
+        {error && (
+          <div className="p-4 rounded-2xl flex items-center justify-between text-xs font-medium border bg-rose-500/10 text-rose-300 border-rose-500/20">
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+              <span>{error}</span>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="opacity-60 hover:opacity-100 transition-opacity"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* Banner Feedback */}
         {actionFeedback && (
           <div
@@ -415,8 +431,9 @@ export function AdminPage() {
       <AdminPasscodeModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        onSuccess={() => {
+        onSuccess={(newToken) => {
           setShowLoginModal(false);
+          refreshAuth();
           loadData(null, false);
         }}
       />

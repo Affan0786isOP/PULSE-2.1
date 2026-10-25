@@ -45,8 +45,18 @@ export function useAdminAuth() {
     }
   }, []);
 
+  const refreshAuth = useCallback(() => {
+    try {
+      const stored = sessionStorage.getItem('pulse_admin_token') || localStorage.getItem('pulse_admin_token');
+      setToken(stored);
+    } catch {
+      setToken(null);
+    }
+  }, []);
+
   return {
     isAuthenticated: !!token,
+    refreshAuth,
     token,
     loading,
     error,
