@@ -29,8 +29,12 @@ async function startServer() {
   app.use(express.json({ limit: '1mb' }));
 
   // Prevent downstream caching of API responses (including 4xx/5xx error responses)
-  app.use('/api', (_req, res, next) => {
+  app.use('/api', (req, res, next) => {
+    // The public leaderboard GET route applies its own status-aware cache policy.
+    // Every other API endpoint, including private leaderboard routes, stays no-store.
+    if (req.method === 'GET' && req.path === '/leaderboard') return next();
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Surrogate-Control', 'no-store');
     next();
   });
 
