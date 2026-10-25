@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.0.0
+
+- Upgraded Humanizer with core priorities for em dash elimination and simple, natural English by default.
+- Added Priority 1: Zero em dashes by default. Humanized output must contain no em dashes (—) unless protected in quotes, code, or requested. Unnecessary dashes are replaced with periods, commas, colons, or parentheses, or split into two sentences.
+- Added Priority 2: Simple, natural English by default. Prefers common words, active voice, and short sentences over fancy, academic, or formal jargon while keeping technical precision.
+- Added Priority 3: Detect patterns in context rather than relying on isolated word blacklists.
+- Expanded the AI writing catalog to 28 patterns, incorporating Wikipedia WP:AISIGNS: added #19 False ranges, #20 Compulsive summaries and wrap-ups, #21 Superficial balance, and tightened sales language, borrowed authority, and bold labeling.
+- Updated all plugin manifests and test suites to v4.0.0.
+
 ## 3.1.0
 
 - Added pattern #26 and section F for replies that re-explain context the reader already has (#269). It acts on replies, not standalone writing. 26 patterns total.
