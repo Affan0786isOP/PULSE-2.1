@@ -281,31 +281,45 @@ export function registerLeaderboardRoutes(
     }
   });
 
-  // Public Leaderboard Retrieval Endpoint
+  // Public leaderboard reads may be cached briefly at the edge. Forced-fresh
+  // requests and every non-2xx response must bypass all shared caches.
   app.get('/api/leaderboard', async (req, res) => {
-    // Do not let browser, proxy or CDN caches make laptop and phone surfaces disagree.
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
+    const isFresh = req.query.fresh === '1' || req.query.fresh === 'true';
+    const setNoStore = () => {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+    };
+
+    if (isFresh) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+    } else {
+      res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
+      res.removeHeader('Surrogate-Control');
+    }
 
     const rawType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : '';
     if (!rawType) {
+      setNoStore();
       return res.status(400).json({ success: false, error: 'assessmentType query parameter is required', entries: [] });
     }
 
     const rawLimit = req.query.limit;
     const limitCount = rawLimit === undefined ? 100 : Number(rawLimit);
     if (!Number.isInteger(limitCount) || limitCount < 1 || limitCount > 100) {
+      setNoStore();
       return res.status(400).json({ success: false, error: 'limit must be an integer between 1 and 100', entries: [] });
     }
-
-    const isFresh = req.query.fresh === '1' || req.query.fresh === 'true';
 
     try {
       const entries = await services.leaderboardService.getPublicLeaderboard(rawType, { fresh: isFresh });
       return res.json({ success: true, entries: entries.slice(0, limitCount) });
     } catch (err: unknown) {
+      setNoStore();
       const errMsg = err instanceof Error ? err.message : String(err);
       const status = err instanceof AppError ? err.status : (errMsg === 'DATABASE_UNAVAILABLE' ? 503 : 500);
       const error = status === 400 ? errMsg :
