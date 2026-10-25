@@ -31,6 +31,28 @@ style={scale !== 1 ? {
 
 ---
 
+## 2b. First-Fold Stage Inside Scrollable Pages (Hybrid Layout Invariant)
+When a fixed-viewport first stage (such as the Hero) is followed by below-the-fold scrollable content inside a zoom-scaled `PageShell`:
+1. **CSS Viewport Unit Limitation:** Raw CSS units like `100dvh` or `calc(100dvh - 5rem)` evaluate against the unscaled physical window height, creating large vertical offsets inside elements transformed by CSS `zoom`.
+2. **Exact Stage Height Formula:** To ensure the first-fold stage centers its content identically to `origin/main`'s fixed viewport baseline across all screen resolutions, the desktop stage height must be dynamically computed:
+   $\text{stageHeight} = \frac{\text{viewportHeight}}{\text{scale}} - \text{navbarHeight} - \text{paddingBottom}$
+3. **Implementation Pattern:**
+   ```tsx
+   const { scale } = useBaselineScale();
+   const [viewportHeight, setViewportHeight] = React.useState<number>(() =>
+     typeof window !== 'undefined' ? window.innerHeight : 900
+   );
+   const heroStyle: React.CSSProperties = typeof window !== 'undefined' && window.innerWidth >= 768
+     ? {
+         minHeight: `${(viewportHeight / scale) - 88}px`,
+         height: `${(viewportHeight / scale) - 88}px`,
+       }
+     : {};
+   ```
+4. **Visual Measurement Verification Gate:** When restoring or modifying stage positioning, do not guess with arbitrary margins or paddings. Run automated headless measurements against the baseline reference (`getBoundingClientRect()`) across viewports (1440x900, 1920x1080, 1366x768, 1280x800) to confirm a $\le 0.05\text{px}$ delta before committing.
+
+---
+
 ## 3. Strict Mobile Breakpoint Fallback ($W < 768\text{px}$)
 For screen widths under `768px`:
 - `scale` MUST strictly be `1`.

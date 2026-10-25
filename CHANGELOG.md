@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [2.5.0] - 2026-10-24
 
+### Added
+- **PULSE Homepage Narrative Architecture:** Extended both Desktop (`src/`) and Mobile (`mobile/src/`) homepages into a comprehensive, scroll-connected product narrative:
+  - **Preserved Live Hero:** Retained existing desktop hero and `MobileHero` intact while transitioning container constraints to allow natural vertical scrolling.
+  - **Proof Scene:** Detailed factual 4-stage client-side measurement pipeline (*Stimulus Presentation → Human Response Capture → Trial Validation & Correction → Session Metrics & Summary*).
+  - **Assessments Discovery Scene:** Accessible protocol navigation featuring all 5 canonical cognitive batteries with focus management, keyboard navigation, and touch-swipe support.
+  - **Problem Contrast Scene:** Latency decomposition addressing display frame cadence quantization, main-thread event dispatch jitter, and outlier skew, alongside explicit laboratory equipment limitation disclosures.
+  - **Result Telemetry Scene:** Interpretable benchmark output illustrating client-side metrics calculation.
+  - **Why PULSE Scene:** Clear articulation of core engineering pillars: Precision, Repeatability, and Clarity.
+  - **FAQ Scene:** Accessible accordion using semantic buttons, `aria-expanded`, and `aria-controls`.
+  - **Final CTA Scene:** Low-friction protocol launch triggers mapped via canonical route helpers (`getAssessmentLaunchRoute`).
+  - **Platform Footers:** Dedicated `HomeFooter` (desktop) and `MobileHomeFooter` (mobile) providing directory navigation and section anchors.
+- **Observatory Theme Parity:** Full dual-mode styling adhering to `pulse-dark-mode` tokens (Tailwind `dark:` utilities on desktop; CSS custom properties `var(--surface-*)` on mobile).
+- **Verification Suite:** Added unit and Playwright e2e test suites verifying sequence order, accessibility attributes, and cross-platform token isolation.
+
 ### Changed
 - **Assessment Pacing Standardization:** Standardized desktop and mobile assessment live-timer loops to an average ~60 updates per second cadence via the shared `@shared/timing/framePacer.ts` utility.
 - **Unadjusted Latency Scoring (v1.1.0):** Eliminated theoretical display half-frame offset subtraction (`displayDelayOffsetMs`) across `visual-reaction`, `direction`, and `color-recognition`. Response latencies are now recorded as unadjusted browser-measured intervals rounded to two decimal places.

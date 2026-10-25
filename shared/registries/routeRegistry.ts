@@ -186,3 +186,28 @@ export function isAdministrativeRoute(path: string | null | undefined): boolean 
   const route = resolveRoute(path);
   return Boolean(route?.isAdministrative);
 }
+
+
+const ASSESSMENT_ROUTE_ID_MAP: Record<string, string> = {
+  'visual-reaction': 'test-visual-reaction',
+  'direction': 'test-direction',
+  'color-recognition': 'test-color-recognition',
+  'block-memory': 'test-block-memory',
+  'number-memory': 'test-number-memory',
+};
+
+export const ASSESSMENT_LAUNCH_ROUTES: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const [assessmentId, routeId] of Object.entries(ASSESSMENT_ROUTE_ID_MAP)) {
+    const route = ROUTE_REGISTRY.find((r) => r.routeId === routeId);
+    if (!route) {
+      throw new Error(`Route definition not found in ROUTE_REGISTRY for routeId: ${routeId}`);
+    }
+    map[assessmentId] = route.path;
+  }
+  return map;
+})();
+
+export function getAssessmentLaunchRoute(assessmentId: string): string {
+  return ASSESSMENT_LAUNCH_ROUTES[assessmentId] || '/assessments';
+}
