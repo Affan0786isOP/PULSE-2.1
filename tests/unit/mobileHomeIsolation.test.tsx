@@ -22,29 +22,35 @@ vi.mock('../../mobile/src/lib/welcomeStore', () => ({
 }));
 
 describe('Mobile Home Layout Isolation', () => {
-  it('renders only the MobileHero on the mobile landing page without dark directory or footer sections', () => {
-    const { container } = render(
+  it('preserves the mobile hero and clean styling while rendering the intended narrative footer', () => {
+    render(
       <MemoryRouter initialEntries={['/']}>
         <Home onNavigate={vi.fn()} />
       </MemoryRouter>
     );
 
-    // Assert MobileHero is rendered
+    // Preserve the existing hero and the new mobile narrative.
     expect(screen.getByRole('region', { name: 'PULSE Mobile Hero' })).toBeDefined();
+    expect(screen.getByRole('region', { name: 'Available Assessment Batteries' })).toBeDefined();
+    expect(screen.getByRole('contentinfo', { name: 'Mobile Navigation and Legal Footer' })).toBeDefined();
 
-    // Assert unwanted dark directory section is not rendered
+    // The retired desktop-style directory and legacy footer must remain absent.
     expect(screen.queryByText(/DIRECTORY/i)).toBeNull();
     expect(screen.queryByText(/Pulse Engineering • Built for scale/i)).toBeNull();
-
-    // Assert no duplicate directory shortcut buttons in Home
-    expect(screen.queryByRole('button', { name: /Leaderboard/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /Analytics/i })).toBeNull();
-    expect(screen.queryByRole('button', { name: /Dataset/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /Privacy Policy/i })).toBeNull();
 
-    // Verify outer container is transparent/clean and does not impose dark background
-    const homeRoot = container.firstElementChild as HTMLElement;
-    expect(homeRoot.className).toContain('bg-transparent');
-    expect(homeRoot.className).not.toContain('bg-[#0B0B0E]');
+    // The current mobile footer intentionally exposes one copy of each supported quick link.
+    expect(screen.getAllByRole('button', { name: /Leaderboard/i })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: /Dataset/i })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /About & Privacy/i })).toBeDefined();
+
+    // Verify the outer container stays transparent and does not impose a dark background.
+    const homeRoot = document.querySelector('#root')?.firstElementChild as HTMLElement | null;
+    // The render container is mounted by Testing Library, so fall back to the first app element.
+    const appRoot = homeRoot ?? document.body.querySelector('div.bg-transparent');
+    expect(appRoot).not.toBeNull();
+    expect(appRoot?.className).toContain('bg-transparent');
+    expect(appRoot?.className).not.toContain('bg-[#0B0B0E]');
   });
 });
