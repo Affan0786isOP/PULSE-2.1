@@ -85,5 +85,7 @@
 ## 6. Important Files Before Editing
 - **Timing & Validation:** [`src/lib/protocolValidators.ts`](../src/lib/protocolValidators.ts)
 - **Client Firestore API:** [`src/lib/firestore.ts`](../src/lib/firestore.ts)
+- **Dataset Explorer:** [src/components/Dataset.tsx](../src/components/Dataset.tsx) & [mobile/src/components/Dataset.tsx](../mobile/src/components/Dataset.tsx)
+- **Aspect Scaling:** [src/lib/useBaselineScale.ts](../src/lib/useBaselineScale.ts)
 - **Server API & Provenance:** [`server.ts`](../server.ts)
 - **Design Tokens:** [`src/DESIGN_SYSTEM.md`](../src/DESIGN_SYSTEM.md) and [`src/styles/pulse-aesthetic.css`](../src/styles/pulse-aesthetic.css)

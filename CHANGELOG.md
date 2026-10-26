@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.6.0] - 2026-10-26
+
+### Added
+- **Interactive Research Dataset Explorer (`/dataset`):** Released live interactive dataset dashboard for empirical research telemetry across Desktop and Mobile surfaces:
+  - Multi-cohort telemetry visualization featuring Speedometer Median Gauges, Reaction Time Distributions (Area), Age Cohort Comparisons (Bar), Trial Sequence Progressions (Line), Consistency Scatter Charts, and Outcome Validity Rings.
+  - Dedicated Direction Assessment analysis mode with 4-way spatial accuracy radar profiles (`UP`, `DOWN`, `LEFT`, `RIGHT`) and error breakdown distributions.
+  - Resilient Firestore `publicDataset` streaming with automatic schema fallback, trial unrolling from summary documents, and client-side caching.
+- **Uniform 720p Baseline Aspect Ratio Scaling:** Applied canonical $1280 \times 720$ baseline aspect scaling to the Dataset Explorer (`Dataset.tsx`) via `useBaselineScale` on desktop ($W \ge 768\text{px}$), maintaining geometric parity and proportional card scaling across 720p, 1080p, 1440p, and 4K displays while preserving native touch scrolling on mobile ($W < 768\text{px}$).
+- **Dual-Strategy Dark & Light Mode Theme Support:** Full tokenized theme parity across all Dataset Explorer visual layers:
+  - Replaced hardcoded chart fills and strokes with semantic variables (`var(--chart-grid)`, `var(--chart-text)`, `var(--border-subtle)`, `var(--border-strong)`).
+  - High-contrast custom tooltips (`bg-[var(--bg-surface-solid)]`) and guaranteed dark/light readability for gauge meters, ring metrics, and legends.
+
+### Changed
+- **Unified Global Navigation Parity:**
+  - Standardized the Dataset Explorer navbar across desktop and mobile, removing redundant title headers to match global application layout conventions.
+  - Enhanced desktop and mobile navigation brand lockup (`PulseLogo`) to dynamically adapt mark colors and typography (`var(--accent)` in dark mode, `#0066FF` / `#090D1A` in light mode) responding directly to system and user theme selections.
+
+---
+
 ## [2.5.0] - 2026-10-24
 
 ### Added

@@ -91,3 +91,16 @@ This file records verified architectural and engineering decisions established i
 - **Decision:** Implement low-noise targeted operational telemetry streaming to dedicated topics in a Telegram Forum Supergroup (`TELEGRAM_TOPIC_VISITS`, `TELEGRAM_TOPIC_RESULTS`, `TELEGRAM_TOPIC_LEADERBOARD`). Page views are restricted strictly to four allowlisted routes (`/`, `/about`, `/assessments`, `/leaderboard`) using a pseudonymous, opt-out-capable browser-profile ID (`dev_uuid`). Assessment and leaderboard alerts are enqueued strictly server-side from canonical committed records after database writes succeed. Outbound sends are paced by a global chat rate-limiter (~18 msgs/min) with a durable outbox.
 - **Consequences:** Provides instant operational visibility with zero client-side PII leakage and zero latency overhead on millisecond cognitive tests.
 - **Evidence:** [`shared/types/telemetry.ts`](../shared/types/telemetry.ts), [`server/services/telegramNotifierService.ts`](../server/services/telegramNotifierService.ts), [`server/routes/telemetryRoutes.ts`](../server/routes/telemetryRoutes.ts).
+
+---
+
+### Decision: Interactive Research Dataset Explorer & 720p Baseline Aspect Scaling
+- **Status:** Accepted (v2.6.0)
+- **Context:** The public open-science cognitive dataset previously existed only as an upcoming placeholder screen (`DatasetComingSoon.tsx`), lacking interactive inspection of anonymous response time distributions and cohort metadata. Furthermore, scaling across varying laptop/desktop resolutions (1080p, 1440p, 4K) often produced divergent layouts and stretched card geometries when unanchored to a canonical aspect ratio.
+- **Decision:**
+  1. Port and integrate full interactive Dataset Explorer into `src/components/Dataset.tsx` and `mobile/src/components/Dataset.tsx`, connecting to the live server `/api/dataset` and Firestore `publicDataset` endpoints.
+  2. Implement canonical 1280×720 baseline scaling on desktop using `useBaselineScale` (with breakpoint clamping at $768\text{px}$), ensuring higher resolution displays (FHD, QHD, 4K) scale uniformly to match 720p geometry while preserving vertical scrolling.
+  3. Enforce dual-strategy dark/light theme support across both surfaces: mobile uses CSS variable tokens (`var(--surface-1)`, `var(--text-primary)`, `var(--border-subtle)`), while desktop uses Tailwind theme classes.
+  4. Standardize desktop and mobile navigation headers on `/dataset` to match global navbar behavior, with dynamic brand mark switching (`#0066FF` in light mode, `var(--accent)` cyan in dark mode).
+- **Consequences:** Researchers and participants can explore, filter, and inspect cognitive benchmark distributions interactively. Visual geometry remains mathematically consistent across desktop monitor tiers.
+- **Evidence:** [`src/components/Dataset.tsx`](../src/components/Dataset.tsx), [`mobile/src/components/Dataset.tsx`](../mobile/src/components/Dataset.tsx), [`src/lib/useBaselineScale.ts`](../src/lib/useBaselineScale.ts), [`src/components/Navbar.tsx`](../src/components/Navbar.tsx), [`docs/specs/DATASET_PIPELINE.md`](../docs/specs/DATASET_PIPELINE.md).
