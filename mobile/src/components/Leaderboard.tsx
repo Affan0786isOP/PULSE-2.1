@@ -367,13 +367,14 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                       </div>
 
                       {/* Score metric */}
-                      <div className="col-span-4 flex items-baseline justify-end gap-1 text-right">
-                        <span className="text-sm font-bold text-[#090D1A] dark:text-[#F5F7FA] tabular-nums">
-                          {formattedScore}
-                        </span>
-                        <span className="text-[10.5px] text-slate-500 dark:text-slate-400 font-medium">
-                          {unit}
-                        </span>
+                      <div className="col-span-4 flex flex-col items-end justify-center gap-0.5 text-right">
+                        <div className="flex items-baseline justify-end gap-1">
+                          <span className="text-sm font-bold text-[#090D1A] dark:text-[#F5F7FA] tabular-nums">{formattedScore}</span>
+                          <span className="text-[10.5px] text-slate-500 dark:text-slate-400 font-medium">{unit}</span>
+                        </div>
+                        {typeof entry.accuracy === 'number' && Number.isFinite(entry.accuracy) && entry.accuracy >= 0 && entry.accuracy <= 100 ? (
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Accuracy {Number(entry.accuracy.toFixed(2))}%</span>
+                        ) : null}
                       </div>
                     </motion.div>
                   );

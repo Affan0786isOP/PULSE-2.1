@@ -137,8 +137,12 @@ describe('Vercel technical SEO routing', () => {
     const sources = headers.map(h => String(h.source));
     expect(sources).toContain('/(sw\\.js|service-worker\\.js|mobile/sw\\.js|mobile/service-worker\\.js)');
     expect(sources).toContain('/(.*\\.(?:webmanifest|json|ico|png|svg))');
-    expect(sources).toContain('/api/(.*)');
+    expect(sources).toContain('/api/:path*');
     expect(sources).toContain('/assets/:path*');
     expect(sources).toContain('/mobile/assets/:path*');
+
+    // API request routing is a rewrite, distinct from the API's robots header.
+    const rewrites = config.rewrites as Array<Record<string, unknown>>;
+    expect(rewrites).toContainEqual({ source: '/api/(.*)', destination: '/api/index.ts' });
   });
 });

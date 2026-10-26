@@ -222,3 +222,14 @@ export function isValidLeaderboardScoreMetric(assessmentType: string, scoreMetri
 
   return false;
 }
+
+
+/** Resolve the approved percentage value from validated assessment metrics. */
+export function normalizeLeaderboardAccuracy(metrics: unknown): number | null {
+  if (!metrics || typeof metrics !== 'object' || Array.isArray(metrics)) return null;
+  const values = metrics as Record<string, unknown>;
+  for (const candidate of [values.accuracy, values.overallAccuracy]) {
+    if (typeof candidate === 'number' && Number.isFinite(candidate) && candidate >= 0 && candidate <= 100) return candidate;
+  }
+  return null;
+}

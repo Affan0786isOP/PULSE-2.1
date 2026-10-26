@@ -3,6 +3,8 @@ export interface LeaderboardEntryRecord {
   displayName: string;
   assessmentType: string;
   scoreMetric: number;
+  /** Approved server-derived public percentage, or null when unavailable. */
+  accuracy?: number | null;
   ageGroup: string;
   createdAt: number;
   provenanceToken: string;
@@ -36,6 +38,7 @@ export interface LeaderboardSubmissionTxInput {
   displayName: string;
   assessmentType: string;
   scoreMetric: number;
+  accuracy?: number | null;
   authoritativeAgeGroup: string;
   provenanceToken: string;
   trialsDigest: string;

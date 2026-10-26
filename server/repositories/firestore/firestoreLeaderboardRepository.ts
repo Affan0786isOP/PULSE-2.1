@@ -3,7 +3,7 @@ import * as crypto from 'crypto';
 import type { ILeaderboardRepository } from '../interfaces/ILeaderboardRepository';
 import type { LeaderboardEntryRecord, AdminLeaderboardEntryRecord } from '../../models/leaderboardModels';
 import { normalizeAssessmentType } from '../../engines/assessmentTypes';
-import { safeLeaderboardDisplayNameForRead, isValidLeaderboardScoreMetric } from '../../../shared/domain/leaderboardEligibility';
+import { safeLeaderboardDisplayNameForRead, isValidLeaderboardScoreMetric, normalizeLeaderboardAccuracy } from '../../../shared/domain/leaderboardEligibility';
 
 function ownerIndexDocumentId(ownerUid: string, assessmentType: string): string {
   return crypto.createHash('sha256').update(`${ownerUid}:${assessmentType}`).digest('hex');
@@ -54,6 +54,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
             displayName: safeDisplayName,
             assessmentType: docType,
             scoreMetric,
+            accuracy: normalizeLeaderboardAccuracy({ accuracy: data.accuracy }),
             ageGroup: String(data.ageGroup || ''),
             // A deterministic fallback prevents ties from moving between reads.
             createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0),
@@ -103,6 +104,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
           displayName: safeName,
           assessmentType: docType,
           scoreMetric,
+          accuracy: normalizeLeaderboardAccuracy({ accuracy: data.accuracy }),
           ageGroup: String(data.ageGroup || ''),
           createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0),
           provenanceToken: String(data.provenanceToken || ''),

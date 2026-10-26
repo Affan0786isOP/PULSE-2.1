@@ -13,7 +13,7 @@ interface LeaderboardOptInProps {
 
 export function LeaderboardOptIn({ assessmentType, scoreMetric,
       idempotencyKey, ageGroup, trials }: LeaderboardOptInProps) {
-  const [optInState, setOptInState] = useState<'IDLE' | 'OPTING_IN' | 'SUBMITTING' | 'SUCCESS' | 'ERROR'>('IDLE');
+  const [optInState, setOptInState] = useState<'IDLE' | 'OPTING_IN' | 'SUBMITTING' | 'SUCCESS' | 'RECORDED' | 'PENDING_REVIEW' | 'STATUS_UNKNOWN' | 'ERROR'>('IDLE');
   
   const [displayName, setDisplayName] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -101,7 +101,12 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
     });
 
     if (res.success) {
-      setOptInState('SUCCESS');
+      const submittedId = res.attemptId || res.docId;
+      const visibleEntryId = res.leaderboardEntryId ?? res.leaderboardDocId ?? null;
+      if (res.pendingReview) setOptInState('PENDING_REVIEW');
+      else if (res.receiptAvailable !== true || !submittedId || !visibleEntryId) setOptInState('STATUS_UNKNOWN');
+      else if (submittedId === visibleEntryId) setOptInState('SUCCESS');
+      else setOptInState('RECORDED');
       getLeaderboardResults(assessmentType, { bypassCache: true }).catch(err => {
         console.warn('[Leaderboard] Mobile post-submission cache prime notice:', err?.message || err);
       });
@@ -121,13 +126,16 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
   }
 
   if (optInState === 'SUCCESS') {
-    return (
-      <div className="w-full bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--color-success)] p-2 rounded-lg flex items-center justify-center text-center animate-[fadeIn_0.2s_ease-out]">
-        <span className="font-mono text-xs font-medium">
-          ✓ Added to public research leaderboard
-        </span>
-      </div>
-    );
+    return <div role="status" className="w-full bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--color-success)] p-2 rounded-lg text-center"><span className="font-mono text-xs">✓ Your score is on the public leaderboard.</span></div>;
+  }
+  if (optInState === 'RECORDED') {
+    return <div role="status" className="w-full bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-primary)] p-2 rounded-lg text-center"><span className="font-mono text-xs">Submission recorded. Your existing public best remains on the leaderboard.</span></div>;
+  }
+  if (optInState === 'PENDING_REVIEW') {
+    return <div role="status" className="w-full bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-primary)] p-2 rounded-lg text-center"><span className="font-mono text-xs">Submission received and pending review. It is not public yet.</span></div>;
+  }
+  if (optInState === 'STATUS_UNKNOWN') {
+    return <div role="status" className="w-full bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[var(--text-primary)] p-2 rounded-lg text-center"><span className="font-mono text-xs">Publication status could not be confirmed. Check the leaderboard before retrying.</span></div>;
   }
 
   if (optInState === 'IDLE') {

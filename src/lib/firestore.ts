@@ -3,7 +3,7 @@ import { doc, setDoc, getDoc, waitForPendingWrites, serverTimestamp, collection,
 import { signInAnonymously } from 'firebase/auth';
 import { db, auth, isConfigured, authInitPromise } from './firebase';
 import { reportError } from './errorReporter';
-import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, normalizeLeaderboardAssessmentType, safeLeaderboardDisplayNameForRead, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
+import { isOptedInLeaderboardUser, isValidLeaderboardScoreMetric, normalizeLeaderboardAccuracy, normalizeLeaderboardAssessmentType, safeLeaderboardDisplayNameForRead, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 export { isOptedInLeaderboardUser };
 
 export const isFirestoreAvailable = (): boolean => {
@@ -408,7 +408,22 @@ export const getPersonalBest = async (
   }
 };
 
-export const submitLeaderboardResult = async (payload: BasePayload & { trials?: any[], scoreMetric: number, displayName: string }): Promise<{success: boolean, syncedToCloud: boolean, error?: string}> => {
+export interface LeaderboardSubmissionClientResult {
+  success: boolean;
+  syncedToCloud: boolean;
+  error?: string;
+  docId?: string;
+  attemptId?: string;
+  leaderboardDocId?: string | null;
+  leaderboardEntryId?: string | null;
+  receiptAvailable?: boolean;
+  entryAvailable?: boolean;
+  pendingReview?: boolean;
+  alreadySubmitted?: boolean;
+  scoreMetric?: number;
+}
+
+export const submitLeaderboardResult = async (payload: BasePayload & { trials?: any[], scoreMetric: number, displayName: string }): Promise<LeaderboardSubmissionClientResult> => {
   try {
     const uid = auth?.currentUser?.uid;
     const activeSessionId = payload.sessionId || payload.idempotencyKey;
@@ -443,8 +458,19 @@ export const submitLeaderboardResult = async (payload: BasePayload & { trials?: 
     }
 
     clearClientLeaderboardCache(payload.assessmentType);
-
-    return { success: true, syncedToCloud: true };
+    return {
+      success: true,
+      syncedToCloud: true,
+      docId: typeof data.docId === 'string' ? data.docId : undefined,
+      attemptId: typeof data.attemptId === 'string' ? data.attemptId : undefined,
+      leaderboardDocId: typeof data.leaderboardDocId === 'string' ? data.leaderboardDocId : null,
+      leaderboardEntryId: typeof data.leaderboardEntryId === 'string' ? data.leaderboardEntryId : null,
+      receiptAvailable: data.receiptAvailable === true,
+      entryAvailable: data.entryAvailable === true,
+      pendingReview: data.pendingReview === true,
+      alreadySubmitted: data.alreadySubmitted === true,
+      scoreMetric: typeof data.scoreMetric === 'number' && Number.isFinite(data.scoreMetric) ? data.scoreMetric : undefined
+    };
   } catch (err) {
     reportError(err, 'RECOVERABLE_FAILURE', { component: 'Firestore', action: 'submitLeaderboardResult' });
     return { success: false, syncedToCloud: false, error: err instanceof Error ? err.message : 'Submission error' };
@@ -607,7 +633,7 @@ export const getLeaderboardResults = async (
                 ageGroup: String(e.ageGroup || ''),
                 createdAt: e.createdAt,
                 source: 'cloud',
-                accuracy: typeof e.accuracy === 'number' ? e.accuracy : typeof e.derivedMetrics?.accuracy === 'number' ? e.derivedMetrics.accuracy : null
+                accuracy: normalizeLeaderboardAccuracy({ accuracy: e.accuracy })
               });
             }
           });

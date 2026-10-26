@@ -13,7 +13,7 @@ import type { ExperimentSessionRecord } from '../models/sessionModels';
 import { VALID_AGE_GROUPS, VALID_ASSESSMENT_TYPES } from '../config/constants';
 import { normalizeAssessmentType } from '../engines/assessmentTypes';
 import { safeCompareHex, signProvenancePayload } from './provenanceService';
-import { isValidLeaderboardScoreMetric, safeLeaderboardDisplayNameForRead, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
+import { isValidLeaderboardScoreMetric, normalizeLeaderboardAccuracy, safeLeaderboardDisplayNameForRead, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
 import { LeaderboardAlreadySubmittedError, AppError } from '../models/replayContracts';
 import { safeLogWarning } from '../config/firebaseAdmin';
 
@@ -402,6 +402,7 @@ export class LeaderboardAppService implements ILeaderboardService {
       displayName: normalizedDisplayName,
       assessmentType: normalizedAssessmentType,
       scoreMetric,
+      accuracy: normalizeLeaderboardAccuracy(metrics),
       authoritativeAgeGroup,
       provenanceToken,
       trialsDigest: trialsDigest || '',
