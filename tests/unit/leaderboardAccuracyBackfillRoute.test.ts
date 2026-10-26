@@ -32,7 +32,7 @@ describe('Leaderboard accuracy backfill admin route', () => {
   let server: http.Server;
   const oldGate = process.env.LEADERBOARD_ACCURACY_BACKFILL_ENABLED;
   const runner = vi.fn(async (input: any) => ({
-    success: true,
+    success: true as const,
     mode: input.mode,
     counts: { scanned: 0, eligible: 0, wouldUpdate: 0, updated: 0, alreadyCorrect: 0, skipped: 0, failed: 0 },
     skipReasons: {},
