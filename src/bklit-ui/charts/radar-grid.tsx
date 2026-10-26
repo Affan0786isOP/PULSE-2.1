@@ -41,7 +41,7 @@ export function RadarGrid({
   // Generate angles for the radial lines (one per metric)
   const degrees = 360;
   const angles = [...new Array(metrics.length + 1)].map((_, i) => ({
-    angle: i * (degrees / metrics.length) + degrees / metrics.length / 2,
+    angle: i * (degrees / metrics.length),
   }));
 
   // Radial scale for converting degrees to radians
@@ -113,8 +113,8 @@ export function RadarGrid({
               fill={radarCssVars.foregroundMuted}
               fontSize={9}
               textAnchor="start"
-              x={6}
-              y={-((i + 1) * radius) / levels + (i === levels - 1 ? 7 : 0)}
+              x={8}
+              y={-((i + 1) * radius) / levels + (i === levels - 1 ? 8 : 0)}
             >
               {Math.round((domain ? domain[0] : 0) + ((i + 1) * ((domain ? domain[1] : 100) - (domain ? domain[0] : 0))) / levels)}
             </text>
