@@ -59,9 +59,9 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#0a0f1d]/95 backdrop-blur-md border border-[var(--border-subtle)] rounded-lg p-3 shadow-[0_8px_24px_rgba(0,0,0,0.6)] font-mono text-xs z-50">
+      <div className="bg-[var(--bg-surface-solid)] backdrop-blur-md border border-[var(--border-subtle)] rounded-lg p-3 shadow-xl font-mono text-xs z-50">
         {label !== undefined && (
-          <div className="text-[var(--text-muted)] font-semibold mb-1.5 border-b border-white/10 pb-1">
+          <div className="text-[var(--text-muted)] font-semibold mb-1.5 border-b border-[var(--border-subtle)] pb-1">
             {String(label)}
           </div>
         )}
@@ -76,14 +76,14 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: entry.color || entry.fill || 'var(--cyan-primary)' }}
               />
-              <span className="text-slate-300">{entry.name || 'Value'}:</span>
+              <span className="text-[var(--text-secondary)]">{entry.name || 'Value'}:</span>
             </div>
             <span className="font-bold">
               {entry.value} {entry.unit || ''}
               {entry.payload && entry.payload[`${entry.dataKey}N`] !== undefined ? (
-                <span className="text-slate-500 ml-1 font-normal">(n={entry.payload[`${entry.dataKey}N`]})</span>
+                <span className="text-[var(--text-muted)] ml-1 font-normal">(n={entry.payload[`${entry.dataKey}N`]})</span>
               ) : entry.payload && entry.payload.n !== undefined ? (
-                <span className="text-slate-500 ml-1 font-normal">(n={entry.payload.n})</span>
+                <span className="text-[var(--text-muted)] ml-1 font-normal">(n={entry.payload.n})</span>
               ) : null}
             </span>
           </div>
@@ -132,7 +132,7 @@ function RadialGauge({ value, label = 'Median RT' }: RadialGaugeProps) {
         <path
           d="M 25 115 A 80 80 0 0 1 195 115"
           fill="none"
-          stroke="rgba(255, 255, 255, 0.08)"
+          stroke="var(--border-subtle)"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
@@ -164,7 +164,7 @@ function RadialGauge({ value, label = 'Median RT' }: RadialGaugeProps) {
               y1={y1}
               x2={x2}
               y2={y2}
-              stroke="rgba(255, 255, 255, 0.25)"
+              stroke="var(--border-strong)"
               strokeWidth="1.5"
             />
           );
@@ -714,13 +714,13 @@ export function Dataset({ onNavigate }: DatasetProps) {
                          </linearGradient>
                        </defs>
                        <CartesianGrid
-                         stroke="rgba(255,255,255,0.06)"
+                         stroke="var(--chart-grid)"
                          strokeDasharray="3 3"
                          vertical={false}
                        />
                        <XAxis
                          dataKey="label"
-                         stroke="#64748b"
+                         stroke="var(--chart-text)"
                          fontSize={9}
                          fontFamily="monospace"
                          tickLine={false}
@@ -728,7 +728,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                          textAnchor="end"
                        />
                        <YAxis
-                         stroke="#64748b"
+                         stroke="var(--chart-text)"
                          fontSize={10}
                          fontFamily="monospace"
                          tickLine={false}
@@ -780,19 +780,19 @@ export function Dataset({ onNavigate }: DatasetProps) {
                        margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
                      >
                        <CartesianGrid
-                         stroke="rgba(255,255,255,0.06)"
+                         stroke="var(--chart-grid)"
                          strokeDasharray="3 3"
                          vertical={false}
                        />
                        <XAxis
                          dataKey="day"
-                         stroke="#64748b"
+                         stroke="var(--chart-text)"
                          fontSize={10}
                          fontFamily="monospace"
                          tickLine={false}
                        />
                        <YAxis
-                         stroke="#64748b"
+                         stroke="var(--chart-text)"
                          fontSize={10}
                          fontFamily="monospace"
                          tickLine={false}
@@ -846,19 +846,19 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
                   >
                     <CartesianGrid
-                      stroke="rgba(255,255,255,0.06)"
+                      stroke="var(--chart-grid)"
                       strokeDasharray="3 3"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="trialLabel"
-                      stroke="#64748b"
+                      stroke="var(--chart-text)"
                       fontSize={10}
                       fontFamily="monospace"
                       tickLine={false}
                     />
                     <YAxis
-                      stroke="#64748b"
+                      stroke="var(--chart-text)"
                       fontSize={10}
                       fontFamily="monospace"
                       tickLine={false}
@@ -922,14 +922,14 @@ export function Dataset({ onNavigate }: DatasetProps) {
                    <ResponsiveContainer width="100%" height="100%">
                      <ScatterChart margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                        <CartesianGrid
-                         stroke="rgba(255,255,255,0.06)"
+                         stroke="var(--chart-grid)"
                          strokeDasharray="3 3"
                        />
                        <XAxis
                          dataKey="medianRT"
                          name="Median RT"
                          unit="ms"
-                         stroke="#64748b"
+                         stroke="var(--chart-text)"
                          fontSize={10}
                          fontFamily="monospace"
                          tickLine={false}
@@ -939,7 +939,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                          dataKey="sd"
                          name="SD"
                          unit="ms"
-                         stroke="#64748b"
+                         stroke="var(--chart-text)"
                          fontSize={10}
                          fontFamily="monospace"
                          tickLine={false}
@@ -1007,7 +1007,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                    </ResponsiveContainer>
                    {/* Central Metric */}
                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                     <span className="font-mono text-xl sm:text-2xl font-bold text-white tracking-tight">
+                     <span className="font-mono text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
                        {totalTrialsCount.toLocaleString()}
                      </span>
                      <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-muted)]">
@@ -1018,11 +1018,11 @@ export function Dataset({ onNavigate }: DatasetProps) {
                  <div className="w-full flex items-center justify-center gap-4 pt-2 border-t border-[var(--border-subtle)] text-xs font-mono">
                    <div className="flex items-center gap-1.5">
                      <span className="w-2.5 h-2.5 rounded-full bg-[#00f0ff]" />
-                     <span className="text-slate-300">Valid</span>
+                     <span className="text-[var(--text-secondary)]">Valid</span>
                    </div>
                    <div className="flex items-center gap-1.5">
                      <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
-                     <span className="text-slate-300">False Start</span>
+                     <span className="text-[var(--text-secondary)]">False Start</span>
                    </div>
                  </div>
                </div>
