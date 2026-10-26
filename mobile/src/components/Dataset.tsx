@@ -550,7 +550,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   return (
     <div className="bg-transparent text-[var(--text-main)] h-full max-h-[100dvh] w-full max-w-full overflow-hidden flex flex-col font-sans selection:bg-cyan-500/30 relative">
-      <Navbar onNavigate={onNavigate} currentView="dataset" title="Dataset Explorer" />
+      <Navbar onNavigate={onNavigate} currentView="dataset" />
 
       <main className="flex-1 w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 min-w-0 overflow-y-auto pb-24 pb-safe">
         {/* Game Navigation with Left & Right Arrows */}

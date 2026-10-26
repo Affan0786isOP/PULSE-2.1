@@ -569,7 +569,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
       style={scaleStyle}
       className="bg-transparent text-[var(--text-main)] min-h-[100dvh] w-full max-w-full overflow-x-hidden flex flex-col font-sans selection:bg-cyan-500/30 relative"
     >
-      <Navbar onNavigate={onNavigate} currentView="dataset" title="Dataset Explorer" />
+      <Navbar onNavigate={onNavigate} currentView="dataset" />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 min-w-0">
         {/* Game Navigation with Left & Right Arrows */}
