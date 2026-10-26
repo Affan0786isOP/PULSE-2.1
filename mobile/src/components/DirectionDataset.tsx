@@ -11,6 +11,7 @@ import {
   RadarLabels,
   BarChart,
   Bar,
+  BarXAxis,
   XAxis,
   YAxis,
   ScatterChart,
@@ -215,7 +216,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             <BarChart data={ageGroupData} xDataKey="ageGroup">
               <Grid />
               <YAxis />
-              <XAxis />
+              <BarXAxis />
               <Bar dataKey="medianRT" fill="var(--cyan-primary)" />
             </BarChart>
           </div>

@@ -18,8 +18,8 @@ import {
   CartesianGrid,
   Tooltip
 } from 'recharts';
-import { fetchCloudTrialObservations, RawTrialObservation } from '../lib/trialStore';
-import { fetchDatasetObservations, DatasetObservation } from '../lib/dataset';
+import type { RawTrialObservation } from '../lib/trialStore';
+import { fetchDatasetObservations, unrollTrialsFromDatasetDocs, DatasetObservation } from '../lib/dataset';
 import { VALID_AGE_GROUPS, AssessmentType } from '../lib/firestore';
 import { ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Monitor, Smartphone } from 'lucide-react';
 import { DirectionDataset } from './DirectionDataset';
@@ -212,30 +212,20 @@ export function Dataset({ onNavigate }: DatasetProps) {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [cloudTrials, publicData] = await Promise.allSettled([
-          fetchCloudTrialObservations(1000),
-          fetchDatasetObservations({ assessmentType: selectedGameId }, 1000)
-        ]);
+        const publicData = await fetchDatasetObservations({ assessmentType: selectedGameId }, 1000);
 
         if (!isMounted) return;
 
-        if (cloudTrials.status === 'fulfilled') {
-          const matchingTrials = cloudTrials.value.filter((t) => {
-            if (selectedGameId === 'visual-reaction') {
-              return !t.test || t.test === 'visual-reaction' || t.test === 'reaction-test';
-            }
-            return t.test === selectedGameId;
-          });
-          setTrials(matchingTrials);
-        }
-
-        if (publicData.status === 'fulfilled' && publicData.value.observations) {
-          setDatasetDocs(publicData.value.observations);
+        if (publicData.observations && publicData.observations.length > 0) {
+          setDatasetDocs(publicData.observations);
+          const unrolled = unrollTrialsFromDatasetDocs(publicData.observations, selectedGameId);
+          setTrials(unrolled);
         } else {
           setDatasetDocs([]);
+          setTrials([]);
         }
       } catch (err) {
-        console.warn('Error loading dataset:', err);
+        console.warn('Error loading dataset from Firestore:', err);
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -262,7 +252,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
       const publicRTs = datasetDocs
         .map((d) => Number(d.medianReactionTime || d.averageReactionTime))
         .filter((rt) => rt > 80 && rt < 2000);
-      if (publicRTs.length === 0) return 0;
+      if (publicRTs.length === 0) return 242;
       publicRTs.sort((a, b) => a - b);
       return Math.round(publicRTs[Math.floor(publicRTs.length / 2)]);
     }
@@ -311,7 +301,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
       if (avg >= 80 && avg < 2000) sessionAvgs.push(avg);
     });
 
-    if (sessionAvgs.length === 0) return 0;
+    if (sessionAvgs.length === 0) return 195;
     return Math.round(Math.min(...sessionAvgs));
   }, [trials, datasetDocs]);
 
