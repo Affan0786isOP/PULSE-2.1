@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { RawTrialObservation } from '../lib/trialStore';
+import type { RawTrialObservation } from '../lib/trialStore';
 import { DatasetObservation } from '../lib/dataset';
-
+import { VALID_AGE_GROUPS } from '../lib/firestore';
+import { triggerHaptic } from '../lib/settingsStore';
 import {
   Gauge,
   RadarChart,
@@ -12,17 +13,62 @@ import {
   BarChart,
   Bar,
   BarXAxis,
-  XAxis,
-  YAxis,
-  ScatterChart,
-  Scatter,
-  LineChart,
-  Line,
   RingChart,
   Ring,
   RingCenter,
   Grid
 } from '../bklit-ui/charts';
+import {
+  ResponsiveContainer,
+  ScatterChart,
+  Scatter,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip
+} from 'recharts';
+
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string | number;
+}
+
+function DirectionCustomTooltip({ active, payload, label }: CustomTooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[var(--bg-surface-solid)] backdrop-blur-md border border-[var(--border-subtle)] rounded-lg p-3 shadow-xl font-mono text-xs z-50 text-[var(--text-primary)]">
+        {label !== undefined && (
+          <div className="text-[var(--text-muted)] font-semibold mb-1.5 border-b border-[var(--border-subtle)] pb-1">
+            {typeof label === 'number' ? ('Trial ' + label) : String(label)}
+          </div>
+        )}
+        {payload.map((entry, index) => (
+          <div
+            key={'dir-tooltip-' + index}
+            className="flex items-center justify-between gap-4 py-0.5"
+            style={{ color: entry.color || entry.fill || 'var(--cyan-primary)' }}
+          >
+            <div className="flex items-center gap-1.5">
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: entry.color || entry.fill || 'var(--cyan-primary)' }}
+              />
+              <span className="text-[var(--text-secondary)]">{entry.name || 'Value'}:</span>
+            </div>
+            <span className="font-bold">
+              {entry.name === 'Accuracy' ? (entry.value === 1 ? 'Accurate (100%)' : 'Error (0%)') : (entry.value + ' ms')}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
 
 interface DirectionDatasetProps {
   trials: RawTrialObservation[];
@@ -229,13 +275,46 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               Speed vs Accuracy
             </h3>
           </div>
-          <div className="h-64 sm:h-72 w-full">
-            <ScatterChart data={scatterData} xDataKey="rt">
-              <Grid />
-              <YAxis />
-              <XAxis />
-              <Scatter dataKey="accuracy" fill="var(--chart-3)" radius={4} />
-            </ScatterChart>
+          <div className="h-64 sm:h-72 w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 10, right: 15, left: -20, bottom: 5 }}>
+                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="rt"
+                  name="Reaction Time"
+                  unit="ms"
+                  stroke="var(--chart-text)"
+                  fontSize={10}
+                  fontFamily="monospace"
+                  tickLine={false}
+                  domain={['auto', 'auto']}
+                />
+                <YAxis
+                  dataKey="accuracy"
+                  name="Accuracy"
+                  ticks={[0, 1]}
+                  tickFormatter={(val) => val === 1 ? '1.0' : '0.0'}
+                  stroke="var(--chart-text)"
+                  fontSize={10}
+                  fontFamily="monospace"
+                  tickLine={false}
+                  axisLine={false}
+                  domain={[-0.2, 1.2]}
+                />
+                <Tooltip
+                  cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.2)' }}
+                  content={<DirectionCustomTooltip />}
+                  allowEscapeViewBox={{ x: false, y: true }}
+                  wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                />
+                <Scatter
+                  name="Accuracy"
+                  data={scatterData}
+                  fill="var(--cyan-primary)"
+                  opacity={0.85}
+                />
+              </ScatterChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -246,13 +325,43 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               Trial Sequence
             </h3>
           </div>
-          <div className="h-64 sm:h-72 w-full">
-            <LineChart data={lineData} xDataKey="trial">
-              <Grid />
-              <YAxis />
-              <XAxis />
-              <Line dataKey="reactionTime" stroke="var(--cyan-primary)" strokeWidth={2} />
-            </LineChart>
+          <div className="h-64 sm:h-72 w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={lineData} margin={{ top: 10, right: 15, left: -20, bottom: 5 }}>
+                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="trial"
+                  tickFormatter={(t) => 'Trial ' + t}
+                  stroke="var(--chart-text)"
+                  fontSize={10}
+                  fontFamily="monospace"
+                  tickLine={false}
+                />
+                <YAxis
+                  stroke="var(--chart-text)"
+                  fontSize={10}
+                  fontFamily="monospace"
+                  tickLine={false}
+                  axisLine={false}
+                  unit="ms"
+                  domain={['auto', 'auto']}
+                />
+                <Tooltip
+                  content={<DirectionCustomTooltip />}
+                  allowEscapeViewBox={{ x: false, y: true }}
+                  wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="reactionTime"
+                  name="Reaction Time"
+                  stroke="var(--cyan-primary)"
+                  strokeWidth={2.5}
+                  dot={{ r: 4, fill: 'var(--cyan-primary)', strokeWidth: 0 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
         

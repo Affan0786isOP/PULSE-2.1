@@ -40,6 +40,8 @@ const RadarPoint = memo(function RadarPoint({
   isHovered,
   metricKey,
   enterComplete,
+  value,
+  label,
 }: {
   mountProgress: MotionValue<number>;
   target: { x: number; y: number };
@@ -47,6 +49,8 @@ const RadarPoint = memo(function RadarPoint({
   isHovered: boolean;
   metricKey: string;
   enterComplete: boolean;
+  value?: number;
+  label?: string;
 }) {
   const cx = useTransform(mountProgress, (t) => target.x * t);
   const cy = useTransform(mountProgress, (t) => target.y * t);
@@ -61,7 +65,9 @@ const RadarPoint = memo(function RadarPoint({
         r={isHovered ? 6 : 4}
         stroke={radarCssVars.background}
         strokeWidth={2}
-      />
+      >
+        {value !== undefined && <title>{(label || metricKey) + ": " + value + "%"}</title>}
+      </circle>
     );
   }
 
@@ -213,6 +219,8 @@ export const RadarArea = memo(function RadarArea({
               metricKey={metric.key}
               mountProgress={mountProgress}
               target={target}
+              value={areaData.values[metric.key]}
+              label={metric.label}
             />
           );
         })}

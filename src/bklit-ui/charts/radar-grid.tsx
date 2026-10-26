@@ -112,8 +112,8 @@ export function RadarGrid({
               fill={radarCssVars.foregroundMuted}
               fontSize={9}
               textAnchor="start"
-              x={4}
-              y={-((i + 1) * radius) / levels}
+              x={6}
+              y={-((i + 1) * radius) / levels + (i === levels - 1 ? 7 : 0)}
             >
               {((i + 1) * 100) / levels}
             </text>
