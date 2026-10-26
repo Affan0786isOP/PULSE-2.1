@@ -48,6 +48,7 @@ export interface LeaderboardAccuracyBackfillPage {
 export interface LeaderboardAccuracyBackfillLegacySessionCandidates {
   entryId: string;
   sessions: Array<Record<string, unknown>>;
+  researchResults: Array<Record<string, unknown>>;
   /** False when any bounded lookup hit its cap, so uniqueness cannot be proven. */
   complete: boolean;
 }
