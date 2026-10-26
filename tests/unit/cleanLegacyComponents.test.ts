@@ -78,19 +78,18 @@ describe('Legacy Frontend Components Pre-Deletion Audit & Purge', { timeout: 200
     expect(activeRefs).toEqual([]);
   });
 
-  it('confirms legacy Dataset components and directory are deleted', () => {
-    expect(existsSync(resolve(process.cwd(), 'src/components/Dataset.tsx'))).toBe(false);
-    expect(existsSync(resolve(process.cwd(), 'mobile/src/components/Dataset.tsx'))).toBe(false);
+  it('confirms legacy Dataset components directory is deleted', () => {
     expect(existsSync(resolve(process.cwd(), 'src/components/dataset'))).toBe(false);
   });
 
-  it('confirms 0 active references to src/lib/dataset pipeline', () => {
+  it('confirms references to src/lib/dataset are scoped to Dataset components', () => {
     const refs = findRepositoryReferences([
       'from \'../lib/dataset\'',
       'from \'../../src/lib/dataset\'',
       'from \'./lib/dataset\''
     ]);
-    expect(refs).toEqual([]);
+    const nonDatasetRefs = refs.filter(r => !r.file.includes('Dataset'));
+    expect(nonDatasetRefs).toEqual([]);
   }, 15000);
 
   it('confirms src/lib/dataset directory is deleted', () => {

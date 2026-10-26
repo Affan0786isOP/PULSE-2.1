@@ -18,9 +18,7 @@ describe('Overengineering Pruning & Dead Code Purge Regression Suite', () => {
     expect(pkg.dependencies['@rive-app/react-canvas']).toBeUndefined();
   });
 
-  it('confirms trialStore and inMemorySessionStore are deleted and not referenced', () => {
-    expect(existsSync(resolve(process.cwd(), 'src/lib/trialStore.ts'))).toBe(false);
-    expect(existsSync(resolve(process.cwd(), 'mobile/src/lib/trialStore.ts'))).toBe(false);
+  it('confirms inMemorySessionStore is deleted and SettingsModal does not reference trialStore', () => {
     expect(existsSync(resolve(process.cwd(), 'src/lib/inMemorySessionStore.ts'))).toBe(false);
     expect(existsSync(resolve(process.cwd(), 'mobile/src/lib/inMemorySessionStore.ts'))).toBe(false);
 

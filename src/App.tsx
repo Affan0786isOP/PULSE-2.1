@@ -7,7 +7,6 @@ import { useSystemTheme } from './lib/useSystemTheme';
 import { Home } from './components/Home';
 import { RouteSEO } from './components/RouteSEO';
 import { PageViewTracker } from './components/PageViewTracker';
-import { DatasetComingSoon } from './components/DatasetComingSoon';
 
 import { resolveDeviceRedirect } from './lib/deviceRouting';
 
@@ -45,6 +44,7 @@ function RedirectToMobile() {
 // Code-split routes for optimal Home startup performance
 const About = React.lazy(() => import('./components/About').then(m => ({ default: m.About })));
 const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
+const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
 
 const DeferredAnalytics = React.memo(function DeferredAnalytics() {
   const [shouldLoad, setShouldLoad] = React.useState(false);
@@ -210,8 +210,8 @@ function App() {
                 <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
                 <Route path="/admin" element={<AdminPage />} />
 
-                <Route path="/dataset" element={<DatasetComingSoon />} />
-                <Route path="/analytics" element={<DatasetComingSoon />} />
+                <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
+                <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
                 <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                 <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                 <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />

@@ -1,6 +1,6 @@
 ---
 name: precontext
-description: Tells the agent which critical project context, architecture, rules, and schema files to discover and read, and to use codebase-memory-mcp knowledge graph tools before starting development or code modifications in any codebase.
+description: Tells the agent which critical project context, architecture, rules, and schema files to discover and read, how to use codebase-memory-mcp knowledge graph tools, and enforces strict token-optimization and context-efficiency invariants before starting development or code modifications in any codebase.
 ---
 
 # Precontext: Mandatory Orientation Before Development
@@ -89,3 +89,29 @@ Before proposing or executing code changes:
 - [ ] Are project-specific precision, performance, or timing constraints preserved?
 - [ ] If modifying shared components or layouts, did you check responsive viewports, multi-surface parity, and theme compatibility?
 - [ ] Are all dependency versions and package manager commands aligned with repository requirements?
+- [ ] Are your context notes, prompts, and tool calls compliant with the token optimization and context efficiency invariants?
+
+---
+
+## 5. Token Optimization & Context Efficiency Protocol
+
+All context gathering, prompt authoring, tool invocations, and response generation must obey strict token efficiency invariants:
+
+### A. Strict Optimization Rule
+- **Core Invariant:** Optimise for the fewest tokens that preserve the full meaning, correctness, and usefulness of the task. Shorter is not automatically better if it causes ambiguity, missing requirements, or implementation errors.
+- **Adaptive Application:** Simple tasks should receive minimal context and instructions; complex engineering tasks should retain sufficient detail for reliable execution.
+- **Prevent Over-Compression:** Do not omit necessary implementation details, safety checks, test requirements, user constraints, or evidence. Never replace concrete instructions with vague phrases such as "fix everything" or "make it better."
+
+### B. Context & Information Prioritization
+- **Context Efficiency:** Include only information relevant to the current task. Exclude unrelated history, repetition, redundant explanations, and unnecessary background.
+- **Context Prioritization:** Prioritise the current request, explicit constraints, recent decisions, relevant project state, and essential historical context.
+- **Preserve Critical Details:** Never remove requirements, filenames, paths, API contracts, error messages, edge cases, acceptance criteria, security constraints, or other information needed for correctness.
+
+### C. Agent, Prompt & Tool Execution Efficiency
+- **Prompt Compression:** Use direct instructions, concise wording, compact bullet points, and clear labels. Prefer simple English over unnecessarily complex language.
+- **Output Efficiency:** Avoid repeating the user's prompt, excessive introductions, unnecessary summaries, and verbose explanations. Deliver the requested result directly.
+- **Agent and Tool Efficiency:** Avoid unnecessary tool calls, repeated searches, redundant file reads, duplicate investigations, and repeated work. Reuse verified findings and existing context whenever possible.
+- **Coding-Task Efficiency:** Keep implementation instructions precise. Specify scope, required changes, constraints, validation commands, and completion criteria without unnecessary prose.
+- **Planning and Auditing:** Consolidate overlapping findings, distinguish blockers from minor improvements, and provide actionable recommendations instead of repeating observations.
+- **Long-Context Management:** Maintain compact, structured working notes containing decisions, current state, unresolved issues, and next steps. Retain critical facts when summarising.
+- **Budget Awareness:** When a model or tool has a known token limit or cost constraint, adjust response length and investigation depth accordingly without sacrificing essential verification.
