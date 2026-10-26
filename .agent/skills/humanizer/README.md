@@ -29,7 +29,7 @@ These are the most common signs of AI writing, and Humanizer rewrites any of the
 4. **A staged run-up:** "Here's the thing." "Honestly?"
 5. **Arguing with no one:** "I'm not saying X, but..."
 
-Humanizer checks for [28 patterns](#the-28-patterns) in all.
+Humanizer checks for [32 patterns](#the-32-patterns) in all.
 
 ## Installation
 
@@ -98,7 +98,7 @@ A language model writes whatever is most likely to come next, so by default it m
 
 Humanizer marks every tell it finds, strongest first. It drafts a rewrite without treating the original structure as fixed, checks the draft against the patterns and the original claims, and then writes the final version. It does not make things up. A name, number, date, quote, citation, or other factual detail must come from the source or the writer.
 
-## The 28 patterns
+## The 32 patterns
 
 The patterns are numbered by strength and frequency. The first five justify an edit on a single sighting. Patterns marked *weak alone* count only when several tells share a passage, because a careful writer may use any one of them on purpose.
 
@@ -137,32 +137,32 @@ The patterns are numbered by strength and frequency. The first five justify an e
 | 19 | **False ranges** | "ranging from technical expertise to creative vision" | State the distinct items or actual range |
 | 20 | **Compulsive summaries and wrap-ups** | "In conclusion...", "Overall, taking everything into account..." | Cut redundant recaps; end on the last concrete fact |
 | 21 | **Superficial balance** | "While some argue X, others believe Y, and each perspective has merit" | State specific differences or empirical trade-offs |
+| 22 | **Canned notability and media coverage emphasis** | "garnered independent coverage in leading publications", "maintains an active social media presence" | Summarize the actual coverage or remove empty metadata |
 
 ### D. Formatting and presentation by rule
 
 | # | Pattern | Before | After |
 |---|---------|--------|-------|
-| 22 | **Bold as decoration** | "**OKRs**, **KPIs**"; "**Performance:** Performance improved" | Remove the bold; turn a labeled list into prose |
-| 23 | **Decorative headings and emoji clutter** | "Strategic Negotiations And Partnerships", "🚀 Launch Phase:", "The decision, on one screen" | Sentence case; remove emojis and arrows; name what the section holds |
-| 24 | **Curly quotation marks** (*weak alone*) | `said “the project”` | `said "the project"` |
+| 23 | **Bold as decoration** | "**OKRs**, **KPIs**"; "**Performance:** Performance improved" | Remove the bold; turn a labeled list into prose |
+| 24 | **Decorative headings and emoji clutter** | "Strategic Negotiations And Partnerships", "🚀 Launch Phase:", "The decision, on one screen" | Sentence case; remove emojis and arrows; name what the section holds |
+| 25 | **Curly quotation marks** (*weak alone*) | `said “the project”` | `said "the project"` |
+| 26 | **Table and formatting misuse** | Minimal 2-column tables for simple points; markdown tables in wikitext | Convert to prose or structured lists |
 
-### E. Leftovers from chat and draft
-
-| # | Pattern | Before | After |
-|---|---------|--------|-------|
-| 25 | **Chatbot residue** | "Great question! ... I hope this helps!" | Remove the wrapper and keep the content |
-| 26 | **Knowledge-limit disclaimers and speculative filler** | "While details are limited in available sources, it appears..." | State what the source shows, or remove the sentence |
-| 27 | **Writing about the document instead of its subject** | "This function was added to replace...", "compiled from...", "The table below compares..." | Describe the subject; state a convention only when the reader cannot see it |
-
-### F. Writing for the wrong reader
+### E. Leftovers from chat, draft, and models
 
 | # | Pattern | Before | After |
 |---|---------|--------|-------|
-| 28 | **Re-explaining what the reader already knows** | A reply that walks the diagnosis and proves the plan works before the decision | Lead with the decision; leave the diagnosis and the proof for the ticket that follows |
+| 27 | **Chatbot residue** | "Great question! ... I hope this helps!" | Remove the wrapper and keep the content |
+| 28 | **Hedging disclaimers and speculative gap-filling** | "While details are not publicly available, it appears...", "keeps personal life private" | State verified facts or omit the speculation entirely |
+| 29 | **Self-conscious policy and procedural assurances** | "Revised for clarity and neutrality per guidelines while preserving technical details" | State what was changed directly; omit what was avoided or compliance posturing |
+| 30 | **Phrasal templates and placeholder tokens** | "[Entertainer's Name]", "2025-xx-xx", "Delete this section before submission" | Fill with real data or remove |
+| 31 | **Exposed citations and tracker parameters** | "contentReference[oaicite:1]", "?utm_source=chatgpt.com", "<mark>text</mark>" | Strip tracking parameters and clean citation tokens |
+| 32 | **Writing about the document instead of its subject** | "This function was added to replace...", "compiled from...", "The table below compares..." | Describe the subject; state a convention only when the reader cannot see it |
 
 ## Sources
 
 - [Wikipedia: Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) (WP:AISIGNS), maintained by WikiProject AI Cleanup.
+- [Wikipedia: Signs of AI use in comments](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_use_in_comments) (WP:AICOMMENT).
 
 ## Version history
 

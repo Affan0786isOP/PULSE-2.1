@@ -26,10 +26,10 @@ class TestHumanizerRules(unittest.TestCase):
         self.assertIn("Priority 3: Detect patterns, not isolated words", SKILL)
 
     def test_full_pattern_sequence(self):
-        """Verify that all 28 patterns exist sequentially without gaps."""
+        """Verify that all 32 patterns exist sequentially without gaps."""
         patterns = re.findall(r"(?m)^### ([0-9]+)\. (.+)$", SKILL)
         numbers = [int(n) for n, _ in patterns]
-        self.assertEqual(numbers, list(range(1, 29)))
+        self.assertEqual(numbers, list(range(1, 33)))
 
     def test_prohibited_unrendered_em_dash_in_explanations(self):
         """Check that explanatory text itself does not casually rely on stray em dashes."""

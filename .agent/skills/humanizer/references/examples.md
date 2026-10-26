@@ -67,6 +67,22 @@ This document provides concrete before-and-after transformations and negative te
 - **Before:** Sure! I'd be happy to explain how database indexes work. Indexes speed up searches by creating lookup trees. Let me know if you want me to delve deeper into B-trees!
 - **After:** Indexes speed up searches by creating lookup trees.
 
+### Example 3E: Canned notability and media coverage emphasis
+- **Before:** The startup has maintained an active social media presence and received independent coverage in national and regional tech outlets, reflecting its pivotal role.
+- **After:** The startup announced its round in October, with coverage from TechCrunch and VentureBeat.
+
+### Example 3F: Self-conscious policy and procedural assurances
+- **Before:** Revised the authentication section for clarity and neutral tone, ensuring strict compliance with standards while preserving the original technical architecture.
+- **After:** Updated authentication section with OAuth 2.1 token refresh specifications.
+
+### Example 3G: Phrasal templates and placeholder tokens
+- **Before:** For further information, visit [Entertainer's Official Site] or contact the press team (Add URL here).
+- **After:** For further information, visit the press archive. *(Or fill in the verified URL)*
+
+### Example 3H: Exposed citations and tracker parameters
+- **Before:** The study was published in Nature [https://example.com/study?utm_source=chatgpt.com] <mark>demonstrating efficacy</mark> contentReference[oaicite:1].
+- **After:** The study was published in Nature (https://example.com/study) showing high efficacy.
+
 ---
 
 ## 4. Preserving Already Good Writing
