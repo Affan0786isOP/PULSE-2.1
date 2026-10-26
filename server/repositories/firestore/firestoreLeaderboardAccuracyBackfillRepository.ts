@@ -6,6 +6,7 @@ import type {
   LeaderboardAccuracyBackfillRowResult
 } from '../../models/leaderboardAccuracyBackfill';
 import type { ILeaderboardAccuracyBackfillRepository } from '../interfaces/ILeaderboardAccuracyBackfillRepository';
+import { normalizeLeaderboardAssessmentType } from '../../../shared/domain/leaderboardEligibility';
 
 export class FirestoreLeaderboardAccuracyBackfillRepository implements ILeaderboardAccuracyBackfillRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
@@ -82,10 +83,12 @@ export class FirestoreLeaderboardAccuracyBackfillRepository implements ILeaderbo
         }
 
         const publicToken = typeof publicData.provenanceToken === 'string' ? publicData.provenanceToken : '';
-        const publicType = String(publicData.assessmentType || '');
+        const publicType = normalizeLeaderboardAssessmentType(publicData.assessmentType);
         const publicAgeGroup = String(publicData.ageGroup || '');
         const publicScore = typeof publicData.scoreMetric === 'number' ? publicData.scoreMetric : Number.NaN;
-        const matchedSessions = Array.from(sessionRows.values()).filter(session => {
+        const candidateSearchComplete = linkedEntrySessions.size < 25 && legacyLinkedSessions.size < 25;
+        const matchedSessions = candidateSearchComplete
+          ? Array.from(sessionRows.values()).filter(session => {
           const pointsToEntry =
             session.leaderboardSubmissionEntryId === entryId ||
             session.leaderboardDocId === entryId;
@@ -100,15 +103,17 @@ export class FirestoreLeaderboardAccuracyBackfillRepository implements ILeaderbo
             session.leaderboardSubmitted === true &&
             publicToken.length > 0 &&
             sessionToken === publicToken &&
-            String(session.assessmentType || '') === publicType &&
+            publicType !== null &&
+            normalizeLeaderboardAssessmentType(session.assessmentType) === publicType &&
             String(session.ageGroup || '') === publicAgeGroup &&
             (candidateScore === null || candidateScore === publicScore) &&
             !!sessionMetrics &&
             typeof sessionMetrics === 'object' &&
             !Array.isArray(sessionMetrics);
-        });
+          })
+          : [];
 
-        // A unique exact match is required; ambiguous historical sources stay skipped.
+        // A unique exact match is required; ambiguous or truncated historical source searches stay skipped.
         if (matchedSessions.length === 1) {
           const sourceSession = matchedSessions[0];
           const sourceMetrics = sourceSession.leaderboardSubmissionDerivedMetrics ?? sourceSession.derivedMetrics;
