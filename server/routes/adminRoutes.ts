@@ -63,18 +63,35 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
         return res.status(400).json({ success: false, error: 'Passcode is required and must be a string' });
       }
 
-      const isValid = validatePass(passcode);
+      let isValid = false;
+      try {
+        isValid = validatePass(passcode);
+      } catch (passErr: unknown) {
+        return res.status(503).json({
+          success: false,
+          error: passErr instanceof Error ? passErr.message : 'Passcode validation error'
+        });
+      }
+
       if (!isValid) {
         return res.status(401).json({ success: false, error: 'Invalid admin passcode' });
       }
 
-      const token = createToken();
+      let token: string;
+      try {
+        token = createToken();
+      } catch (tokErr: unknown) {
+        return res.status(503).json({
+          success: false,
+          error: tokErr instanceof Error ? tokErr.message : 'Token creation error'
+        });
+      }
+
       return res.json({ success: true, token });
     } catch (err: unknown) {
-      const status = err instanceof AppError ? err.status : 500;
-      return res.status(status).json({
+      return res.status(500).json({
         success: false,
-        error: status === 503 ? (err instanceof Error ? err.message : 'Admin service unavailable') : 'Failed to process admin login'
+        error: err instanceof Error ? err.message : 'Internal login error'
       });
     }
   });
