@@ -35,6 +35,7 @@ export class FirestoreLeaderboardSubmissionRepository implements ILeaderboardSub
       displayName: input.displayName,
       assessmentType: input.assessmentType,
       scoreMetric: input.scoreMetric,
+      accuracy: input.accuracy ?? null,
       ageGroup: input.authoritativeAgeGroup,
       provenanceToken: input.provenanceToken,
       provenanceVersion: 2,

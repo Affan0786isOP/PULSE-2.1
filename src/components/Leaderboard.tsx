@@ -7,7 +7,7 @@ import { Trophy, RefreshCw, ChevronLeft, ChevronRight, AlertCircle, Play, Inbox 
 import { getDisplayedLeaderboardRank } from '../../shared/domain/leaderboardRanking';
 import { AdminPasscodeModal } from './admin/AdminPasscodeModal';
 
-type ColumnKey = 'rank' | 'name' | 'time' | 'accuracy' | 'age';
+type ColumnKey = 'rank' | 'name' | 'score' | 'accuracy' | 'age';
 
 interface ColumnDef {
   key: ColumnKey;
@@ -38,7 +38,7 @@ const PROTOCOLS: ProtocolDef[] = [
     columns: [
       { key: 'rank', label: 'Rank', align: 'left' },
       { key: 'name', label: 'Name', align: 'left' },
-      { key: 'time', label: 'Time', align: 'right' },
+      { key: 'score', label: 'Time', align: 'right' },
       { key: 'age', label: 'Age', align: 'right' },
     ],
   },
@@ -53,7 +53,7 @@ const PROTOCOLS: ProtocolDef[] = [
     columns: [
       { key: 'rank', label: 'Rank', align: 'left' },
       { key: 'name', label: 'Name', align: 'left' },
-      { key: 'time', label: 'Time', align: 'right' },
+      { key: 'score', label: 'Time', align: 'right' },
       { key: 'accuracy', label: 'Accuracy', align: 'right' },
       { key: 'age', label: 'Age', align: 'right' },
     ],
@@ -69,7 +69,7 @@ const PROTOCOLS: ProtocolDef[] = [
     columns: [
       { key: 'rank', label: 'Rank', align: 'left' },
       { key: 'name', label: 'Name', align: 'left' },
-      { key: 'time', label: 'Time', align: 'right' },
+      { key: 'score', label: 'Time', align: 'right' },
       { key: 'accuracy', label: 'Accuracy', align: 'right' },
       { key: 'age', label: 'Age', align: 'right' },
     ],
@@ -85,6 +85,7 @@ const PROTOCOLS: ProtocolDef[] = [
     columns: [
       { key: 'rank', label: 'Rank', align: 'left' },
       { key: 'name', label: 'Name', align: 'left' },
+      { key: 'score', label: 'Score', align: 'right' },
       { key: 'accuracy', label: 'Accuracy', align: 'right' },
       { key: 'age', label: 'Age', align: 'right' },
     ],
@@ -100,6 +101,7 @@ const PROTOCOLS: ProtocolDef[] = [
     columns: [
       { key: 'rank', label: 'Rank', align: 'left' },
       { key: 'name', label: 'Name', align: 'left' },
+      { key: 'score', label: 'Score', align: 'right' },
       { key: 'accuracy', label: 'Accuracy', align: 'right' },
       { key: 'age', label: 'Age', align: 'right' },
     ],
@@ -110,7 +112,7 @@ function formatLeaderboardScore(score: number, unit: string): string {
   if (unit !== 'ms') {
     return String(score);
   }
-  return score.toFixed(1);
+  return score.toFixed(2);
 }
 
 const AVATAR_GRADIENTS = [
@@ -567,10 +569,11 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                             );
                           }
 
-                          if (col.key === 'time') {
+                          if (col.key === 'score') {
                             return (
                               <td key={col.key} className="py-3.5 px-4 text-right font-semibold text-slate-900 dark:text-white tabular-nums text-[14.5px]">
-                                {formattedScore}
+                                <span>{formattedScore}</span>
+                                <span className="ml-1 text-[10.5px] font-medium text-slate-500 dark:text-slate-400">{currentProto.unit}</span>
                               </td>
                             );
                           }
@@ -578,7 +581,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                           if (col.key === 'accuracy') {
                             const rawAcc = (entry as any).accuracy;
                             if (typeof rawAcc === 'number' && Number.isFinite(rawAcc)) {
-                              const pct = rawAcc <= 1 ? Math.round(rawAcc * 100) : Math.round(rawAcc);
+                              const pct = Number(rawAcc.toFixed(2));
                               return (
                                 <td key={col.key} className="py-3.5 px-4 text-right">
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
