@@ -102,6 +102,8 @@ export const leaderboardFreshReadLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Surrogate-Control', 'no-store');
     res.status(429).json({
       success: false,
       error: 'Too many forced-refresh requests. Please retry shortly.',
@@ -119,6 +121,9 @@ export const leaderboardReadLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
+    // Rate-limit responses bypass edge caches just like route-level errors.
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Surrogate-Control', 'no-store');
     // Keep the throttle response envelope identical to GET /api/leaderboard.
     res.status(429).json({
       success: false,

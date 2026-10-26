@@ -64,14 +64,26 @@ describe('Static Routes & API Caching Headers (Tier 1)', () => {
     app = express();
 
     // Early API cache-control middleware under test
-    app.use('/api', (_req, res, next) => {
+    app.use('/api', (req, res, next) => {
+      if (req.method === 'GET' && req.path === '/leaderboard') return next();
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.setHeader('Surrogate-Control', 'no-store');
       next();
     });
 
     app.get('/api/test', (_req, res) => {
       res.json({ ok: true });
     });
+    app.get('/api/leaderboard', (req, res) => {
+      if (req.query.fresh === '1') {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Surrogate-Control', 'no-store');
+      } else {
+        res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
+      }
+      res.json({ ok: true });
+    });
+    app.get('/api/leaderboard/mine', (_req, res) => res.json({ ok: true }));
 
     await registerStaticRoutes(app, mockDist);
 
@@ -129,10 +141,27 @@ describe('Static Routes & API Caching Headers (Tier 1)', () => {
     expect(mobilePageRes.body).toContain('Mobile Shell');
   });
 
-  it('sets strict no-store on /api routes', async () => {
+  it('sets strict no-store on non-public /api routes', async () => {
     const apiRes = await makeRequest(server, 'GET', '/api/test');
     expect(apiRes.status).toBe(200);
     expect(apiRes.headers['cache-control']).toBe('no-store, no-cache, must-revalidate, private');
+    expect(apiRes.headers['surrogate-control']).toBe('no-store');
+  });
+
+  it('allows edge SWR headers only on the public leaderboard GET', async () => {
+    const publicRes = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=visual-reaction');
+    expect(publicRes.status).toBe(200);
+    expect(publicRes.headers['cache-control']).toBe('public, s-maxage=15, stale-while-revalidate=60');
+
+    const privateRes = await makeRequest(server, 'GET', '/api/leaderboard/mine');
+    expect(privateRes.status).toBe(200);
+    expect(privateRes.headers['cache-control']).toBe('no-store, no-cache, must-revalidate, private');
+    expect(privateRes.headers['surrogate-control']).toBe('no-store');
+
+    const freshRes = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=visual-reaction&fresh=1');
+    expect(freshRes.status).toBe(200);
+    expect(freshRes.headers['cache-control']).toBe('no-store, no-cache, must-revalidate, proxy-revalidate');
+    expect(freshRes.headers['surrogate-control']).toBe('no-store');
   });
 
   it('returns 404 for missing static assets instead of serving the HTML shell (M2 fix)', async () => {
