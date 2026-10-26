@@ -89,28 +89,28 @@ export class FirestoreLeaderboardAccuracyBackfillRepository implements ILeaderbo
         const candidateSearchComplete = linkedEntrySessions.size < 25 && legacyLinkedSessions.size < 25;
         const matchedSessions = candidateSearchComplete
           ? Array.from(sessionRows.values()).filter(session => {
-          const pointsToEntry =
-            session.leaderboardSubmissionEntryId === entryId ||
-            session.leaderboardDocId === entryId;
-          const sessionToken = typeof session.leaderboardSubmissionProvenanceToken === 'string'
-            ? session.leaderboardSubmissionProvenanceToken
-            : '';
-          const candidateScore = typeof session.leaderboardSubmissionScoreMetric === 'number'
-            ? session.leaderboardSubmissionScoreMetric
-            : (typeof session.scoreMetric === 'number' ? session.scoreMetric : null);
-          const sessionMetrics = session.leaderboardSubmissionDerivedMetrics ?? session.derivedMetrics;
-          return pointsToEntry &&
-            session.leaderboardSubmitted === true &&
-            publicToken.length > 0 &&
-            sessionToken === publicToken &&
-            publicType !== null &&
-            normalizeLeaderboardAssessmentType(session.assessmentType) === publicType &&
-            String(session.ageGroup || '') === publicAgeGroup &&
-            (candidateScore === null || candidateScore === publicScore) &&
-            !!sessionMetrics &&
-            typeof sessionMetrics === 'object' &&
-            !Array.isArray(sessionMetrics);
-          })
+              const pointsToEntry =
+                session.leaderboardSubmissionEntryId === entryId ||
+                session.leaderboardDocId === entryId;
+              const sessionToken = typeof session.leaderboardSubmissionProvenanceToken === 'string'
+                ? session.leaderboardSubmissionProvenanceToken
+                : '';
+              const candidateScore = typeof session.leaderboardSubmissionScoreMetric === 'number'
+                ? session.leaderboardSubmissionScoreMetric
+                : (typeof session.scoreMetric === 'number' ? session.scoreMetric : null);
+              const sessionMetrics = session.leaderboardSubmissionDerivedMetrics ?? session.derivedMetrics;
+              return pointsToEntry &&
+                session.leaderboardSubmitted === true &&
+                publicToken.length > 0 &&
+                sessionToken === publicToken &&
+                publicType !== null &&
+                normalizeLeaderboardAssessmentType(session.assessmentType) === publicType &&
+                String(session.ageGroup || '') === publicAgeGroup &&
+                (candidateScore === null || candidateScore === publicScore) &&
+                !!sessionMetrics &&
+                typeof sessionMetrics === 'object' &&
+                !Array.isArray(sessionMetrics);
+            })
           : [];
 
         // A unique exact match is required; ambiguous or truncated historical source searches stay skipped.
