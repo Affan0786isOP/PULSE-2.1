@@ -27,7 +27,7 @@ describe('Interactive Dataset Component', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getAllByText(/Dataset Explorer/i).length).toBeGreaterThan(0);
+    expect(screen.getByRole('link', { name: /dataset/i })).not.toBeNull();
     expect(screen.getByText(/VISUAL REACTION/i)).not.toBeNull();
     expect(screen.getByLabelText(/Select VISUAL REACTION/i)).not.toBeNull();
     expect(screen.getByLabelText(/Select DIRECTION/i)).not.toBeNull();
