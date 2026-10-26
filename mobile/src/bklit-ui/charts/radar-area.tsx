@@ -2,7 +2,7 @@
 
 import type { MotionValue } from "motion/react";
 import { motion, useTransform } from "motion/react";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import { radarCssVars, useRadarHover, useRadarStable } from "./radar-context";
 import { useEnterComplete } from "./use-enter-complete";
 import { useMountProgress } from "./use-mount-progress";
@@ -109,6 +109,7 @@ export const RadarArea = memo(function RadarArea({
     getPointPosition,
   } = useRadarStable();
   const { hoveredIndex, setHoveredIndex } = useRadarHover();
+  const [hoveredPointKey, setHoveredPointKey] = useState<string | null>(null);
 
   const durationFactor = enterDurationMs / 1100;
   const areaData = data[index];
@@ -158,7 +159,7 @@ export const RadarArea = memo(function RadarArea({
     <motion.g
       animate={{
         opacity: isOtherHovered ? 0.3 : 1,
-        scale: isHovered ? 1.05 : 1,
+        scale: 1,
       }}
       className={className}
       initial={{ opacity: animate ? 0 : 1 }}
