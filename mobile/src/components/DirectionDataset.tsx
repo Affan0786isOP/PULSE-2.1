@@ -126,6 +126,15 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     }];
   }, [trials]);
 
+  // Radar domain min dynamically calculated
+  const radarDomain = useMemo<[number, number]>(() => {
+    const vals = Object.values(radarData[0]?.values || {});
+    if (vals.length === 0) return [0, 100];
+    const minVal = Math.min(...vals);
+    const domainMin = Math.max(0, Math.floor((minVal - 10) / 10) * 10);
+    return [domainMin, 100];
+  }, [radarData]);
+
   const radarMetrics = [
     { key: 'UP', label: 'UP' },
     { key: 'RIGHT', label: 'RIGHT' },
@@ -215,7 +224,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
           </div>
           <div className="flex-1 min-h-[250px] w-full flex items-center justify-center">
             {trials.length > 0 ? (
-              <RadarChart data={radarData} metrics={radarMetrics}>
+              <RadarChart data={radarData} metrics={radarMetrics} domain={radarDomain}>
                 <RadarGrid />
                 <RadarAxis />
                 <RadarArea index={0} />

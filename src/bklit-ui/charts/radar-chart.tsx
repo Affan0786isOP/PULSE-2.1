@@ -15,6 +15,7 @@ import {
 } from "./radar-context";
 
 export interface RadarChartProps {
+  domain?: [number, number];
   /** Data array - each item represents a data series (polygon) */
   data: RadarData[];
   /** Metrics to display on the radar */
@@ -46,6 +47,7 @@ export interface RadarChartProps {
 }
 
 interface RadarChartInnerProps {
+  domain?: [number, number];
   width: number;
   height: number;
   data: RadarData[];
@@ -74,6 +76,7 @@ function RadarChartInner({
   staggerScale,
   enterTransition,
   motionReplayKey,
+  domain,
   children,
   hoveredIndexProp,
   onHoverChange,
@@ -103,13 +106,16 @@ function RadarChartInner({
   // Scale for converting values (0-100) to radius
   const yScale = useCallback(
     (value: number) => {
+      const minD = domain ? domain[0] : 0;
+      const maxD = domain ? domain[1] : 100;
       const scale = scaleLinear<number>({
         range: [0, radius],
-        domain: [0, 100],
+        domain: [minD, maxD],
+        clamp: true,
       });
       return scale(value) ?? 0;
     },
-    [radius]
+    [radius, domain]
   );
 
   // Get angle for a metric index (rotated so first metric is at top)
@@ -155,6 +161,7 @@ function RadarChartInner({
   const contextValue: RadarContextValue = {
     data,
     metrics,
+    domain,
     size,
     radius,
     levels,
@@ -191,6 +198,7 @@ export function RadarChart({
   data,
   metrics,
   size: fixedSize,
+  domain,
   levels = 5,
   margin = 60,
   animate = true,
@@ -211,6 +219,7 @@ export function RadarChart({
         style={{ width: fixedSize, height: fixedSize }}
       >
         <RadarChartInner
+          domain={domain}
           animate={animate}
           data={data}
           enterDurationMs={enterDurationMs}
@@ -237,6 +246,7 @@ export function RadarChart({
       <ParentSize debounceTime={10}>
         {({ width, height }) => (
           <RadarChartInner
+          domain={domain}
             animate={animate}
             data={data}
             enterDurationMs={enterDurationMs}

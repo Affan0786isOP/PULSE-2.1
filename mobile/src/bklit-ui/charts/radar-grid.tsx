@@ -27,6 +27,7 @@ export function RadarGrid({
     metrics,
     radius,
     levels,
+    domain,
     animate,
     enterTransition,
     staggerScale,
@@ -115,7 +116,7 @@ export function RadarGrid({
               x={6}
               y={-((i + 1) * radius) / levels + (i === levels - 1 ? 7 : 0)}
             >
-              {((i + 1) * 100) / levels}
+              {Math.round((domain ? domain[0] : 0) + ((i + 1) * ((domain ? domain[1] : 100) - (domain ? domain[0] : 0))) / levels)}
             </text>
           </motion.g>
         ))}

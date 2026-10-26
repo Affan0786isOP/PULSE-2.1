@@ -50,9 +50,11 @@ export interface RadarHoverContextValue {
 }
 
 export interface RadarStableContextValue {
+  domain?: [number, number];
   // Data
   data: RadarData[];
   metrics: RadarMetric[];
+  domain?: [number, number];
 
   // Dimensions
   size: number;
