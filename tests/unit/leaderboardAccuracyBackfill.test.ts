@@ -221,6 +221,7 @@ describe('Leaderboard accuracy backfill service', () => {
   it('rejects a legacy session whose stored leaderboard token conflicts with the public row', async () => {
     const rows = validRows();
     const digest = 'legacy-trials-digest';
+    rows.publicSeed['entry-1'].provenanceVersion = 2;
     rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
       'lb:v2:entry-1:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
     );
@@ -247,6 +248,7 @@ describe('Leaderboard accuracy backfill service', () => {
   it('keeps ambiguous cryptographically matching legacy session sources skipped', async () => {
     const rows = validRows();
     const digest = 'legacy-trials-digest';
+    rows.publicSeed['entry-1'].provenanceVersion = 2;
     rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
       'lb:v2:entry-1:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
     );
