@@ -10,7 +10,7 @@ import { isValidLeaderboardScoreMetric, normalizeLeaderboardAccuracy } from '../
 
 const PAGE_SIZE = 200;
 const APPLY = process.argv.includes('--apply');
-const counts = { scanned: 0, eligible: 0, updated: 0, alreadyCorrect: 0, skipped: 0, failed: 0 };
+const counts = { scanned: 0, eligible: 0, wouldUpdate: 0, updated: 0, alreadyCorrect: 0, skipped: 0, failed: 0 };
 const skipReasons: Record<string, number> = {};
 function skip(reason: string) { return { kind: 'skip' as const, reason }; }
 function sameIfPresent(a: unknown, b: unknown): boolean { return a == null || b == null || a === b; }
@@ -46,6 +46,7 @@ async function processRow(db: NonNullable<ReturnType<typeof getAdminDb>>, rowSna
       skipReasons[outcome.reason] = (skipReasons[outcome.reason] || 0) + 1;
     } else {
       counts.eligible++;
+      if (outcome.kind === 'dryRun') counts.wouldUpdate++;
       if (outcome.kind === 'alreadyCorrect') counts.alreadyCorrect++;
       if (outcome.kind === 'updated') counts.updated++;
     }
