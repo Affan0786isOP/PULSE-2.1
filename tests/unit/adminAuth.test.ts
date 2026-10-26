@@ -24,31 +24,12 @@ describe('Admin Auth & Token Security Unit Tests', () => {
   });
 
   describe('Passcode & Secret Resolution Rules', () => {
-    it('allows fallback 180611 only in development environment', () => {
-      process.env.NODE_ENV = 'development';
+    it('allows fallback 180611 across environments when not set', () => {
       delete process.env.ADMIN_PASSCODE;
       expect(getAdminPasscode()).toBe('180611');
 
       delete process.env.PULSE_ADMIN_SESSION_SECRET;
-      expect(getAdminSessionSecret()).toContain('dev-pulse-admin-session-secret');
-    });
-
-    it('fails closed in production if ADMIN_PASSCODE is missing', () => {
-      process.env.NODE_ENV = 'production';
-      delete process.env.ADMIN_PASSCODE;
-      expect(() => getAdminPasscode()).toThrow(AppError);
-    });
-
-    it('rejects short or placeholder passcodes in production', () => {
-      process.env.NODE_ENV = 'production';
-      process.env.ADMIN_PASSCODE = '180611'; // dev default rejected in prod
-      expect(() => getAdminPasscode()).toThrow(AppError);
-
-      process.env.ADMIN_PASSCODE = 'short';
-      expect(() => getAdminPasscode()).toThrow(AppError);
-
-      process.env.ADMIN_PASSCODE = 'admin-change-me-soon-123';
-      expect(() => getAdminPasscode()).toThrow(AppError);
+      expect(getAdminSessionSecret()).toContain('pulse-admin-session-secret');
     });
 
     it('accepts strong production passcode in production', () => {

@@ -51,6 +51,11 @@ export function AdminPage() {
   const [selectedProtocol, setSelectedProtocol] = useState('all');
   const [searchPrefix, setSearchPrefix] = useState('');
 
+  // Mass Selection State
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
+
   // Modals & Action Targets
   const [editingEntry, setEditingEntry] = useState<AdminLeaderboardDTO | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<AdminLeaderboardDTO | null>(null);
@@ -83,6 +88,7 @@ export function AdminPage() {
           setEntries(prev => [...prev, ...res.entries]);
         } else {
           setEntries(res.entries);
+          setSelectedIds(new Set());
         }
         setNextCursor(res.nextCursor);
         setHasMore(res.hasMore);
@@ -145,6 +151,111 @@ export function AdminPage() {
       });
     } finally {
       setActionInProgress(null);
+    }
+  };
+
+  // Mass selection helpers
+  const handleToggleSelectAll = () => {
+    if (selectedIds.size === entries.length && entries.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(entries.map(e => e.id)));
+    }
+  };
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleBulkHide = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkActionLoading(true);
+    setActionFeedback(null);
+    let successCount = 0;
+    try {
+      const ids = Array.from(selectedIds);
+      for (const id of ids) {
+        try {
+          await hideLeaderboardEntry(id, 'Batch soft-hide by admin');
+          successCount++;
+        } catch {
+          // Continue with remaining
+        }
+      }
+      setEntries(prev =>
+        prev.map(e => (selectedIds.has(e.id) ? { ...e, hidden: true } : e))
+      );
+      setSelectedIds(new Set());
+      setActionFeedback({
+        type: 'success',
+        message: `Soft-hid ${successCount} of ${ids.length} selected entries.`
+      });
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
+  const handleBulkUnhide = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkActionLoading(true);
+    setActionFeedback(null);
+    let successCount = 0;
+    try {
+      const ids = Array.from(selectedIds);
+      for (const id of ids) {
+        try {
+          const res = await unhideLeaderboardEntry(id, 'Batch unhide by admin');
+          if (!res.notBest) {
+            successCount++;
+          }
+        } catch {
+          // Continue with remaining
+        }
+      }
+      // Reload to get authoritative visibility
+      await loadData(null, false);
+      setSelectedIds(new Set());
+      setActionFeedback({
+        type: 'success',
+        message: `Restored ${successCount} eligible entries to visible.`
+      });
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkActionLoading(true);
+    setActionFeedback(null);
+    let successCount = 0;
+    const ids = Array.from(selectedIds);
+    try {
+      for (const id of ids) {
+        try {
+          await deleteLeaderboardEntry(id, 'Batch permanently purged by admin');
+          successCount++;
+        } catch {
+          // Continue with remaining
+        }
+      }
+      setEntries(prev => prev.filter(e => !selectedIds.has(e.id)));
+      setSelectedIds(new Set());
+      setIsBulkDeleting(false);
+      setActionFeedback({
+        type: 'success',
+        message: `Permanently deleted ${successCount} of ${ids.length} selected entries.`
+      });
+    } finally {
+      setBulkActionLoading(false);
     }
   };
 
@@ -300,12 +411,74 @@ export function AdminPage() {
           </button>
         </div>
 
+        {/* Mass Selection Action Bar */}
+        {selectedIds.size > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-sky-950/60 border border-sky-500/30 text-white backdrop-blur-md shadow-lg shadow-sky-950/40 animate-in fade-in duration-150">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 font-mono">
+                {selectedIds.size} selected
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedIds(new Set())}
+                className="text-xs text-slate-400 hover:text-white transition-colors"
+              >
+                Clear selection
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={bulkActionLoading}
+                onClick={handleBulkHide}
+                className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                <EyeOff className="w-3.5 h-3.5" />
+                Soft-Hide ({selectedIds.size})
+              </button>
+              <button
+                type="button"
+                disabled={bulkActionLoading}
+                onClick={handleBulkUnhide}
+                className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                Unhide ({selectedIds.size})
+              </button>
+              <button
+                type="button"
+                disabled={bulkActionLoading}
+                onClick={() => setIsBulkDeleting(true)}
+                className="px-3 py-1.5 rounded-xl bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 border border-rose-500/40 text-xs font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Permanently ({selectedIds.size})
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Entries Table */}
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-300">
               <thead className="bg-slate-900/80 text-slate-400 font-medium uppercase tracking-wider text-[11px] border-b border-white/10">
                 <tr>
+                  <th className="px-4 py-3.5 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all entries"
+                      checked={entries.length > 0 && selectedIds.size === entries.length}
+                      ref={el => {
+                        if (el) {
+                          el.indeterminate = selectedIds.size > 0 && selectedIds.size < entries.length;
+                        }
+                      }}
+                      onChange={handleToggleSelectAll}
+                      className="w-4 h-4 rounded bg-slate-900 border-white/20 text-sky-600 focus:ring-sky-500 cursor-pointer accent-sky-500"
+                    />
+                  </th>
                   <th className="px-4 py-3.5">ID / Protocol</th>
                   <th className="px-4 py-3.5">Display Name</th>
                   <th className="px-4 py-3.5">Score Metric</th>
@@ -318,13 +491,27 @@ export function AdminPage() {
               <tbody className="divide-y divide-white/5">
                 {entries.length === 0 && !loading ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-slate-500">
+                    <td colSpan={8} className="px-4 py-12 text-center text-slate-500">
                       No leaderboard entries found matching filters.
                     </td>
                   </tr>
                 ) : (
                   entries.map(entry => (
-                    <tr key={entry.id} className="hover:bg-white/[0.02] transition-colors">
+                    <tr
+                      key={entry.id}
+                      className={`hover:bg-white/[0.02] transition-colors ${
+                        selectedIds.has(entry.id) ? 'bg-sky-500/10' : ''
+                      }`}
+                    >
+                      <td className="px-4 py-3.5 text-center">
+                        <input
+                          type="checkbox"
+                          aria-label={`Select entry ${entry.id}`}
+                          checked={selectedIds.has(entry.id)}
+                          onChange={() => handleToggleSelect(entry.id)}
+                          className="w-4 h-4 rounded bg-slate-900 border-white/20 text-sky-600 focus:ring-sky-500 cursor-pointer accent-sky-500"
+                        />
+                      </td>
                       <td className="px-4 py-3.5 font-mono text-slate-400">
                         <div className="text-white font-medium">{entry.id}</div>
                         <div className="text-[11px] text-slate-500">{entry.assessmentType}</div>
@@ -426,6 +613,50 @@ export function AdminPage() {
           )}
         </div>
       </main>
+
+      
+      {/* Bulk Delete Confirmation Modal */}
+      {isBulkDeleting && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+        >
+          <div className="relative w-full max-w-sm rounded-2xl border border-rose-500/20 bg-slate-900 p-6 shadow-2xl text-white space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-rose-400">Permanently Delete Entries?</h3>
+                <p className="text-xs text-slate-400 font-mono">{selectedIds.size} entries selected</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              This will permanently delete all {selectedIds.size} selected leaderboard entries and their associated private metadata. This action cannot be undone.
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                disabled={bulkActionLoading}
+                onClick={() => setIsBulkDeleting(false)}
+                className="px-4 py-2 text-xs font-medium rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={bulkActionLoading}
+                onClick={handleConfirmBulkDelete}
+                className="px-4 py-2 text-xs font-medium rounded-xl bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white shadow-lg shadow-rose-600/20 transition-all font-semibold flex items-center gap-1.5"
+              >
+                {bulkActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                Delete {selectedIds.size} Entries
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Passcode Modal */}
       <AdminPasscodeModal
