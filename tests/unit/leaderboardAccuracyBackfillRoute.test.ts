@@ -31,6 +31,7 @@ describe('Leaderboard accuracy backfill admin route', () => {
   let app: express.Express;
   let server: http.Server;
   const oldGate = process.env.LEADERBOARD_ACCURACY_BACKFILL_ENABLED;
+  const oldApplyGate = process.env.LEADERBOARD_ACCURACY_BACKFILL_APPLY_ENABLED;
   const runner = vi.fn(async (input: any) => ({
     success: true as const,
     mode: input.mode,
@@ -43,6 +44,7 @@ describe('Leaderboard accuracy backfill admin route', () => {
 
   beforeEach(async () => {
     process.env.LEADERBOARD_ACCURACY_BACKFILL_ENABLED = 'true';
+    delete process.env.LEADERBOARD_ACCURACY_BACKFILL_APPLY_ENABLED;
     runner.mockClear();
     app = express();
     app.use(express.json());
@@ -62,6 +64,8 @@ describe('Leaderboard accuracy backfill admin route', () => {
     if (server) await new Promise(resolve => server.close(resolve));
     if (oldGate === undefined) delete process.env.LEADERBOARD_ACCURACY_BACKFILL_ENABLED;
     else process.env.LEADERBOARD_ACCURACY_BACKFILL_ENABLED = oldGate;
+    if (oldApplyGate === undefined) delete process.env.LEADERBOARD_ACCURACY_BACKFILL_APPLY_ENABLED;
+    else process.env.LEADERBOARD_ACCURACY_BACKFILL_APPLY_ENABLED = oldApplyGate;
   });
 
   const path = '/api/admin/maintenance/leaderboard-accuracy-backfill';
@@ -97,7 +101,16 @@ describe('Leaderboard accuracy backfill admin route', () => {
     expect(runner).not.toHaveBeenCalled();
   });
 
-  it('allows explicitly confirmed apply only for a valid bounded request', async () => {
+  it('keeps apply disabled when only the dry-run gate is enabled', async () => {
+    const response = await request(server, 'POST', path, { 'x-admin-token': 'valid-admin-token' }, {
+      mode: 'apply', cursor: 'entry-1', limit: 5, confirmApply: true, expectedEntryIds: ['entry-1']
+    });
+    expect(response.status).toBe(403);
+    expect(runner).not.toHaveBeenCalled();
+  });
+
+  it('allows explicitly confirmed apply only for a valid bounded request when the apply gate is enabled', async () => {
+    process.env.LEADERBOARD_ACCURACY_BACKFILL_APPLY_ENABLED = 'true';
     const response = await request(server, 'POST', path, { 'x-admin-token': 'valid-admin-token' }, {
       mode: 'apply', cursor: 'entry-1', limit: 5, confirmApply: true, expectedEntryIds: ['entry-1']
     });

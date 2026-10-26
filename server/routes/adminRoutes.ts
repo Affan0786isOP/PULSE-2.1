@@ -317,6 +317,12 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
       return res.status(400).json({ success: false, error: 'expectedEntryIds is valid only for apply mode' });
     }
 
+    // Keep the read-only dry-run gate separate from the destructive write gate.
+    // Apply mode stays unavailable until an operator explicitly opts in at the server level.
+    if (mode === 'apply' && process.env.LEADERBOARD_ACCURACY_BACKFILL_APPLY_ENABLED !== 'true') {
+      return res.status(403).json({ success: false, error: 'Apply mode is disabled. Dry-run remains available.' });
+    }
+
     try {
       const input: LeaderboardAccuracyBackfillBatchInput = {
         mode,
