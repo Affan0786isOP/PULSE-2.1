@@ -23,11 +23,13 @@ type RecordMap = Map<string, Record<string, unknown>>;
 function createMockDb(
   publicSeed: Record<string, Record<string, unknown>>,
   privateSeed: Record<string, Record<string, unknown>>,
-  sessionSeed: Record<string, Record<string, unknown>> = {}
+  sessionSeed: Record<string, Record<string, unknown>> = {},
+  researchSeed: Record<string, Record<string, unknown>> = {}
 ) {
   const publicRows: RecordMap = new Map(Object.entries(publicSeed));
   const privateRows: RecordMap = new Map(Object.entries(privateSeed));
   const sessionRows: RecordMap = new Map(Object.entries(sessionSeed));
+  const researchRows: RecordMap = new Map(Object.entries(researchSeed));
   const initialPublicCount = publicRows.size;
   let writeCount = 0;
 
@@ -35,6 +37,7 @@ function createMockDb(
     if (name === 'leaderboardResults') return publicRows;
     if (name === 'leaderboardPrivateMeta') return privateRows;
     if (name === 'experimentSessions') return sessionRows;
+    if (name === 'assessmentResults') return researchRows;
     throw new Error('Unexpected collection: ' + name);
   };
   const makeRef = (collectionName: string, id: string) => ({ collectionName, id });
@@ -165,6 +168,7 @@ describe('Leaderboard accuracy backfill service', () => {
   it('recovers missing private metadata from one legacy session after reconstructing the exact leaderboard HMAC', async () => {
     const rows = validRows();
     const digest = 'legacy-trials-digest';
+    rows.publicSeed['entry-1'].provenanceVersion = 2;
     rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
       'lb:v2:entry-1:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
     );
@@ -179,6 +183,30 @@ describe('Leaderboard accuracy backfill service', () => {
         leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
         assessmentType: 'block-memory',
         ageGroup: 'Young adults (18–25)'
+      }
+    });
+
+    const report = await runBackfill(fixture.db, { mode: 'dry-run', cursor: null, limit: 10 });
+
+    expect(report.counts.wouldUpdate).toBe(1);
+    expect(report.counts.skipped).toBe(0);
+    expect(fixture.getWriteCount()).toBe(0);
+    expect(fixture.publicRows.get('entry-1')?.accuracy).toBeUndefined();
+  });
+
+  it('recovers missing private metadata from assessmentResults using the legacy v1 HMAC format', async () => {
+    const rows = validRows();
+    rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
+      'lb:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
+    );
+    const fixture = createMockDb(rows.publicSeed, {}, {}, {
+      'research-result-1': {
+        assessmentType: 'block-memory',
+        ageGroup: 'Young adults (18–25)',
+        scoreMetric: 8,
+        trialsDigest: 'legacy-trials-digest',
+        derivedMetrics: { overallAccuracy: 87.5 },
+        provenanceToken: 'research-token-is-not-the-leaderboard-token'
       }
     });
 
