@@ -353,12 +353,31 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
                 />
                 <Line
                   type="monotone"
+                  dataKey="desktop"
+                  name="Desktop RT"
+                  stroke="#00f0ff"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: '#00f0ff', strokeWidth: 0 }}
+                  activeDot={{ r: 5 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="mobile"
+                  name="Mobile RT"
+                  stroke="#a78bfa"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: '#a78bfa', strokeWidth: 0 }}
+                  activeDot={{ r: 5 }}
+                />
+                <Line
+                  type="monotone"
                   dataKey="reactionTime"
-                  name="Reaction Time"
-                  stroke="var(--cyan-primary)"
-                  strokeWidth={2.5}
-                  dot={{ r: 4, fill: 'var(--cyan-primary)', strokeWidth: 0 }}
-                  activeDot={{ r: 6 }}
+                  name="Overall RT"
+                  stroke="#38bdf8"
+                  strokeWidth={2}
+                  strokeDasharray="4 4"
+                  dot={{ r: 3, fill: '#38bdf8', strokeWidth: 0 }}
+                  activeDot={{ r: 5 }}
                 />
               </LineChart>
             </ResponsiveContainer>
