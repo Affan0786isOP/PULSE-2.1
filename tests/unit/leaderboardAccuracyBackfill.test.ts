@@ -70,7 +70,9 @@ function createMockDb(
       return {
         doc(id: string) { return makeRef(name, id); },
         orderBy() { return makeQuery(name); },
-        where() { return makeQuery(name).where(...arguments as [string, string, unknown]); }
+        where(field: string, operator: string, value: unknown) {
+          return makeQuery(name).where(field, operator, value);
+        }
       };
     },
     async runTransaction(callback: (transaction: any) => Promise<unknown>) {
