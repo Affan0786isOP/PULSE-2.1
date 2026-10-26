@@ -23,6 +23,7 @@ import { fetchDatasetObservations, unrollTrialsFromDatasetDocs, DatasetObservati
 import { VALID_AGE_GROUPS, AssessmentType } from '../lib/firestore';
 import { ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Monitor, Smartphone } from 'lucide-react';
 import { DirectionDataset } from './DirectionDataset';
+import { useBaselineScale } from '../lib/useBaselineScale';
 
 export const MIN_COHORT_N = 5;
 
@@ -194,6 +195,11 @@ function RadialGauge({ value, label = 'Median RT' }: RadialGaugeProps) {
 }
 
 export function Dataset({ onNavigate }: DatasetProps) {
+  const { scale, style: scaleStyle } = useBaselineScale({
+    baseWidth: 1280,
+    baseHeight: 720,
+    minBreakpoint: 768,
+  });
   const [selectedGameId, setSelectedGameId] = useState<AssessmentType>('visual-reaction');
   const [trials, setTrials] = useState<RawTrialObservation[]>([]);
   const [datasetDocs, setDatasetDocs] = useState<DatasetObservation[]>([]);
@@ -559,7 +565,10 @@ export function Dataset({ onNavigate }: DatasetProps) {
   };
 
   return (
-    <div className="bg-transparent text-[var(--text-main)] min-h-[100dvh] w-full max-w-full overflow-x-hidden flex flex-col font-sans selection:bg-cyan-500/30 relative">
+    <div
+      style={scaleStyle}
+      className="bg-transparent text-[var(--text-main)] min-h-[100dvh] w-full max-w-full overflow-x-hidden flex flex-col font-sans selection:bg-cyan-500/30 relative"
+    >
       <Navbar onNavigate={onNavigate} currentView="dataset" title="Dataset Explorer" />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 min-w-0">
