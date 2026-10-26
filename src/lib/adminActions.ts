@@ -181,6 +181,7 @@ export interface LeaderboardAccuracyBackfillReport {
     failed: number;
   };
   skipReasons: Record<string, number>;
+  entryIds: string[];
   nextCursor: string | null;
   done: boolean;
 }
@@ -190,6 +191,7 @@ export async function runLeaderboardAccuracyBackfill(input: {
   cursor: string | null;
   limit: number;
   confirmApply?: boolean;
+  expectedEntryIds?: string[];
 }): Promise<LeaderboardAccuracyBackfillReport> {
   return request<LeaderboardAccuracyBackfillReport>(
     '/api/admin/maintenance/leaderboard-accuracy-backfill',

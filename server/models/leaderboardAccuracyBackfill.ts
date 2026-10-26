@@ -4,6 +4,8 @@ export interface LeaderboardAccuracyBackfillBatchInput {
   mode: LeaderboardAccuracyBackfillMode;
   cursor: string | null;
   limit: number;
+  /** Exact ordered public document IDs reviewed in the dry-run batch. Required for apply. */
+  expectedEntryIds?: string[];
 }
 
 export interface LeaderboardAccuracyBackfillBatchReport {
@@ -19,6 +21,8 @@ export interface LeaderboardAccuracyBackfillBatchReport {
     failed: number;
   };
   skipReasons: Record<string, number>;
+  /** Public entry IDs in this bounded page, used to bind apply to a reviewed preview. */
+  entryIds: string[];
   nextCursor: string | null;
   done: boolean;
 }

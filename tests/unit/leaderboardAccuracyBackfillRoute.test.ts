@@ -36,6 +36,7 @@ describe('Leaderboard accuracy backfill admin route', () => {
     mode: input.mode,
     counts: { scanned: 0, eligible: 0, wouldUpdate: 0, updated: 0, alreadyCorrect: 0, skipped: 0, failed: 0 },
     skipReasons: {},
+    entryIds: input.mode === 'dry-run' ? ['entry-1'] : (input.expectedEntryIds || []),
     nextCursor: null,
     done: true
   }));
@@ -88,17 +89,19 @@ describe('Leaderboard accuracy backfill admin route', () => {
 
   it('rejects over-large batches and apply without explicit confirmation', async () => {
     const tooLarge = await request(server, 'POST', path, { 'x-admin-token': 'valid-admin-token' }, { mode: 'dry-run', limit: 26 });
-    const unconfirmed = await request(server, 'POST', path, { 'x-admin-token': 'valid-admin-token' }, { mode: 'apply' });
+    const unconfirmed = await request(server, 'POST', path, { 'x-admin-token': 'valid-admin-token' }, { mode: 'apply', expectedEntryIds: ['entry-1'] });
+    const missingPreview = await request(server, 'POST', path, { 'x-admin-token': 'valid-admin-token' }, { mode: 'apply', confirmApply: true });
     expect(tooLarge.status).toBe(400);
     expect(unconfirmed.status).toBe(400);
+    expect(missingPreview.status).toBe(400);
     expect(runner).not.toHaveBeenCalled();
   });
 
   it('allows explicitly confirmed apply only for a valid bounded request', async () => {
     const response = await request(server, 'POST', path, { 'x-admin-token': 'valid-admin-token' }, {
-      mode: 'apply', cursor: 'entry-1', limit: 5, confirmApply: true
+      mode: 'apply', cursor: 'entry-1', limit: 5, confirmApply: true, expectedEntryIds: ['entry-1']
     });
     expect(response.status).toBe(200);
-    expect(runner).toHaveBeenCalledWith({ mode: 'apply', cursor: 'entry-1', limit: 5 });
+    expect(runner).toHaveBeenCalledWith({ mode: 'apply', cursor: 'entry-1', limit: 5, expectedEntryIds: ['entry-1'] });
   });
 });

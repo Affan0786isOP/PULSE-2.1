@@ -11,6 +11,7 @@ export function LeaderboardAccuracyBackfillPanel() {
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [previewCursor, setPreviewCursor] = useState<string | null>(null);
+  const [previewEntryIds, setPreviewEntryIds] = useState<string[]>([]);
   const [hasPreview, setHasPreview] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -34,16 +35,19 @@ export function LeaderboardAccuracyBackfillPanel() {
         mode,
         cursor,
         limit: 10,
-        confirmApply: mode === 'apply'
+        confirmApply: mode === 'apply',
+        expectedEntryIds: mode === 'apply' ? previewEntryIds : undefined
       });
       setReport(result);
       setDone(result.done);
       if (mode === 'dry-run') {
         setPreviewCursor(cursor);
+        setPreviewEntryIds(result.entryIds);
         setNextCursor(result.nextCursor);
         setHasPreview(result.counts.scanned > 0);
       } else {
         setHasPreview(false);
+        setPreviewEntryIds([]);
         setNextCursor(result.nextCursor);
       }
     } catch (err) {
@@ -72,7 +76,7 @@ export function LeaderboardAccuracyBackfillPanel() {
         <button
           type="button"
           disabled={busy}
-          onClick={() => { setNextCursor(null); setPreviewCursor(null); setHasPreview(false); setDone(false); void execute('dry-run', null); }}
+          onClick={() => { setNextCursor(null); setPreviewCursor(null); setPreviewEntryIds([]); setHasPreview(false); setDone(false); void execute('dry-run', null); }}
           className="rounded-xl border border-white/15 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-slate-700 disabled:opacity-50"
         >
           {busy ? 'Working…' : 'Dry Run'}

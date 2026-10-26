@@ -297,15 +297,39 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
       return res.status(400).json({ success: false, error: 'Apply mode requires confirmApply: true' });
     }
 
+    let expectedEntryIds: string[] | undefined;
+    if (mode === 'apply') {
+      if (
+        !Array.isArray(body.expectedEntryIds) ||
+        body.expectedEntryIds.length > limit ||
+        body.expectedEntryIds.some((id: unknown) =>
+          typeof id !== 'string' || !id || id.length > 1500 || id.includes('/') || id.trim() !== id
+        ) ||
+        new Set(body.expectedEntryIds).size !== body.expectedEntryIds.length
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: 'Apply mode requires the exact ordered entry IDs from the dry-run preview.'
+        });
+      }
+      expectedEntryIds = body.expectedEntryIds as string[];
+    } else if (body.expectedEntryIds !== undefined) {
+      return res.status(400).json({ success: false, error: 'expectedEntryIds is valid only for apply mode' });
+    }
+
     try {
       const input: LeaderboardAccuracyBackfillBatchInput = {
         mode,
         cursor: typeof rawCursor === 'string' && rawCursor ? rawCursor : null,
-        limit
+        limit,
+        ...(expectedEntryIds ? { expectedEntryIds } : {})
       };
       const report = await runAccuracyBackfillBatch(input);
       return res.status(200).json(report);
-    } catch {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === 'BACKFILL_BATCH_CHANGED') {
+        return res.status(409).json({ success: false, error: 'The current records no longer match the dry-run preview. Run a new dry run before applying.' });
+      }
       return res.status(503).json({ success: false, error: 'Leaderboard accuracy backfill is temporarily unavailable.' });
     }
   });

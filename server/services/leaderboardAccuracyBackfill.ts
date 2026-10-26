@@ -96,6 +96,15 @@ export class LeaderboardAccuracyBackfillService {
       : DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE;
 
     const page = await this.repository.listPublicEntryIds(input.cursor, limit);
+    if (input.mode === 'apply') {
+      const expected = input.expectedEntryIds;
+      const matchesPreview = Array.isArray(expected) && expected.length === page.ids.length &&
+        expected.every((id, index) => id === page.ids[index]);
+      if (!matchesPreview) {
+        throw new Error('BACKFILL_BATCH_CHANGED');
+      }
+    }
+
     const counts = {
       scanned: 0,
       eligible: 0,
@@ -138,6 +147,7 @@ export class LeaderboardAccuracyBackfillService {
       mode: input.mode,
       counts,
       skipReasons,
+      entryIds: page.ids,
       nextCursor: page.nextCursor,
       done: page.done
     };

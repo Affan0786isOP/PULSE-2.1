@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LeaderboardAccuracyBackfillService } from '../../server/services/leaderboardAccuracyBackfill';
 import { FirestoreLeaderboardAccuracyBackfillRepository } from '../../server/repositories/firestore/firestoreLeaderboardAccuracyBackfillRepository';
 
-function runBackfill(db: unknown, input: { mode: 'dry-run' | 'apply'; cursor: string | null; limit: number }) {
+function runBackfill(db: unknown, input: { mode: 'dry-run' | 'apply'; cursor: string | null; limit: number; expectedEntryIds?: string[] }) {
   return new LeaderboardAccuracyBackfillService(
     new FirestoreLeaderboardAccuracyBackfillRepository(() => db as never)
   ).runBatch(input);
@@ -117,7 +117,7 @@ describe('Leaderboard accuracy backfill service', () => {
     const fixture = createMockDb(rows.publicSeed, rows.privateSeed);
     const originalCount = fixture.publicRows.size;
     const original = { ...(fixture.publicRows.get('entry-1') || {}) };
-    const report = await runBackfill(fixture.db, { mode: 'apply', cursor: null, limit: 10 });
+    const report = await runBackfill(fixture.db, { mode: 'apply', cursor: null, limit: 10, expectedEntryIds: ['entry-1'] });
 
     expect(report.counts.updated).toBe(1);
     expect(fixture.publicRows.get('entry-1')).toEqual({ ...original, accuracy: 87.5 });
@@ -130,7 +130,7 @@ describe('Leaderboard accuracy backfill service', () => {
     const rows = validRows();
     rows.privateSeed['entry-1'].derivedMetrics = { overallAccuracy: 150 };
     const fixture = createMockDb(rows.publicSeed, rows.privateSeed);
-    const report = await runBackfill(fixture.db, { mode: 'apply', cursor: null, limit: 10 });
+    const report = await runBackfill(fixture.db, { mode: 'apply', cursor: null, limit: 10, expectedEntryIds: ['entry-1'] });
 
     expect(report.counts.skipped).toBe(1);
     expect(report.skipReasons['no-valid-source-accuracy']).toBe(1);
@@ -142,7 +142,7 @@ describe('Leaderboard accuracy backfill service', () => {
     const rows = validRows();
     rows.privateSeed['entry-1'].provenanceToken = 'different-provenance';
     const fixture = createMockDb(rows.publicSeed, rows.privateSeed);
-    const report = await runBackfill(fixture.db, { mode: 'apply', cursor: null, limit: 10 });
+    const report = await runBackfill(fixture.db, { mode: 'apply', cursor: null, limit: 10, expectedEntryIds: ['entry-1'] });
 
     expect(report.counts.skipped).toBe(1);
     expect(report.skipReasons['provenance-mismatch']).toBe(1);
@@ -152,11 +152,27 @@ describe('Leaderboard accuracy backfill service', () => {
   it('does not overwrite conflicting accuracy', async () => {
     const rows = validRows(33);
     const fixture = createMockDb(rows.publicSeed, rows.privateSeed);
-    const report = await runBackfill(fixture.db, { mode: 'apply', cursor: null, limit: 10 });
+    const report = await runBackfill(fixture.db, { mode: 'apply', cursor: null, limit: 10, expectedEntryIds: ['entry-1'] });
 
     expect(report.counts.skipped).toBe(1);
     expect(report.skipReasons['conflicting-existing-accuracy']).toBe(1);
     expect(fixture.publicRows.get('entry-1')?.accuracy).toBe(33);
+    expect(fixture.getWriteCount()).toBe(0);
+  });
+
+  it('refuses apply when the page no longer matches the reviewed dry-run preview', async () => {
+    const rows = validRows();
+    const fixture = createMockDb(rows.publicSeed, rows.privateSeed);
+    const service = new LeaderboardAccuracyBackfillService(
+      new FirestoreLeaderboardAccuracyBackfillRepository(() => fixture.db as never)
+    );
+
+    await expect(service.runBatch({
+      mode: 'apply',
+      cursor: null,
+      limit: 10,
+      expectedEntryIds: ['different-entry']
+    })).rejects.toThrow('BACKFILL_BATCH_CHANGED');
     expect(fixture.getWriteCount()).toBe(0);
   });
 
