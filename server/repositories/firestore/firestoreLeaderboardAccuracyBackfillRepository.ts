@@ -7,6 +7,7 @@ import type {
   LeaderboardAccuracyBackfillLegacySessionCandidates
 } from '../../models/leaderboardAccuracyBackfill';
 import type { ILeaderboardAccuracyBackfillRepository } from '../interfaces/ILeaderboardAccuracyBackfillRepository';
+import { normalizeAssessmentType } from '../../engines/assessmentTypes';
 
 export class FirestoreLeaderboardAccuracyBackfillRepository implements ILeaderboardAccuracyBackfillRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
@@ -85,12 +86,31 @@ export class FirestoreLeaderboardAccuracyBackfillRepository implements ILeaderbo
           }
         }
 
+        // Some historical leaderboard entries have no retained experiment session.
+        // assessmentResults preserves the server-derived metrics and trial digest;
+        // a match is accepted only if those fields reproduce the exact leaderboard HMAC.
+        const researchType = normalizeAssessmentType(String(publicData.assessmentType || ''));
+        const researchAgeGroup = String(publicData.ageGroup || '');
+        const researchScore = typeof publicData.scoreMetric === 'number' ? publicData.scoreMetric : Number.NaN;
+        const researchQuery = researchType && researchAgeGroup && Number.isFinite(researchScore)
+          ? db.collection('assessmentResults')
+              .where('assessmentType', '==', researchType)
+              .where('ageGroup', '==', researchAgeGroup)
+              .where('scoreMetric', '==', researchScore)
+              .limit(100)
+          : null;
+        const researchSnapshot = researchQuery ? await transaction.get(researchQuery) : { docs: [], size: 0 };
+
         const candidates: LeaderboardAccuracyBackfillLegacySessionCandidates = {
           entryId,
           sessions: Array.from(sessionRows.values()),
+          researchResults: researchSnapshot.docs.map((doc: { data(): unknown }) =>
+            (doc.data() || {}) as Record<string, unknown>
+          ),
           complete: linkedEntrySessions.size < 25 &&
             legacyLinkedSessions.size < 25 &&
-            submissionIdSessions.size < 25
+            submissionIdSessions.size < 25 &&
+            researchSnapshot.size < 100
         };
         decision = evaluate(publicData, privateData, candidates);
       }
