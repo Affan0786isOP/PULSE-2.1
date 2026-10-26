@@ -10,49 +10,73 @@ function runBackfill(db: unknown, input: { mode: 'dry-run' | 'apply'; cursor: st
 
 type RecordMap = Map<string, Record<string, unknown>>;
 
-function createMockDb(publicSeed: Record<string, Record<string, unknown>>, privateSeed: Record<string, Record<string, unknown>>) {
+function createMockDb(
+  publicSeed: Record<string, Record<string, unknown>>,
+  privateSeed: Record<string, Record<string, unknown>>,
+  sessionSeed: Record<string, Record<string, unknown>> = {}
+) {
   const publicRows: RecordMap = new Map(Object.entries(publicSeed));
   const privateRows: RecordMap = new Map(Object.entries(privateSeed));
+  const sessionRows: RecordMap = new Map(Object.entries(sessionSeed));
   const initialPublicCount = publicRows.size;
   let writeCount = 0;
 
   const getCollectionMap = (name: string): RecordMap => {
     if (name === 'leaderboardResults') return publicRows;
     if (name === 'leaderboardPrivateMeta') return privateRows;
+    if (name === 'experimentSessions') return sessionRows;
     throw new Error('Unexpected collection: ' + name);
   };
   const makeRef = (collectionName: string, id: string) => ({ collectionName, id });
+
+  const makeQuery = (name: string) => {
+    const filters: Array<{ field: string; value: unknown }> = [];
+    let pageLimit = Number.MAX_SAFE_INTEGER;
+    let cursor: string | null = null;
+    const query: any = {
+      queryType: 'query',
+      collectionName: name,
+      where(field: string, operator: string, value: unknown) {
+        if (operator !== '==') throw new Error('Unexpected query operator: ' + operator);
+        filters.push({ field, value });
+        return query;
+      },
+      orderBy() { return query; },
+      limit(value: number) { pageLimit = value; return query; },
+      startAfter(value: string | { id: string }) {
+        cursor = typeof value === 'string' ? value : value.id;
+        return query;
+      },
+      async get() {
+        const collection = getCollectionMap(name);
+        const ids = Array.from(collection.keys())
+          .sort()
+          .filter(id => !cursor || id > cursor)
+          .filter(id => filters.every(filter => collection.get(id)?.[filter.field] === filter.value))
+          .slice(0, pageLimit);
+        const docs = ids.map(id => ({
+          id,
+          ref: makeRef(name, id),
+          data: () => ({ ...(collection.get(id) || {}) })
+        }));
+        return { docs, size: docs.length, empty: docs.length === 0 };
+      }
+    };
+    return query;
+  };
 
   const db: any = {
     collection(name: string) {
       return {
         doc(id: string) { return makeRef(name, id); },
-        orderBy() {
-          let pageLimit = 10;
-          let cursor: string | null = null;
-          const query: any = {
-            limit(value: number) { pageLimit = value; return query; },
-            startAfter(value: string) { cursor = value; return query; },
-            async get() {
-              const ids = Array.from(getCollectionMap(name).keys())
-                .sort()
-                .filter(id => !cursor || id > cursor)
-                .slice(0, pageLimit);
-              const docs = ids.map(id => ({
-                id,
-                ref: makeRef(name, id),
-                data: () => ({ ...(getCollectionMap(name).get(id) || {}) })
-              }));
-              return { docs, size: docs.length, empty: docs.length === 0 };
-            }
-          };
-          return query;
-        }
+        orderBy() { return makeQuery(name); },
+        where() { return makeQuery(name).where(...arguments as [string, string, unknown]); }
       };
     },
     async runTransaction(callback: (transaction: any) => Promise<unknown>) {
       const transaction = {
-        async get(ref: { collectionName: string; id: string }) {
+        async get(ref: any) {
+          if (ref?.queryType === 'query') return ref.get();
           const value = getCollectionMap(ref.collectionName).get(ref.id);
           return { exists: value !== undefined, data: () => value ? { ...value } : undefined };
         },
@@ -124,6 +148,75 @@ describe('Leaderboard accuracy backfill service', () => {
     expect(fixture.publicRows.size).toBe(originalCount);
     expect(fixture.publicRows.size).toBe(fixture.initialPublicCount);
     expect(fixture.getWriteCount()).toBe(1);
+  });
+
+  it('recovers missing private metadata from one exact attested submission session', async () => {
+    const rows = validRows();
+    const fixture = createMockDb(rows.publicSeed, {}, {
+      'session-1': {
+        leaderboardSubmitted: true,
+        leaderboardDocId: 'entry-1',
+        leaderboardSubmissionEntryId: 'entry-1',
+        leaderboardSubmissionScoreMetric: 8,
+        leaderboardSubmissionProvenanceToken: 'matching-provenance',
+        leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
+        assessmentType: 'block-memory',
+        ageGroup: 'Young adults (18–25)'
+      }
+    });
+
+    const report = await runBackfill(fixture.db, { mode: 'dry-run', cursor: null, limit: 10 });
+
+    expect(report.counts.wouldUpdate).toBe(1);
+    expect(report.counts.skipped).toBe(0);
+    expect(fixture.getWriteCount()).toBe(0);
+    expect(fixture.publicRows.get('entry-1')?.accuracy).toBeUndefined();
+  });
+
+  it('does not use legacy session metrics when provenance does not match', async () => {
+    const rows = validRows();
+    const fixture = createMockDb(rows.publicSeed, {}, {
+      'session-1': {
+        leaderboardSubmitted: true,
+        leaderboardDocId: 'entry-1',
+        leaderboardSubmissionEntryId: 'entry-1',
+        leaderboardSubmissionScoreMetric: 8,
+        leaderboardSubmissionProvenanceToken: 'different-provenance',
+        leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
+        assessmentType: 'block-memory',
+        ageGroup: 'Young adults (18–25)'
+      }
+    });
+
+    const report = await runBackfill(fixture.db, { mode: 'dry-run', cursor: null, limit: 10 });
+
+    expect(report.counts.wouldUpdate).toBe(0);
+    expect(report.skipReasons['missing-counterpart']).toBe(1);
+    expect(fixture.getWriteCount()).toBe(0);
+  });
+
+  it('keeps ambiguous attested legacy session sources skipped', async () => {
+    const rows = validRows();
+    const matchingSession = {
+      leaderboardSubmitted: true,
+      leaderboardDocId: 'entry-1',
+      leaderboardSubmissionEntryId: 'entry-1',
+      leaderboardSubmissionScoreMetric: 8,
+      leaderboardSubmissionProvenanceToken: 'matching-provenance',
+      leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
+      assessmentType: 'block-memory',
+      ageGroup: 'Young adults (18–25)'
+    };
+    const fixture = createMockDb(rows.publicSeed, {}, {
+      'session-1': { ...matchingSession },
+      'session-2': { ...matchingSession }
+    });
+
+    const report = await runBackfill(fixture.db, { mode: 'dry-run', cursor: null, limit: 10 });
+
+    expect(report.counts.wouldUpdate).toBe(0);
+    expect(report.skipReasons['missing-counterpart']).toBe(1);
+    expect(fixture.getWriteCount()).toBe(0);
   });
 
   it('skips missing or invalid accuracy source data without creating a record', async () => {
