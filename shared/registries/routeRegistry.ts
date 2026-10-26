@@ -152,6 +152,16 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     seoBehavior: { index: true },
     isAdministrative: false,
   },
+  {
+    routeId: 'admin-dashboard',
+    path: '/admin',
+    domain: 'administration',
+    navigationLabel: 'Admin Dashboard',
+    aliases: [],
+    deviceAvailability: 'desktop-only',
+    seoBehavior: { index: false },
+    isAdministrative: true,
+  },
 ];
 
 

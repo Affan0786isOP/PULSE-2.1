@@ -334,6 +334,11 @@
       "source": "/mobile/privacy-policy/",
       "destination": "/mobile/privacy",
       "statusCode": 301
+    },
+    {
+      "source": "/admin/",
+      "destination": "/admin",
+      "statusCode": 301
     }
   ],
   "headers": [
@@ -409,6 +414,24 @@
         {
           "type": "host",
           "value": "pulse-lab.in"
+        }
+      ]
+    },
+    {
+      "source": "/admin",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/admin/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
         }
       ]
     },
@@ -595,6 +618,10 @@
     {
       "source": "/number-memory",
       "destination": "/seo/number-memory.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/seo/admin.html"
     }
   ]
 }

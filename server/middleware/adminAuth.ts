@@ -48,14 +48,10 @@ export function getAdminSessionSecret(): string {
 
 export function validateAdminPasscode(candidate: string): boolean {
   if (!candidate || typeof candidate !== 'string') return false;
-  try {
-    const authoritative = getAdminPasscode();
-    const candidateHash = crypto.createHash('sha256').update(candidate).digest();
-    const authoritativeHash = crypto.createHash('sha256').update(authoritative).digest();
-    return crypto.timingSafeEqual(candidateHash, authoritativeHash);
-  } catch {
-    return false;
-  }
+  const authoritative = getAdminPasscode();
+  const candidateHash = crypto.createHash('sha256').update(candidate).digest();
+  const authoritativeHash = crypto.createHash('sha256').update(authoritative).digest();
+  return crypto.timingSafeEqual(candidateHash, authoritativeHash);
 }
 
 export interface AdminTokenClaims {

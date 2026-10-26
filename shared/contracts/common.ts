@@ -29,7 +29,8 @@ export type DomainName =
   | 'research'
   | 'analytics'
   | 'leaderboard'
-  | 'user';
+  | 'user'
+  | 'administration';
 
 
 
