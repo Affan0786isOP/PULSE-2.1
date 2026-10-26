@@ -25,6 +25,7 @@ import {
 import { useAdminAuth } from '../../lib/useAdminAuth';
 import { AdminPasscodeModal } from './AdminPasscodeModal';
 import { AdminEditAliasModal } from './AdminEditAliasModal';
+import { LeaderboardAccuracyBackfillPanel } from './LeaderboardAccuracyBackfillPanel';
 import type { AdminLeaderboardDTO } from '../../../server/models/adminModels';
 
 const PROTOCOLS = [
@@ -322,6 +323,8 @@ export function AdminPage() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+        {isAuthenticated && <LeaderboardAccuracyBackfillPanel />}
+
         {/* Error Feedback */}
         {error && (
           <div className="p-4 rounded-2xl flex items-center justify-between text-xs font-medium border bg-rose-500/10 text-rose-300 border-rose-500/20">

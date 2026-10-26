@@ -9,6 +9,8 @@ import {
   parseAndValidateTokenClaims
 } from '../middleware/adminAuth';
 import { AppError } from '../models/replayContracts';
+import { DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE, MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE } from '../services/leaderboardAccuracyBackfill';
+import type { LeaderboardAccuracyBackfillBatchInput, LeaderboardAccuracyBackfillBatchReport } from '../models/leaderboardAccuracyBackfill';
 
 export interface AdminRoutesDependencies {
   adminService: IAdminService;
@@ -17,6 +19,7 @@ export interface AdminRoutesDependencies {
   revokeToken?: (token: string) => Promise<boolean>;
   validatePass?: (passcode: string) => boolean;
   createToken?: () => string;
+  runAccuracyBackfillBatch?: (input: LeaderboardAccuracyBackfillBatchInput) => Promise<LeaderboardAccuracyBackfillBatchReport>;
 }
 
 export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies): void {
@@ -25,6 +28,9 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
   const validatePass = deps.validatePass ?? (passcode => validateAdminPasscode(passcode));
   const createToken = deps.createToken ?? (() => createAdminToken());
   const invalidateLeaderboardCache = deps.invalidateLeaderboardCache ?? (() => {});
+  const runAccuracyBackfillBatch = deps.runAccuracyBackfillBatch ?? (async (_input: LeaderboardAccuracyBackfillBatchInput): Promise<LeaderboardAccuracyBackfillBatchReport> => {
+    throw new AppError('Leaderboard accuracy backfill service is unavailable', 503);
+  });
 
   // Universal No-Store middleware for all /api/admin/* endpoints
   const applyNoStoreHeaders = (_req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -255,4 +261,83 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
       });
     }
   });
+
+  // 8. POST /api/admin/maintenance/leaderboard-accuracy-backfill
+  // The operation is opt-in, authenticated and dry-run by default.
+  const accuracyBackfillPath = '/api/admin/maintenance/leaderboard-accuracy-backfill';
+  app.post(accuracyBackfillPath, applyNoStoreHeaders, requireAdminAuth, async (req, res) => {
+    if (process.env.LEADERBOARD_ACCURACY_BACKFILL_ENABLED !== 'true') {
+      return res.status(404).json({ success: false, error: 'Maintenance operation is disabled or unavailable.' });
+    }
+
+    const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
+    const mode = body.mode === undefined ? 'dry-run' : body.mode;
+    if (mode !== 'dry-run' && mode !== 'apply') {
+      return res.status(400).json({ success: false, error: 'mode must be dry-run or apply' });
+    }
+
+    const limit = body.limit === undefined ? DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE : body.limit;
+    if (!Number.isInteger(limit) || limit < 1 || limit > MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE) {
+      return res.status(400).json({
+        success: false,
+        error: 'limit must be an integer between 1 and ' + MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE
+      });
+    }
+
+    const rawCursor = body.cursor;
+    if (
+      rawCursor !== undefined &&
+      rawCursor !== null &&
+      (typeof rawCursor !== 'string' || rawCursor.length > 512 || rawCursor.includes('/') || rawCursor.trim() !== rawCursor)
+    ) {
+      return res.status(400).json({ success: false, error: 'cursor must be a valid document ID or null' });
+    }
+
+    if (mode === 'apply' && body.confirmApply !== true) {
+      return res.status(400).json({ success: false, error: 'Apply mode requires confirmApply: true' });
+    }
+
+    let expectedEntryIds: string[] | undefined;
+    if (mode === 'apply') {
+      if (
+        !Array.isArray(body.expectedEntryIds) ||
+        body.expectedEntryIds.length > limit ||
+        body.expectedEntryIds.some((id: unknown) =>
+          typeof id !== 'string' || !id || id.length > 1500 || id.includes('/') || id.trim() !== id
+        ) ||
+        new Set(body.expectedEntryIds).size !== body.expectedEntryIds.length
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: 'Apply mode requires the exact ordered entry IDs from the dry-run preview.'
+        });
+      }
+      expectedEntryIds = body.expectedEntryIds as string[];
+    } else if (body.expectedEntryIds !== undefined) {
+      return res.status(400).json({ success: false, error: 'expectedEntryIds is valid only for apply mode' });
+    }
+
+    try {
+      const input: LeaderboardAccuracyBackfillBatchInput = {
+        mode,
+        cursor: typeof rawCursor === 'string' && rawCursor ? rawCursor : null,
+        limit,
+        ...(expectedEntryIds ? { expectedEntryIds } : {})
+      };
+      const report = await runAccuracyBackfillBatch(input);
+      return res.status(200).json(report);
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === 'BACKFILL_BATCH_CHANGED') {
+        return res.status(409).json({ success: false, error: 'The current records no longer match the dry-run preview. Run a new dry run before applying.' });
+      }
+      return res.status(503).json({ success: false, error: 'Leaderboard accuracy backfill is temporarily unavailable.' });
+    }
+  });
+
+  // Unsupported methods must never invoke the migration.
+  app.all(accuracyBackfillPath, applyNoStoreHeaders, (_req, res) => {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
+  });
+
 }

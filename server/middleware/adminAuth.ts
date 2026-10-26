@@ -5,25 +5,34 @@ import { getAdminDb } from '../config/firebaseAdmin';
 
 export const ADMIN_SESSION_COLLECTION = 'adminSessionRevocations';
 const MAX_SESSION_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
+const DEVELOPMENT_SESSION_SECRET = 'pulse-admin-session-secret-key-32chars-fallback!';
 
 export function getAdminPasscode(): string {
-  const code = process.env.ADMIN_PASSCODE;
-  return (code && code.trim()) ? code.trim() : '180611';
+  const configured = process.env.ADMIN_PASSCODE?.trim();
+  if (configured) return configured;
+  // Never ship the development passcode as a production credential.
+  return process.env.NODE_ENV === 'production' ? '' : '180611';
 }
 
 export function getAdminSessionSecret(): string {
-  const secret = process.env.PULSE_ADMIN_SESSION_SECRET;
-  return (secret && secret.trim()) ? secret.trim() : 'pulse-admin-session-secret-key-32chars-fallback!';
+  const configured = process.env.PULSE_ADMIN_SESSION_SECRET?.trim();
+  if (configured && !(process.env.NODE_ENV === 'production' && configured === DEVELOPMENT_SESSION_SECRET)) {
+    return configured;
+  }
+  return process.env.NODE_ENV === 'production' ? '' : DEVELOPMENT_SESSION_SECRET;
 }
 
 export function validateAdminPasscode(candidate: string): boolean {
   if (!candidate || typeof candidate !== 'string') return false;
   const authoritative = getAdminPasscode();
+  if (!authoritative || (process.env.NODE_ENV === 'production' && authoritative === '180611')) return false;
+
   const candidateHash = crypto.createHash('sha256').update(candidate.trim()).digest();
   const authoritativeHash = crypto.createHash('sha256').update(authoritative.trim()).digest();
   if (crypto.timingSafeEqual(candidateHash, authoritativeHash)) return true;
 
-  // Also allow master dev/staff passcode 180611
+  // The master development passcode is allowed only outside production.
+  if (process.env.NODE_ENV === 'production') return false;
   const masterHash = crypto.createHash('sha256').update('180611').digest();
   return crypto.timingSafeEqual(candidateHash, masterHash);
 }
@@ -36,9 +45,10 @@ export interface AdminTokenClaims {
 
 export function signAdminToken(claims: AdminTokenClaims): string {
   const secret = getAdminSessionSecret();
-  const payload = `${claims.nonce}:${claims.issuedAt}:${claims.expiresAt}`;
+  if (!secret) throw new Error('Admin session secret is not configured.');
+  const payload = claims.nonce + ':' + claims.issuedAt + ':' + claims.expiresAt;
   const sig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-  return `${payload}:${sig}`;
+  return payload + ':' + sig;
 }
 
 export function createAdminToken(lifetimeMs: number = MAX_SESSION_AGE_MS): string {
@@ -83,7 +93,8 @@ export function parseAndValidateTokenClaims(token: string): { valid: boolean; cl
 
   try {
     const secret = getAdminSessionSecret();
-    const payload = `${nonce}:${issuedAt}:${expiresAt}`;
+    if (!secret) return { valid: false, reason: 'Admin session secret is not configured' };
+    const payload = nonce + ':' + issuedAt + ':' + expiresAt;
     const expectedSig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
     const sigBuf = Buffer.from(sig, 'hex');
@@ -130,7 +141,7 @@ export async function verifyAdminSessionToken(
     }
 
     return { authorized: true, claims: parsed.claims };
-  } catch (err: unknown) {
+  } catch {
     return { authorized: false, errorStatus: 503, errorMsg: 'Failed to verify session revocation status' };
   }
 }
