@@ -4,11 +4,13 @@ import {
   isValidLeaderboardScoreMetric,
   normalizeLeaderboardAccuracy
 } from '../../shared/domain/leaderboardEligibility';
+import { safeCompareHex, signProvenancePayload } from './provenanceService';
 import type { ILeaderboardAccuracyBackfillRepository } from '../repositories/interfaces/ILeaderboardAccuracyBackfillRepository';
 import type {
   LeaderboardAccuracyBackfillBatchInput,
   LeaderboardAccuracyBackfillBatchReport,
-  LeaderboardAccuracyBackfillDecision
+  LeaderboardAccuracyBackfillDecision,
+  LeaderboardAccuracyBackfillLegacySessionCandidates
 } from '../models/leaderboardAccuracyBackfill';
 
 export const MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE = 25;
@@ -26,8 +28,8 @@ function validAssessmentType(value: string): boolean {
   return VALID_ASSESSMENT_TYPES.includes(value as (typeof VALID_ASSESSMENT_TYPES)[number]);
 }
 
-/** Pure validation logic: no database access and no writes. */
-export function evaluateLeaderboardAccuracyBackfillCandidate(
+/** Pure validation logic for the public/private pair. */
+function evaluateCandidateCore(
   publicRow: Record<string, unknown> | null,
   metadata: Record<string, unknown> | null
 ): LeaderboardAccuracyBackfillDecision {
@@ -84,6 +86,132 @@ export function evaluateLeaderboardAccuracyBackfillCandidate(
   }
 
   return { kind: 'wouldUpdate', accuracy };
+}
+
+/**
+ * Recover a candidate only when its immutable, server-owned session can reproduce
+ * the exact leaderboard HMAC. A research provenance token is not a leaderboard token
+ * and is deliberately never treated as one.
+ */
+function recoverVerifiedLegacyMetrics(
+  publicRow: Record<string, unknown>,
+  candidates?: LeaderboardAccuracyBackfillLegacySessionCandidates
+): Record<string, unknown> | null {
+  if (!candidates?.complete || !candidates.entryId) return null;
+
+  const entryId = candidates.entryId;
+  const publicToken = typeof publicRow.provenanceToken === 'string' ? publicRow.provenanceToken : '';
+  const publicType = normalizeAssessmentType(String(publicRow.assessmentType || ''));
+  const publicAgeGroup = String(publicRow.ageGroup || '');
+  const publicScore = typeof publicRow.scoreMetric === 'number' ? publicRow.scoreMetric : Number.NaN;
+  const displayName = typeof publicRow.displayName === 'string' ? publicRow.displayName : '';
+  if (
+    !publicToken ||
+    !publicType ||
+    !validAssessmentType(publicType) ||
+    !Number.isFinite(publicScore) ||
+    !isValidLeaderboardScoreMetric(publicType, publicScore) ||
+    !displayName ||
+    !publicAgeGroup
+  ) return null;
+
+  // Provenance v1 omitted the entry ID; v2 binds the signature to the public document.
+  // Match the exact verifier payload for the row's stored provenance version.
+  const sanitizedName = displayName.replace(/:/g, '_');
+  const tokenPayloadForDigest = (trialsDigest: string): string => Number(publicRow.provenanceVersion) >= 2
+    ? `lb:v2:${entryId}:${publicType}:${publicAgeGroup}:${publicScore.toFixed(2)}:${sanitizedName}:${trialsDigest}`
+    : `lb:${publicType}:${publicAgeGroup}:${publicScore.toFixed(2)}:${sanitizedName}:${trialsDigest}`;
+
+  const verified: Array<{ metrics: Record<string, unknown> }> = [];
+  const sessionCandidates = candidates.sessions.map(session => ({ kind: 'session' as const, row: session }));
+  const researchCandidates = candidates.researchResults.map(row => ({ kind: 'research' as const, row }));
+  for (const candidate of [...sessionCandidates, ...researchCandidates]) {
+    const source = candidate.row;
+
+    if (candidate.kind === 'session') {
+      const linksToEntry =
+        source.leaderboardSubmissionEntryId === entryId ||
+        source.leaderboardDocId === entryId ||
+        source.leaderboardSubmissionId === entryId;
+      if (!linksToEntry || source.leaderboardSubmitted !== true) continue;
+    }
+
+    const sourceType = normalizeAssessmentType(String(source.assessmentType || ''));
+    if (!sourceType || sourceType !== publicType) continue;
+    if (String(source.ageGroup || '') !== publicAgeGroup) continue;
+
+    const sourceScore = candidate.kind === 'session'
+      ? (typeof source.leaderboardSubmissionScoreMetric === 'number'
+          ? source.leaderboardSubmissionScoreMetric
+          : (typeof source.scoreMetric === 'number' ? source.scoreMetric : Number.NaN))
+      : (typeof source.scoreMetric === 'number' ? source.scoreMetric : Number.NaN);
+    if (!Number.isFinite(sourceScore) || sourceScore !== publicScore) continue;
+
+    const metricsValue = candidate.kind === 'session'
+      ? (source.leaderboardSubmissionDerivedMetrics ?? source.derivedMetrics)
+      : source.derivedMetrics;
+    if (!metricsValue || typeof metricsValue !== 'object' || Array.isArray(metricsValue)) continue;
+    if (normalizeLeaderboardAccuracy(metricsValue) === null) continue;
+
+    const digestValue = candidate.kind === 'session'
+      ? (source.leaderboardSubmissionTrialsDigest ?? source.trialsDigest)
+      : source.trialsDigest;
+    const trialsDigest = typeof digestValue === 'string' ? digestValue.trim() : '';
+    if (!trialsDigest) continue;
+
+    if (candidate.kind === 'session') {
+      const storedLeaderboardToken = typeof source.leaderboardSubmissionProvenanceToken === 'string'
+        ? source.leaderboardSubmissionProvenanceToken.trim()
+        : '';
+      // If a dedicated leaderboard token exists, it must agree; generic research
+      // provenanceToken fields are not leaderboard tokens and are never substituted.
+      if (storedLeaderboardToken && !safeCompareHex(storedLeaderboardToken, publicToken)) continue;
+    }
+
+    try {
+      const computedToken = signProvenancePayload(tokenPayloadForDigest(trialsDigest));
+      if (!safeCompareHex(computedToken, publicToken)) continue;
+    } catch {
+      // Missing signing configuration means no verified recovery.
+      continue;
+    }
+
+    verified.push({ metrics: metricsValue as Record<string, unknown> });
+  }
+
+  // Duplicate or ambiguous candidates are not accepted even if their metrics agree.
+  if (verified.length !== 1) return null;
+  return {
+    publicEntry: true,
+    submissionReceiptOnly: false,
+    displayName,
+    assessmentType: publicType,
+    scoreMetric: publicScore,
+    ageGroup: publicAgeGroup,
+    provenanceToken: publicToken,
+    hidden: publicRow.hidden === true,
+    derivedMetrics: verified[0].metrics
+  };
+}
+
+/** Pure evaluator with an optional, bounded set of legacy session candidates. */
+export function evaluateLeaderboardAccuracyBackfillCandidate(
+  publicRow: Record<string, unknown> | null,
+  metadata: Record<string, unknown> | null,
+  legacySessions?: LeaderboardAccuracyBackfillLegacySessionCandidates
+): LeaderboardAccuracyBackfillDecision {
+  const decision = evaluateCandidateCore(publicRow, metadata);
+  if (
+    !publicRow ||
+    decision.kind !== 'skip' ||
+    (decision.reason !== 'missing-counterpart' && decision.reason !== 'no-valid-source-accuracy')
+  ) {
+    return decision;
+  }
+
+  const recoveredMetadata = recoverVerifiedLegacyMetrics(publicRow, legacySessions);
+  if (!recoveredMetadata) return decision;
+  return evaluateCandidateCore(publicRow, recoveredMetadata);
 }
 
 /** Business orchestration over the repository abstraction. Dry-run never writes. */

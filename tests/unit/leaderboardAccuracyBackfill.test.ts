@@ -1,6 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { signProvenancePayload } from '../../server/services/provenanceService';
 import { LeaderboardAccuracyBackfillService } from '../../server/services/leaderboardAccuracyBackfill';
 import { FirestoreLeaderboardAccuracyBackfillRepository } from '../../server/repositories/firestore/firestoreLeaderboardAccuracyBackfillRepository';
+const previousProvenanceSecret = process.env.PULSE_PROVENANCE_SECRET;
+beforeAll(() => {
+  process.env.PULSE_PROVENANCE_SECRET = 'test-leaderboard-accuracy-backfill-secret';
+});
+afterAll(() => {
+  if (previousProvenanceSecret === undefined) delete process.env.PULSE_PROVENANCE_SECRET;
+  else process.env.PULSE_PROVENANCE_SECRET = previousProvenanceSecret;
+});
+
 
 function runBackfill(db: unknown, input: { mode: 'dry-run' | 'apply'; cursor: string | null; limit: number; expectedEntryIds?: string[] }) {
   return new LeaderboardAccuracyBackfillService(
@@ -10,49 +20,78 @@ function runBackfill(db: unknown, input: { mode: 'dry-run' | 'apply'; cursor: st
 
 type RecordMap = Map<string, Record<string, unknown>>;
 
-function createMockDb(publicSeed: Record<string, Record<string, unknown>>, privateSeed: Record<string, Record<string, unknown>>) {
+function createMockDb(
+  publicSeed: Record<string, Record<string, unknown>>,
+  privateSeed: Record<string, Record<string, unknown>>,
+  sessionSeed: Record<string, Record<string, unknown>> = {},
+  researchSeed: Record<string, Record<string, unknown>> = {}
+) {
   const publicRows: RecordMap = new Map(Object.entries(publicSeed));
   const privateRows: RecordMap = new Map(Object.entries(privateSeed));
+  const sessionRows: RecordMap = new Map(Object.entries(sessionSeed));
+  const researchRows: RecordMap = new Map(Object.entries(researchSeed));
   const initialPublicCount = publicRows.size;
   let writeCount = 0;
 
   const getCollectionMap = (name: string): RecordMap => {
     if (name === 'leaderboardResults') return publicRows;
     if (name === 'leaderboardPrivateMeta') return privateRows;
+    if (name === 'experimentSessions') return sessionRows;
+    if (name === 'assessmentResults') return researchRows;
     throw new Error('Unexpected collection: ' + name);
   };
   const makeRef = (collectionName: string, id: string) => ({ collectionName, id });
+
+  const makeQuery = (name: string) => {
+    const filters: Array<{ field: string; value: unknown }> = [];
+    let pageLimit = Number.MAX_SAFE_INTEGER;
+    let cursor: string | null = null;
+    const query: any = {
+      queryType: 'query',
+      collectionName: name,
+      where(field: string, operator: string, value: unknown) {
+        if (operator !== '==') throw new Error('Unexpected query operator: ' + operator);
+        filters.push({ field, value });
+        return query;
+      },
+      orderBy() { return query; },
+      limit(value: number) { pageLimit = value; return query; },
+      startAfter(value: string | { id: string }) {
+        cursor = typeof value === 'string' ? value : value.id;
+        return query;
+      },
+      async get() {
+        const collection = getCollectionMap(name);
+        const ids = Array.from(collection.keys())
+          .sort()
+          .filter(id => !cursor || id > cursor)
+          .filter(id => filters.every(filter => collection.get(id)?.[filter.field] === filter.value))
+          .slice(0, pageLimit);
+        const docs = ids.map(id => ({
+          id,
+          ref: makeRef(name, id),
+          data: () => ({ ...(collection.get(id) || {}) })
+        }));
+        return { docs, size: docs.length, empty: docs.length === 0 };
+      }
+    };
+    return query;
+  };
 
   const db: any = {
     collection(name: string) {
       return {
         doc(id: string) { return makeRef(name, id); },
-        orderBy() {
-          let pageLimit = 10;
-          let cursor: string | null = null;
-          const query: any = {
-            limit(value: number) { pageLimit = value; return query; },
-            startAfter(value: string) { cursor = value; return query; },
-            async get() {
-              const ids = Array.from(getCollectionMap(name).keys())
-                .sort()
-                .filter(id => !cursor || id > cursor)
-                .slice(0, pageLimit);
-              const docs = ids.map(id => ({
-                id,
-                ref: makeRef(name, id),
-                data: () => ({ ...(getCollectionMap(name).get(id) || {}) })
-              }));
-              return { docs, size: docs.length, empty: docs.length === 0 };
-            }
-          };
-          return query;
+        orderBy() { return makeQuery(name); },
+        where(field: string, operator: string, value: unknown) {
+          return makeQuery(name).where(field, operator, value);
         }
       };
     },
     async runTransaction(callback: (transaction: any) => Promise<unknown>) {
       const transaction = {
-        async get(ref: { collectionName: string; id: string }) {
+        async get(ref: any) {
+          if (ref?.queryType === 'query') return ref.get();
           const value = getCollectionMap(ref.collectionName).get(ref.id);
           return { exists: value !== undefined, data: () => value ? { ...value } : undefined };
         },
@@ -124,6 +163,114 @@ describe('Leaderboard accuracy backfill service', () => {
     expect(fixture.publicRows.size).toBe(originalCount);
     expect(fixture.publicRows.size).toBe(fixture.initialPublicCount);
     expect(fixture.getWriteCount()).toBe(1);
+  });
+
+  it('recovers missing private metadata from one legacy session after reconstructing the exact leaderboard HMAC', async () => {
+    const rows = validRows();
+    const digest = 'legacy-trials-digest';
+    rows.publicSeed['entry-1'].provenanceVersion = 2;
+    rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
+      'lb:v2:entry-1:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
+    );
+    const fixture = createMockDb(rows.publicSeed, {}, {
+      'session-1': {
+        leaderboardSubmitted: true,
+        leaderboardSubmissionId: 'entry-1',
+        leaderboardSubmissionScoreMetric: 8,
+        leaderboardSubmissionTrialsDigest: digest,
+        // This is the research token, not the leaderboard token; it must not be trusted as one.
+        provenanceToken: 'different-research-provenance',
+        leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
+        assessmentType: 'block-memory',
+        ageGroup: 'Young adults (18–25)'
+      }
+    });
+
+    const report = await runBackfill(fixture.db, { mode: 'dry-run', cursor: null, limit: 10 });
+
+    expect(report.counts.wouldUpdate).toBe(1);
+    expect(report.counts.skipped).toBe(0);
+    expect(fixture.getWriteCount()).toBe(0);
+    expect(fixture.publicRows.get('entry-1')?.accuracy).toBeUndefined();
+  });
+
+  it('recovers missing private metadata from assessmentResults using the legacy v1 HMAC format', async () => {
+    const rows = validRows();
+    rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
+      'lb:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
+    );
+    const fixture = createMockDb(rows.publicSeed, {}, {}, {
+      'research-result-1': {
+        assessmentType: 'block-memory',
+        ageGroup: 'Young adults (18–25)',
+        scoreMetric: 8,
+        trialsDigest: 'legacy-trials-digest',
+        derivedMetrics: { overallAccuracy: 87.5 },
+        provenanceToken: 'research-token-is-not-the-leaderboard-token'
+      }
+    });
+
+    const report = await runBackfill(fixture.db, { mode: 'dry-run', cursor: null, limit: 10 });
+
+    expect(report.counts.wouldUpdate).toBe(1);
+    expect(report.counts.skipped).toBe(0);
+    expect(fixture.getWriteCount()).toBe(0);
+    expect(fixture.publicRows.get('entry-1')?.accuracy).toBeUndefined();
+  });
+
+  it('rejects a legacy session whose stored leaderboard token conflicts with the public row', async () => {
+    const rows = validRows();
+    const digest = 'legacy-trials-digest';
+    rows.publicSeed['entry-1'].provenanceVersion = 2;
+    rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
+      'lb:v2:entry-1:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
+    );
+    const fixture = createMockDb(rows.publicSeed, {}, {
+      'session-1': {
+        leaderboardSubmitted: true,
+        leaderboardDocId: 'entry-1',
+        leaderboardSubmissionScoreMetric: 8,
+        leaderboardSubmissionTrialsDigest: digest,
+        leaderboardSubmissionProvenanceToken: 'different-stored-leaderboard-token',
+        leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
+        assessmentType: 'block-memory',
+        ageGroup: 'Young adults (18–25)'
+      }
+    });
+
+    const report = await runBackfill(fixture.db, { mode: 'dry-run', cursor: null, limit: 10 });
+
+    expect(report.counts.wouldUpdate).toBe(0);
+    expect(report.skipReasons['missing-counterpart']).toBe(1);
+    expect(fixture.getWriteCount()).toBe(0);
+  });
+
+  it('keeps ambiguous cryptographically matching legacy session sources skipped', async () => {
+    const rows = validRows();
+    const digest = 'legacy-trials-digest';
+    rows.publicSeed['entry-1'].provenanceVersion = 2;
+    rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
+      'lb:v2:entry-1:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
+    );
+    const matchingSession = {
+      leaderboardSubmitted: true,
+      leaderboardDocId: 'entry-1',
+      leaderboardSubmissionScoreMetric: 8,
+      leaderboardSubmissionTrialsDigest: digest,
+      leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
+      assessmentType: 'block-memory',
+      ageGroup: 'Young adults (18–25)'
+    };
+    const fixture = createMockDb(rows.publicSeed, {}, {
+      'session-1': { ...matchingSession },
+      'session-2': { ...matchingSession }
+    });
+
+    const report = await runBackfill(fixture.db, { mode: 'dry-run', cursor: null, limit: 10 });
+
+    expect(report.counts.wouldUpdate).toBe(0);
+    expect(report.skipReasons['missing-counterpart']).toBe(1);
+    expect(fixture.getWriteCount()).toBe(0);
   });
 
   it('skips missing or invalid accuracy source data without creating a record', async () => {
