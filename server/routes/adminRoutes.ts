@@ -9,8 +9,8 @@ import {
   parseAndValidateTokenClaims
 } from '../middleware/adminAuth';
 import { AppError } from '../models/replayContracts';
-import { getAdminDb } from '../config/firebaseAdmin';
-import { DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE, MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE, runLeaderboardAccuracyBackfillBatch, type LeaderboardAccuracyBackfillBatchInput, type LeaderboardAccuracyBackfillBatchReport } from '../services/leaderboardAccuracyBackfill';
+import { DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE, MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE } from '../services/leaderboardAccuracyBackfill';
+import type { LeaderboardAccuracyBackfillBatchInput, LeaderboardAccuracyBackfillBatchReport } from '../models/leaderboardAccuracyBackfill';
 
 export interface AdminRoutesDependencies {
   adminService: IAdminService;
@@ -28,10 +28,8 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
   const validatePass = deps.validatePass ?? (passcode => validateAdminPasscode(passcode));
   const createToken = deps.createToken ?? (() => createAdminToken());
   const invalidateLeaderboardCache = deps.invalidateLeaderboardCache ?? (() => {});
-  const runAccuracyBackfillBatch = deps.runAccuracyBackfillBatch ?? (async input => {
-    const db = getAdminDb();
-    if (!db) throw new AppError('DATABASE_UNAVAILABLE', 503);
-    return runLeaderboardAccuracyBackfillBatch(db, input);
+  const runAccuracyBackfillBatch = deps.runAccuracyBackfillBatch ?? (async (_input: LeaderboardAccuracyBackfillBatchInput): Promise<LeaderboardAccuracyBackfillBatchReport> => {
+    throw new AppError('Leaderboard accuracy backfill service is unavailable', 503);
   });
 
   // Universal No-Store middleware for all /api/admin/* endpoints

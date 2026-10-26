@@ -3,9 +3,10 @@
  * Default is dry-run. Pass --apply only after reviewing the dry-run report.
  */
 import { initializeAdminApp, getAdminDb } from '../server/config/firebaseAdmin';
+import { FirestoreLeaderboardAccuracyBackfillRepository } from '../server/repositories/firestore/firestoreLeaderboardAccuracyBackfillRepository';
 import {
   DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE,
-  runLeaderboardAccuracyBackfillBatch
+  LeaderboardAccuracyBackfillService
 } from '../server/services/leaderboardAccuracyBackfill';
 
 const APPLY = process.argv.includes('--apply');
@@ -15,6 +16,9 @@ async function main(): Promise<void> {
   const db = getAdminDb();
   if (!db) throw new Error('Firestore Admin is unavailable; check Firebase service-account configuration.');
 
+  const service = new LeaderboardAccuracyBackfillService(
+    new FirestoreLeaderboardAccuracyBackfillRepository(() => db)
+  );
   const totals = {
     scanned: 0,
     eligible: 0,
@@ -29,19 +33,17 @@ async function main(): Promise<void> {
   let done = false;
 
   while (!done) {
-    const report = await runLeaderboardAccuracyBackfillBatch(db, {
+    const report = await service.runBatch({
       mode: APPLY ? 'apply' : 'dry-run',
       cursor,
       limit: DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE
     });
-
     for (const key of Object.keys(totals) as Array<keyof typeof totals>) {
       totals[key] += report.counts[key];
     }
     for (const [reason, count] of Object.entries(report.skipReasons)) {
       skipReasons[reason] = (skipReasons[reason] || 0) + count;
     }
-
     cursor = report.nextCursor;
     done = report.done;
     if (!done && !cursor) throw new Error('Backfill pagination ended unexpectedly; stopping to avoid skipping records.');

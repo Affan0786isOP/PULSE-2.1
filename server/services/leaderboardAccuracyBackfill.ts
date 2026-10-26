@@ -1,44 +1,18 @@
-import { FieldPath, type Firestore, type QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { normalizeAssessmentType } from '../engines/assessmentTypes';
 import { VALID_ASSESSMENT_TYPES } from '../config/constants';
-import { isValidLeaderboardScoreMetric, normalizeLeaderboardAccuracy } from '../../shared/domain/leaderboardEligibility';
+import {
+  isValidLeaderboardScoreMetric,
+  normalizeLeaderboardAccuracy
+} from '../../shared/domain/leaderboardEligibility';
+import type { ILeaderboardAccuracyBackfillRepository } from '../repositories/interfaces/ILeaderboardAccuracyBackfillRepository';
+import type {
+  LeaderboardAccuracyBackfillBatchInput,
+  LeaderboardAccuracyBackfillBatchReport,
+  LeaderboardAccuracyBackfillDecision
+} from '../models/leaderboardAccuracyBackfill';
 
 export const MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE = 25;
 export const DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE = 10;
-
-export type LeaderboardAccuracyBackfillMode = 'dry-run' | 'apply';
-
-export interface LeaderboardAccuracyBackfillBatchInput {
-  mode: LeaderboardAccuracyBackfillMode;
-  cursor: string | null;
-  limit: number;
-}
-
-export interface LeaderboardAccuracyBackfillBatchReport {
-  success: true;
-  mode: LeaderboardAccuracyBackfillMode;
-  counts: {
-    scanned: number;
-    eligible: number;
-    wouldUpdate: number;
-    updated: number;
-    alreadyCorrect: number;
-    skipped: number;
-    failed: number;
-  };
-  skipReasons: Record<string, number>;
-  nextCursor: string | null;
-  done: boolean;
-}
-
-type RowOutcome = { kind: 'skip'; reason: string } |
-  { kind: 'alreadyCorrect' } |
-  { kind: 'dryRun' } |
-  { kind: 'updated' };
-
-function skipped(reason: string): RowOutcome {
-  return { kind: 'skip', reason };
-}
 
 function sameIfPresent(left: unknown, right: unknown): boolean {
   return left == null || right == null || left === right;
@@ -52,134 +26,120 @@ function validAssessmentType(value: string): boolean {
   return VALID_ASSESSMENT_TYPES.includes(value as (typeof VALID_ASSESSMENT_TYPES)[number]);
 }
 
-async function processRow(
-  db: Firestore,
-  rowSnapshot: QueryDocumentSnapshot,
-  mode: LeaderboardAccuracyBackfillMode
-): Promise<RowOutcome> {
-  try {
-    return await db.runTransaction(async transaction => {
-      const publicRef = rowSnapshot.ref;
-      const privateRef = db.collection('leaderboardPrivateMeta').doc(rowSnapshot.id);
-      const [publicSnapshot, privateSnapshot] = await Promise.all([
-        transaction.get(publicRef),
-        transaction.get(privateRef)
-      ]);
+/** Pure validation logic: no database access and no writes. */
+export function evaluateLeaderboardAccuracyBackfillCandidate(
+  publicRow: Record<string, unknown> | null,
+  metadata: Record<string, unknown> | null
+): LeaderboardAccuracyBackfillDecision {
+  if (!publicRow || !metadata) return { kind: 'skip', reason: 'missing-counterpart' };
 
-      if (!publicSnapshot.exists || !privateSnapshot.exists) return skipped('missing-counterpart');
-
-      const row = publicSnapshot.data() || {};
-      const metadata = privateSnapshot.data() || {};
-
-      if (metadata.publicEntry !== true || metadata.submissionReceiptOnly === true) {
-        return skipped('not-an-active-public-entry');
-      }
-
-      const publicType = normalizeAssessmentType(String(row.assessmentType || ''));
-      const privateType = normalizeAssessmentType(String(metadata.assessmentType || ''));
-      if (!validAssessmentType(publicType) || publicType !== privateType || !validAssessmentType(privateType)) {
-        return skipped('assessment-type-mismatch');
-      }
-
-      const publicScore = typeof row.scoreMetric === 'number' ? row.scoreMetric : Number.NaN;
-      const privateScore = typeof metadata.scoreMetric === 'number' ? metadata.scoreMetric : Number.NaN;
-      if (
-        !Number.isFinite(publicScore) ||
-        publicScore !== privateScore ||
-        !isValidLeaderboardScoreMetric(publicType, publicScore)
-      ) {
-        return skipped('score-mismatch-or-invalid');
-      }
-
-      if (
-        typeof row.provenanceToken !== 'string' ||
-        !row.provenanceToken ||
-        row.provenanceToken !== metadata.provenanceToken
-      ) {
-        return skipped('provenance-mismatch');
-      }
-
-      if (
-        !sameIfPresent(row.displayName, metadata.displayName) ||
-        !sameIfPresent(row.ageGroup, metadata.ageGroup) ||
-        ((row.hidden === true) !== (metadata.hidden === true))
-      ) {
-        return skipped('public-private-field-mismatch');
-      }
-
-      const accuracy = normalizeLeaderboardAccuracy(metadata.derivedMetrics);
-      if (accuracy === null) return skipped('no-valid-source-accuracy');
-
-      // Never overwrite a non-null value, even if it is invalid. Conflicts require manual review.
-      if (row.accuracy !== undefined && row.accuracy !== null) {
-        if (validAccuracy(row.accuracy) && row.accuracy === accuracy) {
-          return { kind: 'alreadyCorrect' };
-        }
-        return skipped(validAccuracy(row.accuracy) ? 'conflicting-existing-accuracy' : 'invalid-existing-accuracy');
-      }
-
-      if (mode === 'dry-run') return { kind: 'dryRun' };
-
-      // Transaction reads above confirm this public document exists. update() cannot create it.
-      // This is deliberately the only field modified by this migration.
-      transaction.update(publicRef, { accuracy });
-      return { kind: 'updated' };
-    });
-  } catch {
-    return skipped('transaction-failed');
+  if (metadata.publicEntry !== true || metadata.submissionReceiptOnly === true) {
+    return { kind: 'skip', reason: 'not-an-active-public-entry' };
   }
+
+  const publicType = normalizeAssessmentType(String(publicRow.assessmentType || ''));
+  const privateType = normalizeAssessmentType(String(metadata.assessmentType || ''));
+  if (!validAssessmentType(publicType) || publicType !== privateType || !validAssessmentType(privateType)) {
+    return { kind: 'skip', reason: 'assessment-type-mismatch' };
+  }
+
+  const publicScore = typeof publicRow.scoreMetric === 'number' ? publicRow.scoreMetric : Number.NaN;
+  const privateScore = typeof metadata.scoreMetric === 'number' ? metadata.scoreMetric : Number.NaN;
+  if (
+    !Number.isFinite(publicScore) ||
+    publicScore !== privateScore ||
+    !isValidLeaderboardScoreMetric(publicType, publicScore)
+  ) {
+    return { kind: 'skip', reason: 'score-mismatch-or-invalid' };
+  }
+
+  if (
+    typeof publicRow.provenanceToken !== 'string' ||
+    !publicRow.provenanceToken ||
+    publicRow.provenanceToken !== metadata.provenanceToken
+  ) {
+    return { kind: 'skip', reason: 'provenance-mismatch' };
+  }
+
+  if (
+    !sameIfPresent(publicRow.displayName, metadata.displayName) ||
+    !sameIfPresent(publicRow.ageGroup, metadata.ageGroup) ||
+    ((publicRow.hidden === true) !== (metadata.hidden === true))
+  ) {
+    return { kind: 'skip', reason: 'public-private-field-mismatch' };
+  }
+
+  const accuracy = normalizeLeaderboardAccuracy(metadata.derivedMetrics);
+  if (accuracy === null) return { kind: 'skip', reason: 'no-valid-source-accuracy' };
+
+  // Never overwrite a non-null value, even if invalid. Conflicts need manual review.
+  if (publicRow.accuracy !== undefined && publicRow.accuracy !== null) {
+    if (validAccuracy(publicRow.accuracy) && publicRow.accuracy === accuracy) {
+      return { kind: 'alreadyCorrect' };
+    }
+    return {
+      kind: 'skip',
+      reason: validAccuracy(publicRow.accuracy) ? 'conflicting-existing-accuracy' : 'invalid-existing-accuracy'
+    };
+  }
+
+  return { kind: 'wouldUpdate', accuracy };
 }
 
-/** Process one bounded batch. Dry-run mode performs no writes. */
-export async function runLeaderboardAccuracyBackfillBatch(
-  db: Firestore,
-  input: LeaderboardAccuracyBackfillBatchInput
-): Promise<LeaderboardAccuracyBackfillBatchReport> {
-  const limit = Number.isInteger(input.limit)
-    ? Math.max(1, Math.min(MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE, input.limit))
-    : DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE;
+/** Business orchestration over the repository abstraction. Dry-run never writes. */
+export class LeaderboardAccuracyBackfillService {
+  constructor(private readonly repository: ILeaderboardAccuracyBackfillRepository) {}
 
-  const counts = {
-    scanned: 0,
-    eligible: 0,
-    wouldUpdate: 0,
-    updated: 0,
-    alreadyCorrect: 0,
-    skipped: 0,
-    failed: 0
-  };
-  const skipReasons: Record<string, number> = {};
+  async runBatch(input: LeaderboardAccuracyBackfillBatchInput): Promise<LeaderboardAccuracyBackfillBatchReport> {
+    const limit = Number.isInteger(input.limit)
+      ? Math.max(1, Math.min(MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE, input.limit))
+      : DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE;
 
-  let query = db.collection('leaderboardResults')
-    .orderBy(FieldPath.documentId())
-    .limit(limit);
-  if (input.cursor) query = query.startAfter(input.cursor);
+    const page = await this.repository.listPublicEntryIds(input.cursor, limit);
+    const counts = {
+      scanned: 0,
+      eligible: 0,
+      wouldUpdate: 0,
+      updated: 0,
+      alreadyCorrect: 0,
+      skipped: 0,
+      failed: 0
+    };
+    const skipReasons: Record<string, number> = {};
 
-  const page = await query.get();
-  for (const rowSnapshot of page.docs) {
-    counts.scanned++;
-    const outcome = await processRow(db, rowSnapshot, input.mode);
+    for (const entryId of page.ids) {
+      counts.scanned++;
+      try {
+        const outcome = await this.repository.processEntry(
+          entryId,
+          input.mode,
+          evaluateLeaderboardAccuracyBackfillCandidate
+        );
+        if (outcome.kind === 'skip') {
+          counts.skipped++;
+          skipReasons[outcome.reason] = (skipReasons[outcome.reason] || 0) + 1;
+          if (outcome.reason === 'transaction-failed') counts.failed++;
+          continue;
+        }
 
-    if (outcome.kind === 'skip') {
-      counts.skipped++;
-      skipReasons[outcome.reason] = (skipReasons[outcome.reason] || 0) + 1;
-      if (outcome.reason === 'transaction-failed') counts.failed++;
-      continue;
+        counts.eligible++;
+        if (outcome.kind === 'dryRun') counts.wouldUpdate++;
+        if (outcome.kind === 'updated') counts.updated++;
+        if (outcome.kind === 'alreadyCorrect') counts.alreadyCorrect++;
+      } catch {
+        counts.failed++;
+        counts.skipped++;
+        skipReasons['transaction-failed'] = (skipReasons['transaction-failed'] || 0) + 1;
+      }
     }
 
-    counts.eligible++;
-    if (outcome.kind === 'dryRun') counts.wouldUpdate++;
-    if (outcome.kind === 'updated') counts.updated++;
-    if (outcome.kind === 'alreadyCorrect') counts.alreadyCorrect++;
+    return {
+      success: true,
+      mode: input.mode,
+      counts,
+      skipReasons,
+      nextCursor: page.nextCursor,
+      done: page.done
+    };
   }
-
-  const done = page.size < limit;
-  return {
-    success: true,
-    mode: input.mode,
-    counts,
-    skipReasons,
-    nextCursor: done || page.docs.length === 0 ? null : page.docs[page.docs.length - 1].id,
-    done
-  };
 }
