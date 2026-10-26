@@ -49,6 +49,27 @@ describe('Admin Auth & Token Security Unit Tests', () => {
     });
   });
 
+  describe('Production admin auth fails closed', () => {
+    it('rejects development fallback passcodes and session secrets in production', () => {
+      process.env.NODE_ENV = 'production';
+      delete process.env.ADMIN_PASSCODE;
+      delete process.env.PULSE_ADMIN_SESSION_SECRET;
+
+      expect(getAdminPasscode()).toBe('');
+      expect(getAdminSessionSecret()).toBe('');
+      expect(validateAdminPasscode('180611')).toBe(false);
+      expect(() => createAdminToken()).toThrow(/not configured/i);
+    });
+
+    it('does not accept the master development passcode in production', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.ADMIN_PASSCODE = 'a-strong-production-passcode';
+      process.env.PULSE_ADMIN_SESSION_SECRET = 'a-strong-production-session-secret-which-is-not-a-fallback';
+      expect(validateAdminPasscode('180611')).toBe(false);
+      expect(validateAdminPasscode('a-strong-production-passcode')).toBe(true);
+    });
+  });
+
   describe('Token Generation, Signing & Claims Verification', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'development';

@@ -166,3 +166,33 @@ export async function deleteLeaderboardEntry(
     body: JSON.stringify({ id, reason })
   });
 }
+
+
+export interface LeaderboardAccuracyBackfillReport {
+  success: boolean;
+  mode: 'dry-run' | 'apply';
+  counts: {
+    scanned: number;
+    eligible: number;
+    wouldUpdate: number;
+    updated: number;
+    alreadyCorrect: number;
+    skipped: number;
+    failed: number;
+  };
+  skipReasons: Record<string, number>;
+  nextCursor: string | null;
+  done: boolean;
+}
+
+export async function runLeaderboardAccuracyBackfill(input: {
+  mode: 'dry-run' | 'apply';
+  cursor: string | null;
+  limit: number;
+  confirmApply?: boolean;
+}): Promise<LeaderboardAccuracyBackfillReport> {
+  return request<LeaderboardAccuracyBackfillReport>(
+    '/api/admin/maintenance/leaderboard-accuracy-backfill',
+    { method: 'POST', body: JSON.stringify(input) }
+  );
+}
