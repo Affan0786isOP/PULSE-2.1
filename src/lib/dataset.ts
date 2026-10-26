@@ -105,9 +105,9 @@ export const fetchDatasetObservations = async (
       filterConstraints.push(where('ageGroup', '==', filters.ageGroup));
     }
 
+    // Query without orderBy constraint so Firestore does not drop records lacking completedAtTimestamp.
     const observationConstraints: QueryConstraint[] = [
       ...filterConstraints,
-      orderBy('completedAtTimestamp', 'desc'),
       firestoreLimit(observationLimit)
     ];
     const observationQuery = query(datasetRef, ...observationConstraints);
@@ -125,18 +125,8 @@ export const fetchDatasetObservations = async (
     };
 
     // 2. Fetch observations directly from server and total count concurrently in parallel
-    // Gracefully fallback to un-ordered query if completedAtTimestamp composite index is pending
-    const fetchDocsSafe = async () => {
-      try {
-        return await getDocsFromServer(observationQuery);
-      } catch {
-        const fallbackQuery = query(datasetRef, ...filterConstraints, firestoreLimit(observationLimit));
-        return await getDocsFromServer(fallbackQuery);
-      }
-    };
-
     const [obsResult, countResult] = await Promise.allSettled([
-      fetchDocsSafe(),
+      getDocsFromServer(observationQuery),
       fetchCountWithTimeout()
     ]);
 
@@ -148,6 +138,13 @@ export const fetchDatasetObservations = async (
     const observations: DatasetObservation[] = [];
     snapshot.forEach((doc) => {
       observations.push({ id: doc.id, ...doc.data() } as DatasetObservation);
+    });
+
+    // In-memory sort by completedAtTimestamp or completedAtMonth descending
+    observations.sort((a, b) => {
+      const timeA = Number(a.completedAtTimestamp || (a.completedAtMonth ? new Date(a.completedAtMonth).getTime() : 0));
+      const timeB = Number(b.completedAtTimestamp || (b.completedAtMonth ? new Date(b.completedAtMonth).getTime() : 0));
+      return timeB - timeA;
     });
 
     const totalCount = countResult.status === 'fulfilled' ? countResult.value : null;
