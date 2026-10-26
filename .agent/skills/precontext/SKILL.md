@@ -1,11 +1,11 @@
 ---
 name: precontext
-description: Tells the agent which critical project context, architecture, rules, and schema files to discover and read, how to use codebase-memory-mcp knowledge graph tools, and how to apply token-efficient context management before and during development.
+description: Tells the agent which critical project context, architecture, rules, and schema files to discover and read, how to use codebase-memory-mcp knowledge graph tools, and enforces strict token-optimization and context-efficiency invariants before starting development or code modifications in any codebase.
 ---
 
-# Precontext: Mandatory Orientation & Token-Optimized Execution
+# Precontext: Mandatory Orientation Before Development
 
-Before planning, modifying code, refactoring, or authoring features in any codebase, an agent must discover, read, and internalize foundational project context files, leverage the codebase knowledge graph, and practice disciplined token optimization.
+Before planning, modifying code, refactoring, or authoring features in any codebase, an agent must discover, read, and internalize foundational project context files and leverage the codebase knowledge graph.
 
 This prevents common architectural violations such as:
 - Breaking core architectural invariants and boundaries (e.g. client vs server authority, unverified direct database writes).
@@ -13,71 +13,15 @@ This prevents common architectural violations such as:
 - Violating timing, precision, or strict latency requirements.
 - Leaking PII, sensitive credentials, or violating regulatory retention boundaries.
 - Re-introducing deprecated endpoints, outdated dependencies, or purged routines.
-- Bloating context windows with redundant file reads, whole-file dumps, and chat narration that degrades model reasoning.
 
 ---
 
-## 1. Token-Optimized Context & Execution Invariants
+## 1. Codebase Knowledge Graph Orientation (codebase-memory-mcp)
 
-A core invariant governs all tasks: **optimize for the fewest tokens that preserve full meaning, correctness, and usefulness.** Shorter is not automatically better if it introduces ambiguity, drops edge cases, or leads to implementation errors.
-
-Apply token optimization across these ten pillars:
-
-1. **Context Efficiency:**
-   - Include only information directly relevant to the current task.
-   - Eliminate unrelated historical logs, duplicate explanations, conversational pleasantries, and unnecessary background.
-   - Do not re-read or dump files that are already established in context or can be queried with targeted graph tools.
-
-2. **Prompt & Instruction Compression:**
-   - Use direct instructions, active voice, compact bullet points, and explicit labels.
-   - Prefer simple, plain English over convoluted formalisms or academic prose.
-   - State constraints, expected inputs, and acceptance criteria concisely.
-
-3. **Context Prioritisation:**
-   - Prioritise in order: (1) current user request & immediate goal, (2) explicit constraints & invariants, (3) recent architectural decisions, (4) current relevant codebase state, and (5) essential historical rationale.
-   - De-prioritise or omit completed milestones, superseded decisions, and non-impacted subtrees.
-
-4. **Preserve Critical Details (Zero Loss of Correctness):**
-   - **Never sacrifice correctness for brevity.**
-   - Retain exact filenames, relative/absolute paths, line numbers, function signatures, API contracts, schema types, error messages, acceptance criteria, security policies, and boundary conditions.
-   - Avoid vague placeholders or hand-waving shortcuts (e.g., never say "fix everything" or "make it better"; specify exact targets and contracts).
-
-5. **Output Efficiency:**
-   - Deliver answers and implementations directly without echoing the user prompt, conversational filler, or verbose meta-commentary ("Sure, I can help with that...").
-   - Omit repetitive intros and trailing sign-offs. Focus entirely on actionable code, diffs, or clear findings.
-
-6. **Agent & Tool Efficiency:**
-   - Minimize tool trips. Never run redundant searches or duplicate file reads when existing context or previous tool output contains the answer.
-   - Use graph tools (`search_graph`, `get_code_snippet`) for precise symbol inspection rather than pulling entire 1,000-line files.
-   - Reuse verified findings across multi-step tasks rather than re-discovering the same dependencies.
-
-7. **Coding-Task & Editing Efficiency (Surgical Diffs):**
-   - **Always prefer surgical edits over whole-file overwrites.** Target exact line ranges with targeted replacements (`edit_file` / `replace_file_content`).
-   - Specify explicit scope, required changes, constraints, validation commands, and completion criteria without padding.
-   - Avoid dumping full test suites or logs; run targeted tests matching modified files.
-
-8. **Planning & Auditing Efficiency:**
-   - Consolidate overlapping findings into deduplicated, structured points.
-   - Clearly distinguish blocking errors from optional improvements or polish.
-   - Provide concrete, actionable remedies instead of restating the same observation in multiple sections.
-
-9. **Long-Context Management:**
-   - Maintain compact, structured working notes tracking current state, decisions made, unresolved blockers, and next steps.
-   - When compacting or summarizing context, preserve immutable facts, key paths, symbol names, and unresolved questions.
-
-10. **Budget Awareness & Adaptive Depth:**
-    - Calibrate investigation depth and response length to the complexity of the task and known model token constraints.
-    - Simple queries/edits receive minimal, direct context and answers.
-    - Complex architectural refactors receive comprehensive graph verification, coverage checks, and safety bounds while remaining free of fluff.
-
----
-
-## 2. Codebase Knowledge Graph Orientation (codebase-memory-mcp)
-
-Before jumping into brute-force file searches or grepping, **always prefer `codebase-memory-mcp` tools** to discover the project structure, symbol graph, and call paths with minimal token footprint:
+Before jumping into manual file searches or grepping, **always prefer `codebase-memory-mcp` tools** to discover the project structure, symbol graph, and call paths:
 
 1. **High-Level Topology:**
-   - Call `get_architecture` or `index_status` / `list_projects` to review architectural layers, module breakdown, and indexing generation.
+   - Call `get_architecture` or `index_status` / `list_projects` to review the architectural layers, module breakdown, and indexing generation.
 2. **Symbol & Dependency Tracing:**
    - Use `search_graph` to locate handlers, classes, routes, models, or core services by pattern.
    - Use `trace_path` (`direction="inbound"` or `"outbound"`) to map callers and dependencies before proposing any structural changes.
@@ -89,9 +33,9 @@ Before jumping into brute-force file searches or grepping, **always prefer `code
 
 ---
 
-## 3. Primary Required Reading (Discover & Read First)
+## 2. Primary Required Reading (Discover & Read First)
 
-Inspect core guidance files in the repository root, `docs/`, or `.ai/`/`.github/` directories prior to authoring non-trivial changes:
+Every agent must inspect core guidance files in the repository root, `docs/`, or `.ai/`/`.github/` directories prior to authoring non-trivial changes:
 
 1. **AI Development Rules & Invariants:**
    - Look for: `RULES.md`, `.ai/RULES.md`, `.cursorrules`, `CLAUDE.md`, or `.agent/rules/`.
@@ -107,9 +51,9 @@ Inspect core guidance files in the repository root, `docs/`, or `.ai/`/`.github/
 
 ---
 
-## 4. Domain-Specific Reading (Read Based on Task Scope)
+## 3. Domain-Specific Reading (Read Based on Task Scope)
 
-Discover and inspect relevant repository specifications based strictly on task scope:
+Depending on the specific area of development, discover and inspect the relevant repository specifications:
 
 ### A. Core Architecture & Environment
 - **Architecture Overview:** `docs/ARCHITECTURE.md` or system diagrams in `docs/`.
@@ -135,15 +79,39 @@ Discover and inspect relevant repository specifications based strictly on task s
 
 ---
 
-## 5. Universal Pre-Modification Checklist
+## 4. Universal Pre-Modification Checklist
 
 Before proposing or executing code changes:
 
-- [ ] **Token Efficiency Check:** Are you making surgical edits rather than whole-file overwrites? Have you avoided redundant file reads and duplicate tool calls?
-- [ ] **Critical Detail Check:** Have you preserved all required constraints, exact types, file paths, and contracts without over-compressing?
-- [ ] **Graph Orientation:** Have you queried `codebase-memory-mcp` (`get_architecture`, `search_graph`, `trace_path`) to understand relationships and callers?
-- [ ] **Route & Symbol Status:** Have you checked for active vs deprecated routes, functions, or parameters to avoid re-introducing dead patterns?
-- [ ] **Authority & Mutation Boundaries:** Are data mutations routed through authoritative backend/API handlers rather than untrusted client-side direct calls?
-- [ ] **Timing & Precision Constraints:** Are project-specific precision, performance, or timing constraints preserved?
-- [ ] **Surface & Theme Parity:** If modifying shared components or layouts, did you check responsive viewports, multi-surface parity, and theme compatibility?
-- [ ] **Dependency Alignment:** Are all dependency versions and package manager commands aligned with repository requirements?
+- [ ] Have you queried `codebase-memory-mcp` (`get_architecture`, `search_graph`, `trace_path`) to understand relationships and callers?
+- [ ] Have you checked for active vs deprecated routes, functions, or parameters to avoid re-introducing dead patterns?
+- [ ] Are data mutations routed through authoritative backend/API handlers rather than untrusted client-side direct calls?
+- [ ] Are project-specific precision, performance, or timing constraints preserved?
+- [ ] If modifying shared components or layouts, did you check responsive viewports, multi-surface parity, and theme compatibility?
+- [ ] Are all dependency versions and package manager commands aligned with repository requirements?
+- [ ] Are your context notes, prompts, and tool calls compliant with the token optimization and context efficiency invariants?
+
+---
+
+## 5. Token Optimization & Context Efficiency Protocol
+
+All context gathering, prompt authoring, tool invocations, and response generation must obey strict token efficiency invariants:
+
+### A. Strict Optimization Rule
+- **Core Invariant:** Optimise for the fewest tokens that preserve the full meaning, correctness, and usefulness of the task. Shorter is not automatically better if it causes ambiguity, missing requirements, or implementation errors.
+- **Adaptive Application:** Simple tasks should receive minimal context and instructions; complex engineering tasks should retain sufficient detail for reliable execution.
+- **Prevent Over-Compression:** Do not omit necessary implementation details, safety checks, test requirements, user constraints, or evidence. Never replace concrete instructions with vague phrases such as "fix everything" or "make it better."
+
+### B. Context & Information Prioritization
+- **Context Efficiency:** Include only information relevant to the current task. Exclude unrelated history, repetition, redundant explanations, and unnecessary background.
+- **Context Prioritization:** Prioritise the current request, explicit constraints, recent decisions, relevant project state, and essential historical context.
+- **Preserve Critical Details:** Never remove requirements, filenames, paths, API contracts, error messages, edge cases, acceptance criteria, security constraints, or other information needed for correctness.
+
+### C. Agent, Prompt & Tool Execution Efficiency
+- **Prompt Compression:** Use direct instructions, concise wording, compact bullet points, and clear labels. Prefer simple English over unnecessarily complex language.
+- **Output Efficiency:** Avoid repeating the user's prompt, excessive introductions, unnecessary summaries, and verbose explanations. Deliver the requested result directly.
+- **Agent and Tool Efficiency:** Avoid unnecessary tool calls, repeated searches, redundant file reads, duplicate investigations, and repeated work. Reuse verified findings and existing context whenever possible.
+- **Coding-Task Efficiency:** Keep implementation instructions precise. Specify scope, required changes, constraints, validation commands, and completion criteria without unnecessary prose.
+- **Planning and Auditing:** Consolidate overlapping findings, distinguish blockers from minor improvements, and provide actionable recommendations instead of repeating observations.
+- **Long-Context Management:** Maintain compact, structured working notes containing decisions, current state, unresolved issues, and next steps. Retain critical facts when summarising.
+- **Budget Awareness:** When a model or tool has a known token limit or cost constraint, adjust response length and investigation depth accordingly without sacrificing essential verification.

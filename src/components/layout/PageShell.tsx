@@ -56,7 +56,7 @@ export const PageShell: React.FC<PageShellProps> = ({
   decorativeWaves = 'none',
   maxWidth,
   showNavbar = true,
-  theme = 'light',
+  theme,
   contentClassName = '',
   disableScaling = false,
   style,

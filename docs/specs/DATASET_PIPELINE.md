@@ -32,7 +32,8 @@ flowchart TD
 
 ## 3. Querying & Filtering Engine
 
-The open dataset explorer interface is provided by the public dataset view ([src/components/DatasetComingSoon.tsx](../../src/components/DatasetComingSoon.tsx)), displaying release readiness and research protocol availability prior to open data table indexing. When fully enabled, the pipeline provides reactive data slicing:
+### Ingestion & Query Implementation
+The interactive dataset explorer interface is provided by [`src/components/Dataset.tsx`](../../src/components/Dataset.tsx) and [`mobile/src/components/Dataset.tsx`](../../mobile/src/components/Dataset.tsx) for live empirical analysis. When public documents are logged, the pipeline provides reactive data slicing:
 
 ### Filter Dimensions
 1. **Assessment Protocol:** `visual-reaction`, `direction`, `colour-recognition`, `block-memory`, `number-memory`.

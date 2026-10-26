@@ -7,7 +7,6 @@ import { useSystemTheme } from './lib/useSystemTheme';
 import { Home } from './components/Home';
 import { RouteSEO } from './components/RouteSEO';
 import { PageViewTracker } from './components/PageViewTracker';
-import { DatasetComingSoon } from '../../src/components/DatasetComingSoon';
 
 import { 
   evaluateDeviceRouting, 
@@ -26,6 +25,7 @@ function RedirectIndexHtml() {
 // Code-split heavy routes for fast Home startup
 const About = React.lazy(() => import('../../src/components/About').then(m => ({ default: m.About })));
 const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
+const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
 const Leaderboard = React.lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
 const ReactionTest = React.lazy(() => import('./components/ReactionTest').then(m => ({ default: m.ReactionTest })));
 const DirectionTest = React.lazy(() => import('./components/DirectionTest').then(m => ({ default: m.DirectionTest })));
@@ -158,8 +158,8 @@ function App() {
                   <Route path="/index.html" element={<RedirectIndexHtml />} />
                   <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
-                  <Route path="/dataset" element={<DatasetComingSoon />} />
-                  <Route path="/analytics" element={<DatasetComingSoon />} />
+                  <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
+                  <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
                   <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                   <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                   <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />

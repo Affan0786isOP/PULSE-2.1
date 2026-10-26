@@ -234,7 +234,7 @@ export function Navbar({
     toggleTheme(origin);
   };
 
-  const isLight = theme !== 'dark';
+  const isLight = theme ? theme !== 'dark' : !isDarkActive;
 
   return (
     <header 

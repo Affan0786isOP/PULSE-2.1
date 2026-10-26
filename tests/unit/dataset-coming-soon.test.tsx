@@ -73,22 +73,22 @@ describe('Dataset Coming Soon', () => {
     expect(componentSource).not.toContain("from '../lib/dataset'");
 
     expect(desktopAppSource).toContain(
-      '<Route path="/dataset" element={<DatasetComingSoon />} />'
+      '<Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />'
     );
     expect(desktopAppSource).toContain(
-      '<Route path="/analytics" element={<DatasetComingSoon />} />'
+      '<Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />'
     );
-    expect(desktopAppSource).not.toContain(
+    expect(desktopAppSource).toContain(
       "const Dataset = React.lazy(() => import('./components/Dataset')"
     );
 
     expect(mobileAppSource).toContain(
-      '<Route path="/dataset" element={<DatasetComingSoon />} />'
+      '<Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />'
     );
     expect(mobileAppSource).toContain(
-      '<Route path="/analytics" element={<DatasetComingSoon />} />'
+      '<Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />'
     );
-    expect(mobileAppSource).not.toContain(
+    expect(mobileAppSource).toContain(
       "const Dataset = React.lazy(() => import('./components/Dataset')"
     );
   });

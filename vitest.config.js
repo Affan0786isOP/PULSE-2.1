@@ -10,7 +10,7 @@ export default defineConfig({
     globals: true,
     testTimeout: 15000,
     setupFiles: ['./tests/setup/setupTests.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**', '**/.agent/**', '**/pulse-leaderboard-audit/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**', '**/.agent/**', '**/pulse-leaderboard-audit/**', '**/bklit-ui/**'],
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@shared': path.resolve(__dirname, './shared'),

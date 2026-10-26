@@ -134,7 +134,7 @@ export function Navbar({
               className="flex items-center opacity-40 cursor-not-allowed p-0.5 shrink-0 rounded-lg select-none"
             >
               <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/10 border border-white/15 text-[#0066FF]">
-                <PulseLogo variant="mark" size={16} color="#0066FF" />
+                <PulseLogo variant="mark" size={16} color={isDarkActive ? "var(--accent)" : "#0066FF"} />
               </div>
             </span>
           ) : (
@@ -155,7 +155,7 @@ export function Navbar({
                   ? 'bg-[#181D23] border border-slate-700 text-[#0066FF]'
                   : 'bg-sky-50 border border-sky-100/90 text-[#0066FF]'
               }`}>
-                <PulseLogo variant="mark" size={16} color="#0066FF" />
+                <PulseLogo variant="mark" size={16} color={isDarkActive ? "var(--accent)" : "#0066FF"} />
               </div>
             </Link>
           )}

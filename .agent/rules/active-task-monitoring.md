@@ -24,3 +24,8 @@ This rule enforces proactive supervision over any asynchronous background comman
 
 ## 3. Immediate Action on Stuck Tasks
 - If a task shows no progress, high CPU with no output, or port conflict loops, report the finding to the user with the relevant log snippet, terminate the stuck task via `manage_task(Action: "kill")`, and re-execute with targeted fixes.
+---
+
+## 4. Local Server & Port Invariants
+1. **Detect Port Shadowing:** When launching local preview or production servers, verify whether the canonical default port (e.g. 3000) is in use by an external or stale process before launching on fallback ports.
+2. **Release Stale Listeners:** If an existing process occupies port 3000 from a parent repository or older task, terminate the old listener or clearly bind and point the user to the active port without ambiguity.
