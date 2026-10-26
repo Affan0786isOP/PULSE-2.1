@@ -1,11 +1,11 @@
 ---
 name: precontext
-description: Tells the agent which critical project context, architecture, rules, and schema files to discover and read, and to use codebase-memory-mcp knowledge graph tools before starting development or code modifications in any codebase.
+description: Tells the agent which critical project context, architecture, rules, and schema files to discover and read, how to use codebase-memory-mcp knowledge graph tools, and how to apply token-efficient context management before and during development.
 ---
 
-# Precontext: Mandatory Orientation Before Development
+# Precontext: Mandatory Orientation & Token-Optimized Execution
 
-Before planning, modifying code, refactoring, or authoring features in any codebase, an agent must discover, read, and internalize foundational project context files and leverage the codebase knowledge graph.
+Before planning, modifying code, refactoring, or authoring features in any codebase, an agent must discover, read, and internalize foundational project context files, leverage the codebase knowledge graph, and practice disciplined token optimization.
 
 This prevents common architectural violations such as:
 - Breaking core architectural invariants and boundaries (e.g. client vs server authority, unverified direct database writes).
@@ -13,15 +13,71 @@ This prevents common architectural violations such as:
 - Violating timing, precision, or strict latency requirements.
 - Leaking PII, sensitive credentials, or violating regulatory retention boundaries.
 - Re-introducing deprecated endpoints, outdated dependencies, or purged routines.
+- Bloating context windows with redundant file reads, whole-file dumps, and chat narration that degrades model reasoning.
 
 ---
 
-## 1. Codebase Knowledge Graph Orientation (codebase-memory-mcp)
+## 1. Token-Optimized Context & Execution Invariants
 
-Before jumping into manual file searches or grepping, **always prefer `codebase-memory-mcp` tools** to discover the project structure, symbol graph, and call paths:
+A core invariant governs all tasks: **optimize for the fewest tokens that preserve full meaning, correctness, and usefulness.** Shorter is not automatically better if it introduces ambiguity, drops edge cases, or leads to implementation errors.
+
+Apply token optimization across these ten pillars:
+
+1. **Context Efficiency:**
+   - Include only information directly relevant to the current task.
+   - Eliminate unrelated historical logs, duplicate explanations, conversational pleasantries, and unnecessary background.
+   - Do not re-read or dump files that are already established in context or can be queried with targeted graph tools.
+
+2. **Prompt & Instruction Compression:**
+   - Use direct instructions, active voice, compact bullet points, and explicit labels.
+   - Prefer simple, plain English over convoluted formalisms or academic prose.
+   - State constraints, expected inputs, and acceptance criteria concisely.
+
+3. **Context Prioritisation:**
+   - Prioritise in order: (1) current user request & immediate goal, (2) explicit constraints & invariants, (3) recent architectural decisions, (4) current relevant codebase state, and (5) essential historical rationale.
+   - De-prioritise or omit completed milestones, superseded decisions, and non-impacted subtrees.
+
+4. **Preserve Critical Details (Zero Loss of Correctness):**
+   - **Never sacrifice correctness for brevity.**
+   - Retain exact filenames, relative/absolute paths, line numbers, function signatures, API contracts, schema types, error messages, acceptance criteria, security policies, and boundary conditions.
+   - Avoid vague placeholders or hand-waving shortcuts (e.g., never say "fix everything" or "make it better"; specify exact targets and contracts).
+
+5. **Output Efficiency:**
+   - Deliver answers and implementations directly without echoing the user prompt, conversational filler, or verbose meta-commentary ("Sure, I can help with that...").
+   - Omit repetitive intros and trailing sign-offs. Focus entirely on actionable code, diffs, or clear findings.
+
+6. **Agent & Tool Efficiency:**
+   - Minimize tool trips. Never run redundant searches or duplicate file reads when existing context or previous tool output contains the answer.
+   - Use graph tools (`search_graph`, `get_code_snippet`) for precise symbol inspection rather than pulling entire 1,000-line files.
+   - Reuse verified findings across multi-step tasks rather than re-discovering the same dependencies.
+
+7. **Coding-Task & Editing Efficiency (Surgical Diffs):**
+   - **Always prefer surgical edits over whole-file overwrites.** Target exact line ranges with targeted replacements (`edit_file` / `replace_file_content`).
+   - Specify explicit scope, required changes, constraints, validation commands, and completion criteria without padding.
+   - Avoid dumping full test suites or logs; run targeted tests matching modified files.
+
+8. **Planning & Auditing Efficiency:**
+   - Consolidate overlapping findings into deduplicated, structured points.
+   - Clearly distinguish blocking errors from optional improvements or polish.
+   - Provide concrete, actionable remedies instead of restating the same observation in multiple sections.
+
+9. **Long-Context Management:**
+   - Maintain compact, structured working notes tracking current state, decisions made, unresolved blockers, and next steps.
+   - When compacting or summarizing context, preserve immutable facts, key paths, symbol names, and unresolved questions.
+
+10. **Budget Awareness & Adaptive Depth:**
+    - Calibrate investigation depth and response length to the complexity of the task and known model token constraints.
+    - Simple queries/edits receive minimal, direct context and answers.
+    - Complex architectural refactors receive comprehensive graph verification, coverage checks, and safety bounds while remaining free of fluff.
+
+---
+
+## 2. Codebase Knowledge Graph Orientation (codebase-memory-mcp)
+
+Before jumping into brute-force file searches or grepping, **always prefer `codebase-memory-mcp` tools** to discover the project structure, symbol graph, and call paths with minimal token footprint:
 
 1. **High-Level Topology:**
-   - Call `get_architecture` or `index_status` / `list_projects` to review the architectural layers, module breakdown, and indexing generation.
+   - Call `get_architecture` or `index_status` / `list_projects` to review architectural layers, module breakdown, and indexing generation.
 2. **Symbol & Dependency Tracing:**
    - Use `search_graph` to locate handlers, classes, routes, models, or core services by pattern.
    - Use `trace_path` (`direction="inbound"` or `"outbound"`) to map callers and dependencies before proposing any structural changes.
@@ -33,9 +89,9 @@ Before jumping into manual file searches or grepping, **always prefer `codebase-
 
 ---
 
-## 2. Primary Required Reading (Discover & Read First)
+## 3. Primary Required Reading (Discover & Read First)
 
-Every agent must inspect core guidance files in the repository root, `docs/`, or `.ai/`/`.github/` directories prior to authoring non-trivial changes:
+Inspect core guidance files in the repository root, `docs/`, or `.ai/`/`.github/` directories prior to authoring non-trivial changes:
 
 1. **AI Development Rules & Invariants:**
    - Look for: `RULES.md`, `.ai/RULES.md`, `.cursorrules`, `CLAUDE.md`, or `.agent/rules/`.
@@ -51,9 +107,9 @@ Every agent must inspect core guidance files in the repository root, `docs/`, or
 
 ---
 
-## 3. Domain-Specific Reading (Read Based on Task Scope)
+## 4. Domain-Specific Reading (Read Based on Task Scope)
 
-Depending on the specific area of development, discover and inspect the relevant repository specifications:
+Discover and inspect relevant repository specifications based strictly on task scope:
 
 ### A. Core Architecture & Environment
 - **Architecture Overview:** `docs/ARCHITECTURE.md` or system diagrams in `docs/`.
@@ -79,13 +135,15 @@ Depending on the specific area of development, discover and inspect the relevant
 
 ---
 
-## 4. Universal Pre-Modification Checklist
+## 5. Universal Pre-Modification Checklist
 
 Before proposing or executing code changes:
 
-- [ ] Have you queried `codebase-memory-mcp` (`get_architecture`, `search_graph`, `trace_path`) to understand relationships and callers?
-- [ ] Have you checked for active vs deprecated routes, functions, or parameters to avoid re-introducing dead patterns?
-- [ ] Are data mutations routed through authoritative backend/API handlers rather than untrusted client-side direct calls?
-- [ ] Are project-specific precision, performance, or timing constraints preserved?
-- [ ] If modifying shared components or layouts, did you check responsive viewports, multi-surface parity, and theme compatibility?
-- [ ] Are all dependency versions and package manager commands aligned with repository requirements?
+- [ ] **Token Efficiency Check:** Are you making surgical edits rather than whole-file overwrites? Have you avoided redundant file reads and duplicate tool calls?
+- [ ] **Critical Detail Check:** Have you preserved all required constraints, exact types, file paths, and contracts without over-compressing?
+- [ ] **Graph Orientation:** Have you queried `codebase-memory-mcp` (`get_architecture`, `search_graph`, `trace_path`) to understand relationships and callers?
+- [ ] **Route & Symbol Status:** Have you checked for active vs deprecated routes, functions, or parameters to avoid re-introducing dead patterns?
+- [ ] **Authority & Mutation Boundaries:** Are data mutations routed through authoritative backend/API handlers rather than untrusted client-side direct calls?
+- [ ] **Timing & Precision Constraints:** Are project-specific precision, performance, or timing constraints preserved?
+- [ ] **Surface & Theme Parity:** If modifying shared components or layouts, did you check responsive viewports, multi-surface parity, and theme compatibility?
+- [ ] **Dependency Alignment:** Are all dependency versions and package manager commands aligned with repository requirements?
