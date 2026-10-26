@@ -97,7 +97,7 @@ function recoverVerifiedLegacyMetrics(
   publicRow: Record<string, unknown>,
   candidates?: LeaderboardAccuracyBackfillLegacySessionCandidates
 ): Record<string, unknown> | null {
-  if (!candidates?.complete || !candidates.entryId || candidates.sessions.length === 0) return null;
+  if (!candidates?.complete || !candidates.entryId) return null;
 
   const entryId = candidates.entryId;
   const publicToken = typeof publicRow.provenanceToken === 'string' ? publicRow.provenanceToken : '';
@@ -115,52 +115,72 @@ function recoverVerifiedLegacyMetrics(
     !publicAgeGroup
   ) return null;
 
-  const verified: Array<{ session: Record<string, unknown>; metrics: Record<string, unknown> }> = [];
-  for (const session of candidates.sessions) {
-    const linksToEntry =
-      session.leaderboardSubmissionEntryId === entryId ||
-      session.leaderboardDocId === entryId ||
-      session.leaderboardSubmissionId === entryId;
-    if (!linksToEntry || session.leaderboardSubmitted !== true) continue;
+  // Provenance v1 omitted the entry ID; v2 binds the signature to the public document.
+  // Match the exact verifier payload for the row's stored provenance version.
+  const sanitizedName = displayName.replace(/:/g, '_');
+  const tokenPayloadForDigest = (trialsDigest: string): string => Number(publicRow.provenanceVersion) >= 2
+    ? `lb:v2:${entryId}:${publicType}:${publicAgeGroup}:${publicScore.toFixed(2)}:${sanitizedName}:${trialsDigest}`
+    : `lb:${publicType}:${publicAgeGroup}:${publicScore.toFixed(2)}:${sanitizedName}:${trialsDigest}`;
 
-    const sessionType = normalizeAssessmentType(String(session.assessmentType || ''));
-    if (!sessionType || sessionType !== publicType) continue;
-    if (String(session.ageGroup || '') !== publicAgeGroup) continue;
+  const verified: Array<{ metrics: Record<string, unknown> }> = [];
+  const sessionCandidates = candidates.sessions.map(session => ({ kind: 'session' as const, row: session }));
+  const researchCandidates = candidates.researchResults.map(row => ({ kind: 'research' as const, row }));
+  for (const candidate of [...sessionCandidates, ...researchCandidates]) {
+    const source = candidate.row;
 
-    const sessionScore = typeof session.leaderboardSubmissionScoreMetric === 'number'
-      ? session.leaderboardSubmissionScoreMetric
-      : (typeof session.scoreMetric === 'number' ? session.scoreMetric : Number.NaN);
-    if (!Number.isFinite(sessionScore) || sessionScore !== publicScore) continue;
+    if (candidate.kind === 'session') {
+      const linksToEntry =
+        source.leaderboardSubmissionEntryId === entryId ||
+        source.leaderboardDocId === entryId ||
+        source.leaderboardSubmissionId === entryId;
+      if (!linksToEntry || source.leaderboardSubmitted !== true) continue;
+    }
 
-    const metricsValue = session.leaderboardSubmissionDerivedMetrics ?? session.derivedMetrics;
+    const sourceType = normalizeAssessmentType(String(source.assessmentType || ''));
+    if (!sourceType || sourceType !== publicType) continue;
+    if (String(source.ageGroup || '') !== publicAgeGroup) continue;
+
+    const sourceScore = candidate.kind === 'session'
+      ? (typeof source.leaderboardSubmissionScoreMetric === 'number'
+          ? source.leaderboardSubmissionScoreMetric
+          : (typeof source.scoreMetric === 'number' ? source.scoreMetric : Number.NaN))
+      : (typeof source.scoreMetric === 'number' ? source.scoreMetric : Number.NaN);
+    if (!Number.isFinite(sourceScore) || sourceScore !== publicScore) continue;
+
+    const metricsValue = candidate.kind === 'session'
+      ? (source.leaderboardSubmissionDerivedMetrics ?? source.derivedMetrics)
+      : source.derivedMetrics;
     if (!metricsValue || typeof metricsValue !== 'object' || Array.isArray(metricsValue)) continue;
     if (normalizeLeaderboardAccuracy(metricsValue) === null) continue;
 
-    const trialsDigestValue = session.leaderboardSubmissionTrialsDigest ?? session.trialsDigest;
-    const trialsDigest = typeof trialsDigestValue === 'string' ? trialsDigestValue.trim() : '';
+    const digestValue = candidate.kind === 'session'
+      ? (source.leaderboardSubmissionTrialsDigest ?? source.trialsDigest)
+      : source.trialsDigest;
+    const trialsDigest = typeof digestValue === 'string' ? digestValue.trim() : '';
     if (!trialsDigest) continue;
 
-    const storedLeaderboardToken = typeof session.leaderboardSubmissionProvenanceToken === 'string'
-      ? session.leaderboardSubmissionProvenanceToken.trim()
-      : '';
-    // If the dedicated leaderboard token exists, it must agree with the public row.
-    if (storedLeaderboardToken && !safeCompareHex(storedLeaderboardToken, publicToken)) continue;
+    if (candidate.kind === 'session') {
+      const storedLeaderboardToken = typeof source.leaderboardSubmissionProvenanceToken === 'string'
+        ? source.leaderboardSubmissionProvenanceToken.trim()
+        : '';
+      // If a dedicated leaderboard token exists, it must agree; generic research
+      // provenanceToken fields are not leaderboard tokens and are never substituted.
+      if (storedLeaderboardToken && !safeCompareHex(storedLeaderboardToken, publicToken)) continue;
+    }
 
-    const tokenPayload = `lb:v2:${entryId}:${publicType}:${publicAgeGroup}:${publicScore.toFixed(2)}:${displayName.replace(/:/g, '_')}:${trialsDigest}`;
     try {
-      const computedToken = signProvenancePayload(tokenPayload);
+      const computedToken = signProvenancePayload(tokenPayloadForDigest(trialsDigest));
       if (!safeCompareHex(computedToken, publicToken)) continue;
     } catch {
-      // Missing configuration or invalid signing setup means no verified recovery.
+      // Missing signing configuration means no verified recovery.
       continue;
     }
 
-    verified.push({ session, metrics: metricsValue as Record<string, unknown> });
+    verified.push({ metrics: metricsValue as Record<string, unknown> });
   }
 
-  // A single cryptographically verified source is required. Ambiguous sessions remain skipped.
+  // Duplicate or ambiguous candidates are not accepted even if their metrics agree.
   if (verified.length !== 1) return null;
-  const { session, metrics } = verified[0];
   return {
     publicEntry: true,
     submissionReceiptOnly: false,
@@ -170,7 +190,7 @@ function recoverVerifiedLegacyMetrics(
     ageGroup: publicAgeGroup,
     provenanceToken: publicToken,
     hidden: publicRow.hidden === true,
-    derivedMetrics: metrics
+    derivedMetrics: verified[0].metrics
   };
 }
 
