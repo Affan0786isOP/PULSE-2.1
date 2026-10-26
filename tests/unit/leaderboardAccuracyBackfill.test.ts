@@ -1,6 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { signProvenancePayload } from '../../server/services/provenanceService';
 import { LeaderboardAccuracyBackfillService } from '../../server/services/leaderboardAccuracyBackfill';
 import { FirestoreLeaderboardAccuracyBackfillRepository } from '../../server/repositories/firestore/firestoreLeaderboardAccuracyBackfillRepository';
+const previousProvenanceSecret = process.env.PULSE_PROVENANCE_SECRET;
+beforeAll(() => {
+  process.env.PULSE_PROVENANCE_SECRET = 'test-leaderboard-accuracy-backfill-secret';
+});
+afterAll(() => {
+  if (previousProvenanceSecret === undefined) delete process.env.PULSE_PROVENANCE_SECRET;
+  else process.env.PULSE_PROVENANCE_SECRET = previousProvenanceSecret;
+});
+
 
 function runBackfill(db: unknown, input: { mode: 'dry-run' | 'apply'; cursor: string | null; limit: number; expectedEntryIds?: string[] }) {
   return new LeaderboardAccuracyBackfillService(
@@ -152,15 +162,20 @@ describe('Leaderboard accuracy backfill service', () => {
     expect(fixture.getWriteCount()).toBe(1);
   });
 
-  it('recovers missing private metadata from one exact attested submission session', async () => {
+  it('recovers missing private metadata from one legacy session after reconstructing the exact leaderboard HMAC', async () => {
     const rows = validRows();
+    const digest = 'legacy-trials-digest';
+    rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
+      'lb:v2:entry-1:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
+    );
     const fixture = createMockDb(rows.publicSeed, {}, {
       'session-1': {
         leaderboardSubmitted: true,
-        leaderboardDocId: 'entry-1',
-        leaderboardSubmissionEntryId: 'entry-1',
+        leaderboardSubmissionId: 'entry-1',
         leaderboardSubmissionScoreMetric: 8,
-        leaderboardSubmissionProvenanceToken: 'matching-provenance',
+        leaderboardSubmissionTrialsDigest: digest,
+        // This is the research token, not the leaderboard token; it must not be trusted as one.
+        provenanceToken: 'different-research-provenance',
         leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
         assessmentType: 'block-memory',
         ageGroup: 'Young adults (18–25)'
@@ -175,15 +190,19 @@ describe('Leaderboard accuracy backfill service', () => {
     expect(fixture.publicRows.get('entry-1')?.accuracy).toBeUndefined();
   });
 
-  it('does not use legacy session metrics when provenance does not match', async () => {
+  it('rejects a legacy session whose stored leaderboard token conflicts with the public row', async () => {
     const rows = validRows();
+    const digest = 'legacy-trials-digest';
+    rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
+      'lb:v2:entry-1:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
+    );
     const fixture = createMockDb(rows.publicSeed, {}, {
       'session-1': {
         leaderboardSubmitted: true,
         leaderboardDocId: 'entry-1',
-        leaderboardSubmissionEntryId: 'entry-1',
         leaderboardSubmissionScoreMetric: 8,
-        leaderboardSubmissionProvenanceToken: 'different-provenance',
+        leaderboardSubmissionTrialsDigest: digest,
+        leaderboardSubmissionProvenanceToken: 'different-stored-leaderboard-token',
         leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
         assessmentType: 'block-memory',
         ageGroup: 'Young adults (18–25)'
@@ -197,14 +216,17 @@ describe('Leaderboard accuracy backfill service', () => {
     expect(fixture.getWriteCount()).toBe(0);
   });
 
-  it('keeps ambiguous attested legacy session sources skipped', async () => {
+  it('keeps ambiguous cryptographically matching legacy session sources skipped', async () => {
     const rows = validRows();
+    const digest = 'legacy-trials-digest';
+    rows.publicSeed['entry-1'].provenanceToken = signProvenancePayload(
+      'lb:v2:entry-1:block-memory:Young adults (18–25):8.00:PlayerOne:legacy-trials-digest'
+    );
     const matchingSession = {
       leaderboardSubmitted: true,
       leaderboardDocId: 'entry-1',
-      leaderboardSubmissionEntryId: 'entry-1',
       leaderboardSubmissionScoreMetric: 8,
-      leaderboardSubmissionProvenanceToken: 'matching-provenance',
+      leaderboardSubmissionTrialsDigest: digest,
       leaderboardSubmissionDerivedMetrics: { overallAccuracy: 87.5 },
       assessmentType: 'block-memory',
       ageGroup: 'Young adults (18–25)'

@@ -2,7 +2,8 @@ import type {
   LeaderboardAccuracyBackfillDecision,
   LeaderboardAccuracyBackfillMode,
   LeaderboardAccuracyBackfillPage,
-  LeaderboardAccuracyBackfillRowResult
+  LeaderboardAccuracyBackfillRowResult,
+  LeaderboardAccuracyBackfillLegacySessionCandidates
 } from '../../models/leaderboardAccuracyBackfill';
 
 export interface ILeaderboardAccuracyBackfillRepository {
@@ -12,7 +13,8 @@ export interface ILeaderboardAccuracyBackfillRepository {
     mode: LeaderboardAccuracyBackfillMode,
     evaluate: (
       publicData: Record<string, unknown> | null,
-      privateData: Record<string, unknown> | null
+      privateData: Record<string, unknown> | null,
+      legacySessions?: LeaderboardAccuracyBackfillLegacySessionCandidates
     ) => LeaderboardAccuracyBackfillDecision
   ): Promise<LeaderboardAccuracyBackfillRowResult>;
 }
