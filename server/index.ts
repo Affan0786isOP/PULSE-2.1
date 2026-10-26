@@ -69,9 +69,14 @@ applyDeviceRoutingMiddleware(app);
 
   // Centralized Global Error Handler (Prevents stack trace leaks to client)
   app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error('[Server Unhandled Error]:', err instanceof Error ? err.message : String(err));
+    const msg = err instanceof Error ? (err.stack || err.message) : String(err);
+    console.error('[Server Unhandled Error]:', msg);
     if (res.headersSent) return;
-    res.status(500).json({ success: false, error: 'An unexpected internal server error occurred' });
+    res.status(500).json({
+      success: false,
+      error: 'An unexpected internal server error occurred',
+      detail: msg
+    });
   });
 
   if (!process.env.VERCEL && !process.env.VERCEL_ENV && !process.env.NOW_REGION) {
