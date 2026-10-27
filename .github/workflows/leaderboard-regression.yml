@@ -51,6 +51,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+      - name: Report npm audit findings (non-blocking)
+        shell: bash
+        run: |
+          npm audit --json > npm-audit-report.json || true
+          node -e "const a=require('./npm-audit-report.json'); const v=Object.entries(a.vulnerabilities||{}).map(([name,x])=>({name,severity:x.severity,direct:x.isDirect,range:x.range,fixAvailable:x.fixAvailable,advisories:(x.via||[]).filter(y=>typeof y==='object').map(y=>({title:y.title,url:y.url,range:y.range}))})); console.log('npm audit vulnerable packages:',v.length); console.log(JSON.stringify(v,null,2));"
 
       - name: Typecheck desktop and mobile
         run: npm run check
