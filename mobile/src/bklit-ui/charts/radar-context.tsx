@@ -50,7 +50,6 @@ export interface RadarHoverContextValue {
 }
 
 export interface RadarStableContextValue {
-  domain?: [number, number];
   // Data
   data: RadarData[];
   metrics: RadarMetric[];
@@ -99,6 +98,7 @@ export function RadarProvider({
     () => ({
       data: value.data,
       metrics: value.metrics,
+      domain: value.domain,
       size: value.size,
       radius: value.radius,
       levels: value.levels,
@@ -115,6 +115,7 @@ export function RadarProvider({
     [
       value.data,
       value.metrics,
+      value.domain,
       value.size,
       value.radius,
       value.levels,
