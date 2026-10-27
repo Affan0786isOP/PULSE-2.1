@@ -7,7 +7,7 @@
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
-- Node.js v22.12+ (v22 LTS recommended). `firebase-admin`, `vitest`, and `jwks-rsa` all require Node 22.12+; see `"engines"` in `package.json`.
+- Node.js v24.12+ (v24 LTS recommended). The Firebase JavaScript SDK 13.x dependency tree requires Node 24.12+; see `"engines"` in `package.json`.
 - `npm` (v10+) — the canonical package manager for this repo, pinned via `"packageManager"` in `package.json`
 
 ### 2. Install & Launch
