@@ -134,7 +134,7 @@ export function Home() {
 
             {/* Subtitle */}
             <p className={`text-[#334155] dark:text-slate-300 text-xs sm:text-[13.5px] lg:text-[14px] min-[2560px]:text-[16.5px] font-medium leading-relaxed mb-5 sm:mb-6 max-w-[420px] min-[2560px]:max-w-[520px] ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-3'}`}>
-              Test your reaction speed, memory and attention — right in your browser, with no account required.
+              Test your reaction speed, memory, and attention right in your browser, with no account required.
             </p>
 
             {/* Primary CTA: Start Testing */}

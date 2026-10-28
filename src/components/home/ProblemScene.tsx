@@ -43,7 +43,7 @@ export function ProblemScene() {
             How it works
           </h2>
           <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl">
-            Choose a test, try a few rounds, and review your result. Device and browser timing can vary, so use results for personal tracking—not diagnosis.
+            Choose a test, try a few rounds, and review your result. Device and browser timing can vary; use results for personal tracking, not medical diagnosis.
           </p>
         </div>
 
@@ -71,7 +71,7 @@ export function ProblemScene() {
 
         <details className="group mt-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-[#12161B] px-4 py-3">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-[#090D1A] dark:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded">
-            <span className="flex items-center gap-2"><Activity size={16} className="text-[#0066FF] dark:text-[#22C7D6]" aria-hidden="true" /> How browser timing works—and its limits</span>
+            <span className="flex items-center gap-2"><Activity size={16} className="text-[#0066FF] dark:text-[#22C7D6]" aria-hidden="true" /> How browser timing works and its limits</span>
             <ChevronDown size={16} className="shrink-0 text-slate-500 transition-transform group-open:rotate-180" aria-hidden="true" />
           </summary>
           <div className="pt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">

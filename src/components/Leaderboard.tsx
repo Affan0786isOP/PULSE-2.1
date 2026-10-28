@@ -239,7 +239,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
       const is429 = err?.status === 429 || String(err?.message || '').includes('Too many');
       setError(
         is429
-          ? "Too many refresh requests. Showing latest standings — please try again shortly."
+          ? "Too many refresh requests. Showing latest standings. Please try again shortly."
           : (err?.message || "Cloud leaderboard could not be reached. Please verify your connection.")
       );
     } finally {

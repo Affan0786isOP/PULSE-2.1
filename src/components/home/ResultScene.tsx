@@ -76,7 +76,7 @@ export function ResultScene() {
 
           <div className="flex items-start gap-2 mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
             <Info size={15} className="shrink-0 mt-0.5" aria-hidden="true" />
-            <p>Example values only—not your result. PULSE is not a medical or diagnostic test.</p>
+            <p>Example values only, not your result. PULSE is not a medical or diagnostic test.</p>
           </div>
         </motion.div>
       </div>
