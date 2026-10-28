@@ -1,6 +1,6 @@
 ---
 description: Critical invariants for authoring Cloud Firestore queries to prevent silent omission of documents across evolving schemas.
-globs: ["src/lib/firestore*.ts", "src/lib/dataset*.ts", "mobile/src/lib/dataset*.ts", "server/**/*.ts"]
+globs: "src/lib/firestore*.ts, src/lib/dataset*.ts, mobile/src/lib/dataset*.ts, server/**/*.ts"
 ---
 
 # Firestore Query Invariants
