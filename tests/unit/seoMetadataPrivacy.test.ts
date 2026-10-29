@@ -25,6 +25,10 @@ describe('SEO metadata consistency and privacy', () => {
     expect(metadata.routes['/block-memory'].title).toBe('Block Memory Test: Spatial Sequence Recall | PULSE');
     expect(metadata.routes['/number-memory'].title).toBe('Number Memory Test: Forward Digit Recall | PULSE');
   });
+
+  it('omits /admin from public SEO metadata routes to avoid leaking admin portal', () => {
+    expect((metadata.routes as Record<string, unknown>)['/admin']).toBeUndefined();
+  });
 });
 
 

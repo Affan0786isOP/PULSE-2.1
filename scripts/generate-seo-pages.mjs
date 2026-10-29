@@ -1,4 +1,6 @@
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+fs.existsSync = existsSync;
 import path from 'node:path';
 import metadata from '../shared/seoMetadata.json' with { type: 'json' };
 import assessmentContent from '../shared/content/assessmentContent.json' with { type: 'json' };
@@ -248,6 +250,11 @@ async function injectServiceWorkerPrecache(swPath, assetsDir, urlPrefix) {
         return;
       }
       throw err;
+    }
+
+    if (!fs.existsSync(assetsDir)) {
+      console.warn(`[SW Precache Injection] Skipped for ${assetsDir}: directory does not exist`);
+      return;
     }
 
     const assetFiles = await fs.readdir(assetsDir);

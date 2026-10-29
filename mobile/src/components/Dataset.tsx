@@ -319,28 +319,32 @@ export function Dataset({ onNavigate }: DatasetProps) {
     const validTrials = trials.filter((t) => !t.falseStart && t.valid !== false && !t.timedOut && t.reactionTime > 80 && t.reactionTime < 2000);
 
     return bins.map((bin) => {
-      let desktopCount = validTrials.filter(
+      const binDesktopTrials = validTrials.filter(
         (t) =>
           t.reactionTime >= bin.min &&
           t.reactionTime < bin.max &&
           (!t.device || !t.device.toLowerCase().includes('mobile'))
-      ).length;
+      );
 
-      let mobileCount = validTrials.filter(
+      const binMobileTrials = validTrials.filter(
         (t) =>
           t.reactionTime >= bin.min &&
           t.reactionTime < bin.max &&
           t.device &&
           t.device.toLowerCase().includes('mobile')
-      ).length;
+      );
+
+      const desktopGames = new Set(binDesktopTrials.map((t) => t.sessionId || t.experimentId || t.id)).size;
+      const mobileGames = new Set(binMobileTrials.map((t) => t.sessionId || t.experimentId || t.id)).size;
+      const totalGames = desktopGames + mobileGames;
 
       return {
         label: bin.label,
-        desktop: desktopCount,
-        mobile: mobileCount,
-        desktopN: desktopCount,
-        mobileN: mobileCount,
-        n: desktopCount + mobileCount
+        desktop: binDesktopTrials.length,
+        mobile: binMobileTrials.length,
+        desktopN: desktopGames,
+        mobileN: mobileGames,
+        n: totalGames
       };
     });
   }, [trials]);
@@ -375,21 +379,16 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   // 4. Reaction Time Across Trials 1–5 (Line Chart)
   const trialProgressionData = useMemo(() => {
-    return [1, 2, 3, 4, 5].map((trialNum, index) => {
+    return [1, 2, 3, 4, 5].map((trialNum) => {
       const matching = trials.filter(
         (t) => t.trialNumber === trialNum && !t.falseStart && t.reactionTime > 80
       );
 
-      const desktopRTs = matching
-        .filter((t) => !t.device || !t.device.toLowerCase().includes('mobile'))
-        .map((t) => t.reactionTime)
-        .sort((a, b) => a - b);
+      const desktopTrials = matching.filter((t) => !t.device || !t.device.toLowerCase().includes('mobile'));
+      const mobileTrials = matching.filter((t) => t.device && t.device.toLowerCase().includes('mobile'));
 
-      const mobileRTs = matching
-        .filter((t) => t.device && t.device.toLowerCase().includes('mobile'))
-        .map((t) => t.reactionTime)
-        .sort((a, b) => a - b);
-
+      const desktopRTs = desktopTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
+      const mobileRTs = mobileTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
       const allRTs = matching.map((t) => t.reactionTime).sort((a, b) => a - b);
 
       const dVal =
@@ -405,14 +404,18 @@ export function Dataset({ onNavigate }: DatasetProps) {
           ? Math.round(medianValue(allRTs))
           : 0;
 
+      const desktopGames = new Set(desktopTrials.map((t) => t.sessionId || t.experimentId || t.id)).size;
+      const mobileGames = new Set(mobileTrials.map((t) => t.sessionId || t.experimentId || t.id)).size;
+      const overallGames = new Set(matching.map((t) => t.sessionId || t.experimentId || t.id)).size;
+
       return {
         trialLabel: `Trial ${trialNum}`,
         desktop: dVal,
         mobile: mVal,
         overall,
-        desktopN: desktopRTs.length,
-        mobileN: mobileRTs.length,
-        overallN: allRTs.length
+        desktopN: desktopGames,
+        mobileN: mobileGames,
+        overallN: overallGames
       };
     });
   }, [trials]);
@@ -476,26 +479,29 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   // 7. Desktop vs Mobile Reaction Time (Bar Chart)
   const deviceComparisonData = useMemo(() => {
-    const desktopRTs = trials
-      .filter(
-        (t) =>
-          !t.falseStart &&
-          t.reactionTime > 80 &&
-          (!t.device || !t.device.toLowerCase().includes('mobile'))
-      )
-      .map((t) => t.reactionTime)
-      .sort((a, b) => a - b);
+    const desktopTrials = trials.filter(
+      (t) =>
+        !t.falseStart &&
+        t.reactionTime > 80 &&
+        (!t.device || !t.device.toLowerCase().includes('mobile'))
+    );
 
-    const mobileRTs = trials
-      .filter(
-        (t) =>
-          !t.falseStart &&
-          t.reactionTime > 80 &&
-          t.device &&
-          t.device.toLowerCase().includes('mobile')
-      )
-      .map((t) => t.reactionTime)
-      .sort((a, b) => a - b);
+    const mobileTrials = trials.filter(
+      (t) =>
+        !t.falseStart &&
+        t.reactionTime > 80 &&
+        t.device &&
+        t.device.toLowerCase().includes('mobile')
+    );
+
+    const desktopDocs = datasetDocs.filter((d) => !d.device || !d.device.toLowerCase().includes('mobile'));
+    const mobileDocs = datasetDocs.filter((d) => d.device && d.device.toLowerCase().includes('mobile'));
+
+    const desktopGames = new Set(desktopTrials.map((t) => t.sessionId || t.experimentId || t.id)).size + desktopDocs.length;
+    const mobileGames = new Set(mobileTrials.map((t) => t.sessionId || t.experimentId || t.id)).size + mobileDocs.length;
+
+    const desktopRTs = desktopTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
+    const mobileRTs = mobileTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
 
     const desktopVal =
       desktopRTs.length > 0
@@ -507,10 +513,10 @@ export function Dataset({ onNavigate }: DatasetProps) {
         : 0;
 
     return [
-      { device: 'Desktop', value: desktopVal, fill: '#00f0ff', n: desktopRTs.length },
-      { device: 'Mobile', value: mobileVal, fill: '#a78bfa', n: mobileRTs.length }
+      { device: 'Desktop', value: desktopVal, fill: '#00f0ff', n: desktopGames },
+      { device: 'Mobile', value: mobileVal, fill: '#a78bfa', n: mobileGames }
     ];
-  }, [trials]);
+  }, [trials, datasetDocs]);
 
   const currentGameIndex = DATASET_GAMES.findIndex(g => g.id === selectedGameId);
   const currentGame = DATASET_GAMES[currentGameIndex] || DATASET_GAMES[0];

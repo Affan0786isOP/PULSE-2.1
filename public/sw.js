@@ -32,14 +32,14 @@ async function checkAnyClientHasActiveSession() {
     return new Promise((resolve) => {
       try {
         const channel = new MessageChannel();
-        const timer = setTimeout(() => resolve(false), 200);
+        const timer = setTimeout(() => resolve(true), 1500);
         channel.port1.onmessage = (event) => {
           clearTimeout(timer);
           resolve(Boolean(event.data && event.data.isSessionActive));
         };
         client.postMessage({ type: 'QUERY_PULSE_SESSION_ACTIVE' }, [channel.port2]);
       } catch {
-        resolve(false);
+        resolve(true);
       }
     });
   });
@@ -154,6 +154,10 @@ self.addEventListener('fetch', (event) => {
 
   // Handle HTML document navigation requests (SPA offline fallback with 3s timeout)
   if (request.mode === 'navigate') {
+    if (url.pathname === '/mobile' || url.pathname.startsWith('/mobile/')) {
+      return;
+    }
+
     event.respondWith(
       (async () => {
         let timerId;

@@ -79,12 +79,6 @@
       "description": "Measure short-term memory with PULSE's forward digit-span test, which asks you to recall increasingly long number sequences in their original order.",
       "indexable": true,
       "clientFallback": true
-    },
-    "/admin": {
-      "title": "PULSE Moderation Console | PULSE",
-      "description": "Private PULSE staff moderation and administrative console.",
-      "indexable": false,
-      "clientFallback": true
     }
   }
 }

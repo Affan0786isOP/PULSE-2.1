@@ -1,4 +1,4 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Activity, ArrowLeft, LogOut, Settings, Info, WifiOff, Sun, Moon } from 'lucide-react';
 import { PulseLogo } from './brand';
@@ -31,6 +31,12 @@ export function Navbar({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  useEffect(() => {
+    if (showExitConfirm && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('pulse_assessment_abort'));
+    }
+  }, [showExitConfirm]);
   const pwa = usePwaInstall();
   const navigate = useNavigate();
   const location = useLocation();
