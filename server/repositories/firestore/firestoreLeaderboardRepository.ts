@@ -123,6 +123,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     }
 
     const snap = await db.collection('leaderboardResults').orderBy('createdAt', 'desc').limit(limitCount).get();
+    if (snap.docs.length === 0) return [];
     const metaSnapshots = await db.getAll(...snap.docs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
     return snap.docs.map((doc, index) => {
       const data = doc.data();
@@ -158,6 +159,13 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     const snap = await query.limit(safeLimit + 1).get();
     const hasMore = snap.docs.length > safeLimit;
     const pageDocs = snap.docs.slice(0, safeLimit);
+    if (pageDocs.length === 0) {
+      return {
+        entries: [],
+        nextCursor: null,
+        hasMore: false
+      };
+    }
     const metaSnapshots = await db.getAll(...pageDocs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
     const entries = pageDocs.map((doc, index) => {
       const data = doc.data();
@@ -195,7 +203,13 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
       publicEntry: snap.exists,
       createdAt: typeof data.createdAt?.toMillis === 'function'
         ? data.createdAt.toMillis()
-        : (Number(data.createdAt ?? meta.createdAt) || 0)
+        : (typeof data.createdAt?.toDate === 'function'
+            ? data.createdAt.toDate().getTime()
+            : (typeof meta.createdAt?.toMillis === 'function'
+                ? meta.createdAt.toMillis()
+                : (typeof meta.createdAt?.toDate === 'function'
+                    ? meta.createdAt.toDate().getTime()
+                    : (Number(data.createdAt ?? meta.createdAt) || 0))))
     } as AdminLeaderboardEntryRecord;
   }
 

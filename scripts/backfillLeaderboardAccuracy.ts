@@ -33,10 +33,21 @@ async function main(): Promise<void> {
   let done = false;
 
   while (!done) {
+    let expectedEntryIds: string[] | undefined = undefined;
+    if (APPLY) {
+      const preview = await service.runBatch({
+        mode: 'dry-run',
+        cursor,
+        limit: DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE
+      });
+      expectedEntryIds = preview.entryIds;
+    }
+
     const report = await service.runBatch({
       mode: APPLY ? 'apply' : 'dry-run',
       cursor,
-      limit: DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE
+      limit: DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE,
+      expectedEntryIds
     });
     for (const key of Object.keys(totals) as Array<keyof typeof totals>) {
       totals[key] += report.counts[key];

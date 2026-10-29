@@ -2,8 +2,9 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { normalizeAssessmentType } from '../../server/engines/assessmentTypes';
 import { CANONICAL_ASSESSMENT_IDS, getAssessmentVersionMetadata } from '../../shared/contracts/common';
 import { seedPRNG } from '../../server/engines/prng';
-import { deriveForeperiodCategory, generateVrtForeperiod } from '../../server/engines/reactionCalculator';
-import { validateAndDeriveAssessmentFromTrials } from '../../server/engines/assessmentEngine';
+import { deriveForeperiodCategory, generateVrtForeperiod, deriveVisualReactionMetrics } from '../../server/engines/reactionCalculator';
+import { deriveDirectionMetrics } from '../../server/engines/flankerCalculator';
+import { validateAndDeriveAssessmentFromTrials, ASSESSMENT_TRIAL_LIMITS } from '../../server/engines/assessmentEngine';
 import {
   signProvenancePayload,
   safeCompareHex,
@@ -165,8 +166,20 @@ describe('assessment engine (server-side derivation, no HTTP)', () => {
 
   it('rejects empty, oversized and non-array trial sequences', () => {
     expect(validateAndDeriveAssessmentFromTrials('number-memory', 'Adults (26–40)', [], session).success).toBe(false);
-    expect(validateAndDeriveAssessmentFromTrials('number-memory', 'Adults (26–40)', new Array(101).fill({}), session).success).toBe(false);
+    expect(validateAndDeriveAssessmentFromTrials('number-memory', 'Adults (26–40)', new Array(106).fill({}), session).success).toBe(false);
     expect(validateAndDeriveAssessmentFromTrials('number-memory', 'Adults (26–40)', 'x' as any, session).success).toBe(false);
+  });
+
+  it('enforces assessment-specific trial limits (BUG-06)', () => {
+    expect(ASSESSMENT_TRIAL_LIMITS['visual-reaction']).toBe(30);
+    expect(ASSESSMENT_TRIAL_LIMITS['direction']).toBe(30);
+    expect(ASSESSMENT_TRIAL_LIMITS['color-recognition']).toBe(40);
+    expect(ASSESSMENT_TRIAL_LIMITS['block-memory']).toBe(105);
+    expect(ASSESSMENT_TRIAL_LIMITS['number-memory']).toBe(105);
+
+    expect(validateAndDeriveAssessmentFromTrials('visual-reaction', 'Adults (26–40)', new Array(31).fill({}), session).success).toBe(false);
+    expect(validateAndDeriveAssessmentFromTrials('direction', 'Adults (26–40)', new Array(31).fill({}), session).success).toBe(false);
+    expect(validateAndDeriveAssessmentFromTrials('color-recognition', 'Adults (26–40)', new Array(41).fill({}), session).success).toBe(false);
   });
 
   it('rejects unsupported assessment types', () => {
@@ -192,6 +205,123 @@ describe('assessment engine (server-side derivation, no HTTP)', () => {
     const trials = numberMemoryTrials([true]);
     trials[0].generatedSequence = '000';
     expect(validateAndDeriveAssessmentFromTrials('number-memory', 'Adults (26–40)', trials, session).success).toBe(false);
+  });
+
+  it('counts false starts across entire raw observation array in visual reaction (BUG-07)', () => {
+    const sessionId = 'vrt-fs-test';
+    const trials: any[] = [];
+    const baseTime = 1700000000000;
+
+    // Trial 1 Attempt 1: False start (pre-stimulus trigger)
+    const fp1a1 = generateVrtForeperiod(seedPRNG(`${sessionId}-reaction-delays-t1-a1`));
+    trials.push({
+      trialNumber: 1,
+      attemptNumber: 1,
+      stimulusTimestamp: baseTime + 1000,
+      responseTimestamp: baseTime + 500, // response before stimulus!
+      reactionTime: 0,
+      foreperiodMs: fp1a1.foreperiodMs,
+      foreperiodCategory: fp1a1.foreperiodCategory
+    });
+
+    // Trial 1 Attempt 2: Valid reaction
+    const fp1a2 = generateVrtForeperiod(seedPRNG(`${sessionId}-reaction-delays-t1-a2`));
+    trials.push({
+      trialNumber: 1,
+      attemptNumber: 2,
+      stimulusTimestamp: baseTime + 2000,
+      responseTimestamp: baseTime + 2250,
+      reactionTime: 250,
+      foreperiodMs: fp1a2.foreperiodMs,
+      foreperiodCategory: fp1a2.foreperiodCategory
+    });
+
+    // Trials 2 to 10: Valid reactions
+    for (let i = 2; i <= 10; i++) {
+      const fp = generateVrtForeperiod(seedPRNG(`${sessionId}-reaction-delays-t${i}-a1`));
+      trials.push({
+        trialNumber: i,
+        attemptNumber: 1,
+        stimulusTimestamp: baseTime + i * 2000,
+        responseTimestamp: baseTime + i * 2000 + 240,
+        reactionTime: 240,
+        foreperiodMs: fp.foreperiodMs,
+        foreperiodCategory: fp.foreperiodCategory
+      });
+    }
+
+    const res = deriveVisualReactionMetrics({
+      trials,
+      ageGroup: 'Adults (26–40)',
+      sessionId,
+      session: { sessionId }
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.derivedMetrics?.totalFalseStarts).toBe(1);
+  });
+
+  it('deduplicates direction trials by logical position so retry spam cannot inflate accuracy (BUG-08)', () => {
+    const sessionId = 'flanker-dedupe-test';
+    const trials: any[] = [];
+    const DIRECTIONS = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+
+    // Trial 1 Attempt 1: Correct
+    const prng1a1 = seedPRNG(`${sessionId}-direction-0-a1`);
+    prng1a1(); // windowDelay
+    const expectedDir1 = DIRECTIONS[Math.floor(prng1a1() * DIRECTIONS.length)];
+    trials.push({
+      trialNumber: 1,
+      attemptNumber: 1,
+      targetDirection: expectedDir1,
+      userResponse: expectedDir1,
+      reactionTime: 350,
+      stimulusTimestamp: 1000,
+      responseTimestamp: 1350
+    });
+
+    // Trial 1 Attempt 2: Retry spam with correct response
+    const prng1a2 = seedPRNG(`${sessionId}-direction-0-a2`);
+    prng1a2();
+    const expectedDir1a2 = DIRECTIONS[Math.floor(prng1a2() * DIRECTIONS.length)];
+    trials.push({
+      trialNumber: 1,
+      attemptNumber: 2,
+      targetDirection: expectedDir1a2,
+      userResponse: expectedDir1a2,
+      reactionTime: 320,
+      stimulusTimestamp: 2000,
+      responseTimestamp: 2320
+    });
+
+    // Trials 2 to 10: Correct responses
+    for (let i = 2; i <= 10; i++) {
+      const logicalIdx = i - 1;
+      const prng = seedPRNG(`${sessionId}-direction-${logicalIdx}-a1`);
+      prng();
+      const expectedDir = DIRECTIONS[Math.floor(prng() * DIRECTIONS.length)];
+      trials.push({
+        trialNumber: i,
+        attemptNumber: 1,
+        targetDirection: expectedDir,
+        userResponse: expectedDir,
+        reactionTime: 300,
+        stimulusTimestamp: i * 2000,
+        responseTimestamp: i * 2000 + 300
+      });
+    }
+
+    const res = deriveDirectionMetrics({
+      trials,
+      ageGroup: 'Adults (26–40)',
+      sessionId,
+      session: { sessionId }
+    });
+
+    expect(res.success).toBe(true);
+    // Accuracy should be exactly 100%, totalCorrect must be 10 (not 11!)
+    expect(res.derivedMetrics?.accuracy).toBe(100);
+    expect(res.derivedMetrics?.totalCorrect).toBe(10);
   });
 });
 

@@ -19,7 +19,7 @@ import { deriveForeperiodCategory } from '../engines/reactionCalculator';
 import { computeCanonicalTrialsDigest, signProvenancePayload } from './provenanceService';
 import { getIdempotency, setIdempotency } from './idempotencyService';
 import { ISessionService } from './interfaces/ISessionService';
-import { AppError } from '../models/replayContracts';
+import { AppError, SessionAlreadyConsumedError } from '../models/replayContracts';
 import { getAssessmentVersionMetadata } from '../../shared/contracts/common';
 
 export class ResearchService implements IResearchService {
@@ -49,8 +49,32 @@ export class ResearchService implements IResearchService {
     }
 
     const sessionCheck = await this.sessionService.getAndValidateSession(sessionId, userId, assessmentType);
-    if (!sessionCheck.valid || !sessionCheck.session) {
+    if (!sessionCheck.valid) {
+      if (sessionCheck.error?.includes('already been completed/consumed')) {
+        const consumed = sessionCheck.session || (await this.sessionRepo.findById(sessionId));
+        if (consumed) {
+          throw new SessionAlreadyConsumedError(consumed);
+        }
+      }
       throw new AppError(sessionCheck.error || 'Session validation failed', sessionCheck.status || 400);
+    }
+    if (!sessionCheck.session) {
+      throw new AppError('Session validation failed', 400);
+    }
+    if (sessionCheck.session.consumed) {
+      throw new SessionAlreadyConsumedError(sessionCheck.session);
+    }
+
+    const minimumDurationMs: Record<string, number> = {
+      'visual-reaction': 5000,
+      direction: 3000,
+      'color-recognition': 5000,
+      'block-memory': 3000,
+      'number-memory': 3000
+    };
+    const minDuration = minimumDurationMs[assessmentType] ?? 3000;
+    if (typeof sessionCheck.session.createdAt === 'number' && Date.now() - sessionCheck.session.createdAt < minDuration) {
+      throw new AppError('Assessment duration is implausibly short for the selected test. Please retake it.', 400);
     }
 
     if (!VALID_AGE_GROUPS.includes(sessionCheck.session.ageGroup)) {
@@ -467,7 +491,7 @@ export class ResearchService implements IResearchService {
         assessmentType: normalizeAssessmentType(data.assessmentType || 'unknown'),
         ageGroup: data.ageGroup || (sessionData?.['ageGroup'] as string | undefined) || undefined,
         completedAtMonth: derivedMonth || undefined,
-        completedAtTimestamp: undefined,
+        completedAtTimestamp: data.completedAtTimestamp ?? data.createdAt ?? undefined,
         deviceCategory: (sessionData?.['deviceCategory'] as string | undefined) || (sessionData?.['device'] as string | undefined) || undefined,
         device: (sessionData?.['device'] as string | undefined) || (sessionData?.['deviceCategory'] as string | undefined) || undefined,
         inputModality: (sessionData?.['inputModality'] as string | undefined) || (sessionData?.['inputMethod'] as string | undefined) || undefined,

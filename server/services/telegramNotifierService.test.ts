@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { TelegramNotifierService, escapeTelegramHtml } from './telegramNotifierService';
+import { TelegramNotifierService, escapeTelegramHtml, MAX_OUTBOX_CAPACITY } from './telegramNotifierService';
 import { AssessmentResultNotification, LeaderboardNotification } from '../../shared/types/telemetry';
 
 describe('TelegramNotifierService', () => {
@@ -167,6 +167,29 @@ describe('TelegramNotifierService', () => {
 
       const record = service.getOutboxRecord('visit_uuid-2');
       expect(record?.state).toBe('sent');
+    });
+
+    it('enforces bounded queue capacity and exposes flush hook (BUG-10, BUG-11)', async () => {
+      expect(MAX_OUTBOX_CAPACITY).toBe(200);
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // Enqueue 210 page views (low priority)
+      for (let i = 0; i < 210; i++) {
+        await service.enqueuePageView({
+          eventId: `cap-event-${i}`,
+          route: `/test-${i}`,
+          surface: 'desktop'
+        });
+      }
+
+      // Outbox capacity should not exceed 200
+      expect(warnSpy).toHaveBeenCalled();
+
+      // Flush executes pending items
+      const res = await service.flush();
+      expect(res.processed).toBeGreaterThan(0);
     });
   });
 });

@@ -41,14 +41,70 @@ export function truncateSafe(str: string, maxLen: number = 64): string {
   return str.slice(0, maxLen - 1) + '…';
 }
 
+export const MAX_OUTBOX_CAPACITY = 200;
+
 export class TelegramNotifierService implements ITelegramNotifierService {
   public readonly config: TelegramConfig;
   private readonly outbox: Map<string, OutboxRecord> = new Map();
+  private readonly recentRecords: Map<string, OutboxRecord> = new Map();
   private readonly pageViewEventIds: Map<string, number> = new Map(); // eventId -> expiry epoch ms
   private isProcessing = false;
   private workerTimer: NodeJS.Timeout | null = null;
   private lastSendTime = 0;
   private readonly minSendIntervalMs = 3333; // ~18 msgs/minute rate limit target
+
+  private saveRecent(record: OutboxRecord): void {
+    if (this.recentRecords.size >= 100) {
+      const first = this.recentRecords.keys().next().value;
+      if (first) this.recentRecords.delete(first);
+    }
+    this.recentRecords.set(record.id, record);
+  }
+
+  private ensureCapacity(): void {
+    if (this.outbox.size < MAX_OUTBOX_CAPACITY) return;
+
+    for (const [id, rec] of this.outbox.entries()) {
+      if (rec.state === 'sent' || rec.state === 'dead_letter' || rec.state === 'blocked') {
+        this.outbox.delete(id);
+        this.saveRecent(rec);
+        if (this.outbox.size < MAX_OUTBOX_CAPACITY) return;
+      }
+    }
+
+    let oldestLowPriorityId: string | null = null;
+    let oldestLowPriorityTime = Infinity;
+    for (const [id, rec] of this.outbox.entries()) {
+      if (rec.priority === 'low' && rec.createdAt < oldestLowPriorityTime) {
+        oldestLowPriorityTime = rec.createdAt;
+        oldestLowPriorityId = id;
+      }
+    }
+
+    if (oldestLowPriorityId) {
+      console.warn(`[Telegram Outbox] Dropping unrecoverable low-priority message ${oldestLowPriorityId} due to MAX_OUTBOX_CAPACITY (${MAX_OUTBOX_CAPACITY}) overflow`);
+      const dropped = this.outbox.get(oldestLowPriorityId);
+      this.outbox.delete(oldestLowPriorityId);
+      if (dropped) this.saveRecent(dropped);
+      return;
+    }
+
+    let oldestId: string | null = null;
+    let oldestTime = Infinity;
+    for (const [id, rec] of this.outbox.entries()) {
+      if (rec.createdAt < oldestTime) {
+        oldestTime = rec.createdAt;
+        oldestId = id;
+      }
+    }
+
+    if (oldestId) {
+      console.warn(`[Telegram Outbox] Dropping unrecoverable message ${oldestId} due to MAX_OUTBOX_CAPACITY (${MAX_OUTBOX_CAPACITY}) overflow`);
+      const dropped = this.outbox.get(oldestId);
+      this.outbox.delete(oldestId);
+      if (dropped) this.saveRecent(dropped);
+    }
+  }
 
   constructor(envConfig?: Partial<TelegramConfig>, autoStartWorker = true) {
     const rawMode = envConfig?.mode || process.env.TELEGRAM_MODE || 'dry-run';
@@ -240,6 +296,7 @@ export class TelegramNotifierService implements ITelegramNotifierService {
       lastError: blocked ? 'Configuration blocked: topic unconfigured and general fallback disabled' : undefined
     };
 
+    this.ensureCapacity();
     this.outbox.set(notificationId, record);
     return { success: true, deduplicated: false };
   }
@@ -272,6 +329,7 @@ export class TelegramNotifierService implements ITelegramNotifierService {
       lastError: blocked ? 'Configuration blocked: topic unconfigured and general fallback disabled' : undefined
     };
 
+    this.ensureCapacity();
     this.outbox.set(notificationId, record);
     return { success: true };
   }
@@ -304,6 +362,7 @@ export class TelegramNotifierService implements ITelegramNotifierService {
       lastError: blocked ? 'Configuration blocked: topic unconfigured and general fallback disabled' : undefined
     };
 
+    this.ensureCapacity();
     this.outbox.set(notificationId, record);
     return { success: true };
   }
@@ -318,7 +377,7 @@ export class TelegramNotifierService implements ITelegramNotifierService {
     }
   }
 
-  public async processOutbox(): Promise<{ processed: number; failed: number }> {
+  public async processOutbox(ignoreInterval = false): Promise<{ processed: number; failed: number }> {
     if (this.isProcessing || this.config.mode === 'disabled') {
       return { processed: 0, failed: 0 };
     }
@@ -341,7 +400,7 @@ export class TelegramNotifierService implements ITelegramNotifierService {
       for (const record of dueRecords) {
         // Enforce chat-wide rate limiting
         const timeSinceLast = Date.now() - this.lastSendTime;
-        if (timeSinceLast < this.minSendIntervalMs) {
+        if (!ignoreInterval && timeSinceLast < this.minSendIntervalMs) {
           break; // Yield to next loop iteration
         }
 
@@ -353,6 +412,8 @@ export class TelegramNotifierService implements ITelegramNotifierService {
           record.state = 'sent';
           record.sentAt = Date.now();
           this.lastSendTime = Date.now();
+          this.outbox.delete(record.id);
+          this.saveRecent(record);
           processed += 1;
         } catch (err: unknown) {
           failed += 1;
@@ -361,10 +422,14 @@ export class TelegramNotifierService implements ITelegramNotifierService {
 
           if (record.attempts >= 5) {
             record.state = 'dead_letter';
+            console.warn(`[Telegram Outbox] Unrecoverable drop: message ${record.id} dropped after ${record.attempts} attempts: ${errMsg}`);
+            this.outbox.delete(record.id);
+            this.saveRecent(record);
           } else {
             record.state = 'pending';
             // Exponential backoff
-            record.nextRetryTime = Date.now() + Math.pow(2, record.attempts) * 2000;
+            const delayMs = Math.min(60000, Math.pow(2, record.attempts) * 1000);
+            record.nextRetryTime = Date.now() + delayMs;
           }
         }
       }
@@ -373,6 +438,16 @@ export class TelegramNotifierService implements ITelegramNotifierService {
     }
 
     return { processed, failed };
+  }
+
+  public async flush(): Promise<{ processed: number; failed: number }> {
+    const now = Date.now();
+    for (const r of this.outbox.values()) {
+      if (r.state === 'pending') {
+        r.nextRetryTime = now;
+      }
+    }
+    return this.processOutbox(true);
   }
 
   private async dispatchMessage(record: OutboxRecord): Promise<void> {
@@ -415,6 +490,6 @@ export class TelegramNotifierService implements ITelegramNotifierService {
 
   // Diagnostics & tests helper
   public getOutboxRecord(id: string): OutboxRecord | undefined {
-    return this.outbox.get(id);
+    return this.outbox.get(id) ?? this.recentRecords.get(id);
   }
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as crypto from 'crypto';
+import { safeCompareHex } from '../../server/services/provenanceService';
 import { LeaderboardAppService } from '../../server/services/leaderboardAppService';
 import type { ILeaderboardRepository } from '../../server/repositories/interfaces/ILeaderboardRepository';
 import type { ISessionRepository } from '../../server/repositories/interfaces/ISessionRepository';
@@ -135,5 +136,28 @@ describe('Admin Provenance & Attested Display Name Tests', () => {
     const res = await service.verifySubmissionProvenance(entryId);
     expect(res.verified).toBe(true); // HMAC is valid because attestedDisplayName matches
     expect(res.publiclyVisible).toBe(false); // but hidden from public rankings due to unsafe name
+  });
+
+  describe('safeCompareHex boundary validation (BUG-04)', () => {
+    it('returns true for matching hex strings', () => {
+      const a = 'abcdef0123456789';
+      const b = 'abcdef0123456789';
+      expect(safeCompareHex(a, b)).toBe(true);
+    });
+
+    it('returns false for unequal lengths safely without throwing', () => {
+      expect(safeCompareHex('abcdef', 'abcdef01')).toBe(false);
+      expect(safeCompareHex('abc', 'abcd')).toBe(false);
+    });
+
+    it('returns false safely for non-hex characters', () => {
+      expect(safeCompareHex('xyz123', 'xyz123')).toBe(false);
+      expect(safeCompareHex('abcdefg1', 'abcdefg1')).toBe(false);
+    });
+
+    it('returns false for non-string or empty inputs', () => {
+      expect(safeCompareHex('', '')).toBe(false);
+      expect(safeCompareHex('abc' as any, null as any)).toBe(false);
+    });
   });
 });

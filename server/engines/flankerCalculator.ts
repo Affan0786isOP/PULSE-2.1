@@ -161,18 +161,33 @@ export function deriveDirectionMetrics(ctx: DerivationContext): DerivationResult
       if (!valRes.derivedFalseStart) {
         completedLogicalPositions.add(logicalIdx);
       }
-
-      if (valRes.isCorrect && (correctedRt !== null || rawRtPhysiological !== null)) {
-        totalCorrect++;
-        validRTs.push(correctedRt !== null ? correctedRt : rawRtPhysiological!);
-      }
     }
 
     if (completedLogicalPositions.size !== 10) {
       return { success: false, error: `Direction test requires exactly 10 completed logical trials (received ${completedLogicalPositions.size}).` };
     }
 
-    const validTrialsCount = trials.filter(t => !t.falseStart && !t.timedOut).length;
+    // Deduplicate trials by logical position/index before computing totalCorrect so retry spam does not inflate accuracy
+    const dedupedTrials = trials.filter((t, idx, arr) => {
+      for (let i = arr.length - 1; i > idx; i--) {
+        if (arr[i].trialNumber === t.trialNumber) return false;
+      }
+      return true;
+    });
+
+    for (const dt of dedupedTrials) {
+      const rt = typeof dt.reactionTime === 'number'
+        ? dt.reactionTime
+        : (typeof dt.reactionTimeMs === 'number'
+            ? dt.reactionTimeMs
+            : (typeof dt.rawReactionTime === 'number' ? dt.rawReactionTime : null));
+      if (dt.correct && (rt !== null || dt.valid)) {
+        totalCorrect++;
+        if (rt !== null) validRTs.push(rt);
+      }
+    }
+
+    const validTrialsCount = dedupedTrials.filter(t => !t.falseStart && !t.timedOut).length;
     if (validTrialsCount === 0) {
       return { success: false, error: 'No valid trials found for Direction test.' };
     }

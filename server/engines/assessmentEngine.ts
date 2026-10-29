@@ -5,6 +5,14 @@ import { deriveDirectionMetrics } from './flankerCalculator';
 import { deriveColorRecognitionMetrics } from './stroopCalculator';
 import { deriveBlockMemoryMetrics, deriveNumberMemoryMetrics } from './memoryCalculator';
 
+export const ASSESSMENT_TRIAL_LIMITS: Record<string, number> = {
+  'visual-reaction': 30,
+  direction: 30,
+  'color-recognition': 40,
+  'block-memory': 105,
+  'number-memory': 105
+};
+
 export function validateAndDeriveAssessmentFromTrials(
   assessmentType: string,
   ageGroup: string,
@@ -15,8 +23,10 @@ export function validateAndDeriveAssessmentFromTrials(
     return { success: false, error: 'Trial sequence must be a non-empty array.' };
   }
 
-  if (trials.length > MAX_TRIALS_PER_SESSION) {
-    return { success: false, error: `Trial sequence exceeds maximum allowed limit (${MAX_TRIALS_PER_SESSION} trials).` };
+  const normalized = normalizeAssessmentType(assessmentType);
+  const maxTrials = (normalized && ASSESSMENT_TRIAL_LIMITS[normalized]) ?? MAX_TRIALS_PER_SESSION;
+  if (trials.length > maxTrials) {
+    return { success: false, error: `Trial sequence exceeds maximum allowed limit (${maxTrials} trials).` };
   }
 
   const sessionId = session ? session.sessionId : 'default_seed';

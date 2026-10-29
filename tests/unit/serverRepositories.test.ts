@@ -30,11 +30,11 @@ function createMockDb(): Firestore {
               return {
                 id,
                 exists: !!data,
-                data: () => (data ? JSON.parse(JSON.stringify(data)) : undefined)
+                data: () => (data ? { ...data } : undefined)
               };
             },
             async set(data: Record<string, unknown>, options?: { merge?: boolean }) {
-              const incoming = JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
+              const incoming = { ...data };
               const previous = col.get(id);
               col.set(id, options?.merge && previous ? { ...previous, ...incoming } : incoming);
             },
@@ -615,5 +615,44 @@ describe('Firestore Repositories Unit Tests', () => {
     }
   });
 
+  it('handles empty leaderboard without calling db.getAll(...[]) (BUG-17)', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardRepository(() => mockDb);
+    const res = await repo.getAllEntriesForAdminPage(50);
+    expect(res.entries).toEqual([]);
+    expect(res.hasMore).toBe(false);
+    expect(res.nextCursor).toBeNull();
+  });
+
+  it('handles Firestore Timestamp objects for meta.createdAt in getEntryById (BUG-21)', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardRepository(() => mockDb);
+    const expectedMillis = 1705000000000;
+
+    await mockDb.collection('leaderboardPrivateMeta').doc('ts-entry-1').set({
+      ownerUid: 'owner-ts',
+      assessmentType: 'visual-reaction',
+      createdAt: {
+        toMillis: () => expectedMillis,
+        toDate: () => new Date(expectedMillis)
+      }
+    });
+
+    const entry = await repo.getEntryById('ts-entry-1');
+    expect(entry).not.toBeNull();
+    expect(entry?.createdAt).toBe(expectedMillis);
+  });
+
+  it('validates cursor format in queryRawDataset before query.startAfter (BUG-22)', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreResearchDatasetRepository(() => mockDb);
+
+    await expect(
+      repo.queryRawDataset({
+        limitCount: 10,
+        cursor: 'invalid/slash/cursor'
+      })
+    ).rejects.toThrow('INVALID_CURSOR');
+  });
 
 });
