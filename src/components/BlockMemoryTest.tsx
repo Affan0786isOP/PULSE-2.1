@@ -206,6 +206,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
 
   const startCountdown = () => {
     if (!sessionId) return;
+    setServiceWorkerActiveSession(true);
     hasSubmittedRef.current = false; 
     clearAllTimers();
     levelAttemptsRef.current = {};
@@ -540,8 +541,9 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
     const handleSettingsOpen = () => {
       // If a test is running, abort it to prevent timers from firing behind the modal
       if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
-        if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
-        setStatusMessage('Test interrupted');
+        clearAllTimers();
+        setServiceWorkerActiveSession(false);
+        setStatusMessage('Assessment Interrupted — Click to Restart');
         setInputPrompt('Settings opened. Click to restart.');
         setEngineState('READY');
         engineStateRef.current = 'READY';

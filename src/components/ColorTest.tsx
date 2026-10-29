@@ -73,6 +73,8 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   const trialDatasetRef = useRef<any[]>([]);
   const trialSequenceRef = useRef<TrialPlan[]>([]);
   
+  const [, setFalseStartsCount] = useState(0);
+  const falseStartsCountRef = useRef(0);
   const [statusMessage, setStatusMessage] = useState('Click to start');
   const [reportStats, setReportStats] = useState<any>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -157,11 +159,12 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   }
 
   function generateReport(dataset: typeof trialDataset) {
-    const validTrials = dataset.filter(t => {
+    const validTrials = dataset.filter(t => !t.falseStart);
+    const validReactionTrials = dataset.filter(t => {
       const rawLt = (t.rawLatency !== undefined && t.rawLatency !== null) ? t.rawLatency : t.latency;
       return !t.timedOut && !t.falseStart && rawLt !== null && rawLt >= 80 && rawLt < 3000;
     });
-    const validCorrectTrials = validTrials.filter(t => t.correct && t.latency !== null) as (typeof trialDataset[0] & { latency: number })[];
+    const validCorrectTrials = validReactionTrials.filter(t => t.correct && t.latency !== null) as (typeof trialDataset[0] & { latency: number })[];
     const congruentTrials = validCorrectTrials.filter(t => t.condition === 'congruent' || t.wordName === t.wordColor);
     const incongruentTrials = validCorrectTrials.filter(t => t.condition === 'incongruent' || t.wordName !== t.wordColor);
 
@@ -184,7 +187,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
 
     const latencies = validCorrectTrials.map(t => t.latency);
     const correctCount = validCorrectTrials.length;
-    const accuracy = validTrials.length > 0 ? Math.round(((correctCount / validTrials.length) * 100.0) * 100) / 100 : 0;
+    const accuracy = validTrials.length > 0 ? (correctCount / validTrials.length) * 100 : 0;
     
     const average = latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
     const fastest = latencies.length > 0 ? Math.min(...latencies) : 0;
@@ -251,7 +254,54 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       const stimWall = stimulusWallTimestamp.current || (responseWallTime - Math.round(rawDelta));
 
       const isFalseStart = rawDelta < 80;
-      const isUsable = !isFalseStart && rawDelta < 3000;
+      if (isFalseStart) {
+        falseStartsCountRef.current += 1;
+        setFalseStartsCount(falseStartsCountRef.current);
+        playAudioCue('error');
+        triggerHaptic('error');
+        setFeedbackResult('INCORRECT');
+        setStatusMessage('False start');
+
+        const obsIndex = rawObservationsRef.current.length + 1;
+        rawObservationsRef.current.push({
+          experimentId: sessionId,
+          condition,
+          conditionLabel: trialCondition,
+          test: 'color-recognition',
+          trialNumber: obsIndex,
+          trialIndex: obsIndex,
+          sequenceNumber: obsIndex,
+          attemptNumber: 1,
+          wordName: currentWord.name,
+          wordColor: currentColor.name,
+          instruction: currentInstruction,
+          userResponse: selectedColorName,
+          stimulusTimestamp: stimWall,
+          responseTimestamp: responseWallTime,
+          reactionTime: netDelta,
+          rawReactionTime: Number(rawDelta.toFixed(2)),
+          displayDelayOffsetMs: null,
+          displayDelayOffsetEstimated: null,
+          displayDelayOffsetSource: null,
+          accuracy: 0,
+          correct: false,
+          falseStart: true,
+          timedOut: false,
+          valid: false,
+          validity: 'FALSE_START',
+          ageGroup: selectedAgeGroup || undefined,
+          notes: `false_start_word:${currentWord.name},color:${currentColor.name},task:${currentInstruction},condition:${condition}`
+        });
+
+        setEngineState('FEEDBACK'); engineStateRef.current = 'FEEDBACK';
+        if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
+        feedbackTimeout.current = setTimeout(() => {
+          startTrialSequence(true);
+        }, 750);
+        return;
+      }
+
+      const isUsable = rawDelta < 3000;
 
       const newDataset = [...trialDatasetRef.current, {
         trial: trialIndex,
@@ -314,6 +364,9 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
 
   function startCountdown() {
     if (!sessionId) return;
+    setServiceWorkerActiveSession(true);
+    falseStartsCountRef.current = 0;
+    setFalseStartsCount(0);
     hasSubmittedRef.current = false;
     isSubmittingRef.current = false;
     setIsSubmitting(false);
@@ -361,9 +414,11 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     }, 1000);
   };
 
-  function startTrialSequence() {
+  function startTrialSequence(isRetry = false) {
     framePacerRef.current.reset();
-    setCurrentTrial(prev => prev + 1);
+    if (!isRetry) {
+      setCurrentTrial(prev => prev + 1);
+    }
     setFeedbackResult(null);
     setEngineState('STIMULUS_ACTIVE'); engineStateRef.current = 'STIMULUS_ACTIVE';
 
@@ -599,6 +654,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
         if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
         if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+        setServiceWorkerActiveSession(false);
         setStatusMessage('TEST INTERRUPTED');
         setEngineState('READY');
         engineStateRef.current = 'READY';
@@ -719,6 +775,9 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
                 setSessionId(null);
                 setSelectedAgeGroup(null);
                 rawObservationsRef.current = [];
+                setServiceWorkerActiveSession(false);
+                falseStartsCountRef.current = 0;
+                setFalseStartsCount(0);
                 setEngineState('READY');
                 isSubmittingRef.current = false;
                 hasSubmittedRef.current = false;

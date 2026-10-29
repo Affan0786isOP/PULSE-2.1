@@ -360,5 +360,30 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       expect(mainLandmarks).toHaveLength(1);
       expect(mainLandmarks[0].id).toBe('main-content');
     }, 15000);
+
+    it('immediately aborts test sequence when pulse_settings_open event is triggered', async () => {
+      const onNavigate = vi.fn();
+      render(
+        <MemoryRouter initialEntries={['/direction-test']}>
+          <DirectionTest onNavigate={onNavigate} />
+        </MemoryRouter>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /^young adults/i }));
+      fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Click to start')).toBeDefined();
+      });
+
+      // Start countdown
+      fireEvent.pointerDown(screen.getByText('Click to start'));
+
+      window.dispatchEvent(new Event('pulse_settings_open'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Test interrupted')).toBeDefined();
+      });
+    }, 15000);
   });
 });

@@ -141,11 +141,12 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   }, []);
 
   const calculateAndFinalizeMetrics = (data: TrialData[]) => {
-    const validTrials = data.filter(t => {
+    const validTrials = data.filter(t => !t.falseStart);
+    const validReactionTrials = data.filter(t => {
       const rawLt = (t.rawLatency !== undefined && t.rawLatency !== null) ? t.rawLatency : t.latency;
       return !t.falseStart && !t.timedOut && rawLt !== null && rawLt >= 80 && rawLt < 3000;
     });
-    const correctTrials = validTrials.filter(t => t.correct && t.userResponse !== null);
+    const correctTrials = validReactionTrials.filter(t => t.correct && t.userResponse !== null);
     const validRuns = correctTrials.map(t => t.latency);
     const rawValidRuns = correctTrials.map(t => t.rawLatency !== undefined ? t.rawLatency : t.latency);
     const totalCorrect = correctTrials.length;
@@ -176,7 +177,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       stats.median = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
     }
     
-    stats.accuracy = validTrials.length > 0 ? Math.round(((totalCorrect / validTrials.length) * 100.0) * 100) / 100 : 0;
+    stats.accuracy = validTrials.length > 0 ? (totalCorrect / validTrials.length) * 100 : 0;
 
     setReportStats(stats);
     setEngineState('REPORT'); engineStateRef.current = 'REPORT';
@@ -265,6 +266,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
 
   const startCountdown = () => {
     if (!sessionId) return;
+    setServiceWorkerActiveSession(true);
     hasSubmittedRef.current = false;
     isSubmittingRef.current = false;
     setIsSubmitting(false);
@@ -694,6 +696,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
         if (countdownInterval.current) clearInterval(countdownInterval.current);
         if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
         if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+        setServiceWorkerActiveSession(false);
         setStatusMessage('Test interrupted');
         setInputPrompt('Settings opened. Click to restart.');
         setEngineState('READY');
@@ -850,6 +853,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
                 setSessionId(null);
                 setSelectedAgeGroup(null);
                 rawObservationsRef.current = [];
+                setServiceWorkerActiveSession(false);
                 setEngineState('READY');
                 isSubmittingRef.current = false;
                 hasSubmittedRef.current = false;

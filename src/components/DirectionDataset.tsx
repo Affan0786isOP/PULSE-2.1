@@ -129,13 +129,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
       }
     });
 
-    // Fallback if no specific direction trials were logged
-    if (!hasTrialData) {
-      values.UP = 96;
-      values.RIGHT = 94;
-      values.DOWN = 92;
-      values.LEFT = 95;
-    }
+
 
     return [{
       label: 'Accuracy %',
@@ -287,12 +281,16 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             </span>
           </div>
           <div className="flex-1 min-h-[220px] sm:min-h-[250px] w-full flex items-center justify-center">
-            <RadarChart data={radarData} metrics={radarMetrics} domain={radarDomain}>
-              <RadarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
-              <RadarAxis stroke="var(--cyan-primary)" strokeOpacity={0.5} />
-              <RadarArea index={0} color="var(--cyan-primary)" showGlow={true} showPoints={true} />
-              <RadarLabels fontSize={11} offset={24} />
-            </RadarChart>
+            {Object.keys(radarData[0]?.values || {}).length > 0 ? (
+              <RadarChart data={radarData} metrics={radarMetrics} domain={radarDomain}>
+                <RadarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
+                <RadarAxis stroke="var(--cyan-primary)" strokeOpacity={0.5} />
+                <RadarArea index={0} color="var(--cyan-primary)" showGlow={true} showPoints={true} />
+                <RadarLabels fontSize={11} offset={24} />
+              </RadarChart>
+            ) : (
+              <span className="font-mono text-sm text-[var(--text-muted)]">NO DATA</span>
+            )}
           </div>
         </div>
 

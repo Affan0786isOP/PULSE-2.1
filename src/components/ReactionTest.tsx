@@ -218,6 +218,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   };
 
   const startCountdown = () => {
+    setServiceWorkerActiveSession(true);
     playAudioCue('click');
     triggerHaptic('tap');
     
@@ -740,6 +741,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         if (countdownInterval.current) clearInterval(countdownInterval.current);
         if (finalizeTimeout.current) clearTimeout(finalizeTimeout.current);
         if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+        setServiceWorkerActiveSession(false);
         setStatusMessage('TEST INTERRUPTED');
         setInputPrompt('Settings opened. Click to restart.');
         setEngineState('READY');
@@ -898,6 +900,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
                 setSessionId(null);
                 setSelectedAgeGroup(null);
                 rawObservationsRef.current = [];
+                setServiceWorkerActiveSession(false);
                 setEngineState('READY');
                 isSubmittingRef.current = false;
                 hasSubmittedRef.current = false;
@@ -930,13 +933,6 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
             tabIndex={0}
             aria-label="Reaction test stimulus area. Press spacebar or click/tap to react."
             className={apparatusClass} 
-            onKeyDown={(e) => {
-              if (e.code === 'Space' || e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                executeTrigger(e.nativeEvent);
-              }
-            }}
             onPointerDown={(e) => {
               e.preventDefault();
               executeTrigger(e.nativeEvent);
