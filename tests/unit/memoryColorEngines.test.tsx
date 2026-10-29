@@ -146,7 +146,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
       await vi.advanceTimersByTimeAsync(750);
     });
 
-    for (let trial = 2; trial <= 15; trial++) {
+    for (let trial = 2; trial <= 16; trial++) {
       await waitForActiveRound();
       // Ensure the stimulus paint timestamp has been delivered before injecting a response.
       await act(async () => {
@@ -200,7 +200,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
       trials: Array<Record<string, unknown>>;
     };
     expect(payload.assessmentType).toBe('color-recognition');
-    expect(payload.trials).toHaveLength(15);
+    expect(payload.trials).toHaveLength(16);
 
     const timeoutTrial = payload.trials.find(trial => trial.timedOut === true);
     expect(timeoutTrial).toMatchObject({
@@ -226,7 +226,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
     const measuredTrials = payload.trials.filter(
       trial => typeof trial.rawReactionTime === 'number' && trial.timedOut !== true
     );
-    expect(measuredTrials).toHaveLength(14);
+    expect(measuredTrials).toHaveLength(15);
     for (const trial of payload.trials) {
       expect(trial.displayDelayOffsetMs).toBeNull();
       expect(trial.displayDelayOffsetEstimated).toBeNull();
@@ -266,6 +266,30 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
       expect(mainLandmarks).toHaveLength(1);
       expect(mainLandmarks[0].id).toBe('main-content');
     }, 15000);
+
+    it('aborts test sequence and displays Assessment Interrupted when pulse_settings_open is triggered', async () => {
+      const onNavigate = vi.fn();
+      render(
+        <MemoryRouter initialEntries={['/block-memory']}>
+          <BlockMemoryTest onNavigate={onNavigate} />
+        </MemoryRouter>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /^young adults/i }));
+      fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Click to start')).toBeDefined();
+      });
+
+      fireEvent.pointerDown(screen.getByText('Click to start'));
+
+      window.dispatchEvent(new Event('pulse_settings_open'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Assessment Interrupted — Click to Restart')).toBeDefined();
+      });
+    }, 15000);
   });
 
   describe('NumberMemoryTest (Digit Span Memory Engine)', () => {
@@ -294,6 +318,30 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
       const mainLandmarks = screen.getAllByRole('main');
       expect(mainLandmarks).toHaveLength(1);
       expect(mainLandmarks[0].id).toBe('main-content');
+    }, 15000);
+
+    it('aborts test sequence and displays Assessment Interrupted when pulse_settings_open is triggered', async () => {
+      const onNavigate = vi.fn();
+      render(
+        <MemoryRouter initialEntries={['/number-memory']}>
+          <NumberMemoryTest onNavigate={onNavigate} />
+        </MemoryRouter>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /^young adults/i }));
+      fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Click to start')).toBeDefined();
+      });
+
+      fireEvent.pointerDown(screen.getByText('Click to start'));
+
+      window.dispatchEvent(new Event('pulse_settings_open'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Assessment Interrupted — Click to Restart')).toBeDefined();
+      });
     }, 15000);
   });
 });

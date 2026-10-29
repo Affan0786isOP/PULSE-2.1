@@ -502,8 +502,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
     const desktopDocs = datasetDocs.filter((d) => !d.device || !d.device.toLowerCase().includes('mobile'));
     const mobileDocs = datasetDocs.filter((d) => d.device && d.device.toLowerCase().includes('mobile'));
 
-    const desktopGames = new Set(desktopTrials.map((t) => t.experimentId || t.sessionId || t.id)).size + desktopDocs.length;
-    const mobileGames = new Set(mobileTrials.map((t) => t.experimentId || t.sessionId || t.id)).size + mobileDocs.length;
+    const desktopGames = desktopDocs.length;
+    const mobileGames = mobileDocs.length;
 
     const desktopRTs = desktopTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
     const mobileRTs = mobileTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
