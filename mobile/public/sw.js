@@ -180,7 +180,7 @@ self.addEventListener('fetch', (event) => {
           if (mobileMatch) return mobileMatch;
           const fallback = await caches.match(request);
           if (fallback) return fallback;
-          return fetch(request);
+          return new Response('Offline', { status: 503, statusText: 'Service Unavailable', headers: { 'Content-Type': 'text/plain' } });
         }
       })()
     );

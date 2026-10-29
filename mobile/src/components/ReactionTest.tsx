@@ -225,6 +225,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     setSubmissionError(null);
     setTrialDataset([]); setCurrentTrial(0); setStatusMessage('Click to start'); setInputPrompt('Press spacebar or click to start'); setFalseStartsCount(0);
     setEngineState('STARTING'); engineStateRef.current = 'STARTING';
+    rawObservationsRef.current = [];
     setTrialDataset([]); trialDatasetRef.current = [];
     setFalseStartsCount(0); falseStartsCountRef.current = 0;
     setCurrentTrial(0);
@@ -645,6 +646,19 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   }, [engineState, reportStats, selectedAgeGroup, sessionId, attemptSubmission]);
 
   useEffect(() => {
+    const handleAbort = () => {
+      if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
+        if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
+        if (countdownInterval.current) clearInterval(countdownInterval.current);
+        if (finalizeTimeout.current) clearTimeout(finalizeTimeout.current);
+        if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+        setStatusMessage('TEST INTERRUPTED');
+        setInputPrompt('Assessment exited. Click to restart.');
+        setEngineState('READY');
+        engineStateRef.current = 'READY';
+        setServiceWorkerActiveSession(false);
+      }
+    };
     const handleSettingsOpen = () => {
       // If a test is running, abort it to prevent timers from firing behind the modal
       if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
@@ -658,8 +672,12 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         engineStateRef.current = 'READY';
       }
     };
+    window.addEventListener('pulse_assessment_abort', handleAbort);
     window.addEventListener('pulse_settings_open', handleSettingsOpen);
-    return () => window.removeEventListener('pulse_settings_open', handleSettingsOpen);
+    return () => {
+      window.removeEventListener('pulse_assessment_abort', handleAbort);
+      window.removeEventListener('pulse_settings_open', handleSettingsOpen);
+    };
   }, []);
 
   if (!selectedAgeGroup) {

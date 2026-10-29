@@ -89,7 +89,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
   // Use observed trial latencies; if trial-level records are unavailable, use real session summaries.
   const medianRT = useMemo(() => {
     const validRTs = trials
-      .filter((t) => !t.falseStart && t.accuracy === 1 && t.valid !== false && !t.timedOut && t.reactionTime > 80 && t.reactionTime < 2000)
+      .filter((t) => !t.falseStart && t.accuracy === 1 && t.valid !== false && !t.timedOut && t.reactionTime >= 80 && t.reactionTime < 2000)
       .map((t) => t.reactionTime);
     if (validRTs.length > 0) return Math.round(medianValue(validRTs));
 
@@ -166,7 +166,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
   // 4. Speed-Accuracy (Scatter)  // 4. Speed-Accuracy (Scatter)
   const scatterData = useMemo(() => {
     return trials
-      .filter((t) => t.reactionTime > 0 && t.reactionTime < 2000)
+      .filter((t) => !t.falseStart && t.reactionTime >= 80 && t.reactionTime < 2000)
       .map((t, i) => ({
         trial: t.trialNumber || i + 1,
         rt: t.reactionTime,
@@ -177,7 +177,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
   // 5. Line (Trial Sequence)
   const lineData = useMemo(() => {
     return trials
-      .filter((t) => !t.falseStart && t.accuracy === 1)
+      .filter((t) => !t.falseStart && t.reactionTime >= 80 && t.accuracy === 1)
       .map((t, i) => ({
         trial: i + 1,
         reactionTime: t.reactionTime

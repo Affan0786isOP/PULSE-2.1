@@ -20,7 +20,7 @@
     "migrate:leaderboard-best-per-owner": "tsx scripts/dedupeLeaderboardBestPerOwner.ts",
     "migrate:leaderboard-accuracy": "tsx scripts/backfillLeaderboardAccuracy.ts",
     "dev:mobile": "vite --config mobile/vite.config.ts --port=3000 --host=0.0.0.0",
-    "build:mobile": "vite build --config mobile/vite.config.ts",
+    "build:mobile": "vite build --config mobile/vite.config.ts && node scripts/generate-seo-pages.mjs",
     "generate-icons": "node scripts/generate-icons.js"
   },
   "dependencies": {

@@ -206,4 +206,23 @@ describe('SEO Shell Generator Output Verification', () => {
     const scriptContent = fs.readFileSync(scriptPath, 'utf8');
     expect(scriptContent).toContain('Expected <main id="pulse-seo-shell"> was not found');
   });
+
+  it('runs gracefully and skips precache injection when assetsDir does not exist', () => {
+    const standaloneDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pulse-standalone-'));
+    try {
+      fs.mkdirSync(path.join(standaloneDir, 'mobile'), { recursive: true });
+      fs.copyFileSync(path.resolve(process.cwd(), 'index.html'), path.join(standaloneDir, 'index.html'));
+      fs.copyFileSync(path.resolve(process.cwd(), 'mobile/index.html'), path.join(standaloneDir, 'mobile/index.html'));
+      fs.writeFileSync(path.join(standaloneDir, 'sw.js'), '/* __BUILD_INJECT_ASSETS_START__ */\n/* __BUILD_INJECT_ASSETS_END__ */');
+
+      expect(() => {
+        execSync('node scripts/generate-seo-pages.mjs', {
+          stdio: 'pipe',
+          env: { ...process.env, PULSE_SEO_DIST_DIR: standaloneDir }
+        });
+      }).not.toThrow();
+    } finally {
+      fs.rmSync(standaloneDir, { recursive: true, force: true });
+    }
+  });
 });

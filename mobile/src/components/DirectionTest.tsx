@@ -355,6 +355,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       condition: `arrow-${currentDirection.toLowerCase()}`,
       test: 'direction',
       trialNumber: currentTrialRef.current,
+      targetDirection: currentDirection.toUpperCase(),
       stimulusTimestamp: null,
       responseTimestamp: Date.now(),
       reactionTime: null,
@@ -687,6 +688,19 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   };
 
   useEffect(() => {
+    const handleAbort = () => {
+      if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
+        if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
+        if (countdownInterval.current) clearInterval(countdownInterval.current);
+        if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+        if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+        setStatusMessage('TEST INTERRUPTED');
+        setInputPrompt('Assessment exited. Click to restart.');
+        setEngineState('READY');
+        engineStateRef.current = 'READY';
+        setServiceWorkerActiveSession(false);
+      }
+    };
     const handleSettingsOpen = () => {
       // If a test is running, abort it to prevent timers from firing behind the modal
       if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
@@ -700,8 +714,12 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
         engineStateRef.current = 'READY';
       }
     };
+    window.addEventListener('pulse_assessment_abort', handleAbort);
     window.addEventListener('pulse_settings_open', handleSettingsOpen);
-    return () => window.removeEventListener('pulse_settings_open', handleSettingsOpen);
+    return () => {
+      window.removeEventListener('pulse_assessment_abort', handleAbort);
+      window.removeEventListener('pulse_settings_open', handleSettingsOpen);
+    };
   }, []);
 
   if (!selectedAgeGroup) {
@@ -893,26 +911,26 @@ return (
               <div className="w-full max-w-[280px] mt-6 grid grid-cols-3 gap-2">
                 <div></div>
                 <button type="button" 
-                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('UP'); }}
+                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('UP', e.nativeEvent); }}
                   className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-lg flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-white transition-colors cursor-pointer"
                 >
                   <ArrowUp size={24} />
                 </button>
                 <div></div>
                 <button type="button" 
-                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('LEFT'); }}
+                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('LEFT', e.nativeEvent); }}
                   className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-lg flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-white transition-colors cursor-pointer"
                 >
                   <ArrowLeft size={24} />
                 </button>
                 <button type="button" 
-                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('DOWN'); }}
+                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('DOWN', e.nativeEvent); }}
                   className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-lg flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-white transition-colors cursor-pointer"
                 >
                   <ArrowDown size={24} />
                 </button>
                 <button type="button" 
-                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('RIGHT'); }}
+                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); executeTrigger('RIGHT', e.nativeEvent); }}
                   className="h-14 bg-[var(--surface-2)] border border-[var(--border-subtle)] hover:bg-[var(--surface-3)] rounded-lg flex items-center justify-center text-[var(--text-primary)] active:bg-[var(--accent)] active:text-white transition-colors cursor-pointer"
                 >
                   <ArrowRight size={24} />

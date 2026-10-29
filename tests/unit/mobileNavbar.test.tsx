@@ -66,4 +66,21 @@ describe('Mobile Navbar Laboratory Light & Apparatus Lockout', () => {
     fireEvent.click(confirmExitBtn);
     expect(handleExit).toHaveBeenCalledTimes(1);
   });
+
+  it('dispatches pulse_assessment_abort window event when exit confirm opens', () => {
+    const abortListener = vi.fn();
+    window.addEventListener('pulse_assessment_abort', abortListener);
+
+    render(
+      <MemoryRouter initialEntries={['/reaction-test']}>
+        <Navbar onNavigate={() => {}} isAssessmentActive={true} onBack={() => {}} title="Visual Reaction" />
+      </MemoryRouter>
+    );
+
+    const exitBtn = screen.getByRole('button', { name: /exit assessment/i });
+    fireEvent.click(exitBtn);
+
+    expect(abortListener).toHaveBeenCalled();
+    window.removeEventListener('pulse_assessment_abort', abortListener);
+  });
 });
