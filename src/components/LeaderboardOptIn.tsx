@@ -36,7 +36,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
         setIsKeyboardOpen(keyboardDetected);
 
         if (keyboardDetected || document.activeElement === inputRef.current) {
-          inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          inputRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
         }
       }
     };
@@ -65,7 +65,7 @@ export function LeaderboardOptIn({ assessmentType, scoreMetric,
   const handleFocus = () => {
     setIsKeyboardOpen(true);
     setTimeout(() => {
-      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      inputRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
     }, 150);
   };
 
