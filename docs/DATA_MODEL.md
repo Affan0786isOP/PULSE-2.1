@@ -8,7 +8,7 @@ This document defines the data structures, Firestore collections, TypeScript typ
 
 | Collection Name | Purpose | Primary Read Access | Primary Write Access | Retention Policy |
 | :--- | :--- | :--- | :--- | :--- |
-| **`experimentSessions`** | Ephemeral experiment tokens & PRNG seeds | Authenticated Subject (`uid == auth.uid`) | Server Backend Only | **90 days** (or upon consumption) |
+| **`experimentSessions`** | Ephemeral experiment tokens & PRNG seeds | Server Backend Only (`allow read, write: if false;`) | Server Backend Only | **90 days** (or upon consumption) |
 | **`assessmentTrials`** | Granular millisecond-level trial telemetry | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
 | **`assessmentResults`** | Aggregated assessment outcome summaries | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
 | **`publicDataset`** | Anonymized open research benchmark records | Authenticated Users (`auth != null`) | Server Backend Only | **Indefinite** (Open science) |

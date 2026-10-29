@@ -36,7 +36,7 @@ PULSE operates as a dual-surface application connecting React 19 clients to an E
 
 - **Frontend:** React 19.0, TypeScript 5.8, Vite 6.2, Tailwind CSS 4.1, Motion (`motion/react`), Lucide Icons.
 - **Visualizations:** Visx, Recharts, D3.
-- **Backend:** Express 4.21, `express-rate-limit`, Firebase Admin SDK.
+- **Backend:** Express 5.3, `express-rate-limit`, Firebase Admin SDK.
 - **Database & Auth:** Google Cloud Firestore (Server-authoritative writes), Firebase Anonymous Authentication.
 
 ---

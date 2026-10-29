@@ -16,10 +16,10 @@
 ---
 
 ## 2. Technology Stack
-- **Frontend Core:** React 19.0.1, TypeScript 5.8.2, Vite 6.2.3, React Router DOM 7.18.2.
+- **Frontend Core:** React 19.0.1, TypeScript 5.8.2, Vite 8.3.5, React Router DOM 7.18.2.
 - **Styling & Motion:** Tailwind CSS 4.1.14 (with `@tailwindcss/vite`), `motion/react` 12.23.24, Lucide React icons.
 - **Data Visualization:** Recharts 3.10.1.
-- **Backend / API:** Express 4.21.2 on Node.js (via `tsx` in dev, `esbuild` bundled in prod), `express-rate-limit`.
+- **Backend / API:** Express 5.3.0 on Node.js (via `tsx` in dev, `esbuild` bundled in prod), `express-rate-limit`.
 - **Database & Auth:** Firebase Web SDK 12.17.1 (client, anonymous auth + read-only Firestore), Firebase Admin SDK 14.3.0 (server-authoritative writes and HMAC verification).
 - **Target Surfaces:** Dual-surface application architecture:
   - Desktop SPA: `src/` (root Vite instance on port 3000)

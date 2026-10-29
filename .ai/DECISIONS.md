@@ -104,3 +104,16 @@ This file records verified architectural and engineering decisions established i
   4. Standardize desktop and mobile navigation headers on `/dataset` to match global navbar behavior, with dynamic brand mark switching (`#0066FF` in light mode, `var(--accent)` cyan in dark mode).
 - **Consequences:** Researchers and participants can explore, filter, and inspect cognitive benchmark distributions interactively. Visual geometry remains mathematically consistent across desktop monitor tiers.
 - **Evidence:** [`src/components/Dataset.tsx`](../src/components/Dataset.tsx), [`mobile/src/components/Dataset.tsx`](../mobile/src/components/Dataset.tsx), [`src/lib/useBaselineScale.ts`](../src/lib/useBaselineScale.ts), [`src/components/Navbar.tsx`](../src/components/Navbar.tsx), [`docs/specs/DATASET_PIPELINE.md`](../docs/specs/DATASET_PIPELINE.md).
+---
+
+### Decision: Comprehensive Multi-Agent Bug Remediation & Security Hardening
+- **Status:** Accepted (v2.6.1)
+- **Context:** An independent multi-hunter and skeptic audit identified 43 confirmed defects spanning edge routing, serverless Telegram outbox queuing, race conditions in leaderboard deduplication, unverified rate limit client claims, service worker takeover races, and missing test abort lifecycles.
+- **Decision:**
+  1. Hardened edge routing and static delivery: blocked `/server.js` at the edge in `vercel.json`, eliminated unhandled `ERR_HTTP_HEADERS_SENT` crashes in static route error handling, and served prerendered SEO pages for clean URLs.
+  2. Bounded and resilient telemetry: replaced unbounded in-memory outbox in `telegramNotifierService.ts` with an LRU queue capped at 200 items, exponential retry backoff, and an explicit asynchronous `flush()` hook for serverless environments.
+  3. Concurrency-safe participant erasure: guarded `dedupeLeaderboardBestPerOwner.ts` by checking `indexSnap.data()?.deleting === true` within transactional reads (`tx.get`) to prevent resurrection of erased profiles.
+  4. Replay and protocol contracts: returned HTTP 200 replay receipts for consumed sessions via typed `SessionAlreadyConsumedError`, enforced protocol-specific trial ceilings (`visual-reaction`: 30, `direction`: 30, `color-recognition`: 40, `memory`: 105), and added required `targetDirection` to mobile flanker false-start payloads.
+  5. Standardized Abort-on-Interrupt and SW lifecycle: coordinated `setServiceWorkerActiveSession(true/false)` across all 5 test engines on desktop and mobile, standardizing test interruption cleanup.
+- **Consequences:** Eliminates critical edge security leaks, prevents serverless outbox memory bloat, ensures transactional data integrity, and unifies cognitive engine test lifecycles.
+- **Evidence:** [`server/services/telegramNotifierService.ts`](../server/services/telegramNotifierService.ts), [`scripts/dedupeLeaderboardBestPerOwner.ts`](../scripts/dedupeLeaderboardBestPerOwner.ts), [`server/engines/assessmentEngine.ts`](../server/engines/assessmentEngine.ts), [`vercel.json`](../vercel.json).

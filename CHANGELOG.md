@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.6.1] - 2026-10-30
+
+### Fixed
+- **Edge Routing & Static Protection (BUG-01, BUG-39, BUG-40, BUG-45):**
+  - Eliminated unhandled ERR_HTTP_HEADERS_SENT in server/routes/staticRoutes.ts by rejecting .map, .env, and /server.js early before invoking express.static.
+  - Added edge 404 rewrite in ercel.json preventing public CDN downloads of dist/server.js.
+  - Added strict edge Content-Security-Policy and Strict-Transport-Security headers to ercel.json for /(.*).
+  - Served prerendered dist/seo/<slug>.html pages during clean-URL desktop and mobile navigation.
+- **Rate Limit Security & Normalization (BUG-02, BUG-03):**
+  - Removed client-controlled base64 unverified sub claim extraction in createLimiterKey; unauthenticated callers are partitioned strictly by client IP.
+  - Normalized pathnames in leaderboard limiter skip predicates, preventing trailing slashes (/api/leaderboard/) from bypassing rate limits.
+- **Firestore Security Rules Hardening (BUG-20):**
+  - Set match /experimentSessions/{docId} { allow read, write: if false; } in irestore.rules, preventing client SDK leakage of HMAC session tokens and seed state.
+- **Backend Protocol Integrity & Session Replay (BUG-04, BUG-05, BUG-06, BUG-07, BUG-08, BUG-12, BUG-13, BUG-15):**
+  - Validated hex strings in safeCompareHex to prevent timing comparison errors.
+  - Implemented typed SessionAlreadyConsumedError returning HTTP 200 replay receipts instead of 409 conflict errors.
+  - Replaced universal 100-trial limit with protocol-specific validation bounds: isual-reaction (30), direction (30), color-recognition (40), and memory tests (105).
+  - Preserved pre-stimulus false starts across full raw arrays and deduplicated flanker trials to prevent score inflation.
+  - Preserved completedAtTimestamp in public research datasets and enforced minimum elapsed duration checks on research submissions.
+- **Telemetry Worker Durability (BUG-09, BUG-10, BUG-11):**
+  - Replaced unbounded memory map with an LRU queue capped at MAX_OUTBOX_CAPACITY = 200 with immediate eviction upon delivery or dead-lettering.
+  - Added exponential backoff retry and an explicit asynchronous lush() hook for serverless environments.
+- **Data Maintenance & Concurrency Safety (BUG-14, BUG-16, BUG-17, BUG-21, BUG-22, BUG-23, BUG-24):**
+  - Guarded participant erasure in dedupeLeaderboardBestPerOwner.ts by reading 	x.get(ownerIndexRef) checking deleting === true within Firestore transactions.
+  - Dry-run calculation of expectedEntryIds before executing ackfillLeaderboardAccuracy.ts --apply.
+  - Guarded empty db.getAll() calls, handled Firestore Timestamp .toMillis() in meta.createdAt, and sanitized dataset cursor parsing.
+  - Added composite index for ssessmentResults (ssessmentType ASC, completedAtTimestamp DESC) in irestore.indexes.json.
+- **Desktop & Mobile Client Engine Lifecycle (BUG-25, BUG-26, BUG-27, BUG-28, BUG-30, BUG-31, BUG-33, BUG-34, BUG-35, BUG-36, BUG-37, BUG-38, BUG-41, BUG-42, BUG-43, BUG-44):**
+  - Removed duplicate onKeyDown bubbling in ReactionTest.tsx.
+  - Included timed-out trials in accuracy denominators and preserved false starts without advancing trial counters.
+  - Standardized Abort-on-Interrupt semantics and synchronized setServiceWorkerActiveSession(true/false) across all 5 test batteries on desktop and mobile.
+  - Added canonical 	argetDirection to mobile flanker false-start payloads and preserved hardware e.timeStamp for touch precision.
+  - Corrected sample size calculations in mobile dataset analytics to count unique session IDs.
+  - Isolated mobile routes from desktop service worker caching and prevented unhandled fetch rejections in offline catch blocks.
+- **Build & Prerender Pipeline (BUG-46, BUG-47):**
+  - Removed "/admin" from shared/seoMetadata.json to prevent static SEO leaks.
+  - Guarded asset directory checks in scripts/generate-seo-pages.mjs for standalone mobile builds.
+
+---
 ## [2.6.0] - 2026-10-26
 
 ### Added

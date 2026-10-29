@@ -172,7 +172,7 @@ The Firestore database enforces strict role isolation via [`firestore.rules`](..
 
 | Collection | Client Read | Client Write | Server Backend (Admin SDK) |
 | :--- | :--- | :--- | :--- |
-| `experimentSessions` | Authenticated Owner (`uid == auth.uid`) | **DENIED** (`false`) | Full Read/Write |
+| `experimentSessions` | **DENIED** (`false`) | **DENIED** (`false`) | Full Read/Write |
 | `assessmentTrials` | Authenticated Owner (`participantId == auth.uid`) | **DENIED** (`false`) | Full Read/Write |
 | `assessmentResults` | Authenticated Owner (`participantId == auth.uid`) | **DENIED** (`false`) | Full Read/Write |
 | `publicDataset` | Authenticated Users (`auth != null`) | **DENIED** (`false`) | Full Read/Write |
