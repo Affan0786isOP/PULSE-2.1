@@ -75,26 +75,31 @@ interface DirectionDatasetProps {
   datasetDocs: DatasetObservation[];
 }
 
+
+function medianValue(values: number[]): number {
+  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+  if (sorted.length === 0) return 0;
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
 export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps) {
-  // 1. Median Reaction Time
+  // Use observed trial latencies; if trial-level records are unavailable, use real session summaries.
   const medianRT = useMemo(() => {
     const validRTs = trials
-      .filter((t) => !t.falseStart && t.accuracy === 1 && t.reactionTime > 80 && t.reactionTime < 2000)
+      .filter((t) => !t.falseStart && t.accuracy === 1 && t.valid !== false && !t.timedOut && t.reactionTime > 80 && t.reactionTime < 2000)
       .map((t) => t.reactionTime);
+    if (validRTs.length > 0) return Math.round(medianValue(validRTs));
 
-    if (validRTs.length === 0) {
-      const publicRTs = datasetDocs
-        .map((d) => Number(d.medianReactionTime || d.averageReactionTime))
-        .filter((rt) => rt > 80 && rt < 2000);
-      
-      if (publicRTs.length === 0) return 0;
-      publicRTs.sort((a, b) => a - b);
-      return Math.round(publicRTs[Math.floor(publicRTs.length / 2)]);
-    }
-
-    validRTs.sort((a, b) => a - b);
-    return Math.round(validRTs[Math.floor(validRTs.length / 2)]);
+    const sessionRTs = datasetDocs
+      .map((doc) => Number(doc.medianReactionTime ?? doc.averageReactionTime))
+      .filter((value) => Number.isFinite(value) && value > 80 && value < 2000);
+    return Math.round(medianValue(sessionRTs));
   }, [trials, datasetDocs]);
+
+  // 2. Directional Profile (Radar)
 
   // 2. Directional Profile (Radar)
   const radarData = useMemo(() => {
@@ -142,26 +147,23 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     { key: 'LEFT', label: 'LEFT' },
   ];
 
-  // 3. Age Group Comparison (Bar)
+  // Cohort medians use one real session summary per assessment.
   const ageGroupData = useMemo(() => {
     const groups: Record<string, number[]> = {};
-    datasetDocs.forEach((d) => {
-      if (!d.ageGroup || d.ageGroup === 'Unknown') return;
-      if (!groups[d.ageGroup]) groups[d.ageGroup] = [];
-      const rt = Number(d.medianReactionTime || d.averageReactionTime);
-      if (rt > 0 && rt < 2000) groups[d.ageGroup].push(rt);
+    datasetDocs.forEach((doc) => {
+      if (!doc.ageGroup || doc.ageGroup === 'Unknown') return;
+      const value = Number(doc.medianReactionTime ?? doc.averageReactionTime);
+      if (!Number.isFinite(value) || value <= 80 || value >= 2000) return;
+      if (!groups[doc.ageGroup]) groups[doc.ageGroup] = [];
+      groups[doc.ageGroup].push(value);
     });
-
-    const sortedGroups = Object.keys(groups).sort();
-    return sortedGroups.map((g) => {
-      const rts = groups[g];
-      rts.sort((a, b) => a - b);
-      const median = rts.length > 0 ? rts[Math.floor(rts.length / 2)] : 0;
-      return { ageGroup: g, medianRT: median };
-    }).filter((d) => d.medianRT > 0);
+    return Object.keys(groups).sort().map((group) => {
+      const values = groups[group];
+      return { ageGroup: group, medianRT: Math.round(medianValue(values)), n: values.length };
+    });
   }, [datasetDocs]);
 
-  // 4. Speed-Accuracy (Scatter)
+  // 4. Speed-Accuracy (Scatter)  // 4. Speed-Accuracy (Scatter)
   const scatterData = useMemo(() => {
     return trials
       .filter((t) => t.reactionTime > 0 && t.reactionTime < 2000)
@@ -212,7 +214,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               Median Reaction Time
             </span>
           </div>
-          <Gauge value={medianRT > 0 ? medianRT : 250} centerValue={medianRT} suffix="ms" />
+          {medianRT > 0 ? <Gauge value={medianRT} centerValue={medianRT} suffix="ms" /> : <span className="font-mono text-sm text-[var(--text-muted)]">NO DATA</span>}
         </div>
 
         {/* Directional Profile (Radar) */}

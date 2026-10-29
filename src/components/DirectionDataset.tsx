@@ -74,26 +74,31 @@ interface DirectionDatasetProps {
   datasetDocs: DatasetObservation[];
 }
 
+
+function medianValue(values: number[]): number {
+  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+  if (sorted.length === 0) return 0;
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
 export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps) {
-  // 1. Median Reaction Time
+  // Use observed trial latencies; if trial-level records are unavailable, use real session summaries.
   const medianRT = useMemo(() => {
     const validRTs = trials
-      .filter((t) => !t.falseStart && t.accuracy === 1 && t.reactionTime > 80 && t.reactionTime < 2000)
+      .filter((t) => !t.falseStart && t.accuracy === 1 && t.valid !== false && !t.timedOut && t.reactionTime > 80 && t.reactionTime < 2000)
       .map((t) => t.reactionTime);
+    if (validRTs.length > 0) return Math.round(medianValue(validRTs));
 
-    if (validRTs.length === 0) {
-      const publicRTs = datasetDocs
-        .map((d) => Number(d.medianReactionTime || d.averageReactionTime))
-        .filter((rt) => rt > 80 && rt < 2000);
-      
-      if (publicRTs.length === 0) return 285; // Benchmark default fallback
-      publicRTs.sort((a, b) => a - b);
-      return Math.round(publicRTs[Math.floor(publicRTs.length / 2)]);
-    }
-
-    validRTs.sort((a, b) => a - b);
-    return Math.round(validRTs[Math.floor(validRTs.length / 2)]);
+    const sessionRTs = datasetDocs
+      .map((doc) => Number(doc.medianReactionTime ?? doc.averageReactionTime))
+      .filter((value) => Number.isFinite(value) && value > 80 && value < 2000);
+    return Math.round(medianValue(sessionRTs));
   }, [trials, datasetDocs]);
+
+  // 2. Directional Profile (Radar)
 
   // 2. Directional Profile (Radar)
   const radarData = useMemo(() => {
@@ -155,23 +160,8 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     { key: 'LEFT', label: 'LEFT' },
   ];
 
-  // 3. Age Group Comparison (Bar)
+  // Cohort comparisons use one measured session summary per assessment.
   const ageGroupData = useMemo(() => {
-    const groups: Record<string, number[]> = {};
-    datasetDocs.forEach((d) => {
-      if (!d.ageGroup || d.ageGroup === 'Unknown') return;
-      if (!groups[d.ageGroup]) groups[d.ageGroup] = [];
-      const rt = Number(d.medianReactionTime || d.averageReactionTime);
-      if (rt > 0 && rt < 2000) groups[d.ageGroup].push(rt);
-    });
-
-    trials.forEach((t) => {
-      if (t.ageGroup && t.reactionTime > 80 && t.reactionTime < 2000) {
-        if (!groups[t.ageGroup]) groups[t.ageGroup] = [];
-        groups[t.ageGroup].push(t.reactionTime);
-      }
-    });
-
     const ageShortLabels: Record<string, string> = {
       'Children (8–12)': '8–12',
       'Adolescents (13–17)': '13–17',
@@ -182,123 +172,79 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
       'Seniors (76+)': '76+'
     };
 
-    const benchmarkDefaults: Record<string, number> = {
-      '8–12': 340,
-      '13–17': 270,
-      '18–25': 240,
-      '26–40': 260,
-      '41–60': 295,
-      '61–75': 350,
-      '76+': 410,
-    };
-
     return VALID_AGE_GROUPS.map((fullGroup) => {
       const short = ageShortLabels[fullGroup] || fullGroup;
-      const rts = groups[fullGroup] || [];
-      rts.sort((a, b) => a - b);
-      const median = rts.length > 0 
-        ? Math.round(rts[Math.floor(rts.length / 2)]) 
-        : (benchmarkDefaults[short] || 280);
+      const sessionRTs = datasetDocs
+        .filter((doc) => doc.ageGroup === fullGroup)
+        .map((doc) => Number(doc.medianReactionTime ?? doc.averageReactionTime))
+        .filter((value) => Number.isFinite(value) && value > 80 && value < 2000);
+      return {
+        ageGroup: `${short} (n=${sessionRTs.length})`,
+        medianRT: Math.round(medianValue(sessionRTs)),
+        n: sessionRTs.length
+      };
+    }).filter((entry) => entry.n > 0);
+  }, [datasetDocs]);
 
-      const groupTrials = trials.filter((t) => t.ageGroup === fullGroup);
-      const groupDocs = datasetDocs.filter((d) => d.ageGroup === fullGroup);
-
-      const trialGames = new Set(groupTrials.map((t) => t.experimentId || t.sessionId || t.id)).size;
-      const fallbackTrialGames = groupTrials.length > 0 ? Math.max(trialGames, Math.ceil(groupTrials.length / 10)) : 0;
-      const totalGames = fallbackTrialGames + groupDocs.length;
-
-      return { ageGroup: `${short} (n=${totalGames})`, medianRT: median, n: totalGames };
-    });
-  }, [datasetDocs, trials]);
-
-  // 4. Speed-Accuracy (Scatter)
+  // Speed-accuracy points come only from observed trials with a known accuracy value.
   const scatterData = useMemo(() => {
-    const mapped = trials
-      .filter((t) => t.reactionTime > 0 && t.reactionTime < 2000)
+    return trials
+      .filter((t) => !t.falseStart && t.reactionTime > 80 && t.reactionTime < 2000 && Number.isFinite(t.accuracy))
       .map((t, i) => ({
         trial: t.trialNumber || i + 1,
         rt: t.reactionTime,
         accuracy: t.accuracy === 1 ? 1 : 0
       }));
-
-    if (mapped.length === 0) {
-      // Synthetic benchmark scatter points for clean visual rendering when empty
-      return [
-        { trial: 1, rt: 240, accuracy: 1 },
-        { trial: 2, rt: 280, accuracy: 1 },
-        { trial: 3, rt: 310, accuracy: 1 },
-        { trial: 4, rt: 220, accuracy: 1 },
-        { trial: 5, rt: 190, accuracy: 0 },
-        { trial: 6, rt: 265, accuracy: 1 },
-        { trial: 7, rt: 290, accuracy: 1 },
-        { trial: 8, rt: 330, accuracy: 1 },
-      ];
-    }
-    return mapped;
   }, [trials]);
 
-  // 5. Trial Sequence Progression Across Trials 1–10 (Aggregated medians)
+  // Trial progression uses only measurements actually observed at each trial number.
   const lineData = useMemo(() => {
     return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((trialNum) => {
-      const matching = trials.filter(
-        (t) => (t.trialNumber === trialNum || (t.trialNumber === undefined && ((trials.indexOf(t) % 10) + 1 === trialNum))) &&
-               !t.falseStart &&
-               t.reactionTime > 80 &&
-               t.reactionTime < 3000
+      const matching = trials.filter((trial, index) =>
+        (trial.trialNumber === trialNum || (trial.trialNumber === undefined && ((index % 10) + 1 === trialNum))) &&
+        !trial.falseStart && trial.valid !== false && !trial.timedOut &&
+        trial.reactionTime > 80 && trial.reactionTime < 3000
       );
-
-      const desktopTrials = matching.filter((t) => !t.device || !t.device.toLowerCase().includes('mobile'));
-      const mobileTrials = matching.filter((t) => t.device && t.device.toLowerCase().includes('mobile'));
-
-      const desktopRTs = desktopTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
-      const mobileRTs = mobileTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
-      const allRTs = matching.map((t) => t.reactionTime).sort((a, b) => a - b);
-
-      const dVal = desktopRTs.length > 0 ? Math.round(desktopRTs[Math.floor(desktopRTs.length / 2)]) : 0;
-      const mVal = mobileRTs.length > 0 ? Math.round(mobileRTs[Math.floor(mobileRTs.length / 2)]) : 0;
-      const overall = allRTs.length > 0 ? Math.round(allRTs[Math.floor(allRTs.length / 2)]) : Math.max(220, Math.round(290 - trialNum * 6));
-
+      const desktopRTs = matching
+        .filter((trial) => !trial.device || !trial.device.toLowerCase().includes('mobile'))
+        .map((trial) => trial.reactionTime);
+      const mobileRTs = matching
+        .filter((trial) => trial.device && trial.device.toLowerCase().includes('mobile'))
+        .map((trial) => trial.reactionTime);
+      const allRTs = matching.map((trial) => trial.reactionTime);
       return {
         trial: trialNum,
-        trialLabel: 'Trial ' + trialNum,
-        desktop: dVal || (overall ? Math.round(overall * 0.96) : 260),
-        mobile: mVal || (overall ? Math.round(overall * 1.05) : 285),
-        reactionTime: overall,
+        trialLabel: `Trial ${trialNum}`,
+        desktop: desktopRTs.length ? Math.round(medianValue(desktopRTs)) : null,
+        mobile: mobileRTs.length ? Math.round(medianValue(mobileRTs)) : null,
+        reactionTime: allRTs.length ? Math.round(medianValue(allRTs)) : null,
         n: matching.length
       };
-    });
+    }).filter((entry) => entry.n > 0);
   }, [trials]);
 
-  // 6. Response Outcomes (Ring)
+  // Response outcome counts are derived from measured trial records only.
   const ringData = useMemo(() => {
-    let correct = 0, incorrect = 0, falseStart = 0;
-    trials.forEach((t) => {
-      if (t.falseStart) falseStart++;
-      else if (t.accuracy === 1) correct++;
-      else incorrect++;
-    });
-
-    datasetDocs.forEach((d) => {
-      const fs = Number(d.totalFalseStarts || 0);
-      falseStart += fs;
-      correct += Math.max(1, (d.totalTrials || 5) - fs);
+    let correct = 0;
+    let incorrect = 0;
+    let falseStart = 0;
+    trials.forEach((trial) => {
+      if (trial.falseStart) falseStart++;
+      else if (typeof trial.correct === 'boolean' ? trial.correct : Number.isFinite(trial.accuracy) && trial.accuracy === 1) correct++;
+      else if (Number.isFinite(trial.accuracy)) incorrect++;
     });
 
     const total = correct + incorrect + falseStart;
-    const finalTotal = total > 0 ? total : 100;
-    const finalCorrect = total > 0 ? correct : 88;
-    const finalIncorrect = total > 0 ? incorrect : 7;
-    const finalFalseStart = total > 0 ? falseStart : 5;
-
+    if (total === 0) return [];
     return [
-      { label: 'Correct', value: finalCorrect, maxValue: finalTotal, color: 'var(--color-success)' },
-      { label: 'Incorrect', value: finalIncorrect, maxValue: finalTotal, color: 'var(--color-error)' },
-      { label: 'False Start', value: finalFalseStart, maxValue: finalTotal, color: 'var(--color-idle)' },
+      { label: 'Correct', value: correct, maxValue: total, color: 'var(--color-success)' },
+      { label: 'Incorrect', value: incorrect, maxValue: total, color: 'var(--color-error)' },
+      { label: 'False Start', value: falseStart, maxValue: total, color: 'var(--color-idle)' },
     ];
-  }, [trials, datasetDocs]);
+  }, [trials]);
 
-  // Percentage gauge value mapped to 0-100% scale for notched meter
-  const gaugePercent = Math.min(100, Math.max(10, Math.round((medianRT / 800) * 100)));
+  // Percentage gauge value mapped to 0-100% scale for notched meter  // Percentage gauge value mapped to 0-100% scale for notched meter
+  const gaugePercent = medianRT > 0 ? Math.min(100, Math.max(10, Math.round((medianRT / 800) * 100))) : 0;
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full min-w-0">
@@ -316,13 +262,17 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             </span>
           </div>
           <div className="w-full flex items-center justify-center my-auto py-2">
-            <Gauge 
-              value={gaugePercent} 
-              centerValue={medianRT} 
-              suffix="ms" 
-              activeFill="var(--cyan-primary)" 
-              inactiveFill="rgba(255, 255, 255, 0.1)" 
-            />
+            {medianRT > 0 ? (
+              <Gauge
+                value={gaugePercent}
+                centerValue={medianRT}
+                suffix="ms"
+                activeFill="var(--cyan-primary)"
+                inactiveFill="rgba(255, 255, 255, 0.1)"
+              />
+            ) : (
+              <span className="font-mono text-sm text-[var(--text-muted)]">NO DATA</span>
+            )}
           </div>
         </div>
 

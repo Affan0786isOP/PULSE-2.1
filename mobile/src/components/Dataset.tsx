@@ -100,10 +100,20 @@ interface RadialGaugeProps {
   label?: string;
 }
 
+
+function medianValue(values: number[]): number {
+  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+  if (sorted.length === 0) return 0;
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
 function RadialGauge({ value, label = 'Median RT' }: RadialGaugeProps) {
   // Map value (e.g. 150ms-450ms) into an angle on a 180° arc (from 180° to 360°)
   // 150ms -> 100% (fastest), 450ms -> 0% (slowest)
-  const clamped = Math.max(150, Math.min(450, value || 250));
+  const clamped = Math.max(150, Math.min(450, value));
   const scoreRatio = Math.max(0, Math.min(1, 1 - (clamped - 150) / 300));
   const strokePercent = Math.round(scoreRatio * 100);
 
@@ -199,10 +209,16 @@ export function Dataset({ onNavigate }: DatasetProps) {
   const [trials, setTrials] = useState<RawTrialObservation[]>([]);
   const [datasetDocs, setDatasetDocs] = useState<DatasetObservation[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isSampleLimited, setIsSampleLimited] = useState(false);
+  const [totalDatasetCount, setTotalDatasetCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (selectedGameId !== 'visual-reaction' && selectedGameId !== 'direction') {
       setIsLoading(false);
+      setLoadError(null);
+      setIsSampleLimited(false);
+      setTotalDatasetCount(null);
       setTrials([]);
       setDatasetDocs([]);
       return;
@@ -212,30 +228,37 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
     async function loadData() {
       setIsLoading(true);
+      setLoadError(null);
+      setIsSampleLimited(false);
+      setTotalDatasetCount(null);
       try {
         const publicData = await fetchDatasetObservations({ assessmentType: selectedGameId }, 1000);
-
         if (!isMounted) return;
 
-        if (publicData.observations && publicData.observations.length > 0) {
-          setDatasetDocs(publicData.observations);
-          const unrolled = unrollTrialsFromDatasetDocs(publicData.observations, selectedGameId);
-          setTrials(unrolled);
-        } else {
+        if (publicData.error) {
           setDatasetDocs([]);
           setTrials([]);
+          setLoadError(publicData.error);
+          return;
         }
-      } catch (err) {
-        console.warn('Error loading dataset from Firestore:', err);
-      } finally {
+
+        setDatasetDocs(publicData.observations);
+        setTrials(unrollTrialsFromDatasetDocs(publicData.observations, selectedGameId));
+        setIsSampleLimited(publicData.isSampleLimited);
+        setTotalDatasetCount(publicData.totalCount);
+      } catch (error: unknown) {
+        console.warn('Error loading dataset from API:', error);
         if (isMounted) {
-          setIsLoading(false);
+          setDatasetDocs([]);
+          setTrials([]);
+          setLoadError('Research data could not be loaded. Refresh the page to try again.');
         }
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
     }
 
-    loadData();
-
+    void loadData();
     return () => {
       isMounted = false;
     };
@@ -243,72 +266,42 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   // --- STATS CALCULATIONS ---
 
-  // 1. Median Reaction Time
+  // Median reaction time from trial-level observations only.
   const medianRT = useMemo(() => {
     const validRTs = trials
-      .filter((t) => !t.falseStart && t.reactionTime > 80 && t.reactionTime < 2000)
+      .filter((t) => !t.falseStart && t.valid !== false && !t.timedOut && t.reactionTime > 80 && t.reactionTime < 2000)
       .map((t) => t.reactionTime);
+    return Math.round(medianValue(validRTs));
+  }, [trials]);
 
-    if (validRTs.length === 0) {
-      const publicRTs = datasetDocs
-        .map((d) => Number(d.medianReactionTime || d.averageReactionTime))
-        .filter((rt) => rt > 80 && rt < 2000);
-      if (publicRTs.length === 0) return 242;
-      publicRTs.sort((a, b) => a - b);
-      return Math.round(publicRTs[Math.floor(publicRTs.length / 2)]);
-    }
+  const totalSessions = totalDatasetCount ?? datasetDocs.length;
 
-    validRTs.sort((a, b) => a - b);
-    return Math.round(validRTs[Math.floor(validRTs.length / 2)]);
-  }, [trials, datasetDocs]);
-
-  // Total Participants
-  const totalParticipants = useMemo(() => {
-    const pSet = new Set<string>();
-    trials.forEach((t) => {
-      const id = t.participantId || t.experimentId || t.userId;
-      if (id) pSet.add(id);
-    });
-    datasetDocs.forEach((d) => {
-      const id = d.participantId || d.experimentId || d.id;
-      if (id) pSet.add(id);
-    });
-    if (pSet.size > 0) return pSet.size;
-    return Math.max(trials.length > 0 ? 1 : 0, datasetDocs.length);
-  }, [trials, datasetDocs]);
-
-  // Fastest Avg Reaction Time
+  // Fastest per-session average, derived from trial observations only.
   const fastestAvgRT = useMemo(() => {
     const sessionAvgs: number[] = [];
-
     const sessionMap = new Map<string, number[]>();
     trials.forEach((t) => {
-      if (t.falseStart || t.reactionTime <= 80 || t.reactionTime >= 2000) return;
-      const key = t.experimentId || t.participantId || t.id || 'default';
+      if (t.falseStart || t.valid === false || t.timedOut || t.reactionTime <= 80 || t.reactionTime >= 2000) return;
+      const key = t.experimentId || t.participantId || t.id || 'unknown-session';
       const list = sessionMap.get(key) || [];
       list.push(t.reactionTime);
       sessionMap.set(key, list);
     });
-
     sessionMap.forEach((rts) => {
       if (rts.length > 0) {
-        const avg = rts.reduce((sum, v) => sum + v, 0) / rts.length;
+        const avg = rts.reduce((sum, value) => sum + value, 0) / rts.length;
         if (avg >= 80 && avg < 2000) sessionAvgs.push(avg);
       }
     });
+    return sessionAvgs.length ? Math.round(Math.min(...sessionAvgs)) : 0;
+  }, [trials]);
 
-    datasetDocs.forEach((d) => {
-      const avg = Number(d.averageReactionTime || d.medianReactionTime);
-      if (avg >= 80 && avg < 2000) sessionAvgs.push(avg);
-    });
-
-    if (sessionAvgs.length === 0) return 195;
-    return Math.round(Math.min(...sessionAvgs));
-  }, [trials, datasetDocs]);
+  // 2. Reaction Time Distribution Data (Area Chart)
 
   // 2. Reaction Time Distribution Data (Area Chart)
   const distributionData = useMemo(() => {
     const bins = [
+      { min: 80, max: 140, label: '80–140ms' },
       { min: 140, max: 175, label: '140–175ms' },
       { min: 175, max: 200, label: '175–200ms' },
       { min: 200, max: 225, label: '200–225ms' },
@@ -320,10 +313,10 @@ export function Dataset({ onNavigate }: DatasetProps) {
       { min: 350, max: 375, label: '350–375ms' },
       { min: 375, max: 400, label: '375–400ms' },
       { min: 400, max: 450, label: '400–450ms' },
-      { min: 450, max: 550, label: '450ms+' }
+      { min: 450, max: Infinity, label: '450ms+' }
     ];
 
-    const validTrials = trials.filter((t) => !t.falseStart && t.reactionTime > 80);
+    const validTrials = trials.filter((t) => !t.falseStart && t.valid !== false && !t.timedOut && t.reactionTime > 80 && t.reactionTime < 2000);
 
     return bins.map((bin) => {
       let desktopCount = validTrials.filter(
@@ -352,7 +345,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
     });
   }, [trials]);
 
-  // 3. Median Reaction Time by Age Group (Bar Chart)
+  // Cohort comparisons use one session-level summary per assessment, not a mixture of session and trial records.
   const ageGroupData = useMemo(() => {
     const ageShortLabels: Record<string, string> = {
       'Children (8–12)': '8–12',
@@ -366,29 +359,19 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
     return VALID_AGE_GROUPS.map((group) => {
       const short = ageShortLabels[group] || group;
-      const matchingTrials = trials
-        .filter((t) => t.ageGroup === group && !t.falseStart && t.reactionTime > 80)
-        .map((t) => t.reactionTime);
-
-      const matchingDataset = datasetDocs
-        .filter((d) => d.ageGroup === group)
-        .map((d) => Number(d.medianReactionTime || d.averageReactionTime))
-        .filter((rt) => rt > 80);
-
-      const allRTs = [...matchingTrials, ...matchingDataset];
-      allRTs.sort((a, b) => a - b);
-      const val =
-        allRTs.length > 0
-          ? Math.round(allRTs[Math.floor(allRTs.length / 2)])
-          : 0;
-
+      const sessionRTs = datasetDocs
+        .filter((doc) => doc.ageGroup === group)
+        .map((doc) => Number(doc.medianReactionTime ?? doc.averageReactionTime))
+        .filter((value) => Number.isFinite(value) && value > 80 && value < 2000);
       return {
-        day: `${short} (n=${allRTs.length})`,
-        value: val,
-        n: allRTs.length
+        day: `${short} (n=${sessionRTs.length})`,
+        value: Math.round(medianValue(sessionRTs)),
+        n: sessionRTs.length
       };
-    });
-  }, [trials, datasetDocs]);
+    }).filter((entry) => entry.n > 0);
+  }, [datasetDocs]);
+
+  // 4. Reaction Time Across Trials 1–5 (Line Chart)
 
   // 4. Reaction Time Across Trials 1–5 (Line Chart)
   const trialProgressionData = useMemo(() => {
@@ -411,15 +394,15 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
       const dVal =
         desktopRTs.length > 0
-          ? Math.round(desktopRTs[Math.floor(desktopRTs.length / 2)])
+          ? Math.round(medianValue(desktopRTs))
           : 0;
       const mVal =
         mobileRTs.length > 0
-          ? Math.round(mobileRTs[Math.floor(mobileRTs.length / 2)])
+          ? Math.round(medianValue(mobileRTs))
           : 0;
       const overall =
         allRTs.length > 0
-          ? Math.round(allRTs[Math.floor(allRTs.length / 2)])
+          ? Math.round(medianValue(allRTs))
           : 0;
 
       return {
@@ -453,7 +436,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
     sessionsMap.forEach(({ rts, isMobile }) => {
       if (rts.length < 2) return;
       rts.sort((a, b) => a - b);
-      const sessionMedian = rts[Math.floor(rts.length / 2)];
+      const sessionMedian = medianValue(rts);
       const mean = rts.reduce((acc, v) => acc + v, 0) / rts.length;
       const variance = rts.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / rts.length;
       const sd = Math.round(Math.sqrt(variance));
@@ -470,29 +453,26 @@ export function Dataset({ onNavigate }: DatasetProps) {
     return { scatterDesktop: sDesktop, scatterMobile: sMobile };
   }, [trials]);
 
-  // 6. Ring Chart — Valid Trials vs False Starts
-  const { ringData, validPercent, totalTrialsCount } = useMemo(() => {
-    let validCount = trials.filter((t) => !t.falseStart).length;
-    let falseStartCount = trials.filter((t) => t.falseStart).length;
-
-    datasetDocs.forEach((d) => {
-      const fs = Number(d.totalFalseStarts || 0);
-      falseStartCount += fs;
-      validCount += 5;
-    });
-
+  // Ring values are trial-level only. Each session is represented once in session counts.
+  const { ringData, validPercent, totalTrialsCount, totalGamesCount } = useMemo(() => {
+    const validCount = trials.filter((t) => !t.falseStart && t.valid !== false && !t.timedOut).length;
+    const falseStartCount = trials.filter((t) => t.falseStart).length;
     const total = validCount + falseStartCount;
-    const vPct = total > 0 ? Math.round((validCount / total) * 100) : 100;
+    const uniqueTrialGames = new Set(trials.map((t) => t.experimentId || t.sessionId || t.id)).size;
+    const totalGames = Math.max(uniqueTrialGames, datasetDocs.length);
 
     return {
-      ringData: [
+      ringData: total > 0 ? [
         { name: 'Valid Trials', value: validCount, color: '#00f0ff' },
         { name: 'False Starts', value: falseStartCount, color: '#ef4444' }
-      ],
-      validPercent: vPct,
-      totalTrialsCount: total
+      ] : [],
+      validPercent: total > 0 ? Math.round((validCount / total) * 100) : 0,
+      totalTrialsCount: total,
+      totalGamesCount: totalGames
     };
   }, [trials, datasetDocs]);
+
+  // 7. Desktop vs Mobile Reaction Time (Bar Chart)
 
   // 7. Desktop vs Mobile Reaction Time (Bar Chart)
   const deviceComparisonData = useMemo(() => {
@@ -519,11 +499,11 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
     const desktopVal =
       desktopRTs.length > 0
-        ? Math.round(desktopRTs[Math.floor(desktopRTs.length / 2)])
+        ? Math.round(medianValue(desktopRTs))
         : 0;
     const mobileVal =
       mobileRTs.length > 0
-        ? Math.round(mobileRTs[Math.floor(mobileRTs.length / 2)])
+        ? Math.round(medianValue(mobileRTs))
         : 0;
 
     return [
@@ -601,17 +581,37 @@ export function Dataset({ onNavigate }: DatasetProps) {
         </div>
 
         {/* Dashboard Content */}
-        {selectedGameId === 'direction' ? (
+        {!isLoading && !loadError && isSampleLimited && (
+          <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-[var(--text-secondary)]">
+            Showing {datasetDocs.length.toLocaleString()} of {totalDatasetCount !== null ? totalDatasetCount.toLocaleString() : 'more than ' + datasetDocs.length.toLocaleString()} matching assessments. Charts use this limited sample and may not represent the full dataset.
+          </div>
+        )}
+        {!isLoading && !loadError && (selectedGameId === 'visual-reaction' || selectedGameId === 'direction') && trials.length === 0 && datasetDocs.length > 0 && (
+          <div role="status" className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+            No trial-level observations were returned for these sessions. Trial-level charts will remain empty.
+          </div>
+        )}
+        {!isLoading && !loadError && (selectedGameId === 'visual-reaction' || selectedGameId === 'direction') && datasetDocs.length === 0 && (
+          <div role="status" className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 py-6 text-center text-sm text-[var(--text-secondary)]">
+            NO DATA: no research observations are available for this protocol.
+          </div>
+        )}
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="w-8 h-8 border-2 border-[var(--cyan-primary)] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : loadError ? (
+          <div role="alert" className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/5 p-8 text-center">
+            <strong className="font-mono text-sm text-red-400">DATASET UNAVAILABLE</strong>
+            <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary)]">{loadError}</p>
+          </div>
+        ) : selectedGameId === 'direction' ? (
           <DirectionDataset trials={trials} datasetDocs={datasetDocs} />
         ) : selectedGameId !== 'visual-reaction' ? (
           <div className="flex flex-col items-center justify-center min-h-[380px] sm:min-h-[460px] w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-8 my-auto text-center">
             <span className="text-4xl sm:text-6xl font-heading font-black tracking-widest text-[var(--cyan-primary)] uppercase select-none">
               SOON
             </span>
-          </div>
-        ) : isLoading ? (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="w-8 h-8 border-2 border-[var(--cyan-primary)] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           
@@ -621,8 +621,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
                {/* Context Stats */}
                <div className="order-2 lg:order-1 lg:col-span-1 flex flex-col justify-center gap-3 sm:gap-4">
                  <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center shadow-sm">
-                   <span className="text-[10px] text-[var(--text-muted)] font-mono mb-1 tracking-widest uppercase">Total Participants</span>
-                   <span className="text-2xl font-mono text-[var(--text-main)] font-bold">{totalParticipants.toLocaleString()}</span>
+                   <span className="text-[10px] text-[var(--text-muted)] font-mono mb-1 tracking-widest uppercase">Sessions in Dataset</span>
+                   <span className="text-2xl font-mono text-[var(--text-main)] font-bold">{totalSessions.toLocaleString()}</span>
                  </div>
                  <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-4 flex flex-col justify-between shadow-sm">
                    <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-[var(--border-subtle)]">
@@ -672,7 +672,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                    </span>
                  </div>
                  <div className="w-full flex items-center justify-center my-auto py-3 sm:py-4">
-                   <RadialGauge value={medianRT} />
+                   {medianRT > 0 ? <RadialGauge value={medianRT} /> : <span className="font-mono text-sm text-[var(--text-muted)]">NO DATA</span>}
                  </div>
                </div>
             </div>
