@@ -65,7 +65,37 @@ export function deriveVisualReactionMetrics(ctx: DerivationContext): DerivationR
     return true;
   });
 
+    // Count false starts across the entire raw observation array so false starts occurring before valid reaction trials are preserved
     let falseStartsCount = 0;
+    for (const rawT of originalTrials) {
+      const rawStimulus = rawT.stimulusTimestamp !== null && rawT.stimulusTimestamp !== undefined ? Number(rawT.stimulusTimestamp) : null;
+      const hasStimulus = (rawStimulus !== null && Number.isFinite(rawStimulus) && rawStimulus > 0) || (typeof rawT.stimulusPresentedAt === 'number' && Number.isFinite(rawT.stimulusPresentedAt) && rawT.stimulusPresentedAt > 0);
+      const rawResponse = rawT.responseTimestamp !== null && rawT.responseTimestamp !== undefined ? Number(rawT.responseTimestamp) : null;
+      const hasResponse = (rawResponse !== null && Number.isFinite(rawResponse) && rawResponse > 0) || (typeof rawT.responseDetectedAt === 'number' && Number.isFinite(rawT.responseDetectedAt) && rawT.responseDetectedAt > 0);
+
+      const correctedRt = typeof rawT.reactionTime === 'number' && Number.isFinite(rawT.reactionTime)
+        ? Number(rawT.reactionTime)
+        : (typeof rawT.reactionTimeMs === 'number' && Number.isFinite(rawT.reactionTimeMs) ? Number(rawT.reactionTimeMs) : null);
+
+      const rawRtPhysiological = typeof rawT.rawReactionTime === 'number' && Number.isFinite(rawT.rawReactionTime)
+        ? Number(rawT.rawReactionTime)
+        : (typeof rawT.rawLatencyMs === 'number' && Number.isFinite(rawT.rawLatencyMs)
+            ? Number(rawT.rawLatencyMs)
+            : (typeof rawT.rawLatency === 'number' && Number.isFinite(rawT.rawLatency)
+                ? Number(rawT.rawLatency)
+                : correctedRt));
+
+      if (
+        rawT.falseStart === true ||
+        !hasStimulus ||
+        (hasStimulus && hasResponse && rawStimulus !== null && rawResponse !== null && rawResponse < rawStimulus) ||
+        (rawRtPhysiological !== null && rawRtPhysiological < 80.0) ||
+        (rawStimulus !== null && rawResponse !== null && (rawResponse - rawStimulus) < 80.0 && (rawResponse - rawStimulus) >= 0)
+      ) {
+        falseStartsCount++;
+      }
+    }
+
     const validRTs: number[] = [];
     const chronoValidTrials: any[] = [];
 
@@ -150,7 +180,7 @@ export function deriveVisualReactionMetrics(ctx: DerivationContext): DerivationR
       t.accuracy = isValid ? 1 : 0;
 
       if (isFalseStart) {
-        falseStartsCount++;
+        // falseStartsCount is counted across entire raw observation array
       } else if (isValid) {
         const analyticalRt = correctedRt !== null ? correctedRt : rawRtPhysiological!;
         validRTs.push(analyticalRt);

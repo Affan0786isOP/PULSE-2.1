@@ -7,6 +7,7 @@ import type { ILeaderboardRepository } from '../../server/repositories/interface
 import type { ILeaderboardSubmissionRepository } from '../../server/repositories/interfaces/ILeaderboardSubmissionRepository';
 import type { ExperimentSessionRecord } from '../../server/models/sessionModels';
 import { ResearchService } from '../../server/services/researchService';
+import { SessionAlreadyConsumedError } from '../../server/models/replayContracts';
 import { seedPRNG } from '../../server/engines/prng';
 import { generateVrtForeperiod } from '../../server/engines/reactionCalculator';
 
@@ -541,4 +542,101 @@ describe('Server Application Services Unit Tests', () => {
     }
   });
 
+  it('throws SessionAlreadyConsumedError when session is already consumed (BUG-05)', async () => {
+    const consumedSession = {
+      sessionId: 'consumed-sess-1',
+      uid: 'user-1',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      createdAt: Date.now() - 60000,
+      expiresAt: Date.now() + 60000,
+      consumed: true,
+      researchDocId: 'doc-already-done'
+    };
+
+    const service = new ResearchService(
+      {
+        getAndValidateSession: vi.fn(async () => ({
+          valid: false,
+          error: 'Experiment session has already been completed/consumed',
+          session: consumedSession
+        })),
+      } as any,
+      {
+        findById: vi.fn(async () => consumedSession),
+      } as any,
+      {} as any,
+      {} as any
+    );
+
+    await expect(
+      service.submitResearch({
+        sessionId: 'consumed-sess-1',
+        userId: 'user-1',
+        assessmentType: 'visual-reaction',
+        ageGroup: 'Young adults (18–25)',
+        trials: [],
+      })
+    ).rejects.toBeInstanceOf(SessionAlreadyConsumedError);
+  });
+
+  it('validates minimum duration Date.now() - session.createdAt >= minimumDurationMs (BUG-15)', async () => {
+    const rapidSession = {
+      sessionId: 'rapid-sess-1',
+      uid: 'user-1',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      createdAt: Date.now() - 1000, // Only 1s elapsed, min duration is 5s
+      expiresAt: Date.now() + 60000,
+      consumed: false
+    };
+
+    const service = new ResearchService(
+      {
+        getAndValidateSession: vi.fn(async () => ({ valid: true, session: rapidSession })),
+      } as any,
+      {} as any,
+      {} as any,
+      {} as any
+    );
+
+    await expect(
+      service.submitResearch({
+        sessionId: 'rapid-sess-1',
+        userId: 'user-1',
+        assessmentType: 'visual-reaction',
+        ageGroup: 'Young adults (18–25)',
+        trials: [],
+      })
+    ).rejects.toMatchObject({ message: expect.stringContaining('implausibly short') });
+  });
+
+  it('preserves completedAtTimestamp in getDataset public records (BUG-13)', async () => {
+    const mockDatasetRepo = {
+      queryRawDataset: vi.fn(async () => ({
+        results: [
+          {
+            id: 'res-doc-1',
+            sessionId: 'sess-1',
+            assessmentType: 'visual-reaction',
+            ageGroup: 'Young adults (18–25)',
+            completedAtTimestamp: 1705000000000,
+            completedAtMonth: '2024-01',
+            scoreMetric: 220,
+            derivedMetrics: { averageReactionTime: 220 }
+          }
+        ],
+        sessionMap: new Map(),
+        trialsBySession: new Map(),
+        hasMore: false,
+        nextCursor: null
+      })),
+      getDatasetSummary: vi.fn()
+    };
+
+    const service = new ResearchService({} as any, {} as any, {} as any, mockDatasetRepo as any);
+    const res = await service.getDataset({ limitCount: 10 });
+    expect(res.records).toHaveLength(1);
+    expect(res.records[0].completedAtTimestamp).toBe(1705000000000);
+  });
 });

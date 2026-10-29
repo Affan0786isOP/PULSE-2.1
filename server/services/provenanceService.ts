@@ -171,8 +171,13 @@ export function computeCanonicalTrialsDigest(trials: Record<string, any>[]): str
 
 export function safeCompareHex(a: string, b: string): boolean {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
-  const bufA = Buffer.from(a.trim(), 'hex');
-  const bufB = Buffer.from(b.trim(), 'hex');
+  const cleanA = a.trim();
+  const cleanB = b.trim();
+  const hexPattern = /^[0-9a-fA-F]+$/;
+  if (!hexPattern.test(cleanA) || !hexPattern.test(cleanB)) return false;
+  if (cleanA.length !== cleanB.length) return false;
+  const bufA = Buffer.from(cleanA, 'hex');
+  const bufB = Buffer.from(cleanB, 'hex');
   if (bufA.length === 0 || bufA.length !== bufB.length) return false;
   return crypto.timingSafeEqual(bufA, bufB);
 }

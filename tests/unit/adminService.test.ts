@@ -139,6 +139,38 @@ describe('AdminService Unit Tests', () => {
       expect(res.entries[0].id).toBe('entry-456');
     });
 
+    it('fetches in a loop across pages when in-memory filter reduces matching entries (BUG-14)', async () => {
+      mockLeaderboardRepo.getAllEntriesForAdminPage
+        .mockResolvedValueOnce({
+          entries: [
+            { id: 'entry-nonmatch-1', displayName: 'Charlie', assessmentType: 'visual-reaction' },
+            { id: 'entry-nonmatch-2', displayName: 'David', assessmentType: 'direction' }
+          ],
+          nextCursor: 'cursor-page-1',
+          hasMore: true
+        })
+        .mockResolvedValueOnce({
+          entries: [
+            { id: 'entry-match-1', displayName: 'BobOne', assessmentType: 'block-memory' },
+            { id: 'entry-match-2', displayName: 'BobTwo', assessmentType: 'block-memory' }
+          ],
+          nextCursor: 'cursor-page-2',
+          hasMore: false
+        });
+
+      const res = await service.getLeaderboardPage({
+        limit: 2,
+        assessmentType: 'block-memory',
+        prefix: 'bob'
+      });
+
+      expect(mockLeaderboardRepo.getAllEntriesForAdminPage).toHaveBeenCalledTimes(2);
+      expect(res.entries).toHaveLength(2);
+      expect(res.entries[0].id).toBe('entry-match-1');
+      expect(res.entries[1].id).toBe('entry-match-2');
+      expect(res.hasMore).toBe(false);
+    });
+
     it('rejects invalid assessmentType filter with 400', async () => {
       await expect(
         service.getLeaderboardPage({ assessmentType: 'invalid-test-name' })

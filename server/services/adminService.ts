@@ -96,26 +96,46 @@ export class AdminService implements IAdminService {
 
     // If repository provides getAllEntriesForAdminPage, use it
     if (typeof this.leaderboardRepo.getAllEntriesForAdminPage === 'function') {
-      const page = await this.leaderboardRepo.getAllEntriesForAdminPage(safeLimit, options.cursor);
-      let filteredEntries = page.entries;
+      const matchingEntries: AdminLeaderboardEntryRecord[] = [];
+      let currentCursor = options.cursor;
+      let hasMoreFromRepo = false;
+      let lastNextCursor: string | null = null;
 
-      if (targetAssessment) {
-        filteredEntries = filteredEntries.filter(
-          e => normalizeAssessmentType(String(e.assessmentType || '')) === targetAssessment
-        );
+      // Fetch in a loop until safeLimit matching entries are collected or no more Firestore documents exist
+      while (matchingEntries.length < safeLimit) {
+        const page = await this.leaderboardRepo.getAllEntriesForAdminPage(safeLimit, currentCursor);
+        hasMoreFromRepo = page.hasMore;
+        lastNextCursor = page.nextCursor;
+
+        let filtered = page.entries;
+        if (targetAssessment) {
+          filtered = filtered.filter(
+            e => normalizeAssessmentType(String(e.assessmentType || '')) === targetAssessment
+          );
+        }
+        if (prefix) {
+          filtered = filtered.filter(e => {
+            const name = String(e.displayName || '').toLowerCase();
+            return name.startsWith(prefix);
+          });
+        }
+
+        matchingEntries.push(...filtered);
+
+        if (!page.hasMore || !page.nextCursor) {
+          break;
+        }
+        currentCursor = page.nextCursor;
       }
-      if (prefix) {
-        filteredEntries = filteredEntries.filter(e => {
-          const name = String(e.displayName || '').toLowerCase();
-          return name.startsWith(prefix);
-        });
-      }
+
+      const finalEntries = matchingEntries.slice(0, safeLimit);
+      const hasMore = matchingEntries.length > safeLimit || (matchingEntries.length === safeLimit && hasMoreFromRepo);
 
       return {
         success: true,
-        entries: filteredEntries.map(e => this.projectToDTO(e)),
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore
+        entries: finalEntries.map(e => this.projectToDTO(e)),
+        nextCursor: hasMore ? lastNextCursor : null,
+        hasMore
       };
     }
 

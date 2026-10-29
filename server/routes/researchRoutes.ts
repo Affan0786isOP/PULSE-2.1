@@ -11,7 +11,6 @@ import type { ITelegramNotifierService } from '../services/interfaces/ITelegramN
 import { isValidDeviceId } from '../../shared/telemetry/deviceId';
 import type { AssessmentNotificationType } from '../../shared/types/telemetry';
 import { SessionAlreadyConsumedError, AppError } from '../models/replayContracts';
-import { getAdminDiagnosticMessage } from '../config/firebaseAdmin';
 
 export function registerResearchRoutes(
   app: Express,
@@ -52,7 +51,7 @@ export function registerResearchRoutes(
           return res.status(400).json({ success: false, error: errMsg });
         }
         if (errMsg === 'DATABASE_UNAVAILABLE') {
-          return res.status(500).json({ success: false, error: `Database unavailable: ${getAdminDiagnosticMessage()}` });
+          return res.status(500).json({ success: false, error: 'Database unavailable' });
         }
         return res.status(500).json({ success: false, error: `Failed to persist experiment session: ${errMsg}` });
       }
@@ -140,11 +139,21 @@ export function registerResearchRoutes(
           const validatedDeviceId = isValidDeviceId(deviceId) ? deviceId : undefined;
           const dm = (result.derivedMetrics || {}) as Record<string, unknown>;
           const metricsPayload = {
-            meanReactionTimeMs: typeof dm.meanReactionTime === 'number' ? dm.meanReactionTime : (typeof dm.meanReactionTimeMs === 'number' ? dm.meanReactionTimeMs : null),
+            meanReactionTimeMs: typeof dm.meanReactionTime === 'number'
+              ? dm.meanReactionTime
+              : (typeof dm.meanReactionTimeMs === 'number'
+                  ? dm.meanReactionTimeMs
+                  : (typeof dm.averageReactionTime === 'number'
+                      ? dm.averageReactionTime
+                      : (typeof dm.averageReactionTimeMs === 'number' ? dm.averageReactionTimeMs : null))),
             medianReactionTimeMs: typeof dm.medianReactionTime === 'number' ? dm.medianReactionTime : (typeof dm.medianReactionTimeMs === 'number' ? dm.medianReactionTimeMs : null),
             fastestReactionTimeMs: typeof dm.fastestReactionTime === 'number' ? dm.fastestReactionTime : null,
             slowestReactionTimeMs: typeof dm.slowestReactionTime === 'number' ? dm.slowestReactionTime : null,
-            falseStartsCount: typeof dm.falseStartsCount === 'number' ? dm.falseStartsCount : undefined,
+            falseStartsCount: typeof dm.falseStartsCount === 'number'
+              ? dm.falseStartsCount
+              : (typeof dm.totalFalseStarts === 'number'
+                  ? dm.totalFalseStarts
+                  : undefined),
             validTrialsCount: typeof dm.validTrialsCount === 'number' ? dm.validTrialsCount : undefined,
             accuracyPercentage: typeof dm.accuracyPercentage === 'number' ? dm.accuracyPercentage : (typeof dm.accuracy === 'number' ? dm.accuracy * 100 : null),
             conflictCostMs: typeof dm.conflictCost === 'number' ? dm.conflictCost : null,
@@ -174,10 +183,10 @@ export function registerResearchRoutes(
       } catch (submitErr: unknown) {
         if (submitErr instanceof SessionAlreadyConsumedError) {
           const sData = submitErr.sessionData;
-          if (sData && sData.researchDocId) {
-            return res.json({
+          if (sData) {
+            return res.status(200).json({
               success: true,
-              docId: sData.researchDocId,
+              docId: sData.researchDocId || sData.sessionId,
               sessionId: activeSessionId,
               completedAtTimestamp: sData.consumedAt || Date.now(),
               provenanceToken: sData.provenanceToken,
@@ -189,7 +198,7 @@ export function registerResearchRoutes(
               personalBest: sData.personalBest ?? null
             });
           }
-          return res.status(400).json({ success: false, error: 'Experiment session has already been completed/consumed' });
+          return res.status(200).json({ success: true, sessionId: activeSessionId, message: 'Experiment session has already been completed/consumed' });
         }
 
         const errMsg = submitErr instanceof Error ? submitErr.message : String(submitErr);
@@ -217,7 +226,7 @@ export function registerResearchRoutes(
           return res.status(403).json({ success: false, error: errMsg });
         }
         if (errMsg.includes('Database unavailable')) {
-          return res.status(500).json({ success: false, error: errMsg });
+          return res.status(500).json({ success: false, error: 'Database unavailable' });
         }
 
         // Inner transaction persistence error
@@ -269,6 +278,9 @@ export function registerResearchRoutes(
         });
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : String(err);
+        if (errMsg === 'INVALID_CURSOR') {
+          return res.status(400).json({ success: false, error: 'Invalid cursor parameter', records: [] });
+        }
         if (errMsg === 'DATABASE_UNAVAILABLE') {
           return res.status(503).json({ success: false, error: 'Database service unavailable', records: [] });
         }
@@ -292,6 +304,9 @@ export function registerResearchRoutes(
         });
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : String(err);
+        if (errMsg === 'INVALID_CURSOR') {
+          return res.status(400).json({ success: false, error: 'Invalid cursor parameter', records: [] });
+        }
         if (errMsg === 'DATABASE_UNAVAILABLE') {
           return res.status(503).json({ success: false, error: 'Database service unavailable' });
         }

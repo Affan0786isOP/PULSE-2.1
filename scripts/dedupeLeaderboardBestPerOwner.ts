@@ -10,7 +10,7 @@ import { initializeAdminApp, getAdminDb } from '../server/config/firebaseAdmin';
 import { normalizeAssessmentType } from '../server/engines/assessmentTypes';
 import { isValidLeaderboardScoreMetric } from '../shared/domain/leaderboardEligibility';
 
-const PAGE_SIZE = 300;
+const PAGE_SIZE = 200;
 interface Row { id: string; ownerUid: string; assessmentType: string; scoreMetric: number; createdAt: number; }
 function ownerIndexDocumentId(ownerUid: string, assessmentType: string): string {
   return crypto.createHash('sha256').update(ownerUid + ':' + assessmentType).digest('hex');
@@ -65,7 +65,9 @@ async function main(): Promise<void> {
       const metaRef = db.collection('leaderboardPrivateMeta').doc(loser.id);
       const ownerIndexRef = db.collection('leaderboardOwnerIndex').doc(ownerIndexDocumentId(loser.ownerUid, loser.assessmentType));
       await db.runTransaction(async tx => {
-        const [publicSnap, metaSnap, indexSnap] = await Promise.all([tx.get(publicRef), tx.get(metaRef), tx.get(ownerIndexRef)]);
+        const indexSnap = await tx.get(ownerIndexRef);
+        if (indexSnap.data()?.deleting === true) return;
+        const [publicSnap, metaSnap] = await Promise.all([tx.get(publicRef), tx.get(metaRef)]);
         if (!publicSnap.exists || publicSnap.get('hidden') !== false || !metaSnap.exists) return;
         const meta = metaSnap.data() || {};
         if (meta.ownerUid !== loser.ownerUid || normalizeAssessmentType(String(meta.assessmentType || '')) !== loser.assessmentType) return;

@@ -42,7 +42,10 @@ export class FirestoreResearchDatasetRepository implements IResearchDatasetRepos
     q = q.orderBy('__name__');
 
     if (options.cursor) {
-      q = q.startAfter(options.cursor);
+      if (typeof options.cursor !== 'string' || !options.cursor.trim() || options.cursor.includes('/') || options.cursor.length > 1500) {
+        throw new Error('INVALID_CURSOR');
+      }
+      q = q.startAfter(options.cursor.trim());
     }
 
     q = q.limit(options.limitCount + 1);
