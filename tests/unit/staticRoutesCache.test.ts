@@ -51,9 +51,14 @@ describe('Static Routes & API Caching Headers (Tier 1)', () => {
     if (!fs.existsSync(mockDist)) fs.mkdirSync(mockDist, { recursive: true });
     if (!fs.existsSync(path.join(mockDist, 'assets'))) fs.mkdirSync(path.join(mockDist, 'assets'), { recursive: true });
     if (!fs.existsSync(path.join(mockDist, 'mobile'))) fs.mkdirSync(path.join(mockDist, 'mobile'), { recursive: true });
+    if (!fs.existsSync(path.join(mockDist, 'seo'))) fs.mkdirSync(path.join(mockDist, 'seo'), { recursive: true });
 
     fs.writeFileSync(path.join(mockDist, 'index.html'), '<html><body>Desktop Shell</body></html>');
     fs.writeFileSync(path.join(mockDist, 'mobile', 'index.html'), '<html><body>Mobile Shell</body></html>');
+    fs.writeFileSync(path.join(mockDist, 'seo', 'direction-test.html'), '<html><body>Prerendered SEO Direction Page</body></html>');
+    fs.writeFileSync(path.join(mockDist, 'server.js'), '// server code');
+    fs.writeFileSync(path.join(mockDist, 'test.env'), 'SECRET=true');
+    fs.writeFileSync(path.join(mockDist, 'bundle.js.map'), '{}');
     fs.writeFileSync(path.join(mockDist, 'sw.js'), '// Service Worker');
     fs.writeFileSync(path.join(mockDist, 'manifest.webmanifest'), '{"name":"PULSE"}');
     fs.writeFileSync(path.join(mockDist, 'favicon.ico'), 'icon');
@@ -176,5 +181,26 @@ describe('Static Routes & API Caching Headers (Tier 1)', () => {
     const missingImg = await makeRequest(server, 'GET', '/images/missing.png');
     expect(missingImg.status).toBe(404);
     expect(missingImg.body).not.toContain('Desktop Shell');
+  });
+
+  it('serves prerendered SEO html for clean routes when available in /seo/:slug.html', async () => {
+    const seoRes = await makeRequest(server, 'GET', '/direction-test');
+    expect(seoRes.status).toBe(200);
+    expect(seoRes.headers['cache-control']).toBe('no-cache, must-revalidate');
+    expect(seoRes.body).toContain('Prerendered SEO Direction Page');
+  });
+
+  it('blocks sensitive files (.map, .env, /server.js) with 404 Not Found before static serving', async () => {
+    const serverJsRes = await makeRequest(server, 'GET', '/server.js');
+    expect(serverJsRes.status).toBe(404);
+    expect(serverJsRes.body).toBe('Not Found');
+
+    const mapRes = await makeRequest(server, 'GET', '/bundle.js.map');
+    expect(mapRes.status).toBe(404);
+    expect(mapRes.body).toBe('Not Found');
+
+    const envRes = await makeRequest(server, 'GET', '/test.env');
+    expect(envRes.status).toBe(404);
+    expect(envRes.body).toBe('Not Found');
   });
 });

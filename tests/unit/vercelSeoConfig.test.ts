@@ -145,4 +145,21 @@ describe('Vercel technical SEO routing', () => {
     const rewrites = config.rewrites as Array<Record<string, unknown>>;
     expect(rewrites).toContainEqual({ source: '/api/(.*)', destination: '/api/index.ts' });
   });
+
+  it('enforces edge security headers (HSTS, CSP) and blocks /server.js', () => {
+    const headers = config.headers as Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
+    const rootHeaderRule = headers.find(h => h.source === '/(.*)');
+    expect(rootHeaderRule).toBeDefined();
+
+    const headerMap = Object.fromEntries(
+      (rootHeaderRule?.headers || []).map(h => [h.key, h.value])
+    );
+    expect(headerMap['Strict-Transport-Security']).toBe('max-age=31536000; includeSubDomains');
+    expect(headerMap['Content-Security-Policy']).toContain("default-src 'self'");
+    expect(headerMap['Content-Security-Policy']).toContain("script-src 'self'");
+    expect(headerMap['Content-Security-Policy']).toContain("frame-ancestors 'self' https://ai.studio https://*.ai.studio https://aistudio.google.com");
+
+    const rewrites = config.rewrites as Array<Record<string, unknown>>;
+    expect(rewrites).toContainEqual({ source: '/server.js', destination: '/404' });
+  });
 });

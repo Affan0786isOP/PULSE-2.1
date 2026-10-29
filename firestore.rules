@@ -36,10 +36,9 @@ service cloud.firestore {
       allow write: if false; // Server authoritative
     }
 
-    // Collection: experimentSessions (Session tokens scoped strictly to session owner)
+    // Collection: experimentSessions (Session tokens and HMAC secrets - server only)
     match /experimentSessions/{docId} {
-      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow write: if false; // Server authoritative
+      allow read, write: if false; // Server authoritative only via Admin SDK
     }
 
     // Collection: adminAuditLogs (Immutable ledger managed authoritatively by server)

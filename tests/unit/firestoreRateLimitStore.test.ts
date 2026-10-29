@@ -48,6 +48,9 @@ describe('FirestoreRateLimitStore Unit Tests', () => {
     const { leaderboardFreshReadLimiter } = await import('../../server/config/rateLimits');
     const fakeTokenPayload = Buffer.from(JSON.stringify({ user_id: 'forged-attacker-uid' })).toString('base64url');
     const reqWithFakeAuth = {
+      method: 'GET',
+      originalUrl: '/api/leaderboard?fresh=1',
+      query: { fresh: '1' },
       ip: '198.51.100.1',
       headers: {
         authorization: `Bearer fakeheader.${fakeTokenPayload}.fakesig`
@@ -55,12 +58,80 @@ describe('FirestoreRateLimitStore Unit Tests', () => {
       socket: { remoteAddress: '198.51.100.1' }
     } as any;
 
-    const keyGen = (leaderboardFreshReadLimiter as any).keyGenerator;
-    if (typeof keyGen === 'function') {
-      const generatedKey = keyGen(reqWithFakeAuth);
-      expect(generatedKey).not.toContain('forged-attacker-uid');
-      expect(generatedKey).toContain('198.51.100.1');
-      expect(generatedKey).toBe('leaderboard-fresh-read:ip:198.51.100.1');
-    }
+    const res = {
+      setHeader: vi.fn(),
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn()
+    } as any;
+
+    let capturedKey = '';
+    const spy = vi.spyOn(FirestoreRateLimitStore.prototype, 'increment').mockImplementation(async (key: string) => {
+      capturedKey = key;
+      return { totalHits: 1, resetTime: new Date(Date.now() + 60000) };
+    });
+
+    await leaderboardFreshReadLimiter(reqWithFakeAuth, res, () => {});
+    spy.mockRestore();
+
+    expect(capturedKey).not.toContain('forged-attacker-uid');
+    expect(capturedKey).toContain('198.51.100.1');
+    expect(capturedKey).toBe('leaderboard-fresh-read:ip:198.51.100.1');
   }, 20000);
+
+  it('ignores sub claim and partitions unauthenticated requests strictly by IP', async () => {
+    const { sessionStartLimiter } = await import('../../server/config/rateLimits');
+    const fakeSubPayload = Buffer.from(JSON.stringify({ sub: 'forged-sub-attacker' })).toString('base64url');
+    const reqWithSubOnly = {
+      ip: '198.51.100.2',
+      headers: {
+        authorization: `Bearer header.${fakeSubPayload}.sig`
+      },
+      socket: { remoteAddress: '198.51.100.2' }
+    } as any;
+
+    const res = {
+      setHeader: vi.fn(),
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn()
+    } as any;
+
+    let capturedKey = '';
+    const spy = vi.spyOn(FirestoreRateLimitStore.prototype, 'increment').mockImplementation(async (key: string) => {
+      capturedKey = key;
+      return { totalHits: 1, resetTime: new Date(Date.now() + 60000) };
+    });
+
+    await sessionStartLimiter(reqWithSubOnly, res, () => {});
+    spy.mockRestore();
+
+    expect(capturedKey).not.toContain('forged-sub-attacker');
+    expect(capturedKey).toBe('session-start:ip:198.51.100.2');
+  });
+
+  it('normalizes trailing slashes in leaderboard rate limiter skip predicates', async () => {
+    const { leaderboardReadLimiter } = await import('../../server/config/rateLimits');
+
+    const reqTrailingSlash = {
+      method: 'GET',
+      originalUrl: '/api/leaderboard/?limit=10',
+      headers: {},
+      ip: '198.51.100.99',
+      socket: { remoteAddress: '198.51.100.99' }
+    } as any;
+
+    const res = {
+      setHeader: vi.fn(),
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn()
+    } as any;
+
+    let nextCalled = false;
+    await leaderboardReadLimiter(reqTrailingSlash, res, () => {
+      nextCalled = true;
+    });
+
+    expect(nextCalled).toBe(true);
+    // RateLimit-Limit header is set when the route is processed by the limiter (not skipped)
+    expect(res.setHeader).toHaveBeenCalledWith('RateLimit-Limit', expect.anything());
+  });
 });

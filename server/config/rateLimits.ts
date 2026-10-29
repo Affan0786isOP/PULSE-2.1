@@ -15,10 +15,9 @@ function getUnverifiedUid(req: Request): string | null {
   if (!payload) return null;
   try {
     const decoded = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as {
-      sub?: unknown;
       user_id?: unknown;
     };
-    const uid = typeof decoded.user_id === 'string' ? decoded.user_id : decoded.sub;
+    const uid = typeof decoded.user_id === 'string' ? decoded.user_id : null;
     return typeof uid === 'string' && uid.length > 0 && uid.length <= 256 ? uid : null;
   } catch {
     return null;
@@ -95,7 +94,8 @@ export const leaderboardFreshReadLimiter = rateLimit({
   store: createSharedStore(),
   skip: (req) => {
     if (req.method !== 'GET') return true;
-    if (req.originalUrl.split('?')[0] !== '/api/leaderboard') return true;
+    const pathname = (req.originalUrl || req.url || '').split('?')[0].replace(/\/+$/, '');
+    if (pathname !== '/api/leaderboard') return true;
     const isFresh = req.query.fresh === '1' || req.query.fresh === 'true';
     return !isFresh;
   },
@@ -117,7 +117,11 @@ export const leaderboardReadLimiter = rateLimit({
   max: 600,
   keyGenerator: createLimiterKey('leaderboard-read', false),
   store: createSharedStore(),
-  skip: (req) => req.method !== 'GET' || req.originalUrl.split('?')[0] !== '/api/leaderboard',
+  skip: (req) => {
+    if (req.method !== 'GET') return true;
+    const pathname = (req.originalUrl || req.url || '').split('?')[0].replace(/\/+$/, '');
+    return pathname !== '/api/leaderboard';
+  },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -141,7 +145,8 @@ export const generalApiLimiter = rateLimit({
   keyGenerator: createLimiterKey('general-api', false),
   store: createSharedStore(),
   skip: (req) => {
-    if (req.method === 'GET' && req.originalUrl.split('?')[0] === '/api/leaderboard') return true;
+    const pathname = (req.originalUrl || req.url || '').split('?')[0].replace(/\/+$/, '');
+    if (req.method === 'GET' && pathname === '/api/leaderboard') return true;
 
     // Skip static assets to avoid interfering with normal usage
     if (req.method === 'GET') {

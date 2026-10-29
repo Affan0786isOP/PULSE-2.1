@@ -74,16 +74,20 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
 
     const HASHED_ASSET_REGEX = /\/assets\/.*-[A-Za-z0-9_-]{8,}\.(js|css)$/;
 
+    // Early rejection for sensitive files (.map, .env, /server.js)
+    app.use((req, res, next) => {
+      const cleanPath = (req.path || '').toLowerCase();
+      if (cleanPath.endsWith('.map') || cleanPath.endsWith('.env') || cleanPath === '/server.js' || cleanPath.endsWith('/server.js')) {
+        return res.status(404).send('Not Found');
+      }
+      next();
+    });
+
     const staticFiles = express.static(distPath, {
       index: false,
       dotfiles: 'deny',
       setHeaders: (res, filePath) => {
         const normalized = filePath.replace(/\\/g, '/');
-        if (normalized.endsWith('.map') || normalized.endsWith('/server.js') || normalized.endsWith('.env')) {
-          res.status(404);
-          res.end();
-          return;
-        }
 
         if (HASHED_ASSET_REGEX.test(normalized)) {
           res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
@@ -147,8 +151,13 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
         res.setHeader('Cache-Control', 'no-store');
         return res.status(404).type('text/plain').send('Not found');
       }
-      const mobileHtml = path.join(distPath, 'mobile', 'index.html');
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+      const slug = req.path.replace(/^\/+/, '').replace(/\/+$/, '');
+      const seoPath = slug ? path.join(distPath, 'seo', slug + '.html') : '';
+      if (seoPath && fs.existsSync(seoPath)) {
+        return serveWithNonce(seoPath, res);
+      }
+      const mobileHtml = path.join(distPath, 'mobile', 'index.html');
       if (fs.existsSync(mobileHtml)) {
         serveWithNonce(mobileHtml, res);
       } else {
@@ -163,6 +172,11 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
         return res.status(404).type('text/plain').send('Not found');
       }
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+      const slug = req.path.replace(/^\/+/, '').replace(/\/+$/, '');
+      const seoPath = slug ? path.join(distPath, 'seo', slug + '.html') : '';
+      if (seoPath && fs.existsSync(seoPath)) {
+        return serveWithNonce(seoPath, res);
+      }
       serveWithNonce(path.join(distPath, 'index.html'), res);
     });
   }
