@@ -31,7 +31,7 @@ describe('SEO route registry', () => {
 
     expect(metadata.routes['/dataset'].indexable).toBe(false);
     expect(metadata.routes).not.toHaveProperty('/analytics');
-    expect(metadata.routes['/admin'].indexable).toBe(false);
+    expect(metadata.routes).not.toHaveProperty('/admin');
   });
 
 

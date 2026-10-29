@@ -24,7 +24,7 @@
     "status": 500,
     "body": {
       "success": false,
-      "error": "Database unavailable: Mock DB unavailable diagnostic"
+      "error": "Database unavailable"
     }
   },
   "POST /api/research/session/start [success]": {
@@ -75,7 +75,7 @@
     "status": 500,
     "body": {
       "success": false,
-      "error": "Database unavailable: Mock DB unavailable diagnostic"
+      "error": "Database unavailable"
     }
   },
   "POST /api/research/submit [session_not_found]": {

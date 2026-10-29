@@ -614,8 +614,9 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
-      if (e.code === 'Space') {
+      if (e.code === 'Space' || e.key === 'Enter') {
         e.preventDefault();
+        e.stopPropagation();
         executeTriggerRef.current(e);
       }
     };
