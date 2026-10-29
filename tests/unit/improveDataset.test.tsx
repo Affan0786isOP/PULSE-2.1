@@ -25,7 +25,7 @@ describe('Dataset and Improve Light System Migration', () => {
         </MemoryRouter>
       );
 
-      expect(screen.getByText('PUBLIC RESEARCH DATASET — COMING SOON')).toBeDefined();
+      expect(screen.getByText('PUBLIC RESEARCH DATASET: COMING SOON')).toBeDefined();
       expect(screen.getByText('Explore Assessments')).toBeDefined();
 
       const mainLandmarks = screen.getAllByRole('main');

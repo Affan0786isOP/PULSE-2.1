@@ -50,7 +50,7 @@ describe('Desktop Home Redesign', () => {
     expect(screen.getByText('COGNITIVE BENCHMARKING')).toBeDefined();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Measure.*your/);
     expect(screen.getByText('mind.')).toBeDefined();
-    expect(screen.getByText(/Test your reaction speed, memory and attention/i)).toBeDefined();
+    expect(screen.getByText(/Test your reaction speed, memory, and attention/i)).toBeDefined();
   });
 
   it('renders the top navigation bar with brand, routes, Info, and Settings controls', () => {

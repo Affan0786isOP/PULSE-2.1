@@ -1,13 +1,10 @@
-import { collection, query, limit as firestoreLimit, getDocsFromServer, getCountFromServer, where, orderBy, QueryConstraint } from 'firebase/firestore';
-import { db, isConfigured } from './firebase';
-import { ensureFirebaseReady, ensureAuthenticatedUser } from './firestore';
 import type { RawTrialObservation } from './trialStore';
 
 export interface DatasetObservation {
   id: string;
-  ageGroup: string;
+  ageGroup?: string;
   assessmentType: string;
-  completedAtMonth: string;
+  completedAtMonth?: string;
   completedAtTimestamp?: number;
   device?: string;
   deviceCategory?: string;
@@ -49,9 +46,17 @@ export function unrollTrialsFromDatasetDocs(
           ? pt.rawLatencyMs
           : (typeof pt.inputLatencyMs === 'number' ? pt.inputLatencyMs : 0));
 
-      const isCorrect = typeof pt.correct === 'boolean'
-        ? pt.correct
-        : (pt.accuracy === 1 || pt.accuracy === 100);
+      const numericAccuracy = typeof pt.accuracy === 'number'
+        ? (pt.accuracy > 1 ? pt.accuracy / 100 : pt.accuracy)
+        : null;
+      const accuracy = typeof pt.correct === 'boolean'
+        ? (pt.correct ? 1 : 0)
+        : (numericAccuracy ?? Number.NaN);
+      const valid = typeof pt.valid === 'boolean'
+        ? pt.valid
+        : (typeof pt.validity === 'string'
+          ? pt.validity.toUpperCase() === 'VALID'
+          : (!pt.falseStart && !pt.timedOut && rt > 80));
 
       const targetDir = pt.targetDirection
         ? String(pt.targetDirection).toUpperCase()
@@ -67,7 +72,10 @@ export function unrollTrialsFromDatasetDocs(
         stimulusTimestamp: pt.stimulusPresentedAtPerfMs || 0,
         responseTimestamp: pt.responseDetectedAtPerfMs || 0,
         reactionTime: rt,
-        accuracy: isCorrect ? 1 : (pt.valid === false ? 0 : 1),
+        accuracy,
+        correct: typeof pt.correct === 'boolean' ? pt.correct : undefined,
+        valid,
+        timedOut: Boolean(pt.timedOut),
         falseStart: Boolean(pt.falseStart),
         timestamp: doc.completedAtMonth || new Date().toISOString(),
         device: doc.deviceCategory || doc.device || 'Web Browser',
@@ -85,78 +93,106 @@ export function unrollTrialsFromDatasetDocs(
 export const fetchDatasetObservations = async (
   filters: { assessmentType?: string; ageGroup?: string },
   observationLimit: number = 1000
-): Promise<{ observations: DatasetObservation[]; totalCount: number | null; error?: string }> => {
-  if (!isConfigured || !db) {
-    return { observations: [], totalCount: null, error: 'Database not configured or currently offline.' };
-  }
+): Promise<{ observations: DatasetObservation[]; totalCount: number | null; error?: string; isSampleLimited: boolean }> => {
+  const safeLimit = Math.max(1, Math.min(5000, Math.floor(Number(observationLimit) || 1000)));
+  const pageSize = 250;
+  const observations: DatasetObservation[] = [];
+  const seenCursors = new Set<string>();
+  let cursor: string | null = null;
+  let hasMore = true;
+
+  const assessmentType = filters.assessmentType && filters.assessmentType !== 'All' && filters.assessmentType !== 'all'
+    ? filters.assessmentType
+    : null;
+  const ageGroup = filters.ageGroup && filters.ageGroup !== 'All' && filters.ageGroup !== 'all'
+    ? filters.ageGroup
+    : null;
 
   try {
-    await ensureFirebaseReady();
-    await ensureAuthenticatedUser().catch(() => {});
+    while (observations.length < safeLimit && hasMore) {
+      const params = new URLSearchParams();
+      if (assessmentType) params.set('assessmentType', assessmentType);
+      if (ageGroup) params.set('ageGroup', ageGroup);
+      params.set('limit', String(Math.min(pageSize, safeLimit - observations.length)));
+      if (cursor) params.set('cursor', cursor);
 
-    const datasetRef = collection(db, 'publicDataset');
+      const response = await fetch(`/api/research/dataset?${params.toString()}`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store'
+      });
+      const payload = await response.json() as {
+        success?: boolean;
+        error?: string;
+        records?: DatasetObservation[];
+        hasMore?: boolean;
+        nextCursor?: string | null;
+      };
 
-    // 1. Build filter constraints
-    const filterConstraints: QueryConstraint[] = [];
-    if (filters.assessmentType && filters.assessmentType !== 'All') {
-      filterConstraints.push(where('assessmentType', '==', filters.assessmentType));
-    }
-    if (filters.ageGroup && filters.ageGroup !== 'All') {
-      filterConstraints.push(where('ageGroup', '==', filters.ageGroup));
-    }
-
-    // Query without orderBy constraint so Firestore does not drop records lacking completedAtTimestamp.
-    const observationConstraints: QueryConstraint[] = [
-      ...filterConstraints,
-      firestoreLimit(observationLimit)
-    ];
-    const observationQuery = query(datasetRef, ...observationConstraints);
-    const countQuery = query(datasetRef, ...filterConstraints);
-
-    // Fast count helper with timeout so count server query never stalls document loading
-    const fetchCountWithTimeout = async (): Promise<number | null> => {
-      try {
-        const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
-        const countPromise = getCountFromServer(countQuery).then((s) => s.data().count);
-        return await Promise.race([countPromise, timeoutPromise]);
-      } catch {
-        return null;
+      if (!response.ok || payload.success !== true || !Array.isArray(payload.records)) {
+        throw new Error(payload.error || `Dataset API request failed (HTTP ${response.status}).`);
       }
-    };
 
-    // 2. Fetch observations directly from server and total count concurrently in parallel
-    const [obsResult, countResult] = await Promise.allSettled([
-      getDocsFromServer(observationQuery),
-      fetchCountWithTimeout()
-    ]);
+      observations.push(...payload.records);
+      hasMore = payload.hasMore === true;
 
-    if (obsResult.status === 'rejected') {
-      throw obsResult.reason;
+      if (hasMore) {
+        const nextCursor = typeof payload.nextCursor === 'string' && payload.nextCursor.trim()
+          ? payload.nextCursor.trim()
+          : null;
+        if (!nextCursor || seenCursors.has(nextCursor)) {
+          throw new Error('Dataset API returned an invalid pagination cursor.');
+        }
+        seenCursors.add(nextCursor);
+        cursor = nextCursor;
+      }
     }
 
-    const snapshot = obsResult.value;
-    const observations: DatasetObservation[] = [];
-    snapshot.forEach((doc) => {
-      observations.push({ id: doc.id, ...doc.data() } as DatasetObservation);
-    });
+    let totalCount: number | null = null;
+    if (!ageGroup) {
+      try {
+        const summaryResponse = await fetch('/api/research/dataset/summary', {
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+          cache: 'no-store'
+        });
+        if (summaryResponse.ok) {
+          const summary = await summaryResponse.json() as {
+            success?: boolean;
+            totalRecords?: number;
+            counts?: Record<string, number>;
+          };
+          if (summary.success === true) {
+            const candidate = assessmentType ? summary.counts?.[assessmentType] : summary.totalRecords;
+            if (typeof candidate === 'number' && Number.isFinite(candidate) && candidate >= 0) {
+              totalCount = candidate;
+            }
+          }
+        }
+      } catch {
+        // A summary failure must not hide successfully fetched dataset records.
+      }
+    }
 
-    // In-memory sort by completedAtTimestamp or completedAtMonth descending
+    const isSampleLimited = hasMore && observations.length >= safeLimit;
+    if (totalCount === null && !isSampleLimited) totalCount = observations.length;
+    if (totalCount !== null && totalCount < observations.length) totalCount = observations.length;
+
     observations.sort((a, b) => {
       const timeA = Number(a.completedAtTimestamp || (a.completedAtMonth ? new Date(a.completedAtMonth).getTime() : 0));
       const timeB = Number(b.completedAtTimestamp || (b.completedAtMonth ? new Date(b.completedAtMonth).getTime() : 0));
       return timeB - timeA;
     });
 
-    const totalCount = countResult.status === 'fulfilled' ? countResult.value : null;
-
-    return { observations, totalCount };
-  } catch (error: any) {
-    const rawMsg = error?.message || '';
-    let uiMsg = rawMsg || 'Failed to fetch dataset';
-    if (rawMsg.includes('may exist in the local cache')) {
-      uiMsg = 'Cloud database is unreachable. (Local caching is strictly disabled by application policy.)';
-    }
-    console.warn('Dataset fetch failed:', rawMsg || error);
-    return { observations: [], totalCount: null, error: uiMsg };
+    return { observations, totalCount, isSampleLimited };
+  } catch (error: unknown) {
+    console.warn('Dataset API fetch failed:', error instanceof Error ? error.message : error);
+    return {
+      observations: [],
+      totalCount: null,
+      error: 'Research data could not be loaded. Refresh the page to try again.',
+      isSampleLimited: false
+    };
   }
 };
+

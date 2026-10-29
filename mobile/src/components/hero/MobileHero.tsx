@@ -149,7 +149,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
 
         {/* Subtitle */}
         <p className="text-[#475569] dark:text-slate-400 text-[14px] leading-[1.5] max-w-[340px] font-normal mb-6">
-          Test your reaction speed, memory and attention — right in your browser, with no account required.
+          Test your reaction speed, memory, and attention right in your browser, with no account required.
         </p>
 
         {/* 4 Quick Navigation Shortcuts (2x2 Grid) */}

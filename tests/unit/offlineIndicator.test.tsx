@@ -46,7 +46,7 @@ describe('Accessible Theme-Matched Offline Indicator (Tier 6)', () => {
 
     const btn = screen.getByRole('button', { name: /offline/i });
     expect(btn).not.toBeNull();
-    expect(btn.getAttribute('title')).toBe('Offline — cloud features and assessment start unavailable');
+    expect(btn.getAttribute('title')).toBe('Offline: cloud features and assessment start unavailable');
   });
 
   it('does not render offline indicator in desktop navbar when online', () => {
@@ -78,7 +78,7 @@ describe('Accessible Theme-Matched Offline Indicator (Tier 6)', () => {
 
     const btn = screen.getByRole('button', { name: /offline/i });
     expect(btn).not.toBeNull();
-    expect(btn.getAttribute('title')).toBe('Offline — cloud features and assessment start unavailable');
+    expect(btn.getAttribute('title')).toBe('Offline: cloud features and assessment start unavailable');
   });
 
   it('does not render offline indicator in mobile navbar when online', () => {

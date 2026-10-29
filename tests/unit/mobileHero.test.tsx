@@ -43,7 +43,7 @@ describe('MobileHero', () => {
     expect(screen.getByText('COGNITIVE BENCHMARKING')).toBeDefined();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Measure.*your/);
     expect(screen.getByText('mind.')).toBeDefined();
-    expect(screen.getByText(/Test your reaction speed, memory and attention — right in your browser, with no account required\./i)).toBeDefined();
+    expect(screen.getByText(/Test your reaction speed, memory, and attention right in your browser, with no account required\./i)).toBeDefined();
   });
 
   it('renders all four feature shortcuts and navigates to their actual routes', () => {
