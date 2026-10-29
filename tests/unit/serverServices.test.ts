@@ -575,6 +575,7 @@ describe('Server Application Services Unit Tests', () => {
         userId: 'user-1',
         assessmentType: 'visual-reaction',
         ageGroup: 'Young adults (18–25)',
+        serverDeviceCategory: 'desktop',
         trials: [],
       })
     ).rejects.toBeInstanceOf(SessionAlreadyConsumedError);
@@ -606,6 +607,7 @@ describe('Server Application Services Unit Tests', () => {
         userId: 'user-1',
         assessmentType: 'visual-reaction',
         ageGroup: 'Young adults (18–25)',
+        serverDeviceCategory: 'desktop',
         trials: [],
       })
     ).rejects.toMatchObject({ message: expect.stringContaining('implausibly short') });

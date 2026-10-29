@@ -179,7 +179,7 @@ describe('TelegramNotifierService', () => {
       for (let i = 0; i < 210; i++) {
         await service.enqueuePageView({
           eventId: `cap-event-${i}`,
-          route: `/test-${i}`,
+          route: '/assessments',
           surface: 'desktop'
         });
       }
