@@ -134,11 +134,21 @@ describe('Static Routes & API Caching Headers (Tier 1)', () => {
     expect(manifestRes.headers['cache-control']).toBe('public, max-age=86400, stale-while-revalidate=604800');
   });
 
-  it('sets no-cache on SPA html fallback navigations', async () => {
+  it('sets no-cache on desktop and mobile SPA fallback navigations, including root paths', async () => {
+    const rootPageRes = await makeRequest(server, 'GET', '/');
+    expect(rootPageRes.status).toBe(200);
+    expect(rootPageRes.headers['cache-control']).toBe('no-cache, must-revalidate');
+    expect(rootPageRes.body).toContain('Desktop Shell');
+
     const pageRes = await makeRequest(server, 'GET', '/reaction-test');
     expect(pageRes.status).toBe(200);
     expect(pageRes.headers['cache-control']).toBe('no-cache, must-revalidate');
     expect(pageRes.body).toContain('Desktop Shell');
+
+    const mobileRootRes = await makeRequest(server, 'GET', '/mobile/');
+    expect(mobileRootRes.status).toBe(200);
+    expect(mobileRootRes.headers['cache-control']).toBe('no-cache, must-revalidate');
+    expect(mobileRootRes.body).toContain('Mobile Shell');
 
     const mobilePageRes = await makeRequest(server, 'GET', '/mobile/reaction-test');
     expect(mobilePageRes.status).toBe(200);
