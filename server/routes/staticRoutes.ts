@@ -13,7 +13,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
       appType: 'custom',
     });
 
-    app.get(['/mobile', '/mobile/*'], async (req, res, next) => {
+    app.get('/mobile/{*splat}', async (req, res, next) => {
       try {
         if (req.path.startsWith('/mobile/src') || req.path.startsWith('/mobile/@') || path.extname(req.path)) {
           return next();
@@ -146,7 +146,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
       return serveWithNonce(candidate, res);
     });
 
-    app.get(['/mobile', '/mobile/*'], (req, res) => {
+    app.get('/mobile/{*splat}', (req, res) => {
       if (isMissingStaticAsset(req.path)) {
         res.setHeader('Cache-Control', 'no-store');
         return res.status(404).type('text/plain').send('Not found');
@@ -166,7 +166,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
     });
 
     // SPA fallback for all other routes
-    app.get('/*', (req, res) => {
+    app.get('/{*splat}', (req, res) => {
       if (isMissingStaticAsset(req.path)) {
         res.setHeader('Cache-Control', 'no-store');
         return res.status(404).type('text/plain').send('Not found');
