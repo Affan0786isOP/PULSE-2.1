@@ -1,5 +1,5 @@
 import React from 'react';
-import type { LocalProfile } from '@/lib/profiles/idbProfileStorage';
+import type { LocalProfile } from '@shared/contracts/profiles';
 import { VALID_OBSERVATORY_THEMES } from '@shared/contracts/profiles';
 
 interface MobileProfileManagerProps {

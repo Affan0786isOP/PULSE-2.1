@@ -1,4 +1,4 @@
-import type { AgeGroup, AssessmentType } from '../types/assessment';
+import type { AgeGroup, AssessmentType } from './common';
 
 export const VALID_OBSERVATORY_THEMES = [
   { id: 'cyan', label: 'Signal Cyan', hex: '#00F0FF', borderClass: 'border-cyan-400' },
@@ -47,8 +47,8 @@ export function normalizeProfileDisplayName(name: string): string {
 }
 
 export type DisplayNameValidationResult =
-  | { valid: true; normalized: string }
-  | { valid: false; error: string };
+  | { valid: true; normalized: string; error?: never }
+  | { valid: false; error: string; normalized?: never };
 
 export function validateProfileDisplayName(name: string): DisplayNameValidationResult {
   if (typeof name !== 'string') {
@@ -176,3 +176,28 @@ export interface ProfileOwnershipTransferJob {
 export type LeaderboardIdentity =
   | { kind: 'profile'; profileUid: string }
   | { kind: 'guest'; legacyIdentity: string };
+
+export interface LocalProfile {
+  profileUid: string;
+  displayName: string;
+  ageGroup: AgeGroup;
+  themeAccent?: ObservatoryThemeId;
+  avatarGlyph?: ObservatoryGlyphId;
+  shareAgeGroup?: boolean;
+  shareAgeGroupOnLeaderboard?: boolean;
+  revision: number;
+}
+
+export interface PublicLeaderboardEntry {
+  id: string;
+  displayName: string;
+  assessmentType: string;
+  scoreMetric: number;
+  accuracy: number | null;
+  ageGroup: string | null;
+  hasRegisteredProfile: boolean;
+  resultValidationStatus: 'pending' | 'validated' | 'rejected';
+  hidden: boolean;
+  submittedAtMonth: string;
+  createdAt: number | string | Date;
+}

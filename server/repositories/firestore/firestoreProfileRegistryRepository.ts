@@ -1,22 +1,24 @@
+import type { Firestore, Transaction, DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import * as crypto from 'crypto';
 import {
   validateProfileDisplayName,
-  normalizeProfileDisplayName,
   type ProfileRecord,
   type NameReservation,
   type AccountRegistry
 } from '../../../shared/contracts/profiles';
+import type { AgeGroup } from '../../../shared/contracts/common';
+import type { IProfileRegistryRepository } from '../interfaces/IProfileRegistryRepository';
 import { AppError } from '../../models/replayContracts';
 
 export interface ReserveProfileParams {
   ownerUid: string;
   displayName: string;
-  ageGroup: any;
+  ageGroup: string;
   shareAgeGroupOnLeaderboard?: boolean;
 }
 
-export class FirestoreProfileRegistryRepository {
-  constructor(private readonly getDb: () => any) {}
+export class FirestoreProfileRegistryRepository implements IProfileRegistryRepository {
+  constructor(private readonly getDb: () => Firestore | null) {}
 
   generateProfileUid(): string {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
@@ -49,7 +51,7 @@ export class FirestoreProfileRegistryRepository {
 
     const now = Date.now();
 
-    return await db.runTransaction(async (tx: any) => {
+    return await db.runTransaction(async (tx: Transaction) => {
       const [accountSnap, nameSnap] = await Promise.all([
         tx.get(accountRef),
         tx.get(nameRef)
@@ -83,7 +85,7 @@ export class FirestoreProfileRegistryRepository {
         if (nameData.status === 'tombstone' && nameData.expiresAt) {
           const exp = typeof nameData.expiresAt === 'number'
             ? nameData.expiresAt
-            : (nameData.expiresAt as any)?.toMillis?.() || 0;
+            : (nameData.expiresAt as Timestamp)?.toMillis?.() || 0;
           if (now < exp) {
             throw new AppError('NAME_IN_COOLDOWN: That display name was recently deleted and is in cooldown', 409);
           }
@@ -94,7 +96,7 @@ export class FirestoreProfileRegistryRepository {
         profileUid,
         displayName: displayName.trim(),
         normalizedName,
-        ageGroup,
+        ageGroup: ageGroup as AgeGroup,
         ownerUid,
         shareAgeGroupOnLeaderboard: Boolean(shareAgeGroupOnLeaderboard),
         revision: 1,
@@ -154,7 +156,9 @@ export class FirestoreProfileRegistryRepository {
     }
 
     if (data.status === 'tombstone' && data.expiresAt) {
-      const exp = typeof data.expiresAt === 'number' ? data.expiresAt : data.expiresAt.toMillis?.() || 0;
+      const exp = typeof data.expiresAt === 'number'
+        ? data.expiresAt
+        : (data.expiresAt as Timestamp)?.toMillis?.() || 0;
       if (Date.now() < exp) {
         return { available: false, normalizedName: validation.normalized, reason: 'NAME_IN_COOLDOWN' };
       }
@@ -191,7 +195,7 @@ export class FirestoreProfileRegistryRepository {
     const profileRef = db.collection('profiles').doc(profileUid);
     const accountRef = db.collection('accounts').doc(ownerUid);
 
-    return await db.runTransaction(async (tx: any) => {
+    return await db.runTransaction(async (tx: Transaction) => {
       const [profileSnap, accountSnap] = await Promise.all([
         tx.get(profileRef),
         tx.get(accountRef)

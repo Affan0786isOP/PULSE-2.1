@@ -34,6 +34,7 @@ const NumberMemoryTest = React.lazy(() => import('./components/NumberMemoryTest'
 const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({ default: m.ColorTest })));
 const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
+const MobileProfileManager = React.lazy(() => import('./components/profiles/MobileProfileManager').then(m => ({ default: m.MobileProfileManager })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
 
 import { isDarkApparatusRoute } from './lib/routeTheme';
@@ -98,6 +99,10 @@ function App() {
       case 'analytics':
         navigate('/dataset');
         break;
+      case 'profiles':
+      case 'profile':
+        navigate('/profiles');
+        break;
       case 'improve': navigate('/improve'); break;
       case 'visual-reaction':
       case 'reaction-test':
@@ -160,6 +165,7 @@ function App() {
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
                   <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
                   <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
+                  <Route path="/profiles" element={<MobileProfileManager profiles={[]} activeProfileUid={null} onSelectProfile={() => {}} onDeleteProfile={async () => {}} onClose={() => handleNavigate('home')} />} />
                   <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                   <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                   <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />

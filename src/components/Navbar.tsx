@@ -7,6 +7,8 @@ import { PulseLogo } from './brand';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { resolveActiveNavId } from '../lib/navigation';
 import { preloadRoute } from '../lib/routeTheme';
+import { useProfiles } from '../lib/profiles/ProfileContext';
+import { ProfilePill } from './profiles/ProfilePill';
 export { resolveActiveNavId };
 
 // Defer modal loading until user interaction
@@ -57,6 +59,10 @@ export function Navbar({
   const navigate = useNavigate();
   const pwa = usePwaInstall();
   const isHome = currentView === 'home' || location.pathname === '/' || location.pathname === '/index.html';
+  let profileContext: ReturnType<typeof useProfiles> | null = null;
+  try {
+    profileContext = useProfiles();
+  } catch (_) {}
 
   const handleCloseSettings = React.useCallback(() => setIsSettingsOpen(false), []);
   const handleCloseWelcome = React.useCallback(() => setIsWelcomeOpen(false), []);
@@ -356,6 +362,17 @@ export function Navbar({
 
       {/* Right Info, Settings & Install Actions */}
       <div className="flex items-center gap-2 sm:gap-2.5">
+        {profileContext && !isAssessmentActive && (
+          <div className="hidden sm:block">
+            <ProfilePill
+              activeProfile={profileContext.activeProfile}
+              onOpenManager={() => {
+                if (onNavigate) onNavigate('profiles');
+                else navigate('/profiles');
+              }}
+            />
+          </div>
+        )}
         {rightContent && (
           <div className="hidden sm:block">
             {rightContent}

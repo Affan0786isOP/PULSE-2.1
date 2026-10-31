@@ -7,6 +7,7 @@ export const CANONICAL_ASSESSMENT_IDS = [
 ] as const;
 
 export type AssessmentId = (typeof CANONICAL_ASSESSMENT_IDS)[number];
+export type AssessmentType = AssessmentId;
 
 export const VALID_AGE_GROUPS = [
   'Children (8–12)',
