@@ -681,7 +681,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection assessmentId="visual-reaction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return <AgeSelection assessmentId="visual-reaction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} onNavigate={onNavigate} />;
   }
 
   if (sessionError) {

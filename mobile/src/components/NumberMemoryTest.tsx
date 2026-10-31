@@ -541,7 +541,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection assessmentId="number-memory" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return <AgeSelection assessmentId="number-memory" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} onNavigate={onNavigate} />;
   }
 
   if (sessionError) {

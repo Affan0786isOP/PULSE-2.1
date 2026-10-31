@@ -723,7 +723,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection assessmentId="direction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return <AgeSelection assessmentId="direction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} onNavigate={onNavigate} />;
   }
 
   if (sessionError) {

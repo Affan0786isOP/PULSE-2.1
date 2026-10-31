@@ -717,7 +717,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
         showFooter={false}
         contentClassName="items-center justify-center py-4"
       >
-        <AgeSelection assessmentId="direction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />
+        <AgeSelection assessmentId="direction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} onNavigate={onNavigate} />
       </PageShell>
     );
   }

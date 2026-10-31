@@ -611,7 +611,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection assessmentId="color-recognition" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return <AgeSelection assessmentId="color-recognition" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} onNavigate={onNavigate} />;
   }
 
   if (sessionError) {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { VALID_AGE_GROUPS, AgeGroup } from '../lib/firestore';
 import { ArrowLeft, User, Check, Sparkles, Compass, Zap, Target, Layers, ShieldCheck, Award, ArrowRight, Info } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -22,9 +23,11 @@ interface AgeSelectionProps {
   onCancel: () => void;
   assessmentId?: string;
   route?: string;
+  onNavigate?: (view: string) => void;
 }
 
-export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSelectionProps) {
+export function AgeSelection({ onSelect, onCancel, assessmentId, route, onNavigate }: AgeSelectionProps) {
+  const navigate = useNavigate();
   const [showPreFlight, setShowPreFlight] = useState<boolean>(true);
   const [selectedAge, setSelectedAge] = useState<AgeGroup | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -71,7 +74,11 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
             }
           }}
           onManageProfiles={() => {
-            window.location.href = '/profiles';
+            if (onNavigate) {
+              onNavigate('profiles');
+            } else {
+              navigate('/profiles');
+            }
           }}
           onCancel={onCancel}
         />

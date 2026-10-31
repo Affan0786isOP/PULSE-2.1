@@ -578,7 +578,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
         showFooter={false}
         contentClassName="items-center justify-center py-4"
       >
-        <AgeSelection assessmentId="number-memory" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />
+        <AgeSelection assessmentId="number-memory" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} onNavigate={onNavigate} />
       </PageShell>
     );
   }
