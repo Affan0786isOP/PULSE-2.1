@@ -7,6 +7,7 @@ interface ProfileSelectorPreFlightProps {
   activeProfileUid: string | null;
   onSelectAndStart: (profile: LocalProfile | null) => void;
   onManageProfiles: () => void;
+  onCancel?: () => void;
 }
 
 export const ProfileSelectorPreFlight: React.FC<ProfileSelectorPreFlightProps> = ({
@@ -69,8 +70,15 @@ export const ProfileSelectorPreFlight: React.FC<ProfileSelectorPreFlightProps> =
           </div>
         </div>
       ) : (
-        <div className="py-6 border border-dashed border-slate-800 rounded-xl mb-6">
+        <div className="py-6 border border-dashed border-slate-800 rounded-xl mb-6 flex flex-col items-center">
           <p className="text-xs text-slate-400">No participant profiles found on this device.</p>
+          <button
+            type="button"
+            onClick={onManageProfiles}
+            className="mt-2.5 text-xs text-cyan-400 hover:text-cyan-300 font-mono underline cursor-pointer"
+          >
+            + Create a Profile
+          </button>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useProfiles } from '../../lib/profiles/ProfileContext';
 import { ProfileManager } from './ProfileManager';
-import { Navbar } from '../Navbar';
+import { PageShell } from '../layout/PageShell';
 import { HomeFooter } from '../home/HomeFooter';
 import { exportEncryptedProfileBackup, importEncryptedProfileBackup } from '../../lib/profiles/profileCryptoBackup';
 
@@ -55,9 +55,14 @@ export const ProfilesPage: React.FC<{ onNavigate?: (view: string) => void }> = (
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--surface-0,#0B0D10)] text-slate-100">
-      <Navbar onNavigate={onNavigate || (() => {})} currentView="profiles" title="Profiles" />
-      <main className="flex-1 pt-24 pb-12">
+    <PageShell
+      currentView="profiles"
+      customTitle="Participant Profiles | PULSE"
+      customDescription="Manage local participant profiles, Observatory color themes, and export encrypted profile archives."
+      onNavigate={onNavigate}
+      maxWidth="5xl"
+    >
+      <div className="w-full pt-8 pb-12">
         <ProfileManager
           profiles={profiles}
           activeProfileUid={activeProfile?.profileUid || null}
@@ -67,8 +72,8 @@ export const ProfilesPage: React.FC<{ onNavigate?: (view: string) => void }> = (
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}
         />
-      </main>
+      </div>
       <HomeFooter />
-    </div>
+    </PageShell>
   );
 };
