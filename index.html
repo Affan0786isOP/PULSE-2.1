@@ -275,6 +275,17 @@
         applySavedSettings();
       })();
     </script>
+    <script type="speculationrules">
+      {
+        "prefetch": [
+          {
+            "source": "list",
+            "urls": ["/assessments", "/reaction-test", "/direction-test", "/colour-recognition", "/block-memory", "/number-memory", "/about", "/leaderboard", "/improve", "/privacy"],
+            "eagerness": "moderate"
+          }
+        ]
+      }
+    </script>
     <style>
       html, body {
         background-color: var(--bg-base, #FFFFFF);
