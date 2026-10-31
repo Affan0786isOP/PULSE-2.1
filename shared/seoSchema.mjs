@@ -20,6 +20,7 @@ export function buildHomeSchema(metadata, canonicalUrlOverride) {
         '@id': homeUrl + '/#organization',
         name: site.name,
         alternateName: site.legalName,
+        slogan: 'Measure Your Mind. Understand Your Potential.',
         url: rootCanonical,
         logo: {
           '@type': 'ImageObject',
@@ -72,6 +73,61 @@ export function buildRouteSchema(metadata, pathname, canonicalUrlOverride) {
   const { site, routes } = metadata;
   const canonicalUrl = canonicalUrlOverride || site.url.replace(/\/$/, '') + pathname;
   const route = routes[pathname];
+
+  // Specific schema enhancement for Assessment protocols
+  if (pathname.endsWith('-test') || pathname === '/colour-recognition' || pathname === '/block-memory' || pathname === '/number-memory') {
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': canonicalUrl + '#webpage',
+      url: canonicalUrl,
+      name: route?.title ?? 'Cognitive Assessment | ' + site.name,
+      description: route?.description ?? site.description,
+      image: site.ogImage,
+      isPartOf: { '@id': site.url.replace(/\/$/, '') + '/#website' },
+      about: { '@id': site.url.replace(/\/$/, '') + '/#organization' },
+      mainEntity: {
+        '@type': 'SoftwareApplication',
+        name: route?.title?.split('|')[0]?.trim() ?? site.name,
+        applicationCategory: 'EducationalApplication',
+        operatingSystem: 'Web',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+          url: canonicalUrl
+        }
+      },
+      inLanguage: 'en'
+    };
+  }
+
+  // Specific schema enhancement for Assessment hub
+  if (pathname === '/assessments') {
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      '@id': canonicalUrl + '#webpage',
+      url: canonicalUrl,
+      name: route?.title ?? 'Cognitive Assessments | ' + site.name,
+      description: route?.description ?? site.description,
+      image: site.ogImage,
+      isPartOf: { '@id': site.url.replace(/\/$/, '') + '/#website' },
+      about: { '@id': site.url.replace(/\/$/, '') + '/#organization' },
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Visual Reaction Test', url: site.url.replace(/\/$/, '') + '/reaction-test' },
+          { '@type': 'ListItem', position: 2, name: 'Directional Choice Test', url: site.url.replace(/\/$/, '') + '/direction-test' },
+          { '@type': 'ListItem', position: 3, name: 'Colour Recognition Test', url: site.url.replace(/\/$/, '') + '/colour-recognition' },
+          { '@type': 'ListItem', position: 4, name: 'Block Memory Test', url: site.url.replace(/\/$/, '') + '/block-memory' },
+          { '@type': 'ListItem', position: 5, name: 'Number Memory Test', url: site.url.replace(/\/$/, '') + '/number-memory' }
+        ]
+      },
+      inLanguage: 'en'
+    };
+  }
+
   return {
     '@context': 'https://schema.org',
     '@type': pathname === '/about' ? 'AboutPage' : 'WebPage',
