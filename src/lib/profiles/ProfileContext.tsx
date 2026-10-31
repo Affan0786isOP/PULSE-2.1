@@ -144,7 +144,15 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 export function useProfiles(): ProfileContextValue {
   const ctx = useContext(ProfileContext);
   if (!ctx) {
-    throw new Error('useProfiles must be used within a ProfileProvider');
+    return {
+      profiles: [],
+      activeProfile: null,
+      loading: false,
+      setActiveProfile: async () => {},
+      createProfile: async (p) => ({ ...p, profileUid: 'guest', revision: 1 }),
+      deleteProfile: async () => {},
+      refreshProfiles: async () => {}
+    };
   }
   return ctx;
 }
