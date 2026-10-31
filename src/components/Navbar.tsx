@@ -324,7 +324,7 @@ export function Navbar({
       </div>
 
       {/* Center Main Links */}
-      <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8 min-[2560px]:gap-10">
+      <nav aria-label="Main Navigation" className="hidden md:flex items-center gap-6 lg:gap-8 min-[2560px]:gap-10 absolute left-1/2 -translate-x-1/2">
         {navItems.map(item => {
           const isActive = activeId === item.id;
           if (isAssessmentActive) {
@@ -362,7 +362,7 @@ export function Navbar({
 
       {/* Right Info, Settings & Install Actions */}
       <div className="flex items-center gap-2 sm:gap-2.5">
-        {profileContext && !isAssessmentActive && (
+        {profileContext?.activeProfile && !isAssessmentActive && (
           <div className="hidden sm:block">
             <ProfilePill
               activeProfile={profileContext.activeProfile}

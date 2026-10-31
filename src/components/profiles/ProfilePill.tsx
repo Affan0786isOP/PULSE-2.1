@@ -9,16 +9,7 @@ interface ProfilePillProps {
 
 export const ProfilePill: React.FC<ProfilePillProps> = ({ activeProfile, onOpenManager }) => {
   if (!activeProfile) {
-    return (
-      <button
-        onClick={onOpenManager}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 transition-all text-xs font-mono text-slate-300"
-        title="Manage Profiles"
-      >
-        <span className="w-2 h-2 rounded-full bg-slate-500" />
-        <span>Guest</span>
-      </button>
-    );
+    return null;
   }
 
   const theme = VALID_OBSERVATORY_THEMES.find(t => t.id === activeProfile.themeAccent) || VALID_OBSERVATORY_THEMES[0];
