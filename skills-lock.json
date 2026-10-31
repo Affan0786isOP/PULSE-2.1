@@ -1,6 +1,60 @@
 {
   "version": 1,
   "skills": {
+    "add-x-tweet": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/add-x-tweet/SKILL.md",
+      "computedHash": "3752b8461426d97c907a49392f8ae1614d6b3a7addfac95723bdc8b898d56750"
+    },
+    "bklit-changelog": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/bklit-changelog/SKILL.md",
+      "computedHash": "d822c84d43f78a261afbd273f939e36a89829ec58ef4f63ad22914860d9c503d"
+    },
+    "bklit-playground": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/bklit-playground/SKILL.md",
+      "computedHash": "69990d4396b207fe34d8305580571569152787dd9c395e03eab06971bbbfb188"
+    },
+    "bklit-ship": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/bklit-ship/SKILL.md",
+      "computedHash": "9fa1f907f75cb53a1d97e29fcf7cfd5cfbc7bc5cfdce99754ba84b728f154174"
+    },
+    "bklit-studio": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/bklit-studio/SKILL.md",
+      "computedHash": "18e7623acdcca3341a89e1c3db207ce9c503e4400d8a329cce523f4888fc4c92"
+    },
+    "bklit-studio-chart-performance": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/bklit-studio-chart-performance/SKILL.md",
+      "computedHash": "ab755cb557f7819c2f6600d789a5d8c6c89491aad0d2c7963a4d62b4f7be240e"
+    },
+    "bklit-ui": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": "skills/bklit-ui/SKILL.md",
+      "computedHash": "b396f8bcc7a292885f0ca897ba975d55d32d12692f7ab29bd4ae14f75bd38d50"
+    },
+    "bklit-ui-design": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": "skills/bklit-ui-design/SKILL.md",
+      "computedHash": "c18592bdebc7835935b5a23165ced9463f4ed10214355f95cb0d224ff33a4ddd"
+    },
+    "bklit-ui-migrate": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": "skills/bklit-ui-migrate/SKILL.md",
+      "computedHash": "ca4392032e38f86de85caed384bc1298e2e36029a741edde57e096c5d93003e3"
+    },
     "brag": {
       "source": "latent-spaces/brag",
       "sourceType": "github",
@@ -12,6 +66,30 @@
       "sourceType": "github",
       "skillPath": "skills/gravitas/SKILL.md",
       "computedHash": "1ef9a8048a626aafe7c87f74cefaf030e71cff6231abad5e917cc5d9cd1fdefb"
+    },
+    "pr-open": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/pr-open/SKILL.md",
+      "computedHash": "b4709a2ba3aa45e4efce998aa77a078fb07572795177145a4d3909f50d4cd743"
+    },
+    "turborepo": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/turborepo/SKILL.md",
+      "computedHash": "bb62520ab7ccd65f3491b174ee083377df4af56c2bdba9881116220becac5c7b"
+    },
+    "unit-tests": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/unit-tests/SKILL.md",
+      "computedHash": "da0a9c0ba92cda993e4903603107dfc41c315a9befc0423f3e3d27b5b2f76928"
+    },
+    "wiki-llms-text": {
+      "source": "bklit/bklit-ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/wiki-llms-text/SKILL.md",
+      "computedHash": "a4e0627d69f2065be32f38bdb88e5d86eea96ffd88ea7dac023fd04910666e45"
     }
   }
 }
