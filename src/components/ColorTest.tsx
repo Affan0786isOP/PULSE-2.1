@@ -725,7 +725,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         showFooter={false}
         contentClassName="items-center justify-center py-4"
       >
-        <AgeSelection assessmentId="color-recognition" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />
+        <AgeSelection assessmentId="color-recognition" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} onNavigate={onNavigate} />
       </PageShell>
     );
   }

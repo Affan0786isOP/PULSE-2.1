@@ -336,6 +336,16 @@
       "statusCode": 301
     },
     {
+      "source": "/profiles/",
+      "destination": "/profiles",
+      "statusCode": 301
+    },
+    {
+      "source": "/mobile/profiles/",
+      "destination": "/mobile/profiles",
+      "statusCode": 301
+    },
+    {
       "source": "/admin/",
       "destination": "/admin",
       "statusCode": 301
@@ -811,6 +821,14 @@
     {
       "source": "/mobile/benchmarks/cognitive-percentiles",
       "destination": "/seo/mobile/benchmarks/cognitive-percentiles.html"
+    },
+    {
+      "source": "/profiles",
+      "destination": "/seo/profiles.html"
+    },
+    {
+      "source": "/mobile/profiles",
+      "destination": "/seo/mobile/profiles.html"
     },
     {
       "source": "/about",

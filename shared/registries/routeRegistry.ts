@@ -100,6 +100,16 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     seoBehavior: { index: true },
     isAdministrative: false,
   },
+  {
+    routeId: 'profiles',
+    path: '/profiles',
+    domain: undefined,
+    navigationLabel: 'Profiles',
+    aliases: [],
+    deviceAvailability: 'all',
+    seoBehavior: { index: false },
+    isAdministrative: false,
+  },
 
   // Assessment Protocols
   {

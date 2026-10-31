@@ -57,6 +57,12 @@
       "clientFallback": false,
       "lastmod": "2026-11-01"
     },
+    "/profiles": {
+      "title": "Participant Profiles | PULSE",
+      "description": "Manage local participant profiles, Observatory color themes, and export encrypted profile archives.",
+      "indexable": false,
+      "clientFallback": true
+    },
     "/reaction-test": {
       "title": "Reaction Time Test | Visual Reaction Test | PULSE",
       "description": "Benchmark visual reaction time using PULSE's browser-based reaction test, featuring randomized stimulus delays and an estimated display refresh adjustment.",

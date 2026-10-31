@@ -814,7 +814,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         showFooter={false}
         contentClassName="items-center justify-center py-4"
       >
-        <AgeSelection assessmentId="visual-reaction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />
+        <AgeSelection assessmentId="visual-reaction" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} onNavigate={onNavigate} />
       </PageShell>
     );
   }

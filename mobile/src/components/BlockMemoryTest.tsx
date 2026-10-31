@@ -598,7 +598,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
   }, []);
 
   if (!selectedAgeGroup) {
-    return <AgeSelection assessmentId="block-memory" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} />;
+    return <AgeSelection assessmentId="block-memory" onSelect={setSelectedAgeGroup} onCancel={() => onNavigate('assessments')} onNavigate={onNavigate} />;
   }
 
   if (sessionError) {
