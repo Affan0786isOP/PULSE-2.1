@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { triggerHaptic } from '../lib/settingsStore';
 import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 import { PulseLogo } from './brand';
+import { MobileProfileSelectorPreFlight } from './profiles/MobileProfileSelectorPreFlight';
 
 const AGE_METADATA: Record<AgeGroup, { label: string; range: string; icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }> }> = {
   'Children (8–12)': { label: 'Children', range: '8–12 yrs', icon: Sparkles },
@@ -24,6 +25,7 @@ interface AgeSelectionProps {
 }
 
 export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSelectionProps) {
+  const [showPreFlight, setShowPreFlight] = useState<boolean>(true);
   const [selectedAge, setSelectedAge] = useState<AgeGroup | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
@@ -52,6 +54,30 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
       onSelect(selectedAge);
     }
   };
+
+  if (showPreFlight) {
+    return (
+      <div 
+        className="h-[100dvh] max-h-[100dvh] w-full bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] dark:from-[#0B0D10] dark:via-[#0B0D10] dark:to-[#0B0D10] text-[#090D1A] dark:text-[#F5F7FA] flex flex-col justify-between overflow-hidden p-3 p-safe selection:bg-[#0066FF]/20"
+      >
+        <MobileProfileSelectorPreFlight
+          profiles={[]}
+          activeProfileUid={null}
+          onSelectAndStart={(profile) => {
+            if (profile) {
+              onSelect(profile.ageGroup);
+            } else {
+              setShowPreFlight(false);
+            }
+          }}
+          onManageProfiles={() => {
+            window.location.href = '/profiles';
+          }}
+          onCancel={onCancel}
+        />
+      </div>
+    );
+  }
 
   return (
     <div 

@@ -50,6 +50,11 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
     assessmentLockStore.resetForTesting();
   });
 
+  const continueAsGuest = () => {
+    const btn = screen.queryByRole('button', { name: /continue as guest/i });
+    if (btn) fireEvent.click(btn);
+  };
+
   describe('ReactionTest (Visual Reaction Engine)', () => {
     it('renders AgeSelection dialog in single main landmark before cohort is selected', () => {
       const onNavigate = vi.fn();
@@ -58,6 +63,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
           <ReactionTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       const mainLandmarks = screen.getAllByRole('main');
       expect(mainLandmarks).toHaveLength(1);
@@ -77,6 +83,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
           <ReactionTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       const youngAdultsBtn = screen.getByRole('button', { name: /young adults/i });
       fireEvent.click(youngAdultsBtn);
@@ -116,6 +123,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
           <ReactionTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       // Select age group
       fireEvent.click(screen.getByRole('button', { name: /^adults/i }));
@@ -142,6 +150,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
         <ReactionTest onNavigate={vi.fn()} />
       </MemoryRouter>
     );
+    continueAsGuest();
 
     fireEvent.click(screen.getByRole('button', { name: /young adults/i }));
     fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));
@@ -248,6 +257,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
         <DirectionTest onNavigate={vi.fn()} />
       </MemoryRouter>
     );
+    continueAsGuest();
 
     fireEvent.click(screen.getByRole('button', { name: /young adults/i }));
     fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));
@@ -344,6 +354,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
           <DirectionTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       expect(screen.getByText('Select Your Age Group')).toBeDefined();
       fireEvent.click(screen.getByRole('button', { name: /young adults/i }));
@@ -371,6 +382,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
           <DirectionTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       fireEvent.click(screen.getByRole('button', { name: /^young adults/i }));
       fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));

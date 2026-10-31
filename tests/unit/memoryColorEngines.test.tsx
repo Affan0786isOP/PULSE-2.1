@@ -48,6 +48,11 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
     vi.useRealTimers();
   });
 
+  const continueAsGuest = () => {
+    const btn = screen.queryByRole('button', { name: /continue as guest/i });
+    if (btn) fireEvent.click(btn);
+  };
+
   describe('ColorTest (Stroop Colour Recognition Engine)', () => {
     it('renders AgeSelection dialog and transitions to dark apparatus canvas upon selection', async () => {
       const onNavigate = vi.fn();
@@ -56,6 +61,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
           <ColorTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       // Single main landmark
       const mainLandmarks = screen.getAllByRole('main');
@@ -90,6 +96,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
           <ColorTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       fireEvent.click(screen.getByRole('button', { name: /^adults/i }));
       fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));
@@ -114,6 +121,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
         <ColorTest onNavigate={vi.fn()} />
       </MemoryRouter>
     );
+    continueAsGuest();
 
     fireEvent.click(screen.getByRole('button', { name: /young adults/i }));
     fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));
@@ -247,6 +255,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
           <BlockMemoryTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       expect(screen.getByText('Select Your Age Group')).toBeDefined();
       fireEvent.click(screen.getByRole('button', { name: /^young adults/i }));
@@ -274,6 +283,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
           <BlockMemoryTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       fireEvent.click(screen.getByRole('button', { name: /^young adults/i }));
       fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));
@@ -300,6 +310,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
           <NumberMemoryTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       expect(screen.getByText('Select Your Age Group')).toBeDefined();
       fireEvent.click(screen.getByRole('button', { name: /^young adults/i }));
@@ -327,6 +338,7 @@ describe('Task 5B: Conflict & Working Memory Engines (Color, Block, Number)', ()
           <NumberMemoryTest onNavigate={onNavigate} />
         </MemoryRouter>
       );
+      continueAsGuest();
 
       fireEvent.click(screen.getByRole('button', { name: /^young adults/i }));
       fireEvent.click(screen.getByRole('button', { name: /proceed to assessment/i }));

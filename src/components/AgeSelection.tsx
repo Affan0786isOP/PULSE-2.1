@@ -3,6 +3,8 @@ import { VALID_AGE_GROUPS, AgeGroup } from '../lib/firestore';
 import { ArrowLeft, User, Check, Sparkles, Compass, Zap, Target, Layers, ShieldCheck, Award, ArrowRight, Info } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AssessmentInfoPanel } from './AssessmentInfoPanel';
+import { useProfiles } from '../lib/profiles/ProfileContext';
+import { ProfileSelectorPreFlight } from './profiles/ProfileSelectorPreFlight';
 
 const AGE_METADATA: Record<AgeGroup, { label: string; range: string; icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }> }> = {
   'Children (8–12)': { label: 'Children', range: '8–12 years', icon: Sparkles },
@@ -22,6 +24,8 @@ interface AgeSelectionProps {
 }
 
 export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSelectionProps) {
+  const { profiles, activeProfile, setActiveProfile } = useProfiles();
+  const [showPreFlight, setShowPreFlight] = useState<boolean>(true);
   const [selectedAge, setSelectedAge] = useState<AgeGroup | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
@@ -37,6 +41,40 @@ export function AgeSelection({ onSelect, onCancel, assessmentId, route }: AgeSel
     assessmentId === 'block-memory' ? '/block-memory' :
     assessmentId === 'number-memory' ? '/number-memory' : undefined
   ) : undefined);
+
+  if (showPreFlight) {
+    return (
+      <div className="w-full flex-1 flex flex-col justify-center items-center overflow-x-hidden p-2 sm:p-4 select-none">
+        <div className="w-full max-w-md flex items-center justify-between shrink-0 mb-3 px-1">
+          <button
+            type="button" 
+            id="back-to-assessments-btn"
+            onClick={onCancel}
+            className="inline-flex items-center gap-1.5 text-xs font-mono font-medium text-slate-700 dark:text-slate-300 hover:text-[#090D1A] dark:hover:text-white transition-colors h-8 px-3 rounded-lg bg-white dark:bg-[#12161B] border border-slate-200/90 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-[#181D23] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
+          >
+            <ArrowLeft size={13} />
+            <span>Assessments</span>
+          </button>
+        </div>
+        <ProfileSelectorPreFlight
+          profiles={profiles}
+          activeProfileUid={activeProfile?.profileUid || null}
+          onSelectAndStart={(profile) => {
+            if (profile) {
+              setActiveProfile(profile.profileUid);
+              onSelect(profile.ageGroup);
+            } else {
+              setShowPreFlight(false);
+            }
+          }}
+          onManageProfiles={() => {
+            window.location.href = '/profiles';
+          }}
+          onCancel={onCancel}
+        />
+      </div>
+    );
+  }
 
   return (
     <div 
