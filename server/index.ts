@@ -11,6 +11,7 @@ import { registerLeaderboardRoutes } from './routes/leaderboardRoutes';
 import { registerAdminRoutes } from './routes/adminRoutes';
 import { registerTelemetryRoutes } from './routes/telemetryRoutes';
 import { registerStaticRoutes } from './routes/staticRoutes';
+import { registerProfileRoutes } from './routes/profileRoutes';
 import { createServerContainer } from './container';
 
 
@@ -65,6 +66,7 @@ async function startServer() {
     invalidateLeaderboardCache: container.leaderboardService.invalidateCache?.bind(container.leaderboardService),
     runAccuracyBackfillBatch: input => container.leaderboardAccuracyBackfillService.runBatch(input)
   });
+  registerProfileRoutes(app, container.profileRegistryService);
 applyDeviceRoutingMiddleware(app);
   await registerStaticRoutes(app);
 

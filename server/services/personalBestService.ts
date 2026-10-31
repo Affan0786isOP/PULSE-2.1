@@ -3,6 +3,12 @@ import type { IPersonalBestService } from './interfaces/IPersonalBestService';
 import type { LeaderboardIdentity } from '../../shared/contracts/profiles';
 import { safeLogWarning } from '../config/firebaseAdmin';
 
+interface SessionDataWithProfile {
+  scoreMetric?: number;
+  profileUid?: string;
+  derivedMetrics?: Record<string, unknown>;
+}
+
 export class PersonalBestService implements IPersonalBestService {
   constructor(private readonly sessionRepo: ISessionRepository) {}
 
@@ -13,18 +19,18 @@ export class PersonalBestService implements IPersonalBestService {
     try {
       const sessions = await this.sessionRepo.findUserConsumedSessions(userId, assessmentType);
       sessions.forEach(data => {
-        // If profile identity specified, filter matching sessions
+        const item = data as SessionDataWithProfile;
         if (identity?.kind === 'profile') {
-          if ((data as any).profileUid && (data as any).profileUid !== identity.profileUid) {
+          if (item.profileUid && item.profileUid !== identity.profileUid) {
             return;
           }
         }
 
         let score: number | null = null;
-        if (typeof data.scoreMetric === 'number') {
-          score = data.scoreMetric;
-        } else if (data.derivedMetrics) {
-          const derived = data.derivedMetrics as Record<string, unknown>;
+        if (typeof item.scoreMetric === 'number') {
+          score = item.scoreMetric;
+        } else if (item.derivedMetrics) {
+          const derived = item.derivedMetrics;
           if (isLowerBetter) {
             if (typeof derived.averageReactionTime === 'number') score = derived.averageReactionTime;
           } else {

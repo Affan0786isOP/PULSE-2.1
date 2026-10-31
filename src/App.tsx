@@ -10,6 +10,7 @@ import { PageViewTracker } from './components/PageViewTracker';
 import { RouteShellBoundary } from './components/RouteShellBoundary';
 
 import { resolveDeviceRedirect } from './lib/deviceRouting';
+import { ProfileProvider } from './lib/profiles/ProfileContext';
 
 function RedirectIndexHtml() {
   const location = useLocation();
@@ -85,6 +86,7 @@ const NumberMemoryTest = React.lazy(() => import('./components/NumberMemoryTest'
 const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({ default: m.ColorTest })));
 const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
+const ProfilesPage = React.lazy(() => import('./components/profiles/ProfilesPage').then(m => ({ default: m.ProfilesPage })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
 const GuidesHub = React.lazy(() => import('./components/guides/GuidesHub').then(m => ({ default: m.GuidesHub })));
 const GuidePage = React.lazy(() => import('./components/guides/GuidePage').then(m => ({ default: m.GuidePage })));
@@ -135,6 +137,10 @@ function App() {
       case 'analytics':
         navigate('/dataset');
         break;
+      case 'profiles':
+      case 'profile':
+        navigate('/profiles');
+        break;
       case 'improve': navigate('/improve'); break;
       case 'visual-reaction':
       case 'reaction-test':
@@ -168,6 +174,7 @@ function App() {
 
   return (
     <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'user'}>
+      <ProfileProvider>
       <div
         className={`min-h-[100dvh] ${
           isDark
@@ -205,6 +212,7 @@ function App() {
 
                 <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
                 <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
+                <Route path="/profiles" element={<ProfilesPage onNavigate={handleNavigate} />} />
                 <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                 <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                 <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />
@@ -234,6 +242,7 @@ function App() {
           </AnimatePresence>
         </div>
       </div>
+      </ProfileProvider>
     </MotionConfig>
   );
 }

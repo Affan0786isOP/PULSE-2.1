@@ -1,4 +1,4 @@
-import type { AgeGroup, AssessmentType } from '../../../shared/types/assessment';
+import type { AgeGroup, AssessmentType } from '../../../shared/contracts/common';
 import type { ObservatoryThemeId, ObservatoryGlyphId } from '../../../shared/contracts/profiles';
 
 export interface LocalProfile {

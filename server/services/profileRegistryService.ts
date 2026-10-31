@@ -1,14 +1,13 @@
-import type { FirestoreProfileRegistryRepository } from '../repositories/firestore/firestoreProfileRegistryRepository';
+import type { IProfileRegistryRepository } from '../repositories/interfaces/IProfileRegistryRepository';
 import type { ProfileRecord } from '../../shared/contracts/profiles';
-import { AppError } from '../models/replayContracts';
 
 export class ProfileRegistryService {
-  constructor(private readonly repository: FirestoreProfileRegistryRepository) {}
+  constructor(private readonly repository: IProfileRegistryRepository) {}
 
   async reserveProfile(params: {
     ownerUid: string;
     displayName: string;
-    ageGroup: any;
+    ageGroup: string;
     shareAgeGroupOnLeaderboard?: boolean;
   }): Promise<{ success: boolean; profile: ProfileRecord }> {
     return this.repository.reserveProfile(params);
