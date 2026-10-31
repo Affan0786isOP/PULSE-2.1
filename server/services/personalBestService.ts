@@ -1,17 +1,25 @@
 import type { ISessionRepository } from '../repositories/interfaces/ISessionRepository';
 import type { IPersonalBestService } from './interfaces/IPersonalBestService';
+import type { LeaderboardIdentity } from '../../shared/contracts/profiles';
 import { safeLogWarning } from '../config/firebaseAdmin';
 
 export class PersonalBestService implements IPersonalBestService {
   constructor(private readonly sessionRepo: ISessionRepository) {}
 
-  async getPersonalBest(userId: string, assessmentType: string): Promise<number | null> {
+  async getPersonalBest(userId: string, assessmentType: string, identity?: LeaderboardIdentity): Promise<number | null> {
     const isLowerBetter = assessmentType === 'visual-reaction' || assessmentType === 'direction' || assessmentType === 'color-recognition';
     let best: number | null = null;
 
     try {
       const sessions = await this.sessionRepo.findUserConsumedSessions(userId, assessmentType);
       sessions.forEach(data => {
+        // If profile identity specified, filter matching sessions
+        if (identity?.kind === 'profile') {
+          if ((data as any).profileUid && (data as any).profileUid !== identity.profileUid) {
+            return;
+          }
+        }
+
         let score: number | null = null;
         if (typeof data.scoreMetric === 'number') {
           score = data.scoreMetric;
@@ -44,7 +52,6 @@ export class PersonalBestService implements IPersonalBestService {
         throw dbErr;
       }
       safeLogWarning('[Personal Best API] Firestore query notice:', dbErr);
-      // Resilient behavior for query error (permission denied, timeout, etc.): return best accumulated so far
     }
 
     return best;
