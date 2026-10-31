@@ -79,6 +79,30 @@
       "description": "Measure short-term memory with PULSE's forward digit-span test, which asks you to recall increasingly long number sequences in their original order.",
       "indexable": true,
       "clientFallback": true
+    },
+    "/guides": {
+      "title": "Cognitive Science Guides & Research Benchmarks | PULSE",
+      "description": "Educational articles and methodological guides covering human visual latency, cognitive inhibition, and session benchmark distributions.",
+      "indexable": true,
+      "clientFallback": false
+    },
+    "/guides/visual-reaction-time": {
+      "title": "Visual Reaction Time: Physiology & Latency Guide | PULSE",
+      "description": "A scientific analysis of human visual response latency, sensory reflex arcs, and browser measurement dynamics.",
+      "indexable": true,
+      "clientFallback": false
+    },
+    "/guides/stroop-effect-speed": {
+      "title": "Stroop Effect & Cognitive Interference Guide | PULSE",
+      "description": "Learn how automated word processing causes cognitive interference and how the brain resolves mental conflict.",
+      "indexable": true,
+      "clientFallback": false
+    },
+    "/benchmarks/cognitive-percentiles": {
+      "title": "Cognitive Benchmarks & Empirical Distributions | PULSE",
+      "description": "Session-level empirical distributions and statistical methodology for browser-based reaction latency benchmarks.",
+      "indexable": true,
+      "clientFallback": false
     }
   }
 }

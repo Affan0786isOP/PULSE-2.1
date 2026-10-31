@@ -1,0 +1,175 @@
+{
+  "/guides/visual-reaction-time": {
+    "title": "Human Visual Reaction Time: Physiology, Measurement & Real-World Latency",
+    "subtitle": "An in-depth review of sensory phototransduction, neural transmission delays, and browser-based benchmarking boundaries.",
+    "datePublished": "2026-11-01",
+    "dateModified": "2026-11-01",
+    "sections": [
+      {
+        "id": "physiological-pathway",
+        "heading": "The Physiological Visual Reflex Arc",
+        "paragraphs": [
+          "Human reaction time to a visual cue is governed by a cascade of discrete physiological stages. First, retinal phototransduction converts incident light into electrical impulses within approximately 20 to 40 milliseconds.",
+          "Second, the signal travels along the optic nerve through the lateral geniculate nucleus to the primary visual cortex (V1), consuming an additional 20 to 30 milliseconds.",
+          "Third, central processing, motor cortex activation, and efferent nerve propagation to muscle fibers in the finger require roughly 80 to 100 milliseconds.",
+          "Combined, the absolute physiological threshold for human simple visual response latency sits near 150 milliseconds under ideal laboratory conditions, with typical healthy adult responses averaging between 200 and 260 milliseconds."
+        ]
+      },
+      {
+        "id": "browser-latency-boundaries",
+        "heading": "Browser vs Laboratory Benchmarking",
+        "paragraphs": [
+          "Browser-based measurements cannot directly isolate biological neural conduction. Hardware polling intervals, wireless input latency, operating system task scheduling, and monitor refresh intervals introduce systematic variance.",
+          "On a standard 60 Hz display, visual stimulus presentation can be delayed by up to 16.7 milliseconds depending on where in the refresh cycle the update lands.",
+          "PULSE captures raw high-resolution performance timestamps at the browser event boundary without subtracting theoretical offsets. This ensures transparent, reproducible benchmarking across devices."
+        ],
+        "listItems": [
+          "Display refresh quantization introduces 0 to 16.7ms of variance on 60Hz panels.",
+          "Standard USB mouse polling rates (125Hz to 1000Hz) add 1 to 8ms of input jitter.",
+          "PULSE flags anticipatory responses below 80.0ms as false starts to maintain benchmark validity."
+        ]
+      },
+      {
+        "id": "influencing-factors",
+        "heading": "Biological and Environmental Modulators",
+        "paragraphs": [
+          "Reaction latency is not a fixed physiological constant. Circadian rhythms, sleep debt, cognitive fatigue, and caffeine intake cause significant day-to-day fluctuations.",
+          "Longitudinal personal benchmarking provides greater insight than single-session comparisons, revealing patterns in baseline cognitive readiness."
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "author": "Woods, D. L., Wyma, J. M., Yund, E. W., Herron, T. J., & Reed, B.",
+        "title": "Factors influencing the latency of simple reaction time",
+        "year": 2015,
+        "journal": "Frontiers in Human Neuroscience",
+        "doi": "10.3389/fnhum.2015.00131"
+      },
+      {
+        "author": "Luchies, C. W., Schiffman, J., Richards, L. G., & Thompson, M. R.",
+        "title": "Effects of age, step direction, and mobility on reaction time",
+        "year": 2002,
+        "journal": "The Journals of Gerontology",
+        "doi": "10.1093/gerona/57.5.m246"
+      }
+    ],
+    "interactiveCta": {
+      "label": "Benchmark Your Visual Reaction Time",
+      "targetPath": "/reaction-test",
+      "referralToken": "guide-vrt"
+    }
+  },
+  "/guides/stroop-effect-speed": {
+    "title": "The Stroop Effect: Cognitive Interference, Speed of Processing & Inhibition",
+    "subtitle": "Understanding cognitive control, automated word reading, and how response latency reflects mental conflict resolution.",
+    "datePublished": "2026-11-01",
+    "dateModified": "2026-11-01",
+    "sections": [
+      {
+        "id": "stroop-mechanism",
+        "heading": "The Mechanism of Cognitive Conflict",
+        "paragraphs": [
+          "First described by John Ridley Stroop in 1935, the Stroop effect illustrates the interference between automated cognitive routines and intentional task demands.",
+          "When naming the font color of an incongruent word (e.g., the word 'RED' printed in blue ink), reaction times are systematically slower compared to congruent stimuli.",
+          "This difference, termed conflict cost or interference latency, reflects the executive time required by the anterior cingulate cortex and prefrontal regions to suppress automatic reading."
+        ]
+      },
+      {
+        "id": "measuring-inhibition",
+        "heading": "Deriving Conflict and Interference Costs",
+        "paragraphs": [
+          "In modern cognitive benchmarking, two distinct metrics are derived: congruent response latency and incongruent response latency.",
+          "The net difference represents interference cost. Lower conflict costs indicate superior selective attention and inhibitory control.",
+          "PULSE records individual trial latencies and rejects anticipatory inputs under 80.01 milliseconds to ensure genuine decision-making measurements."
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "author": "Stroop, J. R.",
+        "title": "Studies of interference in serial verbal reactions",
+        "year": 1935,
+        "journal": "Journal of Experimental Psychology",
+        "doi": "10.1037/h0054651"
+      },
+      {
+        "author": "MacLeod, C. M.",
+        "title": "Half a century of research on the Stroop effect: an integrative review",
+        "year": 1991,
+        "journal": "Psychological Bulletin",
+        "doi": "10.1037/0033-2909.109.2.163"
+      }
+    ],
+    "interactiveCta": {
+      "label": "Test Your Cognitive Inhibition",
+      "targetPath": "/colour-recognition",
+      "referralToken": "guide-stroop"
+    }
+  },
+  "/benchmarks/cognitive-percentiles": {
+    "title": "PULSE Cognitive Benchmarks: Session-Level Empirical Distributions",
+    "subtitle": "Scientific methodology, sample thresholds, and preliminary reference distributions for browser-based reaction latency.",
+    "datePublished": "2026-11-01",
+    "dateModified": "2026-11-01",
+    "sections": [
+      {
+        "id": "methodological-framework",
+        "heading": "Session-Level Empirical Distribution Contract",
+        "paragraphs": [
+          "PULSE reports session-level empirical distributions rather than claiming universal biological population norms.",
+          "Because browser tests are conducted without laboratory calibration or participant credential verification, single users may complete multiple sessions. Benchmarks describe verified session observations under real-world device conditions.",
+          "Distributions are strictly segregated by assessment protocol, metric derivation, and device input class (desktop keyboard vs touchscreen)."
+        ]
+      },
+      {
+        "id": "publication-gates",
+        "heading": "Statistical Publication Criteria",
+        "paragraphs": [
+          "To avoid misleading users with premature statistics, PULSE enforces strict publication gates. Benchmark tables remain in a verified dataPending state until cohorts meet our precision requirements.",
+          "Median (P50) and quartile (P25, P75) publication requires a minimum of 500 completed sessions per demographic group with bootstrap standard error under 2.5% of the median.",
+          "Extreme tail quantiles (P99) are unavailable in the initial release due to monitor refresh quantization and operating system task interruption variances."
+        ]
+      },
+      {
+        "id": "literature-baselines",
+        "heading": "External Laboratory Reference Norms",
+        "paragraphs": [
+          "While PULSE session data gathers to satisfy the statistical threshold, the following external peer-reviewed laboratory baselines provide general reference points.",
+          "In Woods et al. (2015), healthy adult visual reaction time under calibrated lab timers averaged 231 milliseconds (IQR: 215ms - 258ms). Browser-measured latency is typically 20ms to 40ms higher due to hardware polling intervals."
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "author": "Woods, D. L., Wyma, J. M., Yund, E. W., Herron, T. J., & Reed, B.",
+        "title": "Factors influencing the latency of simple reaction time",
+        "year": 2015,
+        "journal": "Frontiers in Human Neuroscience",
+        "doi": "10.3389/fnhum.2015.00131"
+      },
+      {
+        "author": "Hyndman, R. J., & Fan, Y.",
+        "title": "Sample quantiles in statistical packages",
+        "year": 1996,
+        "journal": "The American Statistician",
+        "doi": "10.1080/00031305.1996.10473566"
+      }
+    ],
+    "interactiveCta": {
+      "label": "Measure Your Baseline Now",
+      "targetPath": "/reaction-test",
+      "referralToken": "benchmarks-percentiles"
+    },
+    "statisticalProtocol": {
+      "unitOfAnalysis": "Verified Assessment Session",
+      "estimationMethod": "Hyndman-Fan Type 7 with Bootstrap CIs",
+      "publicationGates": {
+        "medianTargetSessions": 500,
+        "medianPrecisionTargetPct": 2.5,
+        "outerTargetSessions": 1200,
+        "extremeQuantileStatus": "Unavailable in initial release"
+      }
+    }
+  }
+}

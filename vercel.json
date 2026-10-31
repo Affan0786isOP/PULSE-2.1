@@ -588,6 +588,38 @@
       "destination": "/seo/mobile/number-memory.html"
     },
     {
+      "source": "/guides",
+      "destination": "/seo/guides.html"
+    },
+    {
+      "source": "/guides/visual-reaction-time",
+      "destination": "/seo/guides/visual-reaction-time.html"
+    },
+    {
+      "source": "/guides/stroop-effect-speed",
+      "destination": "/seo/guides/stroop-effect-speed.html"
+    },
+    {
+      "source": "/benchmarks/cognitive-percentiles",
+      "destination": "/seo/benchmarks/cognitive-percentiles.html"
+    },
+    {
+      "source": "/mobile/guides",
+      "destination": "/seo/mobile/guides.html"
+    },
+    {
+      "source": "/mobile/guides/visual-reaction-time",
+      "destination": "/seo/mobile/guides/visual-reaction-time.html"
+    },
+    {
+      "source": "/mobile/guides/stroop-effect-speed",
+      "destination": "/seo/mobile/guides/stroop-effect-speed.html"
+    },
+    {
+      "source": "/mobile/benchmarks/cognitive-percentiles",
+      "destination": "/seo/mobile/benchmarks/cognitive-percentiles.html"
+    },
+    {
       "source": "/about",
       "destination": "/seo/about.html"
     },

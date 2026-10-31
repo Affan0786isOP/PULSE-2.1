@@ -162,6 +162,48 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     seoBehavior: { index: false },
     isAdministrative: true,
   },
+
+  // Educational Guides & Benchmarks
+  {
+    routeId: 'guides-hub',
+    path: '/guides',
+    domain: undefined,
+    navigationLabel: 'Guides',
+    aliases: [],
+    deviceAvailability: 'all',
+    seoBehavior: { index: true },
+    isAdministrative: false,
+  },
+  {
+    routeId: 'guide-visual-reaction-time',
+    path: '/guides/visual-reaction-time',
+    domain: undefined,
+    navigationLabel: 'Visual Reaction Guide',
+    aliases: [],
+    deviceAvailability: 'all',
+    seoBehavior: { index: true },
+    isAdministrative: false,
+  },
+  {
+    routeId: 'guide-stroop-effect-speed',
+    path: '/guides/stroop-effect-speed',
+    domain: undefined,
+    navigationLabel: 'Stroop Effect Guide',
+    aliases: [],
+    deviceAvailability: 'all',
+    seoBehavior: { index: true },
+    isAdministrative: false,
+  },
+  {
+    routeId: 'benchmark-cognitive-percentiles',
+    path: '/benchmarks/cognitive-percentiles',
+    domain: undefined,
+    navigationLabel: 'Cognitive Benchmarks',
+    aliases: [],
+    deviceAvailability: 'all',
+    seoBehavior: { index: true },
+    isAdministrative: false,
+  },
 ];
 
 
