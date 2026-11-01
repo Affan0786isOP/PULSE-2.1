@@ -4,6 +4,27 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { MobileHero } from '../../mobile/src/components/hero/MobileHero';
 import { CANONICAL_ASSESSMENT_IDS } from '../../shared/contracts/common';
 
+
+function CurrentPath() {
+  const location = useLocation();
+  return <output data-testid="current-path">{location.pathname}</output>;
+}
+
+function renderHero(onOpenMenu = vi.fn(), onExploreTests?: () => void) {
+  render(
+    <MemoryRouter initialEntries={['/']}>
+      <MobileHero onOpenMenu={onOpenMenu} onExploreTests={onExploreTests} />
+      <CurrentPath />
+    </MemoryRouter>
+  );
+  return onOpenMenu;
+}
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
 describe('MobileHero', () => {
   it('renders the reference-driven heading and descriptor', () => {
     renderHero();
