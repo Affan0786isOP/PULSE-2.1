@@ -169,36 +169,6 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
             </div>
           </button>
 
-          {/* Dataset */}
-          <button 
-            onClick={() => handleFeatureClick('/dataset')}
-            aria-label="Open Dataset"
-            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#12161B] shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 dark:border-slate-800 hover:border-[#0066FF]/30 dark:hover:border-[#22C7D6]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
-          >
-            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-[#181D23] flex items-center justify-center text-[#090D1A] dark:text-[#22C7D6] shrink-0 border border-sky-100/80 dark:border-slate-700">
-              <Database size={17} strokeWidth={2.2} />
-            </div>
-            <div className="min-w-0">
-              <span className="text-[12.5px] font-bold text-[#090D1A] dark:text-[#F5F7FA] block leading-tight">Dataset</span>
-              <span className="text-[10px] text-[#64748B] dark:text-slate-400 block mt-0.5 font-medium truncate">Open Data</span>
-            </div>
-          </button>
-
-          {/* Analytics */}
-          <button 
-            onClick={() => handleFeatureClick('/analytics')}
-            aria-label="Open Analytics"
-            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#12161B] shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 dark:border-slate-800 hover:border-[#0066FF]/30 dark:hover:border-[#22C7D6]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
-          >
-            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-[#181D23] flex items-center justify-center text-[#090D1A] dark:text-[#22C7D6] shrink-0 border border-sky-100/80 dark:border-slate-700">
-              <BarChart2 size={17} strokeWidth={2.2} />
-            </div>
-            <div className="min-w-0">
-              <span className="text-[12.5px] font-bold text-[#090D1A] dark:text-[#F5F7FA] block leading-tight">Analytics</span>
-              <span className="text-[10px] text-[#64748B] dark:text-slate-400 block mt-0.5 font-medium truncate">Trends & Stats</span>
-            </div>
-          </button>
-
           {/* About Us */}
           <button 
             onClick={() => handleFeatureClick('/about')}
