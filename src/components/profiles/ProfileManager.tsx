@@ -27,7 +27,6 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   const [ageGroup, setAgeGroup] = React.useState('Adults (26–40)');
   const [themeAccent, setThemeAccent] = React.useState<any>('cyan');
   const [avatarGlyph, setAvatarGlyph] = React.useState<any>('reticle');
-  const [shareAgeGroup, setShareAgeGroup] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
 
   const canCreate = profiles.length < 5;
@@ -42,7 +41,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
         ageGroup: ageGroup as any,
         themeAccent,
         avatarGlyph,
-        shareAgeGroup
+        shareAgeGroup: true
       });
       setShowCreateModal(false);
       setDisplayName('');
@@ -142,19 +141,6 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                     />
                   ))}
                 </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="shareAge"
-                  checked={shareAgeGroup}
-                  onChange={e => setShareAgeGroup(e.target.checked)}
-                  className="rounded border-slate-700"
-                />
-                <label htmlFor="shareAge" className="text-xs text-slate-300">
-                  Share age group on public leaderboard
-                </label>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
