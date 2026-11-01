@@ -344,15 +344,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 >
                   Leaderboard
                 </Link>
-                , download the open{' '}
-                <Link 
-                  to="/dataset" 
-                  onClick={() => handleDismiss()}
-                  className="text-[#0066FF] dark:text-[#22C7D6] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded"
-                >
-                  Dataset
-                </Link>
-                , or read habit recommendations in the{' '}
+                 or read habit recommendations in the{' '}
                 <Link 
                   to="/improve" 
                   onClick={() => handleDismiss()}
