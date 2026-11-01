@@ -486,7 +486,6 @@ describe('Server Application Services Unit Tests', () => {
             return executeSubmissionTransaction(input);
           }),
         } as any,
-        {} as any,
       );
 
       const trials = Array.from({ length: 10 }, (_, index) => {
@@ -565,7 +564,6 @@ describe('Server Application Services Unit Tests', () => {
       {
         findById: vi.fn(async () => consumedSession),
       } as any,
-      {} as any,
       {} as any
     );
 
@@ -596,7 +594,6 @@ describe('Server Application Services Unit Tests', () => {
       {
         getAndValidateSession: vi.fn(async () => ({ valid: true, session: rapidSession })),
       } as any,
-      {} as any,
       {} as any,
       {} as any
     );
