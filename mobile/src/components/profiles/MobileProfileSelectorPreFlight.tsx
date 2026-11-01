@@ -17,19 +17,13 @@ export const MobileProfileSelectorPreFlight: React.FC<MobileProfileSelectorPreFl
   onManageProfiles,
   onCancel
 }) => {
-  const [selectedUid, setSelectedUid] = React.useState<string | null>(
-    activeProfileUid || (profiles.length > 0 ? profiles[0].profileUid : null)
-  );
-
-  const selectedProfile = profiles.find(p => p.profileUid === selectedUid) || null;
-
   return (
     <div className="flex flex-col flex-1 justify-between p-4 max-w-md w-full mx-auto select-none font-sans">
       <div className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Participant Profile</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Choose who is taking this test</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Tap your profile to start, or continue as guest</p>
           </div>
           {onCancel && (
             <button
@@ -46,16 +40,16 @@ export const MobileProfileSelectorPreFlight: React.FC<MobileProfileSelectorPreFl
           <div className="space-y-2.5 max-h-[50vh] overflow-y-auto py-1">
             {profiles.map(p => {
               const pTheme = VALID_OBSERVATORY_THEMES.find(t => t.id === p.themeAccent) || VALID_OBSERVATORY_THEMES[0];
-              const isChosen = p.profileUid === selectedUid;
+              const isActive = p.profileUid === activeProfileUid;
               return (
                 <button
                   key={p.profileUid}
                   type="button"
-                  onClick={() => setSelectedUid(p.profileUid)}
+                  onClick={() => onSelectAndStart(p)}
                   className={`w-full min-h-[48px] p-3 rounded-xl border flex items-center justify-between transition-all text-left ${
-                    isChosen
+                    isActive
                       ? 'border-[#0066FF] dark:border-cyan-400 bg-blue-50/70 dark:bg-cyan-950/20 shadow-xs ring-1 ring-[#0066FF] dark:ring-cyan-400'
-                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#181D23]'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#181D23] active:bg-slate-100 dark:active:bg-slate-800'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -70,9 +64,9 @@ export const MobileProfileSelectorPreFlight: React.FC<MobileProfileSelectorPreFl
                       <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{p.ageGroup}</div>
                     </div>
                   </div>
-                  {isChosen && (
-                    <span className="text-xs font-mono font-semibold text-[#0066FF] dark:text-cyan-400">Selected</span>
-                  )}
+                  <span className="text-xs font-mono font-semibold text-[#0066FF] dark:text-cyan-400 flex items-center gap-1">
+                    {isActive ? 'Active • Play' : 'Play'} →
+                  </span>
                 </button>
               );
             })}
@@ -91,22 +85,13 @@ export const MobileProfileSelectorPreFlight: React.FC<MobileProfileSelectorPreFl
         )}
       </div>
 
-      <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
-        <button
-          type="button"
-          disabled={!selectedProfile && profiles.length > 0}
-          onClick={() => onSelectAndStart(selectedProfile)}
-          className="w-full min-h-[48px] rounded-xl font-mono text-sm font-semibold bg-[#0066FF] dark:bg-cyan-500 text-white dark:text-slate-950 flex items-center justify-center shadow-md disabled:opacity-50"
-        >
-          {selectedProfile ? `Start as ${selectedProfile.displayName}` : 'Start Assessment'}
-        </button>
-
+      <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
         <button
           type="button"
           onClick={() => onSelectAndStart(null)}
-          className="w-full min-h-[44px] rounded-xl font-mono text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 flex items-center justify-center"
+          className="w-full min-h-[48px] rounded-xl font-mono text-sm font-semibold bg-[#0066FF] dark:bg-cyan-500 text-white dark:text-slate-950 flex items-center justify-center shadow-md active:opacity-90"
         >
-          Continue as Guest (Manual Age Selection)
+          Continue as Guest
         </button>
       </div>
     </div>
