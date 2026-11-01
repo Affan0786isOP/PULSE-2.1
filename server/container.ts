@@ -4,7 +4,6 @@ import { getAdminDb } from './config/firebaseAdmin';
 
 import { FirestoreSessionRepository } from './repositories/firestore/firestoreSessionRepository';
 import { FirestoreResearchSubmissionRepository } from './repositories/firestore/firestoreResearchSubmissionRepository';
-import { FirestoreResearchDatasetRepository } from './repositories/firestore/firestoreResearchDatasetRepository';
 import { FirestoreLeaderboardSubmissionRepository } from './repositories/firestore/firestoreLeaderboardSubmissionRepository';
 import { FirestoreLeaderboardRepository } from './repositories/firestore/firestoreLeaderboardRepository';
 
@@ -40,7 +39,6 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
 
   const sessionRepository = new FirestoreSessionRepository(getDb);
   const researchSubmissionRepository = new FirestoreResearchSubmissionRepository(getDb);
-  const researchDatasetRepository = new FirestoreResearchDatasetRepository(getDb);
   const leaderboardSubmissionRepository = new FirestoreLeaderboardSubmissionRepository(getDb);
   const leaderboardRepository = new FirestoreLeaderboardRepository(getDb);
 
@@ -49,8 +47,7 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
   const researchService = new ResearchService(
     sessionService,
     sessionRepository,
-    researchSubmissionRepository,
-    researchDatasetRepository
+    researchSubmissionRepository
   );
   const leaderboardService = new LeaderboardAppService(
     sessionRepository,

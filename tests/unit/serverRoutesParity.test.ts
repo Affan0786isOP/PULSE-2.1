@@ -391,21 +391,15 @@ describe('Server Route Parity Suite (against Golden Baseline)', () => {
     expect(res.status).toBe(goldenResponses['POST /api/research/submit [session_expired]'].status);
     expect(res.body).toEqual(goldenResponses['POST /api/research/submit [session_expired]'].body);
 
-    // 4. GET /api/research/dataset
-    // 4.1 DB Null
-    activeMockDb = null;
-    res = await makeRequest(server, 'GET', '/api/research/dataset');
-    expect(res.status).toBe(goldenResponses['GET /api/research/dataset [db_null]'].status);
-    expect(res.body).toEqual(goldenResponses['GET /api/research/dataset [db_null]'].body);
-
-    // 4.2 Empty
+    // Retired Dataset read endpoints must not be registered.
     activeMockDb = new MockFirestore();
     res = await makeRequest(server, 'GET', '/api/research/dataset');
-    expect(res.status).toBe(goldenResponses['GET /api/research/dataset [empty]'].status);
-    expect(res.body).toEqual(goldenResponses['GET /api/research/dataset [empty]'].body);
+    expect(res.status).toBe(404);
+    res = await makeRequest(server, 'GET', '/api/research/dataset/summary');
+    expect(res.status).toBe(404);
 
-    // 5. POST /api/leaderboard/submit
-    // 5.1 DB Null -> 503; do not misreport a database outage as a missing session.
+    // 4. POST /api/leaderboard/submit
+    // 4.1 DB Null -> 503; do not misreport a database outage as a missing session.
     activeMockDb = null;
     res = await makeRequest(server, 'POST', '/api/leaderboard/submit', {
       sessionId: 'sess-lb-1',
@@ -416,14 +410,14 @@ describe('Server Route Parity Suite (against Golden Baseline)', () => {
     expect(res.status).toBe(goldenResponses['POST /api/leaderboard/submit [db_null]'].status);
     expect(res.body).toEqual(goldenResponses['POST /api/leaderboard/submit [db_null]'].body);
 
-    // 6. GET /api/leaderboard
-    // 6.1 DB Null -> 503 error
+    // 5. GET /api/leaderboard
+    // 5.1 DB Null -> 503 error
     activeMockDb = null;
     res = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=visual-reaction');
     expect(res.status).toBe(goldenResponses['GET /api/leaderboard [db_null]'].status);
     expect(res.body).toEqual(goldenResponses['GET /api/leaderboard [db_null]'].body);
 
-    // 6.2 Missing protocol is a client error, not an unfiltered mixed leaderboard.
+    // 5.2 Missing protocol is a client error, not an unfiltered mixed leaderboard.
     res = await makeRequest(server, 'GET', '/api/leaderboard');
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({
@@ -432,7 +426,7 @@ describe('Server Route Parity Suite (against Golden Baseline)', () => {
       entries: []
     });
 
-    // 6.3 Unknown protocol is rejected before any database query is attempted.
+    // 5.3 Unknown protocol is rejected before any database query is attempted.
     res = await makeRequest(server, 'GET', '/api/leaderboard?assessmentType=not-a-real-assessment');
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ success: false, error: 'Unknown assessmentType', entries: [] });

@@ -2,8 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Trophy, 
-  Database, 
-  BarChart2, 
   Info, 
   ArrowRight, 
   Globe, 
@@ -15,9 +13,8 @@ import {
 } from 'lucide-react';
 import { useSystemTheme } from '../../lib/useSystemTheme';
 import { triggerHaptic } from '../../lib/settingsStore';
-import { useAuthoritativeStats } from '../../lib/useAuthoritativeStats';
-import { AnimatedResultCount } from '../ui/AnimatedResultCount';
 import { PulseLogo } from '../brand';
+import { CANONICAL_ASSESSMENT_IDS } from '../../../../shared/contracts/common';
 import { NeuralGraphic } from './NeuralGraphic';
 import { WaveGraphic } from './WaveGraphic';
 
@@ -35,7 +32,6 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
   onPromptInstall
 }) => {
   const navigate = useNavigate();
-  const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
   const { activeTheme, toggleTheme } = useSystemTheme('/');
   const isDarkActive = activeTheme === 'dark';
 
@@ -169,36 +165,6 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
             </div>
           </button>
 
-          {/* Dataset */}
-          <button 
-            onClick={() => handleFeatureClick('/dataset')}
-            aria-label="Open Dataset"
-            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#12161B] shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 dark:border-slate-800 hover:border-[#0066FF]/30 dark:hover:border-[#22C7D6]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
-          >
-            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-[#181D23] flex items-center justify-center text-[#090D1A] dark:text-[#22C7D6] shrink-0 border border-sky-100/80 dark:border-slate-700">
-              <Database size={17} strokeWidth={2.2} />
-            </div>
-            <div className="min-w-0">
-              <span className="text-[12.5px] font-bold text-[#090D1A] dark:text-[#F5F7FA] block leading-tight">Dataset</span>
-              <span className="text-[10px] text-[#64748B] dark:text-slate-400 block mt-0.5 font-medium truncate">Open Data</span>
-            </div>
-          </button>
-
-          {/* Analytics */}
-          <button 
-            onClick={() => handleFeatureClick('/analytics')}
-            aria-label="Open Analytics"
-            className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#12161B] shadow-[0_2px_10px_rgba(0,102,255,0.05)] border border-sky-100/90 dark:border-slate-800 hover:border-[#0066FF]/30 dark:hover:border-[#22C7D6]/30 active:scale-[0.98] transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50"
-          >
-            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-[#181D23] flex items-center justify-center text-[#090D1A] dark:text-[#22C7D6] shrink-0 border border-sky-100/80 dark:border-slate-700">
-              <BarChart2 size={17} strokeWidth={2.2} />
-            </div>
-            <div className="min-w-0">
-              <span className="text-[12.5px] font-bold text-[#090D1A] dark:text-[#F5F7FA] block leading-tight">Analytics</span>
-              <span className="text-[10px] text-[#64748B] dark:text-slate-400 block mt-0.5 font-medium truncate">Trends & Stats</span>
-            </div>
-          </button>
-
           {/* About Us */}
           <button 
             onClick={() => handleFeatureClick('/about')}
@@ -224,47 +190,23 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
           <ArrowRight size={19} className="group-active:translate-x-0.5 transition-transform" />
         </button>
 
-        {/* Verified Statistics Section */}
-        <div className="w-full grid grid-cols-3 items-center py-2 relative z-20">
-          {/* Col 1: Canonical Tests */}
-          <button 
+        {/* Assessment availability */}
+        <div className="w-full grid grid-cols-2 items-center py-2 relative z-20">
+          <button
             onClick={() => { triggerHaptic(); navigate('/assessments'); }}
-            aria-label={`View ${testsCount} available tests`}
+            aria-label={`View ${CANONICAL_ASSESSMENT_IDS.length} available tests`}
             className="flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4F9FF] dark:focus-visible:ring-offset-[#0B0D10] rounded-lg active:opacity-75 transition-opacity"
-            title={`${testsCount} available assessment batteries`}
+            title={`${CANONICAL_ASSESSMENT_IDS.length} available assessment batteries`}
           >
             <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] dark:text-[#F5F7FA] tracking-tight">
-              {testsCount}
+              {CANONICAL_ASSESSMENT_IDS.length}
             </span>
             <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-400 mt-0.5">
               Tests
             </span>
           </button>
-
-          {/* Divider */}
-          <div className="absolute left-[33.33%] top-1/2 -translate-y-1/2 h-8 w-[1px] bg-[#CFE4F7] dark:bg-slate-800" />
-
-          {/* Col 2: Authoritative Results Count */}
-          <div
-            className="flex flex-col items-center text-center"
-            title="Count of public research result records in Firestore"
-          >
-            <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] dark:text-[#F5F7FA] tracking-tight flex items-center justify-center min-h-[28px]">
-              <AnimatedResultCount value={resultsCount} isLoading={isLoadingResults} />
-            </span>
-            <span className="text-[11px] font-medium text-[#64748B] dark:text-slate-400 mt-0.5">
-              Results
-            </span>
-          </div>
-
-          {/* Divider */}
-          <div className="absolute left-[66.66%] top-1/2 -translate-y-1/2 h-8 w-[1px] bg-[#CFE4F7] dark:bg-slate-800" />
-
-          {/* Col 3: Free / No sign-up */}
-          <div
-            className="flex flex-col items-center text-center"
-            title="No account required"
-          >
+          <div className="absolute left-1/2 top-1/2 -translate-y-1/2 h-8 w-[1px] bg-[#CFE4F7] dark:bg-slate-800" />
+          <div className="flex flex-col items-center text-center" title="No account required">
             <span className="font-heading font-bold text-[22px] leading-tight text-[#090D1A] dark:text-[#F5F7FA] tracking-tight">
               Free
             </span>

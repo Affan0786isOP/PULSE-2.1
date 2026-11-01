@@ -18,7 +18,7 @@ This document defines the statutory retention schedules, automated purge trigger
 | **`experimentSessions`** | Ephemeral session tokens & PRNG seeds | **90 days** | Automated TTL expiration or one-time consumption upon submission completion. |
 | **`assessmentTrials`** | Granular millisecond reaction telemetry | **5 years** | Scientific replication retention; purged upon verified participant erasure request. |
 | **`assessmentResults`** | Longitudinal assessment score summaries | **5 years** | Longitudinal cognitive cohort baselining; purged upon verified participant erasure request. |
-| **`publicDataset`** | Anonymized open research benchmark data | **Indefinite** | Anonymized scientific open archive (contains zero UIDs, zero IPs, zero device identifiers). |
+| **`publicDataset`** | Anonymized research archive records written during assessment submissions; not exposed through a public browser or API | **Indefinite** | Server-written research archive (contains zero UIDs, zero IPs, zero device identifiers). |
 | **`leaderboardResults`** | Voluntary opted-in public rank records (one best score per owner) | **Not automatically purged** | Voluntary public alias ranking; participant GDPR erasure supported via `DELETE /api/leaderboard/mine`. |
 | **`leaderboardPrivateMeta`** | Private submission receipts, trial digests, owner UIDs, and moderation metadata | **Assessment lifespan** | Purged upon participant erasure request or manual administrative review. |
 | **`leaderboardOwnerIndex`** | Pseudonymous owner best-score index and transaction locking | **Active state** | Updated transactionally to track participant approved best scores. |
@@ -29,7 +29,7 @@ This document defines the statutory retention schedules, automated purge trigger
 ## 3. Data Minimization & Sanitization Controls
 1. **Zero Email Requirement:** Neither test participants nor administrators store email addresses or passwords in the database.
 2. **Anonymous Participant UIDs:** All participant tokens use Firebase Anonymous Authentication (`signInAnonymously`). No personal names, telephone numbers, or government IDs are accepted or held.
-3. **Open Dataset Sanitization:** The public research dataset (`/api/research/dataset`) strips all session identifiers and UIDs before publication, serving only randomized anonymized cognitive reaction curves.
+3. **Research Record Sanitization:** The `publicDataset` collection stores anonymized, versioned submission records with identifiers excluded. The Dataset explorer and `/api/research/dataset` read endpoints have been removed; existing records are not deleted by that product change.
 
 ---
 

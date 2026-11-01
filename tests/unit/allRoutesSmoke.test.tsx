@@ -12,7 +12,6 @@ import { DirectionTest } from '../../src/components/DirectionTest';
 import { ColorTest } from '../../src/components/ColorTest';
 import { BlockMemoryTest } from '../../src/components/BlockMemoryTest';
 import { NumberMemoryTest } from '../../src/components/NumberMemoryTest';
-import { DatasetComingSoon } from '../../src/components/DatasetComingSoon';
 import { Improve } from '../../src/components/Improve';
 import { ResearchPrivacyPolicy } from '../../src/components/ResearchPrivacyPolicy';
 import { Navbar } from '../../src/components/Navbar';
@@ -47,10 +46,6 @@ describe('All Routes Smoke Test - No Null useContext Errors', () => {
 
   it('renders Leaderboard without throwing', () => {
     expect(() => render(<MemoryRouter><Leaderboard onNavigate={noop} /></MemoryRouter>)).not.toThrow();
-  });
-
-  it('renders DatasetComingSoon without throwing', () => {
-    expect(() => render(<MemoryRouter><DatasetComingSoon /></MemoryRouter>)).not.toThrow();
   });
 
   it('renders Improve without throwing', () => {

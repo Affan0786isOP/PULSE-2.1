@@ -73,27 +73,42 @@ describe('Legacy Frontend Components Pre-Deletion Audit & Purge', { timeout: 200
       'from \'./components/Dataset\'',
       'from \'../../src/components/Dataset\''
     ]);
-    // Only Dataset.tsx files themselves import them currently; once deleted, 0 active references
-    const activeRefs = refs.filter(r => !r.file.endsWith('Dataset.tsx'));
-    expect(activeRefs).toEqual([]);
+    expect(refs).toEqual([]);
   });
 
   it('confirms legacy Dataset components directory is deleted', () => {
     expect(existsSync(resolve(process.cwd(), 'src/components/dataset'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'mobile/src/components/dataset'))).toBe(false);
   });
 
-  it('confirms references to src/lib/dataset are scoped to Dataset components', () => {
+  it('confirms no active references to the retired Dataset modules remain', () => {
     const refs = findRepositoryReferences([
       'from \'../lib/dataset\'',
       'from \'../../src/lib/dataset\'',
       'from \'./lib/dataset\''
     ]);
-    const nonDatasetRefs = refs.filter(r => !r.file.includes('Dataset'));
-    expect(nonDatasetRefs).toEqual([]);
+    expect(refs).toEqual([]);
   }, 15000);
 
-  it('confirms src/lib/dataset directory is deleted', () => {
-    expect(existsSync(resolve(process.cwd(), 'src/lib/dataset'))).toBe(false);
+  it('confirms all retired Dataset entry points and query modules are deleted', () => {
+    const retiredFiles = [
+      'src/components/Dataset.tsx',
+      'src/components/DatasetComingSoon.tsx',
+      'src/components/DirectionDataset.tsx',
+      'mobile/src/components/Dataset.tsx',
+      'mobile/src/components/DirectionDataset.tsx',
+      'src/lib/dataset.ts',
+      'mobile/src/lib/dataset.ts',
+      'src/lib/useAuthoritativeStats.ts',
+      'mobile/src/lib/useAuthoritativeStats.ts',
+      'server/repositories/interfaces/IResearchDatasetRepository.ts',
+      'server/repositories/firestore/firestoreResearchDatasetRepository.ts',
+      'server/models/researchModels.ts',
+    ];
+
+    for (const relPath of retiredFiles) {
+      expect(existsSync(resolve(process.cwd(), relPath)), `${relPath} should be removed`).toBe(false);
+    }
   });
 
   it('confirms 0 active references to StimulusReticle and standalone fullscreen helpers', () => {

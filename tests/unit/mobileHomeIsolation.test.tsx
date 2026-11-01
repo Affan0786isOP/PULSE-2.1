@@ -42,7 +42,7 @@ describe('Mobile Home Layout Isolation', () => {
 
     // The current mobile footer intentionally exposes one copy of each supported quick link.
     expect(screen.getAllByRole('button', { name: /Leaderboard/i })).toHaveLength(1);
-    expect(screen.getAllByRole('button', { name: /Dataset/i })).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: /Dataset/i })).toBeNull();
     expect(screen.getByRole('button', { name: /About & Privacy/i })).toBeDefined();
 
     // Verify the outer container stays transparent and does not impose a dark background.

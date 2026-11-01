@@ -106,46 +106,6 @@
       "error": "Experiment session has already been completed/consumed"
     }
   },
-  "GET /api/research/dataset [db_null]": {
-    "status": 503,
-    "body": {
-      "success": false,
-      "error": "Database service unavailable",
-      "records": []
-    }
-  },
-  "GET /api/research/dataset [empty]": {
-    "status": 200,
-    "body": {
-      "success": true,
-      "count": 0,
-      "hasMore": false,
-      "nextCursor": null,
-      "records": []
-    }
-  },
-  "GET /api/research/dataset/summary [db_null]": {
-    "status": 503,
-    "body": {
-      "success": false,
-      "error": "Database service unavailable"
-    }
-  },
-  "GET /api/research/dataset/summary [empty]": {
-    "status": 200,
-    "body": {
-      "success": true,
-      "totalRecords": 0,
-      "totalTrials": 0,
-      "counts": {
-        "visual-reaction": 0,
-        "direction": 0,
-        "color-recognition": 0,
-        "block-memory": 0,
-        "number-memory": 0
-      }
-    }
-  },
   "POST /api/leaderboard/submit [db_null]": {
     "status": 503,
     "body": {

@@ -1,7 +1,7 @@
 /**
  * Resolves the canonical active navigation identifier from currentView and pathname.
  * Ensures assessment protocols and aliases highlight the 'assessments' navigation tab,
- * analytics maps to dataset, and unmatched routes do not fall back to 'home'.
+ * unmatched routes do not fall back to 'home'.
  */
 export function resolveActiveNavId(currentView?: string, pathname: string = ''): string {
   const v = (currentView || '').toLowerCase().trim();
@@ -40,10 +40,6 @@ export function resolveActiveNavId(currentView?: string, pathname: string = ''):
     return 'leaderboard';
   }
 
-  // 3. Dataset & Analytics
-  if (v === 'dataset' || v === 'analytics' || p.startsWith('/dataset') || p.startsWith('/analytics')) {
-    return 'dataset';
-  }
 
   // 4. Improve
   if (v === 'improve' || p.startsWith('/improve')) {

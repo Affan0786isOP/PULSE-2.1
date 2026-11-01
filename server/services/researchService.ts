@@ -1,16 +1,11 @@
 import * as crypto from 'crypto';
 import type { ISessionRepository } from '../repositories/interfaces/ISessionRepository';
 import type { IResearchSubmissionRepository } from '../repositories/interfaces/IResearchSubmissionRepository';
-import type { IResearchDatasetRepository } from '../repositories/interfaces/IResearchDatasetRepository';
 import type {
   IResearchService,
   SubmitResearchInput,
   SubmitResearchResult,
-  DatasetQueryInput,
-  DatasetQueryResultDto,
-  DatasetSummaryResultDto
 } from './interfaces/IResearchService';
-import type { PublicDatasetRecord } from '../models/researchModels';
 import type { TrialObservationPayload } from '../models/submissionModels';
 import { VALID_AGE_GROUPS, VALID_ASSESSMENT_TYPES } from '../config/constants';
 import { normalizeAssessmentType } from '../engines/assessmentTypes';
@@ -26,8 +21,7 @@ export class ResearchService implements IResearchService {
   constructor(
     private readonly sessionService: ISessionService,
     private readonly sessionRepo: ISessionRepository,
-    private readonly submissionRepo: IResearchSubmissionRepository,
-    private readonly datasetRepo: IResearchDatasetRepository
+    private readonly submissionRepo: IResearchSubmissionRepository
   ) {}
 
   async submitResearch(input: SubmitResearchInput): Promise<SubmitResearchResult> {
@@ -403,126 +397,4 @@ export class ResearchService implements IResearchService {
     return result;
   }
 
-  async getDataset(query: DatasetQueryInput): Promise<DatasetQueryResultDto> {
-    const rawData = await this.datasetRepo.queryRawDataset({
-      assessmentType: query.assessmentType,
-      ageGroup: query.ageGroup,
-      completedAtMonth: query.completedAtMonth,
-      limitCount: query.limitCount,
-      cursor: query.cursor
-    });
-
-    const records: PublicDatasetRecord[] = rawData.results.map(data => {
-      const sId = data.sessionId;
-      const sessionData = sId ? rawData.sessionMap.get(sId) : undefined;
-      const rawTrials = sId ? (rawData.trialsBySession.get(sId) || []) : [];
-
-      rawTrials.sort((a, b) => {
-        const numA = typeof a['trialNumber'] === 'number' ? (a['trialNumber'] as number) : (typeof a['trialIndex'] === 'number' ? (a['trialIndex'] as number) : (typeof a['sequenceNumber'] === 'number' ? (a['sequenceNumber'] as number) : 0));
-        const numB = typeof b['trialNumber'] === 'number' ? (b['trialNumber'] as number) : (typeof b['trialIndex'] === 'number' ? (b['trialIndex'] as number) : (typeof b['sequenceNumber'] === 'number' ? (b['sequenceNumber'] as number) : 0));
-        return numA - numB;
-      });
-
-      const sanitizedTrials = rawTrials.map((tp: Record<string, unknown>, idx: number) => {
-        const trialNumber = typeof tp['trialNumber'] === 'number' ? (tp['trialNumber'] as number) : (idx + 1);
-        const rawRt = typeof tp['reactionTime'] === 'number' ? (tp['reactionTime'] as number) : (typeof tp['reactionTimeMs'] === 'number' ? (tp['reactionTimeMs'] as number) : null);
-        const falseStart = tp['falseStart'] === true;
-        const timedOut = tp['timedOut'] === true;
-        const valid = typeof tp['valid'] === 'boolean' ? (tp['valid'] as boolean) : (!falseStart && !timedOut);
-
-        const trialItem: Record<string, unknown> = {
-          trialNumber,
-          trialIndex: typeof tp['trialIndex'] === 'number' ? tp['trialIndex'] : trialNumber,
-          sequenceNumber: typeof tp['sequenceNumber'] === 'number' ? tp['sequenceNumber'] : trialNumber,
-          attemptNumber: typeof tp['attemptNumber'] === 'number' ? tp['attemptNumber'] : 1,
-          reactionTime: rawRt,
-          falseStart,
-          timedOut,
-          valid,
-        };
-
-        if (typeof tp['correct'] === 'boolean') trialItem.correct = tp['correct'];
-        if (typeof tp['correctness'] === 'boolean') trialItem.correctness = tp['correctness'];
-        if (typeof tp['accuracy'] === 'number') trialItem.accuracy = tp['accuracy'];
-        if (typeof tp['validity'] === 'string') trialItem.validity = tp['validity'];
-        if (tp['qualityFlag'] !== undefined) trialItem.qualityFlag = tp['qualityFlag'];
-
-        if (typeof tp['rawLatencyMs'] === 'number') trialItem.rawLatencyMs = tp['rawLatencyMs'];
-        else if (typeof tp['rawReactionTime'] === 'number') trialItem.rawLatencyMs = tp['rawReactionTime'];
-        if (typeof tp['displayDelayOffsetMs'] === 'number') trialItem.displayDelayOffsetMs = tp['displayDelayOffsetMs'];
-
-        if (typeof tp['stimulusScheduledAtPerfMs'] === 'number') trialItem.stimulusScheduledAtPerfMs = tp['stimulusScheduledAtPerfMs'];
-        if (typeof tp['stimulusPresentedAtPerfMs'] === 'number') trialItem.stimulusPresentedAtPerfMs = tp['stimulusPresentedAtPerfMs'];
-        if (typeof tp['responseDetectedAtPerfMs'] === 'number') trialItem.responseDetectedAtPerfMs = tp['responseDetectedAtPerfMs'];
-
-        if (typeof tp['foreperiodMs'] === 'number') trialItem.foreperiodMs = tp['foreperiodMs'];
-        if (typeof tp['foreperiodCategory'] === 'string') trialItem.foreperiodCategory = tp['foreperiodCategory'];
-
-        if (typeof tp['targetDirection'] === 'string') trialItem.targetDirection = tp['targetDirection'];
-        if (typeof tp['chosenDirection'] === 'string') trialItem.chosenDirection = tp['chosenDirection'];
-        if (typeof tp['userResponse'] === 'string' || tp['userResponse'] === null) trialItem.userResponse = tp['userResponse'];
-
-        if (typeof tp['targetColor'] === 'string') trialItem.targetColor = tp['targetColor'];
-        if (typeof tp['chosenColor'] === 'string') trialItem.chosenColor = tp['chosenColor'];
-        if (typeof tp['wordName'] === 'string') trialItem.wordName = tp['wordName'];
-        if (typeof tp['wordColor'] === 'string') trialItem.wordColor = tp['wordColor'];
-        if (typeof tp['condition'] === 'string') trialItem.condition = tp['condition'];
-        if (typeof tp['instruction'] === 'string') trialItem.instruction = tp['instruction'];
-
-        if (typeof tp['level'] === 'number') trialItem.level = tp['level'];
-        if (typeof tp['sequenceLength'] === 'number') trialItem.sequenceLength = tp['sequenceLength'];
-        if (typeof tp['interTapTimeMs'] === 'number') trialItem.interTapTimeMs = tp['interTapTimeMs'];
-        if (typeof tp['responseDurationMs'] === 'number') trialItem.responseDurationMs = tp['responseDurationMs'];
-
-        return trialItem;
-      });
-
-      let derivedMonth = data.completedAtMonth;
-      if (!derivedMonth && (data.completedAtTimestamp || data.createdAt)) {
-        const d = new Date(data.completedAtTimestamp || data.createdAt!);
-        if (!isNaN(d.getTime())) {
-          derivedMonth = d.toISOString().substring(0, 7);
-        }
-      }
-
-      const dm = data.derivedMetrics;
-      return {
-        id: data.id,
-        assessmentType: normalizeAssessmentType(data.assessmentType || 'unknown'),
-        ageGroup: data.ageGroup || (sessionData?.['ageGroup'] as string | undefined) || undefined,
-        completedAtMonth: derivedMonth || undefined,
-        completedAtTimestamp: data.completedAtTimestamp ?? data.createdAt ?? undefined,
-        deviceCategory: (sessionData?.['deviceCategory'] as string | undefined) || (sessionData?.['device'] as string | undefined) || undefined,
-        device: (sessionData?.['device'] as string | undefined) || (sessionData?.['deviceCategory'] as string | undefined) || undefined,
-        inputModality: (sessionData?.['inputModality'] as string | undefined) || (sessionData?.['inputMethod'] as string | undefined) || undefined,
-        displayRefreshRateHz: (sessionData?.['displayRefreshRateHz'] as number | undefined) || (sessionData?.['refreshRateHz'] as number | undefined) || undefined,
-        refreshRateHz: (sessionData?.['refreshRateHz'] as number | undefined) || (sessionData?.['displayRefreshRateHz'] as number | undefined) || undefined,
-        provenanceToken: data.provenanceToken,
-        trialsDigest: data.trialsDigest,
-        scoreMetric: data.scoreMetric,
-        averageReactionTime: (dm?.['averageReactionTime'] as number | undefined) ?? data.averageReactionTime,
-        medianReactionTime: (dm?.['medianReactionTime'] as number | undefined) ?? data.medianReactionTime,
-        fastestReactionTime: (dm?.['fastestReactionTime'] as number | undefined) ?? data.fastestReactionTime,
-        slowestReactionTime: (dm?.['slowestReactionTime'] as number | undefined) ?? data.slowestReactionTime,
-        longestSeq: (dm?.['longestSeq'] as number | undefined) ?? data.longestSeq,
-        highestLevel: (dm?.['highestLevel'] as number | undefined) ?? data.highestLevel,
-        accuracy: (dm?.['accuracy'] as number | undefined) ?? data.accuracy,
-        congruentAvg: (dm?.['congruentAvg'] as number | undefined) ?? data.congruentAvg,
-        incongruentAvg: (dm?.['incongruentAvg'] as number | undefined) ?? data.incongruentAvg,
-        interferenceCost: (dm?.['interferenceCost'] as number | undefined) ?? data.interferenceCost,
-        progressionTrials: sanitizedTrials
-      };
-    });
-
-    return {
-      records,
-      count: records.length,
-      hasMore: rawData.hasMore,
-      nextCursor: rawData.nextCursor
-    };
-  }
-
-  async getDatasetSummary(): Promise<DatasetSummaryResultDto> {
-    return this.datasetRepo.getDatasetSummary();
-  }
 }

@@ -272,14 +272,14 @@ describe('WelcomeModal Component & Persistence Audit', () => {
       expect(onClose).toHaveBeenCalled();
     });
 
-    it('renders real navigation links to Leaderboard, Dataset, and Improve', () => {
+    it('renders real navigation links to Leaderboard and Improve without a Dataset link', () => {
       render(
         <MemoryRouter>
           <WelcomeModal isOpen={true} onClose={vi.fn()} />
         </MemoryRouter>
       );
       expect(screen.getByRole('link', { name: 'Leaderboard' }).getAttribute('href')).toBe('/leaderboard');
-      expect(screen.getByRole('link', { name: 'Dataset' }).getAttribute('href')).toBe('/dataset');
+      expect(screen.queryByRole('link', { name: 'Dataset' })).toBeNull();
       expect(screen.getByRole('link', { name: 'Improve' }).getAttribute('href')).toBe('/improve');
     });
   });

@@ -10,7 +10,7 @@ PULSE is a high-precision cognitive assessment platform, empirical research engi
 
 ### Core Objectives
 1. **Precision Cognitive Baselining:** Provide laboratory-grade measurement of motor response speed, flanker interference, Stroop inhibition, and spatial/verbal memory span.
-2. **Open Empirical Science:** Aggregate anonymized assessment outcomes into a publicly queryable, downloadable dataset categorized by age cohort.
+2. **Research Record Integrity:** Preserve anonymized, versioned assessment records through server-authoritative ingestion without exposing a public Dataset browser or export interface.
 3. **Cryptographic Integrity:** Guarantee data provenance and prevent synthetic score manipulation using server-side HMAC-SHA256 attestation.
 4. **Privacy-Preserving Architecture:** Collect zero email addresses, zero passwords, and zero direct PII, ensuring compliance with global privacy regulations (GDPR, FTC Health Breach Notification, Washington My Health My Data Act).
 
@@ -51,9 +51,7 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
       ├── Server HMAC Attestation (POST /api/research/submit)
       └── Voluntary Leaderboard Opt-In (POST /api/leaderboard/submit)
       │
-[Research & Discovery]
-      ├── Public Dataset Explorer (/dataset)
-      └── Cognitive Improvement Guidance (/improve)
+[Cognitive Improvement Guidance] (/improve)
 ```
 
 ---
@@ -131,7 +129,6 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 | **Device Auto-Routing** | Middleware & Client | `IMPLEMENTED` | Client-side routing applies viewport/device checks; the server preserves normal page navigation and redirects only for explicit routing flags/preferences. |
 | **Display Refresh-Rate Calibrator** | Settings / background hook | `REMOVED` | Dynamic refresh-rate detection and theoretical display-offset subtraction are no longer used for new assessment submissions. Legacy local keys may still be cleared. |
 | **Assessment Live-Timer Pacing** | Desktop and mobile assessment engines | `IMPLEMENTED` | Shared software pacer targets an average of approximately 60 live-timer UI updates per second without changing physical display refresh or quantizing stimulus timestamps. |
-| **Research Dataset Explorer** | `/dataset`, `/analytics` | `IMPLEMENTED` | Real-time multi-filter distribution curves (Visx/Recharts), cohort slicing, and CSV/JSON export. |
 | **Global Leaderboard** | `/leaderboard` | `IMPLEMENTED` | Top 100 rankings per assessment type, verified server HMAC tokens, strict opt-in alias validation. |
 | **Leaderboard Opt-In** | Modal UI | `IMPLEMENTED` | Self-selected public alias modal with profanity filter; guest/anonymous submissions excluded from public rank. |
 | **Cognitive Guidance** | `/improve` | `IMPLEMENTED` | Sleep, circadian timing, caffeine, and reaction training educational cards backed by scientific literature. |

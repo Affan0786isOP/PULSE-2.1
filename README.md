@@ -51,9 +51,8 @@ PULSE operates as a dual-surface application connecting React 19 clients to an E
 
 ---
 
-## 📊 Research Data & Leaderboard
+## 📊 Leaderboard & Cognitive Guidance
 
-- **Research Dataset Explorer (`/dataset`):** Interactive distribution curves, demographic age filters, and one-click CSV/JSON research exports.
 - **Global Leaderboard (`/leaderboard`):** Top 100 rankings per assessment protocol backed by cryptographic HMAC-SHA256 provenance proofs.
 - **Cognitive Optimization (`/improve`):** Evidence-based guides on sleep, circadian rhythms, and reaction time training.
 
@@ -62,7 +61,7 @@ PULSE operates as a dual-surface application connecting React 19 clients to an E
 ## 🔐 Security & Privacy Summary
 
 - **Server-Authoritative Writes:** Direct client database writes are denied by Firestore rules; all records are verified and signed server-side.
-- **Zero PII Collected:** No email addresses, passwords, phone numbers, or IP addresses are stored in public datasets.
+- **Research Data Protection:** Assessment research records are written and retained server-side. No public Dataset explorer or research-export API is exposed.
 - **Physiological Floor:** Reaction latencies $< 80\text{ms}$ are flagged as anticipatory false starts.
 
 ---

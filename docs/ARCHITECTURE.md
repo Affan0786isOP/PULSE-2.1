@@ -16,8 +16,6 @@ graph TD
     Server -->|Admin SDK (Signed Writes)| Firestore[("Google Cloud Firestore")]
     Server -->|Token Verification| FirebaseAuth["Firebase Authentication<br/>(Anonymous Auth)"]
 
-    ClientDesktop -.->|Read-Only Queries| Firestore
-    ClientMobile -.->|Read-Only Queries| Firestore
 ```
 
 ---
@@ -82,7 +80,7 @@ State is partitioned across four clear tiers:
 1. **In-Memory Volatile State:** Active session trial arrays are held in React component state/hooks during assessment runs to prevent unnecessary I/O during timing loops, with session lifecycle tracked via [`server/services/sessionService.ts`](../server/services/sessionService.ts).
 2. **Local Client Storage & Cookie Sync:** [src/lib/settingsStore.ts](../src/lib/settingsStore.ts) and [src/lib/useSystemTheme.ts](../src/lib/useSystemTheme.ts) manage user preferences (themeMode: light/dark/system, reduced motion, sound effects, exhibition mode) synchronized across localStorage and pulse_settings cookies with reactive DOM bindings (data-theme, color-scheme).
 3. **PWA Offline Store:** [`src/lib/pwaStore.ts`](../src/lib/pwaStore.ts) tracks install prompt readiness and service worker updates.
-4. **Cloud Database:** Google Cloud Firestore holds persistent assessment trials, results, public datasets, leaderboards, and admin audit logs.
+4. **Cloud Database:** Google Cloud Firestore holds persistent assessment trials, results, anonymized research archive records, leaderboards, and admin audit logs. The public Dataset explorer and its read API have been removed; research archive records remain server-written and are not exposed through a product browsing endpoint.
 
 ---
 
@@ -108,11 +106,7 @@ The Express server handles four core operational domains:
   │     ├── /api/research/verify-provenance ──► Token signature verification
   │     └── /api/personal-best          ──► High score queries
   │
-  ├── 3. Public Dataset API
-  │     ├── /api/research/dataset       ──► Filtered public benchmark queries
-  │     └── /api/research/dataset/summary ──► Cohort summary statistics
-  │
-  └── 4. Leaderboard API
+  └── 3. Leaderboard API
         ├── /api/leaderboard            ──► Opted-in top 100 entries per protocol
         ├── /api/leaderboard/submit     ──► Alias validation, best-score checks & leaderboard write
         ├── /api/leaderboard/mine       ──► Participant GDPR data erasure
@@ -136,7 +130,7 @@ server/
 │   ├── security.ts              /api prefix normalisation, security headers, CSP
 │   └── deviceRouting.ts         Cookie/UA helpers, staging noindex, desktop <-> /mobile redirection
 ├── routes/
-│   ├── researchRoutes.ts        session/start, submit, personal-best, verify-provenance, dataset (+summary)
+│   ├── researchRoutes.ts        session/start, submit, personal-best, verify-provenance
 │   ├── leaderboardRoutes.ts     leaderboard read, submit, mine (erasure), verify-provenance
 │   ├── telemetryRoutes.ts       targeted page view tracking (/api/telemetry/page-view)
 │   └── staticRoutes.ts          Vite dev middleware or dist/ static serving + SPA/PWA fallbacks
@@ -146,7 +140,7 @@ server/
 ├── services/
 │   ├── provenanceService.ts     HMAC-SHA256 signing, constant-time compare, canonical trials digest
 │   ├── sessionService.ts        Firestore-backed experiment session lookup and validation
-│   ├── researchService.ts       Dataset query filtering, trial validation, and aggregation
+│   ├── researchService.ts       Trial validation, research-record creation, and aggregation
 │   ├── personalBestService.ts   Personal best retrieval and ranking derivation
 │   ├── idempotencyService.ts    Bounded process-local idempotency cache
 │   ├── leaderboardAppService.ts Opt-in rules, best-per-owner filtering, and score-metric validation

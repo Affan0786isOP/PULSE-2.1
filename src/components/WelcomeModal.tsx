@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, Link } from 'react-router-dom';
-import { X, List, Zap, BarChart2, Database, ChevronRight, ArrowRight, Check } from 'lucide-react';
+import { X, List, Zap, BarChart2, ChevronRight, ArrowRight, Check } from 'lucide-react';
 import { PulseLogo } from './brand';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 
@@ -333,7 +333,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
             {/* Supporting Links Callout Box */}
             <div className="rounded-2xl bg-[#F4F9FF]/90 dark:bg-[#181D23] border border-[#E0EEFB] dark:border-slate-800 p-3 sm:p-3.5 flex items-center gap-3 text-[11.5px] sm:text-[12px] text-[#475569] dark:text-slate-300 leading-relaxed shadow-[0_2px_8px_rgba(0,102,255,0.03)] dark:shadow-none z-10 mb-4">
               <div className="w-8 h-8 rounded-xl bg-white dark:bg-[#12161B] border border-sky-100 dark:border-slate-700 text-[#0066FF] dark:text-[#22C7D6] flex items-center justify-center shrink-0 shadow-xs">
-                <Database size={16} strokeWidth={2.2} />
+                <List size={16} strokeWidth={2.2} />
               </div>
               <div className="flex-1 min-w-0">
                 You can also compare scores on the{' '}
@@ -344,15 +344,7 @@ export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps)
                 >
                   Leaderboard
                 </Link>
-                , download the open{' '}
-                <Link 
-                  to="/dataset" 
-                  onClick={() => handleDismiss()}
-                  className="text-[#0066FF] dark:text-[#22C7D6] hover:underline font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded"
-                >
-                  Dataset
-                </Link>
-                , or read habit recommendations in the{' '}
+                 or read habit recommendations in the{' '}
                 <Link 
                   to="/improve" 
                   onClick={() => handleDismiss()}

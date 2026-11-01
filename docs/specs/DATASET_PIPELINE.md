@@ -1,50 +1,26 @@
-# PULSE Research Dataset Pipeline Specification
+# PULSE Research Record Pipeline
 
-This document details the ingestion, sanitization, aggregation, and export pipelines powering the PULSE open research dataset.
+**Status (2026-11-01):** The public Dataset/Analytics explorer has been retired. This document now describes only the server-side research-record ingestion that remains active.
 
----
+## 1. Active ingestion boundary
 
-## 1. Dataset Objectives & Ethical Governance
-The PULSE Research Dataset Explorer (`/dataset`) provides an open empirical benchmark for cognitive science, human-computer interaction, and psychometric research.
+Assessment submissions still pass through `POST /api/research/submit`. The server validates trial structure and timing, derives metrics, creates provenance metadata, and writes the assessment result and anonymized `publicDataset` record through the submission repository.
 
-### Zero-PII Guarantee
-Every public observation complies with strict data minimization standards:
-- **No IP Addresses:** Client IP addresses are processed in ephemeral memory for rate limiting and never written to Firestore.
-- **No Participant Identifiers:** Firebase UIDs and session UUIDs are stripped during public dataset ingestion.
-- **Coarse Temporal Aggregation:** Exact timestamps are replaced with `completedAtMonth` (`YYYY-MM`).
-- **Broad Cohort Buckets:** Age is captured exclusively in 7 normalized brackets (`Children (8–12)` through `Seniors (76+)`).
+The `publicDataset` collection is retained as a server-written research archive. It is not exposed to clients for direct reads, and no user-facing Dataset browser, Analytics explorer, CSV/JSON export UI, or `/api/research/dataset*` read endpoint is provided.
 
----
+## 2. Data minimization
 
-## 2. Ingestion & Normalization Flow
+Research records continue to exclude direct participant identifiers and IP addresses. Completion time is represented using the coarse `completedAtMonth` value, and records retain schema/protocol version metadata for interpretation and provenance.
 
-```mermaid
-flowchart TD
-    Client["Client Assessment Session"] -->|POST /api/research/submit| Server["Server Ingestion Endpoint"]
-    Server --> Validator["Schema & Physiological Validator<br/>(RT >= 80ms, Key Whitelist)"]
-    Validator --> Provenance["Sign HMAC-SHA256 Token"]
-    Provenance --> Stripper["PII Sanitizer & Normalizer"]
-    Stripper --> WritePublic[("Write to Firestore: publicDataset")]
-    Stripper --> WriteTrial[("Write to Firestore: assessmentTrials<br/>(Scoped to Owner)")]
-```
+## 3. Removal boundary
 
----
+The 2026-11-01 product removal deletes the Dataset/Analytics UI, desktop and mobile routes, navigation entry points, charting/normalization client modules, result-count reads, and the dedicated read-only API/repository layer.
 
-## 3. Querying & Filtering Engine
+It does **not** delete or migrate existing Firestore documents. It also does not disable the server-authoritative research submission pipeline or its `publicDataset` writes.
 
-### Ingestion & Query Implementation
-The interactive dataset explorer interface is provided by [`src/components/Dataset.tsx`](../../src/components/Dataset.tsx) and [`mobile/src/components/Dataset.tsx`](../../mobile/src/components/Dataset.tsx) for live empirical analysis. When public documents are logged, the pipeline provides reactive data slicing:
+## 4. Related contracts
 
-### Filter Dimensions
-1. **Assessment Protocol:** `visual-reaction`, `direction`, `colour-recognition`, `block-memory`, `number-memory`.
-2. **Age Cohort:** Multi-cohort or single-cohort breakdown.
-3. **Device Category:** `desktop` vs `mobile`.
-4. **Time Range:** Filterable by completion month (`YYYY-MM`).
-
----
-
-## 4. Export Formats
-
-The Dataset Explorer supports instant one-click research exports:
-- **CSV Export:** Tabular comma-separated values containing trial latencies, derived means, medians, consistency scores, and cohort labels.
-- **JSON Export:** Full hierarchical structured representation matching `publicDataset` schema v1 for automated Python/R research scripts.
+- [`server/services/researchService.ts`](../../server/services/researchService.ts): validates and prepares assessment submissions.
+- [`server/repositories/firestore/firestoreResearchSubmissionRepository.ts`](../../server/repositories/firestore/firestoreResearchSubmissionRepository.ts): transactional persistence boundary.
+- [`server/models/researchModels.ts`](../../server/models/researchModels.ts): retained record metadata types.
+- [`docs/DATA_MODEL.md`](../DATA_MODEL.md): Firestore collection schema and retention details.

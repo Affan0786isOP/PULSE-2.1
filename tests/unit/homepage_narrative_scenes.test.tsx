@@ -17,24 +17,7 @@ import { HomeFooter } from '../../src/components/home/HomeFooter';
 import { Home as DesktopHome } from '../../src/components/Home';
 
 
-// Mock authoritative stats and settingsStore hooks
-vi.mock('../../src/lib/useAuthoritativeStats', () => ({
-  useAuthoritativeStats: () => ({
-    testsCount: 5,
-    resultsCount: 15420,
-    isLoadingResults: false,
-  }),
-}));
-
-vi.mock('../../src/lib/settingsStore', async (importOriginal) => {
-  const actual = await importOriginal<Record<string, unknown>>();
-  return {
-    ...actual,
-    useReducedMotionPreference: () => false,
-    triggerHaptic: () => {},
-  };
-});
-
+// Mock settingsStore hooks
 vi.mock('../../mobile/src/lib/settingsStore', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   return {
