@@ -26,7 +26,7 @@ describe('ProfileSelectorPreFlight Component', () => {
     }
   ];
 
-  it('renders existing profiles and allows selection and starting with a profile', () => {
+  it('renders existing profiles and immediately proceeds when clicking a profile', () => {
     const handleSelectAndStart = vi.fn();
     const handleManage = vi.fn();
 
@@ -43,15 +43,8 @@ describe('ProfileSelectorPreFlight Component', () => {
     expect(screen.getByText('Commander Alpha')).toBeDefined();
     expect(screen.getByText('Navigator Beta')).toBeDefined();
 
-    // Starts as active profile by default
-    const startBtn = screen.getByRole('button', { name: /start as commander alpha/i });
-    expect(startBtn).toBeDefined();
-
-    // Switch to second profile
+    // Clicking profile automatically proceeds and starts with that profile
     fireEvent.click(screen.getByText('Navigator Beta'));
-    const switchedStartBtn = screen.getByRole('button', { name: /start as navigator beta/i });
-    fireEvent.click(switchedStartBtn);
-
     expect(handleSelectAndStart).toHaveBeenCalledWith(mockProfiles[1]);
   });
 
@@ -92,8 +85,8 @@ describe('ProfileSelectorPreFlight Component', () => {
     fireEvent.click(createBtn);
     expect(handleManage).toHaveBeenCalledTimes(1);
 
-    const startBtn = screen.getByRole('button', { name: /start assessment/i });
-    fireEvent.click(startBtn);
+    const guestBtn = screen.getByRole('button', { name: /continue as guest/i });
+    fireEvent.click(guestBtn);
     expect(handleSelectAndStart).toHaveBeenCalledWith(null);
   });
 });

@@ -16,20 +16,11 @@ export const ProfileSelectorPreFlight: React.FC<ProfileSelectorPreFlightProps> =
   onSelectAndStart,
   onManageProfiles
 }) => {
-  const [selectedUid, setSelectedUid] = React.useState<string | null>(
-    activeProfileUid || (profiles.length > 0 ? profiles[0].profileUid : null)
-  );
-
-  const selectedProfile = profiles.find(p => p.profileUid === selectedUid) || null;
-  const theme = selectedProfile
-    ? VALID_OBSERVATORY_THEMES.find(t => t.id === selectedProfile.themeAccent) || VALID_OBSERVATORY_THEMES[0]
-    : null;
-
   return (
     <div className="bg-[var(--surface-0,#0B0D10)] border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl mx-auto my-6 text-center">
       <h2 className="text-xl font-bold text-slate-100 tracking-tight">Participant Confirmation</h2>
       <p className="text-xs text-slate-400 mt-1 mb-6">
-        Confirm which profile to associate with this cognitive assessment session.
+        Click a profile to start, or continue as guest.
       </p>
 
       {profiles.length > 0 ? (
@@ -37,16 +28,16 @@ export const ProfileSelectorPreFlight: React.FC<ProfileSelectorPreFlightProps> =
           <div className="flex flex-col gap-2">
             {profiles.map(p => {
               const pTheme = VALID_OBSERVATORY_THEMES.find(t => t.id === p.themeAccent) || VALID_OBSERVATORY_THEMES[0];
-              const isChosen = p.profileUid === selectedUid;
+              const isActive = p.profileUid === activeProfileUid;
               return (
                 <button
                   key={p.profileUid}
                   type="button"
-                  onClick={() => setSelectedUid(p.profileUid)}
-                  className={`flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
-                    isChosen
-                      ? `${pTheme.borderClass} bg-slate-900 ring-1 ring-cyan-400/40`
-                      : 'border-slate-800 hover:border-slate-700 bg-slate-950/40'
+                  onClick={() => onSelectAndStart(p)}
+                  className={`flex items-center justify-between p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    isActive
+                      ? `${pTheme.borderClass} bg-slate-900 ring-1 ring-cyan-400/40 hover:bg-slate-800/80`
+                      : 'border-slate-800 hover:border-slate-700 hover:bg-slate-900/60 bg-slate-950/40'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -61,9 +52,9 @@ export const ProfileSelectorPreFlight: React.FC<ProfileSelectorPreFlightProps> =
                       <div className="text-xs text-slate-400 font-mono">{p.ageGroup}</div>
                     </div>
                   </div>
-                  {isChosen && (
-                    <span className="text-cyan-400 font-mono text-xs">Selected</span>
-                  )}
+                  <span className="text-cyan-400 hover:text-cyan-300 font-mono text-xs flex items-center gap-1">
+                    {isActive ? 'Active • Play' : 'Play'} →
+                  </span>
                 </button>
               );
             })}
@@ -85,19 +76,10 @@ export const ProfileSelectorPreFlight: React.FC<ProfileSelectorPreFlightProps> =
       <div className="flex flex-col gap-2.5">
         <button
           type="button"
-          disabled={!selectedProfile && profiles.length > 0}
-          onClick={() => onSelectAndStart(selectedProfile)}
+          onClick={() => onSelectAndStart(null)}
           className="w-full py-2.5 rounded-xl font-mono text-sm font-semibold bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
         >
-          {selectedProfile ? `Start as ${selectedProfile.displayName}` : 'Start Assessment'}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onSelectAndStart(null)}
-          className="w-full py-2 rounded-xl font-mono text-xs text-slate-400 hover:text-slate-200 transition-colors"
-        >
-          Continue as Guest (Manual Age Selection)
+          Continue as Guest
         </button>
       </div>
     </div>
