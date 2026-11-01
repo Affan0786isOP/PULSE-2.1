@@ -195,7 +195,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
              {ringData.length > 0 ? (
                <div className="relative mx-auto aspect-square w-full max-w-[250px]">
               <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart data={ringChartData} innerRadius="34%" outerRadius="86%" startAngle={90} endAngle={-270} barSize={14}>
+                <RadialBarChart data={ringChartData} innerRadius="34%" outerRadius="86%" startAngle={-90} endAngle={270} barSize={14}>
                   <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
                   <RadialBar dataKey="percent" cornerRadius={7} background={{ fill: 'var(--border-subtle)' }}>
                     {ringChartData.map((ring, index) => <Cell key={`ring-${index}`} fill={ring.color} />)}
