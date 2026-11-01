@@ -23,7 +23,11 @@ import { fetchDatasetObservations, unrollTrialsFromDatasetDocs, DatasetObservati
 import { VALID_AGE_GROUPS, AssessmentType } from '../lib/firestore';
 import { ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Monitor, Smartphone } from 'lucide-react';
 import { DirectionDataset } from './DirectionDataset';
-import { useBaselineScale } from '../lib/useBaselineScale';
+import {
+  calculateReactionTimeDistribution, calculateTrialProgression,
+  getAgeGroupShortLabel, medianValue,
+} from '@shared/dataset/analytics';
+import { DatasetTooltip } from '@shared/dataset/DatasetTooltip';
 
 export const MIN_COHORT_N = 5;
 
@@ -39,76 +43,12 @@ interface DatasetProps {
   onNavigate: (view: string) => void;
 }
 
-// Custom Tooltip component matching PULSE cyber-scientific theme
-interface TooltipPayloadItem {
-  name?: string;
-  value?: number | string;
-  color?: string;
-  fill?: string;
-  unit?: string;
-  dataKey?: string | number;
-  payload?: Record<string, any>;
-}
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: TooltipPayloadItem[];
-  label?: string | number;
-}
-
-function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-[var(--bg-surface-solid)] backdrop-blur-md border border-[var(--border-subtle)] rounded-lg p-3 shadow-xl font-mono text-xs z-50 text-[var(--text-primary)]">
-        {label !== undefined && (
-          <div className="text-[var(--text-muted)] font-semibold mb-1.5 border-b border-[var(--border-subtle)] pb-1">
-            {String(label)}
-          </div>
-        )}
-        {payload.map((entry, index) => (
-          <div
-            key={`tooltip-item-${index}`}
-            className="flex items-center justify-between gap-4 py-0.5"
-            style={{ color: entry.color || entry.fill || 'var(--cyan-primary)' }}
-          >
-            <div className="flex items-center gap-1.5">
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: entry.color || entry.fill || 'var(--cyan-primary)' }}
-              />
-              <span className="text-[var(--text-secondary)]">{entry.name || 'Value'}:</span>
-            </div>
-            <span className="font-bold">
-              {entry.value} {entry.unit || ''}
-              {entry.payload && entry.payload[`${entry.dataKey}N`] !== undefined ? (
-                <span className="text-[var(--text-muted)] ml-1 font-normal">(n={entry.payload[`${entry.dataKey}N`]})</span>
-              ) : entry.payload && entry.payload.n !== undefined ? (
-                <span className="text-[var(--text-muted)] ml-1 font-normal">(n={entry.payload.n})</span>
-              ) : null}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return null;
-}
-
 // 1. Semi-Circular SVG Speedometer Gauge for Median Reaction Time
 interface RadialGaugeProps {
   value: number; // median RT in ms
   label?: string;
 }
 
-
-function medianValue(values: number[]): number {
-  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
-  if (sorted.length === 0) return 0;
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 1
-    ? sorted[middle]
-    : (sorted[middle - 1] + sorted[middle]) / 2;
-}
 
 function RadialGauge({ value, label = 'Median RT' }: RadialGaugeProps) {
   // Map value (e.g. 150ms-450ms) into an angle on a 180° arc (from 180° to 360°)
@@ -205,11 +145,6 @@ function RadialGauge({ value, label = 'Median RT' }: RadialGaugeProps) {
 }
 
 export function Dataset({ onNavigate }: DatasetProps) {
-  const { scale, style: scaleStyle } = useBaselineScale({
-    baseWidth: 1280,
-    baseHeight: 720,
-    minBreakpoint: 768,
-  });
   const [selectedGameId, setSelectedGameId] = useState<AssessmentType>('visual-reaction');
   const [trials, setTrials] = useState<RawTrialObservation[]>([]);
   const [datasetDocs, setDatasetDocs] = useState<DatasetObservation[]>([]);
@@ -304,70 +239,18 @@ export function Dataset({ onNavigate }: DatasetProps) {
   // 2. Reaction Time Distribution Data (Area Chart)
 
   // 2. Reaction Time Distribution Data (Area Chart)
-  const distributionData = useMemo(() => {
-    const bins = [
-      { min: 80, max: 140, label: '80–140ms' },
-      { min: 140, max: 175, label: '140–175ms' },
-      { min: 175, max: 200, label: '175–200ms' },
-      { min: 200, max: 225, label: '200–225ms' },
-      { min: 225, max: 250, label: '225–250ms' },
-      { min: 250, max: 275, label: '250–275ms' },
-      { min: 275, max: 300, label: '275–300ms' },
-      { min: 300, max: 325, label: '300–325ms' },
-      { min: 325, max: 350, label: '325–350ms' },
-      { min: 350, max: 375, label: '350–375ms' },
-      { min: 375, max: 400, label: '375–400ms' },
-      { min: 400, max: 450, label: '400–450ms' },
-      { min: 450, max: Infinity, label: '450ms+' }
-    ];
-
-    const validTrials = trials.filter((t) => !t.falseStart && t.valid !== false && !t.timedOut && t.reactionTime > 80 && t.reactionTime < 2000);
-
-    return bins.map((bin) => {
-      const binDesktopTrials = validTrials.filter(
-        (t) =>
-          t.reactionTime >= bin.min &&
-          t.reactionTime < bin.max &&
-          (!t.device || !t.device.toLowerCase().includes('mobile'))
-      );
-
-      const binMobileTrials = validTrials.filter(
-        (t) =>
-          t.reactionTime >= bin.min &&
-          t.reactionTime < bin.max &&
-          t.device &&
-          t.device.toLowerCase().includes('mobile')
-      );
-
-      const desktopGames = new Set(binDesktopTrials.map((t) => t.experimentId || t.sessionId || t.id)).size;
-      const mobileGames = new Set(binMobileTrials.map((t) => t.experimentId || t.sessionId || t.id)).size;
-      const totalGames = desktopGames + mobileGames;
-
-      return {
-        label: bin.label,
-        desktop: binDesktopTrials.length,
-        mobile: binMobileTrials.length,
-        desktopN: desktopGames,
-        mobileN: mobileGames,
-        n: totalGames
-      };
-    });
-  }, [trials]);
+  const distributionData = useMemo(
+    () => calculateReactionTimeDistribution(
+      trials,
+      (trial) => trial.experimentId || trial.sessionId || trial.id,
+    ),
+    [trials],
+  );
 
   // Cohort comparisons use one session-level summary per assessment, not a mixture of session and trial records.
   const ageGroupData = useMemo(() => {
-    const ageShortLabels: Record<string, string> = {
-      'Children (8–12)': '8–12',
-      'Adolescents (13–17)': '13–17',
-      'Young adults (18–25)': '18–25',
-      'Adults (26–40)': '26–40',
-      'Middle-aged adults (41–60)': '41–60',
-      'Older adults (61–75)': '61–75',
-      'Seniors (76+)': '76+'
-    };
-
     return VALID_AGE_GROUPS.map((group) => {
-      const short = ageShortLabels[group] || group;
+      const short = getAgeGroupShortLabel(group);
       const sessionRTs = datasetDocs
         .filter((doc) => doc.ageGroup === group)
         .map((doc) => Number(doc.medianReactionTime ?? doc.averageReactionTime))
@@ -383,47 +266,13 @@ export function Dataset({ onNavigate }: DatasetProps) {
   // 4. Reaction Time Across Trials 1–5 (Line Chart)
 
   // 4. Reaction Time Across Trials 1–5 (Line Chart)
-  const trialProgressionData = useMemo(() => {
-    return [1, 2, 3, 4, 5].map((trialNum) => {
-      const matching = trials.filter(
-        (t) => t.trialNumber === trialNum && !t.falseStart && t.reactionTime > 80
-      );
-
-      const desktopTrials = matching.filter((t) => !t.device || !t.device.toLowerCase().includes('mobile'));
-      const mobileTrials = matching.filter((t) => t.device && t.device.toLowerCase().includes('mobile'));
-
-      const desktopRTs = desktopTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
-      const mobileRTs = mobileTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
-      const allRTs = matching.map((t) => t.reactionTime).sort((a, b) => a - b);
-
-      const dVal =
-        desktopRTs.length > 0
-          ? Math.round(medianValue(desktopRTs))
-          : 0;
-      const mVal =
-        mobileRTs.length > 0
-          ? Math.round(medianValue(mobileRTs))
-          : 0;
-      const overall =
-        allRTs.length > 0
-          ? Math.round(medianValue(allRTs))
-          : 0;
-
-      const desktopGames = new Set(desktopTrials.map((t) => t.experimentId || t.sessionId || t.id)).size;
-      const mobileGames = new Set(mobileTrials.map((t) => t.experimentId || t.sessionId || t.id)).size;
-      const overallGames = new Set(matching.map((t) => t.experimentId || t.sessionId || t.id)).size;
-
-      return {
-        trialLabel: `Trial ${trialNum}`,
-        desktop: dVal,
-        mobile: mVal,
-        overall,
-        desktopN: desktopGames,
-        mobileN: mobileGames,
-        overallN: overallGames
-      };
-    });
-  }, [trials]);
+  const trialProgressionData = useMemo(
+    () => calculateTrialProgression(
+      trials,
+      (trial) => trial.experimentId || trial.sessionId || trial.id,
+    ),
+    [trials],
+  );
 
   // 5. Scatter Chart — Median RT vs Consistency (SD)
   const { scatterDesktop, scatterMobile } = useMemo(() => {
@@ -539,7 +388,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   return (
     <div
-      style={scaleStyle}
       className="bg-transparent text-[var(--text-main)] min-h-[100dvh] w-full max-w-full overflow-x-hidden flex flex-col font-sans selection:bg-cyan-500/30 relative"
     >
       <Navbar onNavigate={onNavigate} currentView="dataset" />
@@ -744,7 +592,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                          axisLine={false}
                        />
                        <Tooltip 
-                         content={<CustomTooltip />} 
+                         content={<DatasetTooltip />} 
                          allowEscapeViewBox={{ x: false, y: true }}
                          wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
                        />
@@ -809,7 +657,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                          unit="ms"
                        />
                        <Tooltip 
-                         content={<CustomTooltip />} 
+                         content={<DatasetTooltip />} 
                          allowEscapeViewBox={{ x: false, y: true }}
                          wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
                        />
@@ -875,7 +723,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                       unit="ms"
                     />
                     <Tooltip 
-                      content={<CustomTooltip />} 
+                      content={<DatasetTooltip />} 
                       allowEscapeViewBox={{ x: false, y: true }}
                       wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
                     />
@@ -957,7 +805,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                        />
                        <Tooltip
                          cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.2)' }}
-                         content={<CustomTooltip />}
+                         content={<DatasetTooltip />}
                          allowEscapeViewBox={{ x: false, y: true }}
                          wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
                        />
@@ -1008,7 +856,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                          ))}
                        </Pie>
                        <Tooltip 
-                         content={<CustomTooltip />} 
+                         content={<DatasetTooltip />} 
                          allowEscapeViewBox={{ x: false, y: true }}
                          wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
                        />
