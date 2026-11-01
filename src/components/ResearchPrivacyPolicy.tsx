@@ -65,10 +65,10 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate?: (view: stri
                     <td className="py-3 px-3 text-xs">Client-only; never uploaded automatically to databases</td>
                   </tr>
                   <tr>
-                    <td className="py-3 px-3 font-mono font-semibold text-emerald-600">2. Cloud Research Records</td>
+                    <td className="py-3 px-3 font-mono font-semibold text-emerald-600">2. Retained Research Archive</td>
                     <td className="py-3 px-3">Firestore (<code className="text-xs bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] px-1 py-0.5 rounded font-mono border border-[#BFDBFE] dark:border-slate-700">publicDataset</code>)</td>
                     <td className="py-3 px-3">Assessment trials, unadjusted response latencies, accuracy, and coarsened cohort (<code className="text-xs bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] px-1 py-0.5 rounded font-mono border border-[#BFDBFE] dark:border-slate-700">YYYY-MM</code>)</td>
-                    <td className="py-3 px-3 text-xs">Fully anonymized; no PII, IP addresses, or persistent user IDs</td>
+                    <td className="py-3 px-3 text-xs">Server-written and anonymized; no PII, IP addresses, or persistent user IDs. No public Dataset browser, export, or read API is provided.</td>
                   </tr>
                   <tr>
                     <td className="py-3 px-3 font-mono font-semibold text-amber-600">3. Public Leaderboards</td>
@@ -123,7 +123,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate?: (view: stri
           </div>
           <div className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
             <p className="text-sm text-[#334155] dark:text-slate-300 leading-relaxed">
-              PULSE separates database authentication from the research dataset to keep participants anonymous:
+              PULSE separates database authentication from retained research records to keep participants anonymous. The Dataset/Analytics browser and research-export endpoints have been removed; anonymized records remain stored server-side and are not publicly browsable through PULSE:
             </p>
             <ul className="text-sm text-[#334155] dark:text-slate-300 list-disc pl-5 space-y-2">
               <li>
@@ -133,7 +133,7 @@ export function ResearchPrivacyPolicy({ onNavigate }: { onNavigate?: (view: stri
                 <strong className="text-[#090D1A] dark:text-white">Anonymous Authentication:</strong> Firebase generates a temporary token so the app can write to the database. This token is used only for security rules and is never saved with the research data.
               </li>
               <li>
-                <strong className="text-[#090D1A] dark:text-white">Coarsened Temporal Boundaries:</strong> Public records only show the month and year of the test (<code className="text-xs bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] px-1 py-0.5 rounded font-mono border border-[#BFDBFE] dark:border-slate-700">YYYY-MM</code>), preventing anyone from tracking participants by the exact time they played.
+                <strong className="text-[#090D1A] dark:text-white">Coarsened Temporal Boundaries:</strong> Retained research records store only the month and year of the test (<code className="text-xs bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] px-1 py-0.5 rounded font-mono border border-[#BFDBFE] dark:border-slate-700">YYYY-MM</code>), preventing anyone from tracking participants by the exact time they played.
               </li>
               <li>
                 <strong className="text-[#090D1A] dark:text-white">Public Leaderboard Display Names:</strong> If you voluntarily post to the public leaderboard, your chosen display alias is shown publicly with your score. We advise participants not to use their real full name as an alias.
