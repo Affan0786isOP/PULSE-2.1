@@ -39,6 +39,7 @@ export function unrollTrialsFromDatasetDocs(
     }
 
     const trials = Array.isArray(doc.progressionTrials) ? doc.progressionTrials : [];
+    const usedTrialIds = new Set<string>();
     trials.forEach((pt: any, idx: number) => {
       const rt = typeof pt.reactionTime === 'number'
         ? pt.reactionTime
@@ -62,8 +63,23 @@ export function unrollTrialsFromDatasetDocs(
         ? String(pt.targetDirection).toUpperCase()
         : (pt.condition ? String(pt.condition).replace('arrow-', '').toUpperCase() : '');
 
+      const baseTrialId = `${doc.id}-tr-${pt.trialNumber || idx + 1}`;
+      let trialId = baseTrialId;
+      if (usedTrialIds.has(trialId)) {
+        const attemptNumber = Number.isInteger(pt.attemptNumber) && pt.attemptNumber > 0
+          ? pt.attemptNumber
+          : idx + 1;
+        trialId = `${baseTrialId}-attempt-${attemptNumber}`;
+        let duplicateSuffix = 2;
+        while (usedTrialIds.has(trialId)) {
+          trialId = `${baseTrialId}-attempt-${attemptNumber}-${duplicateSuffix}`;
+          duplicateSuffix += 1;
+        }
+      }
+      usedTrialIds.add(trialId);
+
       unrolled.push({
-        id: `${doc.id}-tr-${pt.trialNumber || idx + 1}`,
+        id: trialId,
         participantId: doc.participantId || doc.id,
         experimentId: doc.experimentId || doc.id,
         condition: targetDir ? `arrow-${targetDir.toLowerCase()}` : (pt.condition || 'standard'),

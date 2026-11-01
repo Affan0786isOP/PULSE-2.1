@@ -321,12 +321,13 @@ export class ResearchService implements IResearchService {
       ...derivedMetrics
     };
 
-    let currentScore: number | null = null;
-    if (isSpeedAssessment) {
-      currentScore = typeof derivedMetrics['averageReactionTime'] === 'number' ? (derivedMetrics['averageReactionTime'] as number) : null;
-    } else {
-      currentScore = typeof derivedMetrics['longestSeq'] === 'number' ? (derivedMetrics['longestSeq'] as number) : null;
-    }
+    const currentScoreCandidate = isSpeedAssessment
+      ? derivedMetrics['averageReactionTime']
+      : derivedMetrics['longestSeq'];
+    const currentScore: number | null =
+      typeof currentScoreCandidate === 'number' && Number.isFinite(currentScoreCandidate)
+        ? currentScoreCandidate
+        : null;
 
     let previousPersonalBest: number | null = null;
     try {
@@ -350,7 +351,7 @@ export class ResearchService implements IResearchService {
             }
           }
         }
-        if (s !== null && !isNaN(s)) {
+        if (s !== null && Number.isFinite(s)) {
           if (previousPersonalBest === null) {
             previousPersonalBest = s;
           } else if (isSpeedAssessment && s < previousPersonalBest) {

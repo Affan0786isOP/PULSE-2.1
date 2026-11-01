@@ -641,4 +641,52 @@ describe('Server Application Services Unit Tests', () => {
     expect(res.records).toHaveLength(1);
     expect(res.records[0].completedAtTimestamp).toBe(1705000000000);
   });
+ 
+
+  it('does not expose participant UIDs or private trial notes through the dataset response', async () => {
+    const participantUid = 'private-firebase-uid-do-not-return';
+    const sessionId = 'private-session-id';
+    const datasetRepo = {
+      queryRawDataset: vi.fn(async () => ({
+        results: [{
+          id: 'research-result-1',
+          sessionId,
+          participantId: participantUid,
+          assessmentType: 'direction',
+          ageGroup: 'Young adults (18–25)',
+          completedAtTimestamp: 1705000000000,
+          scoreMetric: 220,
+          derivedMetrics: { averageReactionTime: 220 },
+          provenanceToken: 'public-provenance-token',
+          trialsDigest: 'public-trials-digest',
+        }],
+        sessionMap: new Map([[sessionId, { deviceCategory: 'desktop' }]]),
+        trialsBySession: new Map([[sessionId, [{
+          sessionId,
+          participantId: participantUid,
+          trialNumber: 1,
+          attemptNumber: 1,
+          reactionTime: 220,
+          correct: true,
+          valid: true,
+          userResponse: 'UP',
+          notes: '=HYPERLINK("https://example.invalid","private note")',
+        }]]]),
+        hasMore: false,
+        nextCursor: null,
+      })),
+      getDatasetSummary: vi.fn(),
+    };
+
+    const service = new ResearchService({} as any, {} as any, {} as any, datasetRepo as any);
+    const result = await service.getDataset({ limitCount: 10 });
+    const serialized = JSON.stringify(result);
+
+    expect(serialized).not.toContain(participantUid);
+    expect(serialized).not.toContain('private note');
+    expect(result.records[0]).not.toHaveProperty('participantId');
+    expect(result.records[0]?.progressionTrials[0]).not.toHaveProperty('participantId');
+    expect(result.records[0]?.progressionTrials[0]).not.toHaveProperty('notes');
+  });
+
 });
