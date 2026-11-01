@@ -1,4 +1,3 @@
-import type { PublicDatasetRecord } from '../../models/researchModels';
 
 export interface SubmitResearchInput {
   sessionId: string;
@@ -24,29 +23,6 @@ export interface SubmitResearchResult {
   personalBest: number | null;
 }
 
-export interface DatasetQueryInput {
-  assessmentType?: string | null;
-  ageGroup?: string | null;
-  completedAtMonth?: string | null;
-  limitCount: number;
-  cursor?: string | null;
-}
-
-export interface DatasetQueryResultDto {
-  records: PublicDatasetRecord[];
-  count: number;
-  hasMore: boolean;
-  nextCursor: string | null;
-}
-
-export interface DatasetSummaryResultDto {
-  totalRecords: number;
-  totalTrials: number;
-  counts: Record<string, number>;
-}
-
 export interface IResearchService {
   submitResearch(input: SubmitResearchInput): Promise<SubmitResearchResult>;
-  getDataset(query: DatasetQueryInput): Promise<DatasetQueryResultDto>;
-  getDatasetSummary(): Promise<DatasetSummaryResultDto>;
 }
