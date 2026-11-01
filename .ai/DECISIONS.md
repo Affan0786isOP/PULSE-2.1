@@ -117,3 +117,11 @@ This file records verified architectural and engineering decisions established i
   5. Standardized Abort-on-Interrupt and SW lifecycle: coordinated `setServiceWorkerActiveSession(true/false)` across all 5 test engines on desktop and mobile, standardizing test interruption cleanup.
 - **Consequences:** Eliminates critical edge security leaks, prevents serverless outbox memory bloat, ensures transactional data integrity, and unifies cognitive engine test lifecycles.
 - **Evidence:** [`server/services/telegramNotifierService.ts`](../server/services/telegramNotifierService.ts), [`scripts/dedupeLeaderboardBestPerOwner.ts`](../scripts/dedupeLeaderboardBestPerOwner.ts), [`server/engines/assessmentEngine.ts`](../server/engines/assessmentEngine.ts), [`vercel.json`](../vercel.json).
+
+### Decision: Retire the Public Dataset/Analytics Explorer
+- **Status:** Accepted (2026-11-01); supersedes the historical interactive-explorer decision above.
+- **Context:** The user-facing Dataset/Analytics explorer, its charts/filters/exports, and its dedicated read API are no longer part of the PULSE product.
+- **Decision:** Remove desktop/mobile explorer components and routes, navigation/discovery links, SEO/deployment route entries, public result-count reads, Dataset-only client transformations, and the read-only `/api/research/dataset*` service/repository layer.
+- **Data boundary:** Do not delete or migrate existing Firestore documents. Keep the server-authoritative assessment submission pipeline and its anonymized `publicDataset` writes, including the persisted schema/version metadata.
+- **Consequences:** Users cannot browse or export the research archive through PULSE. Assessment collection, provenance validation, and existing record retention continue unchanged.
+- **Evidence:** [`server/services/researchService.ts`](../server/services/researchService.ts), [`server/repositories/firestore/firestoreResearchSubmissionRepository.ts`](../server/repositories/firestore/firestoreResearchSubmissionRepository.ts), [`docs/DATA_MODEL.md`](../docs/DATA_MODEL.md), [`docs/specs/DATASET_PIPELINE.md`](../docs/specs/DATASET_PIPELINE.md).
