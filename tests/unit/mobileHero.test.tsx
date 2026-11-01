@@ -4,39 +4,6 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { MobileHero } from '../../mobile/src/components/hero/MobileHero';
 import { CANONICAL_ASSESSMENT_IDS } from '../../shared/contracts/common';
 
-const mockStats = vi.hoisted(() => ({
-  testsCount: 5,
-  resultsCount: 90 as number | null,
-  isLoadingResults: false,
-}));
-
-vi.mock('../../mobile/src/lib/useAuthoritativeStats', () => ({
-  useAuthoritativeStats: () => mockStats,
-}));
-
-function CurrentPath() {
-  const location = useLocation();
-  return <output data-testid="current-path">{location.pathname}</output>;
-}
-
-function renderHero(onOpenMenu = vi.fn(), onExploreTests?: () => void) {
-  render(
-    <MemoryRouter initialEntries={['/']}>
-      <MobileHero onOpenMenu={onOpenMenu} onExploreTests={onExploreTests} />
-      <CurrentPath />
-    </MemoryRouter>
-  );
-  return onOpenMenu;
-}
-
-afterEach(() => {
-  cleanup();
-  mockStats.testsCount = CANONICAL_ASSESSMENT_IDS.length;
-  mockStats.resultsCount = 90;
-  mockStats.isLoadingResults = false;
-  vi.clearAllMocks();
-});
-
 describe('MobileHero', () => {
   it('renders the reference-driven heading and descriptor', () => {
     renderHero();
@@ -71,35 +38,13 @@ describe('MobileHero', () => {
     expect(screen.getByTestId('current-path').textContent).toBe('/assessments');
   });
 
-  it('displays the canonical test count and a non-interactive result count with free metric', () => {
+  it('displays the canonical test count without exposing research record totals', () => {
     renderHero();
     expect(screen.getByText(String(CANONICAL_ASSESSMENT_IDS.length))).toBeDefined();
     expect(screen.getByText('Tests')).toBeDefined();
-    expect(screen.getByText('90')).toBeDefined();
-    expect(screen.getByText('Results')).toBeDefined();
     expect(screen.getByText('Free')).toBeDefined();
     expect(screen.getByText('No sign-up')).toBeDefined();
-    expect(screen.queryByRole('button', { name: /results/i })).toBeNull();
-  });
-
-  it('rounds abbreviated result counts down so the label never overstates the total', () => {
-    mockStats.resultsCount = 1999;
-    renderHero();
-    expect(screen.getByText('1K+')).toBeDefined();
-    expect(screen.queryByText('2K+')).toBeNull();
-  });
-
-  it('shows a neutral unavailable marker when the result count cannot be verified', () => {
-    mockStats.resultsCount = null;
-    renderHero();
-    expect(screen.getByText('—')).toBeDefined();
-  });
-
-  it('marks the result count as loading while Firestore is queried', () => {
-    mockStats.resultsCount = null;
-    mockStats.isLoadingResults = true;
-    renderHero();
-    expect(screen.getByRole('status', { name: /loading result count/i })).toBeDefined();
+    expect(screen.queryByText('Results')).toBeNull();
   });
 
   it('opens settings through the correctly labelled menu control', () => {
