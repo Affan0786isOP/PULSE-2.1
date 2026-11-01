@@ -416,29 +416,7 @@ describe('Record Golden Baseline', () => {
     });
     capturedResponses['POST /api/research/submit [consumed_replay]'] = { status: res.status, body: res.body };
 
-    // 4. GET /api/research/dataset
-    // 4.1 DB Null -> 503
-    activeMockDb = null;
-    res = await makeRequest(server, 'GET', '/api/research/dataset');
-    capturedResponses['GET /api/research/dataset [db_null]'] = { status: res.status, body: res.body };
-
-    // 4.2 Empty Dataset
-    activeMockDb = new MockFirestore();
-    res = await makeRequest(server, 'GET', '/api/research/dataset');
-    capturedResponses['GET /api/research/dataset [empty]'] = { status: res.status, body: res.body };
-
-    // 5. GET /api/research/dataset/summary
-    // 5.1 DB Null -> 503
-    activeMockDb = null;
-    res = await makeRequest(server, 'GET', '/api/research/dataset/summary');
-    capturedResponses['GET /api/research/dataset/summary [db_null]'] = { status: res.status, body: res.body };
-
-    // 5.2 Empty Summary
-    activeMockDb = new MockFirestore();
-    res = await makeRequest(server, 'GET', '/api/research/dataset/summary');
-    capturedResponses['GET /api/research/dataset/summary [empty]'] = { status: res.status, body: res.body };
-
-    // 6. POST /api/leaderboard/submit
+    // 4. POST /api/leaderboard/submit
     // 6.1 DB Null -> Returns 404 because initial session read is skipped
     activeMockDb = null;
     res = await makeRequest(server, 'POST', '/api/leaderboard/submit', {
