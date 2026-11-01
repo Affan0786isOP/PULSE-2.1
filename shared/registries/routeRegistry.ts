@@ -60,27 +60,6 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     isAdministrative: false,
   },
   {
-    routeId: 'dataset',
-    path: '/dataset',
-    domain: 'research',
-    navigationLabel: 'Dataset',
-    aliases: [],
-    deviceAvailability: 'all',
-    seoBehavior: { index: false },
-    isAdministrative: false,
-  },
-  {
-    routeId: 'analytics',
-    path: '/analytics',
-    canonicalPath: '/dataset',
-    domain: 'analytics',
-    navigationLabel: 'Analytics',
-    aliases: [],
-    deviceAvailability: 'all',
-    seoBehavior: { index: false },
-    isAdministrative: false,
-  },
-  {
     routeId: 'improve',
     path: '/improve',
     domain: undefined, // Deferred
