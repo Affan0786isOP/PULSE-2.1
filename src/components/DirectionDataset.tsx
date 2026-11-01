@@ -222,7 +222,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
                   <PolarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
                   <PolarAngleAxis dataKey="direction" tick={{ fill: 'var(--chart-text)', fontSize: 11, fontFamily: 'monospace' }} />
                   <PolarRadiusAxis angle={30} domain={radarDomain} tick={false} axisLine={false} />
-                  <Radar name="Accuracy" dataKey="accuracy" stroke="var(--cyan-primary)" fill="var(--cyan-primary)" fillOpacity={0.28} />
+                  <Radar name="Accuracy" dataKey="accuracy" stroke="var(--cyan-primary)" strokeWidth={2} fill="var(--cyan-primary)" fillOpacity={0.28} dot={{ r: 3, fill: "var(--cyan-primary)" }} activeDot={{ r: 5 }} />
                 </RechartsRadarChart>
               </ResponsiveContainer>
             ) : (

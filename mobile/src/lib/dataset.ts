@@ -1,6 +1,6 @@
 import type { RawTrialObservation } from './trialStore';
 import { unrollTrialsFromDatasetDocs as unrollSharedTrialsFromDatasetDocs } from '@shared/dataset/transform';
-import type { DatasetObservation, DatasetStats } from '@shared/dataset/types';
+import type { DatasetObservation } from '@shared/dataset/types';
 export type { DatasetObservation, DatasetStats } from '@shared/dataset/types';
 
 /**
