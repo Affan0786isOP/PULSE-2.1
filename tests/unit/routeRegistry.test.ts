@@ -15,8 +15,6 @@ describe('Route Registry', () => {
       expect(resolveRoute('/')?.routeId).toBe('home');
       expect(resolveRoute('/assessments')?.routeId).toBe('assessments');
       expect(resolveRoute('/leaderboard')?.routeId).toBe('leaderboard');
-      expect(resolveRoute('/dataset')?.routeId).toBe('dataset');
-      expect(resolveRoute('/analytics')?.routeId).toBe('analytics');
       expect(resolveRoute('/improve')?.routeId).toBe('improve');
       expect(resolveRoute('/privacy')?.routeId).toBe('privacy');
       expect(resolveRoute('/reaction-test')?.routeId).toBe('test-visual-reaction');
@@ -43,6 +41,8 @@ describe('Route Registry', () => {
     });
 
     it('returns undefined for non-existent routes', () => {
+      expect(resolveRoute('/dataset')).toBeUndefined();
+      expect(resolveRoute('/analytics')).toBeUndefined();
       expect(resolveRoute('/unknown-path')).toBeUndefined();
       expect(resolveRoute('')).toBeUndefined();
       expect(resolveRoute(null)).toBeUndefined();
@@ -60,8 +60,6 @@ describe('Route Registry', () => {
       expect(resolveRoute('/number-memory')?.domain).toBe('assessment');
 
       expect(resolveRoute('/leaderboard')?.domain).toBe('leaderboard');
-      expect(resolveRoute('/dataset')?.domain).toBe('research');
-      expect(resolveRoute('/analytics')?.domain).toBe('analytics');
     });
 
     it('leaves unassigned domains as undefined (deferred)', () => {
@@ -76,7 +74,6 @@ describe('Route Registry', () => {
       expect(isAdministrativeRoute('/')).toBe(false);
       expect(isAdministrativeRoute('/assessments')).toBe(false);
       expect(isAdministrativeRoute('/leaderboard')).toBe(false);
-      expect(isAdministrativeRoute('/dataset')).toBe(false);
       expect(isAdministrativeRoute('/unknown')).toBe(false);
     });
   });
