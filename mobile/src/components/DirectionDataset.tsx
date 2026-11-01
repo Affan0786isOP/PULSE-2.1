@@ -82,8 +82,10 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
 
   const radarChartData = useMemo(() => {
     const values = radarData[0]?.values || {};
-    return radarMetrics.filter(({ key }) => Object.prototype.hasOwnProperty.call(values, key))
-      .map(({ key, label }) => ({ direction: label, accuracy: values[key] }));
+    return radarMetrics.map(({ key, label }) => ({
+      direction: label,
+      accuracy: values[key] ?? 0,
+    }));
   }, [radarData]);
 
   // Cohort medians use one real session summary per assessment.

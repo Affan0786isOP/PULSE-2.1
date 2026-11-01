@@ -64,7 +64,7 @@ export function calculateReactionTimeDistribution<T extends DatasetAnalyticsTria
   }));
   for (const trial of trials) {
     const rt = trial.reactionTime;
-    if (trial.falseStart || trial.valid === false || trial.timedOut || rt <= 80 || rt >= 2000) continue;
+    if (trial.falseStart || trial.valid === false || trial.timedOut || !(rt > 80 && rt < 2000)) continue;
     let low = 0;
     let high = REACTION_TIME_BINS.length - 1;
     while (low < high) {
@@ -111,7 +111,7 @@ export function calculateTrialProgression<T extends DatasetAnalyticsTrial>(
   }));
   for (const trial of trials) {
     const number = trial.trialNumber;
-    if (!Number.isInteger(number) || (number as number) < 1 || (number as number) > 5 || trial.falseStart || trial.reactionTime <= 80) continue;
+    if (!Number.isInteger(number) || (number as number) < 1 || (number as number) > 5 || trial.falseStart || !(trial.reactionTime > 80)) continue;
     const group = groups[(number as number) - 1];
     const key = getSessionKey(trial);
     group.allRTs.push(trial.reactionTime);
