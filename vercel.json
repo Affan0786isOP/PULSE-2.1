@@ -116,16 +116,6 @@
       "statusCode": 301
     },
     {
-      "source": "/analytics",
-      "destination": "/dataset",
-      "statusCode": 301
-    },
-    {
-      "source": "/analytics/",
-      "destination": "/dataset",
-      "statusCode": 301
-    },
-    {
       "source": "/mobile/visual-reaction",
       "destination": "/mobile/reaction-test",
       "statusCode": 301
@@ -196,16 +186,6 @@
       "statusCode": 301
     },
     {
-      "source": "/mobile/analytics",
-      "destination": "/mobile/dataset",
-      "statusCode": 301
-    },
-    {
-      "source": "/mobile/analytics/",
-      "destination": "/mobile/dataset",
-      "statusCode": 301
-    },
-    {
       "source": "/about/",
       "destination": "/about",
       "statusCode": 301
@@ -223,11 +203,6 @@
     {
       "source": "/leaderboard/",
       "destination": "/leaderboard",
-      "statusCode": 301
-    },
-    {
-      "source": "/dataset/",
-      "destination": "/dataset",
       "statusCode": 301
     },
     {
@@ -273,11 +248,6 @@
     {
       "source": "/mobile/leaderboard/",
       "destination": "/mobile/leaderboard",
-      "statusCode": 301
-    },
-    {
-      "source": "/mobile/dataset/",
-      "destination": "/mobile/dataset",
       "statusCode": 301
     },
     {
@@ -351,66 +321,6 @@
         }
       ],
       "missing": [
-        {
-          "type": "host",
-          "value": "pulse-lab.in"
-        }
-      ]
-    },
-    {
-      "source": "/dataset",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, follow"
-        }
-      ],
-      "has": [
-        {
-          "type": "host",
-          "value": "pulse-lab.in"
-        }
-      ]
-    },
-    {
-      "source": "/analytics",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, follow"
-        }
-      ],
-      "has": [
-        {
-          "type": "host",
-          "value": "pulse-lab.in"
-        }
-      ]
-    },
-    {
-      "source": "/mobile/dataset",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, follow"
-        }
-      ],
-      "has": [
-        {
-          "type": "host",
-          "value": "pulse-lab.in"
-        }
-      ]
-    },
-    {
-      "source": "/mobile/analytics",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, follow"
-        }
-      ],
-      "has": [
         {
           "type": "host",
           "value": "pulse-lab.in"
@@ -556,10 +466,6 @@
       "destination": "/seo/mobile/leaderboard.html"
     },
     {
-      "source": "/mobile/dataset",
-      "destination": "/seo/mobile/dataset.html"
-    },
-    {
       "source": "/mobile/improve",
       "destination": "/seo/mobile/improve.html"
     },
@@ -598,10 +504,6 @@
     {
       "source": "/leaderboard",
       "destination": "/seo/leaderboard.html"
-    },
-    {
-      "source": "/dataset",
-      "destination": "/seo/dataset.html"
     },
     {
       "source": "/improve",
