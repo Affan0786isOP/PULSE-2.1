@@ -73,13 +73,12 @@ describe('Legacy Frontend Components Pre-Deletion Audit & Purge', { timeout: 200
       'from \'./components/Dataset\'',
       'from \'../../src/components/Dataset\''
     ]);
-    // Only Dataset.tsx files themselves import them currently; once deleted, 0 active references
-    const activeRefs = refs.filter(r => !r.file.endsWith('Dataset.tsx'));
-    expect(activeRefs).toEqual([]);
+    expect(refs).toEqual([]);
   });
 
   it('confirms legacy Dataset components directory is deleted', () => {
     expect(existsSync(resolve(process.cwd(), 'src/components/dataset'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'mobile/src/components/dataset'))).toBe(false);
   });
 
   it('confirms references to src/lib/dataset are scoped to Dataset components', () => {
@@ -88,12 +87,12 @@ describe('Legacy Frontend Components Pre-Deletion Audit & Purge', { timeout: 200
       'from \'../../src/lib/dataset\'',
       'from \'./lib/dataset\''
     ]);
-    const nonDatasetRefs = refs.filter(r => !r.file.includes('Dataset'));
-    expect(nonDatasetRefs).toEqual([]);
+    expect(refs).toEqual([]);
   }, 15000);
 
   it('confirms src/lib/dataset directory is deleted', () => {
     expect(existsSync(resolve(process.cwd(), 'src/lib/dataset'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'mobile/src/lib/dataset.ts'))).toBe(false);
   });
 
   it('confirms 0 active references to StimulusReticle and standalone fullscreen helpers', () => {
