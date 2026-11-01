@@ -46,13 +46,15 @@ describe('MobileHero', () => {
     expect(screen.getByText(/Test your reaction speed, memory, and attention right in your browser, with no account required\./i)).toBeDefined();
   });
 
-  it('renders all four feature shortcuts and navigates to their actual routes', () => {
+  it('renders only supported feature shortcuts and navigates to their actual routes', () => {
     const featureRoutes = [
       { accessibleName: 'Open Leaderboard', path: '/leaderboard' },
-      { accessibleName: 'Open Dataset', path: '/dataset' },
-      { accessibleName: 'Open Analytics', path: '/analytics' },
       { accessibleName: 'Open About Us', path: '/about' },
     ];
+
+    renderHero();
+    const hero = within(screen.getByRole('region', { name: 'PULSE Mobile Hero' }));
+    expect(hero.queryByRole('button', { name: /Open Dataset|Open Analytics/i })).toBeNull();
 
     for (const feature of featureRoutes) {
       cleanup();
