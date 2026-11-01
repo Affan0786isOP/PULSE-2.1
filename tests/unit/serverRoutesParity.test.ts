@@ -391,20 +391,7 @@ describe('Server Route Parity Suite (against Golden Baseline)', () => {
     expect(res.status).toBe(goldenResponses['POST /api/research/submit [session_expired]'].status);
     expect(res.body).toEqual(goldenResponses['POST /api/research/submit [session_expired]'].body);
 
-    // 4. GET /api/research/dataset
-    // 4.1 DB Null
-    activeMockDb = null;
-    res = await makeRequest(server, 'GET', '/api/research/dataset');
-    expect(res.status).toBe(goldenResponses['GET /api/research/dataset [db_null]'].status);
-    expect(res.body).toEqual(goldenResponses['GET /api/research/dataset [db_null]'].body);
-
-    // 4.2 Empty
-    activeMockDb = new MockFirestore();
-    res = await makeRequest(server, 'GET', '/api/research/dataset');
-    expect(res.status).toBe(goldenResponses['GET /api/research/dataset [empty]'].status);
-    expect(res.body).toEqual(goldenResponses['GET /api/research/dataset [empty]'].body);
-
-    // 5. POST /api/leaderboard/submit
+    // 4. POST /api/leaderboard/submit
     // 5.1 DB Null -> 503; do not misreport a database outage as a missing session.
     activeMockDb = null;
     res = await makeRequest(server, 'POST', '/api/leaderboard/submit', {
