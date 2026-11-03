@@ -5,7 +5,7 @@ This document covers local setup, environment configuration, build workflows, an
 ---
 
 ## 1. Prerequisites
-- **Node.js:** v22.12+ (v22 LTS recommended)
+- **Node.js:** v24.12.0 or newer (the `engines.node` floor in `package.json`).
 - **Package Manager:** `npm` (v10+). Pinned via `"packageManager"` in `package.json`; do not use `bun` or `yarn` for installs, as only `package-lock.json` is kept in sync.
 - **Operating System:** macOS, Linux, or Windows (PowerShell/WSL)
 
@@ -65,13 +65,13 @@ All commands below are verified directly against [`package.json`](../package.jso
 | Script | Command | Purpose |
 | :--- | :--- | :--- |
 | `npm run dev` | `tsx server.ts` | Starts full-stack Express server with Vite middleware on port 3000. |
-| `npm run build` | `vite build && esbuild server.ts ...` | Builds client SPA to `dist/` and bundles server to `dist/server.js`. |
+| `npm run build` | `vite build && vite build --config mobile/vite.config.ts && node scripts/generate-seo-pages.mjs && esbuild server.ts ...` | Builds the desktop SPA, mobile PWA, prerendered SEO pages, and bundled Express server. |
 | `npm start` | `node dist/server.js` | Launches production bundled Express server. |
 | `npm run lint` | `tsc --noEmit` | Runs TypeScript compiler type check on root desktop project. |
 | `npm run check` | `tsc --noEmit && cd mobile && tsc --noEmit` | Runs full dual-surface type checking (desktop + mobile). |
 | `npm test` | `vitest run` | Executes the full Vitest suite. |
 | `npm run dev:mobile` | `vite --config mobile/vite.config.ts ...` | Runs standalone mobile Vite dev server on port 3000. |
-| `npm run build:mobile` | `vite build --config mobile/vite.config.ts` | Builds mobile PWA bundle. |
+| `npm run build:mobile` | `vite build --config mobile/vite.config.ts && node scripts/generate-seo-pages.mjs` | Builds the mobile PWA and regenerates SEO pages. |
 | `npm run preview` | `vite preview` | Previews production client build. |
 | `npm run clean` | `rm -rf dist server.js` | Purges build artifacts. |
 | `npm run generate-icons`| `node scripts/generate-icons.js` | Re-generates PWA app icons and favicons from source SVG. |
@@ -126,3 +126,8 @@ npm run check
 3. **Port 3000 already in use:**  
    *Symptom:* `EADDRINUSE: address already in use :::3000`.  
    *Solution:* Terminate orphaned node/tsx processes or run on an alternate port via `PORT=3001 npm run dev`.
+
+
+## 7. Build pipeline notes
+
+The production `npm run build` script builds both Vite surfaces before generating clean-URL SEO pages and bundling the Express entry point. `npm run build:mobile` independently rebuilds the mobile PWA and then runs the SEO page generator. When changing route metadata or prerender behavior, verify both surfaces and the generated `dist/seo/` output.
