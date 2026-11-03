@@ -13,7 +13,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
       appType: 'custom',
     });
 
-    app.get('/mobile/{*splat}', async (req, res, next) => {
+    app.get(['/mobile', '/mobile/*'], async (req, res, next) => {
       try {
         if (req.path.startsWith('/mobile/src') || req.path.startsWith('/mobile/@') || path.extname(req.path)) {
           return next();
@@ -83,6 +83,57 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
       next();
     });
 
+    // RFC 8288 Link headers, Vary: Accept, and Markdown Content Negotiation for Agents
+    app.use((req, res, next) => {
+      // Clean path
+      const reqPath = (req.path || '/').toLowerCase();
+
+      // Only handle GET/HEAD for document and API requests
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        return next();
+      }
+
+      // Explicit handling for well-known discovery files (.well-known)
+      if (reqPath.startsWith('/.well-known/')) {
+        const root = path.resolve(distPath);
+        const candidate = path.resolve(root, `.${req.path}`);
+        if (candidate.startsWith(root + path.sep) && fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+          const contentType = reqPath.endsWith('.json') ? 'application/json' : 'application/linkset+json';
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+          return fs.createReadStream(candidate).pipe(res);
+        }
+
+        // Return clean JSON 404 for unsupported .well-known protocols (prevent SPA HTML soft-404)
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.status(404).type('application/json').json({
+          error: 'Not Found',
+          message: `PULSE does not support protocol ${reqPath}. See /.well-known/api-catalog and /auth.md for supported capabilities.`
+        });
+      }
+
+      // Content negotiation for machine agents requesting text/markdown
+      const acceptHeader = (req.headers['accept'] || '').toLowerCase();
+      const wantsMarkdown = acceptHeader.includes('text/markdown') && !acceptHeader.includes('text/html');
+
+      // Canonical link & markdown alternate header
+      res.setHeader('Vary', 'Accept');
+      const origin = 'https://pulse-lab.in';
+      const cleanSlug = reqPath === '/' ? 'home' : reqPath.replace(/^\//, '').replace(/\/+$/, '').replace(/\//g, '-');
+      const mdPath = path.join(distPath, 'md', `${cleanSlug}.md`);
+
+      // Set RFC 8288 Link headers for HTML responses
+      res.setHeader('Link', `<${origin}/llms.txt>; rel="help", <${origin}/auth.md>; rel="authorisation", <${origin}/md/${cleanSlug}.md>; rel="alternate"; type="text/markdown"`);
+
+      if (wantsMarkdown && fs.existsSync(mdPath)) {
+        res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+        return fs.createReadStream(mdPath).pipe(res);
+      }
+
+      next();
+    });
+
     const staticFiles = express.static(distPath, {
       index: false,
       dotfiles: 'deny',
@@ -146,7 +197,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
       return serveWithNonce(candidate, res);
     });
 
-    app.get('/mobile/{*splat}', (req, res) => {
+    app.get(['/mobile', '/mobile/*'], (req, res) => {
       if (isMissingStaticAsset(req.path)) {
         res.setHeader('Cache-Control', 'no-store');
         return res.status(404).type('text/plain').send('Not found');
@@ -166,7 +217,7 @@ export async function registerStaticRoutes(app: Express, customDistPath?: string
     });
 
     // SPA fallback for all other routes
-    app.get('/{*splat}', (req, res) => {
+    app.get(['/', '/*'], (req, res) => {
       if (isMissingStaticAsset(req.path)) {
         res.setHeader('Cache-Control', 'no-store');
         return res.status(404).type('text/plain').send('Not found');

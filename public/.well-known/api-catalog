@@ -1,0 +1,36 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://pulse-lab.in/api",
+      "service-desc": [
+        {
+          "href": "https://pulse-lab.in/llms.txt",
+          "type": "text/plain"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://pulse-lab.in/auth.md",
+          "type": "text/markdown"
+        }
+      ],
+      "item": [
+        {
+          "href": "https://pulse-lab.in/api/health",
+          "title": "Service Health Check",
+          "type": "application/json"
+        },
+        {
+          "href": "https://pulse-lab.in/api/leaderboard",
+          "title": "Public Leaderboard & Cohort Percentiles",
+          "type": "application/json"
+        },
+        {
+          "href": "https://pulse-lab.in/api/telemetry/page-view",
+          "title": "Anonymous Page View Telemetry",
+          "type": "application/json"
+        }
+      ]
+    }
+  ]
+}

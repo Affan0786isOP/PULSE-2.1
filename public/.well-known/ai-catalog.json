@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ard.dev/schema/v1/capability-manifest.json",
+  "name": "PULSE",
+  "description": "Precision User Latency & Stimulus Evaluator: Psychophysics and cognitive latency research platform.",
+  "homepage": "https://pulse-lab.in",
+  "documentation": "https://pulse-lab.in/llms.txt",
+  "authentication": "https://pulse-lab.in/auth.md",
+  "capabilities": {
+    "apiCatalog": "https://pulse-lab.in/.well-known/api-catalog",
+    "markdownForAgents": true,
+    "mcpServer": null,
+    "autonomousAgent": false,
+    "skillsProvider": false
+  },
+  "contentSignals": {
+    "search": true,
+    "aiInput": true,
+    "aiTrain": false
+  }
+}

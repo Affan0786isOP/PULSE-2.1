@@ -1,3 +1,6 @@
+# PULSE Robots.txt & AI Crawler Governance Policy
+# RFC 9309 Compliant Crawler Directives & Content-Signal Specifications
+
 User-agent: *
 Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
@@ -7,14 +10,15 @@ Disallow: /admin
 Disallow: /admin/
 Disallow: /api/
 
-# Internal pre-rendered SEO shells (served via rewrites)
+# Internal pre-rendered SEO shells (served transparently via rewrites)
 Disallow: /seo/
 
-# Mobile app — duplicate content, canonicalized to desktop via rel=alternate
+# Mobile app - duplicate canonicalized content
 Disallow: /mobile/
 
-# AI Search & Answer Engine Crawlers (Explicit Search & Citation Permissions)
+# AI Search & Retrieval Crawlers (Search & Citation Permitted; Model Training Disallowed)
 User-agent: GPTBot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Disallow: /admin
 Disallow: /api/
@@ -22,6 +26,7 @@ Disallow: /seo/
 Disallow: /mobile/
 
 User-agent: PerplexityBot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Disallow: /admin
 Disallow: /api/
@@ -29,6 +34,7 @@ Disallow: /seo/
 Disallow: /mobile/
 
 User-agent: ClaudeBot
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Disallow: /admin
 Disallow: /api/
@@ -36,10 +42,16 @@ Disallow: /seo/
 Disallow: /mobile/
 
 User-agent: Applebot-Extended
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Disallow: /admin
 Disallow: /api/
 Disallow: /seo/
 Disallow: /mobile/
+
+# Explicit Disallow for Model Training Crawlers while Preserving Google Search
+User-agent: Google-Extended
+Content-Signal: search=yes, ai-input=yes, ai-train=no
+Disallow: /
 
 Sitemap: https://pulse-lab.in/sitemap.xml

@@ -508,6 +508,14 @@
       "source": "/(.*)",
       "headers": [
         {
+          "key": "Vary",
+          "value": "Accept"
+        },
+        {
+          "key": "Link",
+          "value": "<https://pulse-lab.in/llms.txt>; rel=\"help\", <https://pulse-lab.in/auth.md>; rel=\"authorisation\""
+        },
+        {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
         },
@@ -527,6 +535,191 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/.well-known/oauth-authorization-server",
+      "destination": "/404"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "/404"
+    },
+    {
+      "source": "/.well-known/agent-card.json",
+      "destination": "/404"
+    },
+    {
+      "source": "/mcp/server-card",
+      "destination": "/404"
+    },
+    {
+      "source": "/skills/index.json",
+      "destination": "/404"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/home.md"
+    },
+    {
+      "source": "/about",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/about.md"
+    },
+    {
+      "source": "/assessments",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/assessments.md"
+    },
+    {
+      "source": "/leaderboard",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/leaderboard.md"
+    },
+    {
+      "source": "/improve",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/improve.md"
+    },
+    {
+      "source": "/privacy",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/privacy.md"
+    },
+    {
+      "source": "/reaction-test",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/reaction-test.md"
+    },
+    {
+      "source": "/direction-test",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/direction-test.md"
+    },
+    {
+      "source": "/colour-recognition",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/colour-recognition.md"
+    },
+    {
+      "source": "/block-memory",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/block-memory.md"
+    },
+    {
+      "source": "/number-memory",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/number-memory.md"
+    },
+    {
+      "source": "/guides",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/guides.md"
+    },
+    {
+      "source": "/guides/visual-reaction-time",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/guides-visual-reaction-time.md"
+    },
+    {
+      "source": "/guides/stroop-effect-speed",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/guides-stroop-effect-speed.md"
+    },
+    {
+      "source": "/benchmarks/cognitive-percentiles",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*text/markdown.*)"
+        }
+      ],
+      "destination": "/md/benchmarks-cognitive-percentiles.md"
+    },
     {
       "source": "/server.js",
       "destination": "/404"

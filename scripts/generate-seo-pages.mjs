@@ -269,6 +269,13 @@ async function writeSitemap() {
     '\n</urlset>\n';
 
   await fs.writeFile(path.join(distDir, 'sitemap.xml'), xml, 'utf8');
+  // Also synchronize public/sitemap.xml for direct dev server & static asset parity
+  const publicSitemap = path.join(root, 'public', 'sitemap.xml');
+  try {
+    await fs.writeFile(publicSitemap, xml, 'utf8');
+  } catch (err) {
+    console.warn('[SEO] Could not sync public/sitemap.xml:', err.message);
+  }
 }
 
 const desktopBase = await fs.readFile(path.join(distDir, 'index.html'), 'utf8');
@@ -354,4 +361,79 @@ await injectServiceWorkerPrecache(
   path.join(distDir, 'mobile', 'assets'),
   '/mobile/assets/'
 );
-console.log('Successfully generated all SEO shells and sitemap.');
+// Generate markdown documents for agents (Content negotiation Accept: text/markdown)
+async function generateMarkdownForAgents() {
+  const mdDist = path.join(distDir, 'md');
+  const mdPublic = path.join(root, 'public', 'md');
+  await fs.mkdir(mdDist, { recursive: true });
+  await fs.mkdir(mdPublic, { recursive: true });
+
+  for (const [pathname, route] of indexedPublicRoutes) {
+    const slug = pathname === '/' ? 'home' : pathname.replace(/^\//, '').replace(/\//g, '-');
+    const guideDoc = guidesData[pathname];
+    const articleData = assessmentContent[pathname];
+
+    let contentMd = `# ${route.title.replace(/\s*\|\s*PULSE$/, '')}\n\n`;
+    contentMd += `> Canonical URL: ${absoluteUrl(pathname)}\n`;
+    contentMd += `> Description: ${route.description}\n`;
+    contentMd += `> Publisher: PULSE Cognitive Research Team\n`;
+    contentMd += `> Content Signals: search=yes, ai-input=yes, ai-train=no\n\n`;
+
+    if (guideDoc) {
+      contentMd += `## ${guideDoc.subtitle}\n\n`;
+      contentMd += `*Published: ${guideDoc.datePublished}*\n\n`;
+      for (const section of guideDoc.sections) {
+        contentMd += `### ${section.heading}\n\n`;
+        for (const p of section.paragraphs) {
+          contentMd += `${p}\n\n`;
+        }
+        if (section.listItems && section.listItems.length > 0) {
+          for (const item of section.listItems) {
+            contentMd += `- ${item}\n`;
+          }
+          contentMd += '\n';
+        }
+      }
+      if (guideDoc.citations && guideDoc.citations.length > 0) {
+        contentMd += `### Academic Citations & References\n\n`;
+        for (const c of guideDoc.citations) {
+          contentMd += `- ${c.author} (${c.year}). *${c.title}*${c.journal ? `. ${c.journal}` : ''}${c.doi ? ` [DOI: ${c.doi}](https://doi.org/${c.doi})` : ''}\n`;
+        }
+        contentMd += '\n';
+      }
+    } else if (articleData) {
+      contentMd += `## ${articleData.subtitle}\n\n`;
+      for (const section of articleData.sections) {
+        contentMd += `### ${section.heading}\n\n`;
+        for (const p of section.paragraphs) {
+          contentMd += `${p}\n\n`;
+        }
+        if (section.listItems && section.listItems.length > 0) {
+          for (const item of section.listItems) {
+            contentMd += `- ${item}\n`;
+          }
+          contentMd += '\n';
+        }
+      }
+      if (articleData.faq && articleData.faq.length > 0) {
+        contentMd += `### Frequently Asked Questions\n\n`;
+        for (const f of articleData.faq) {
+          contentMd += `#### ${f.question}\n\n${f.answer}\n\n`;
+        }
+      }
+    } else {
+      contentMd += `${route.description}\n\n`;
+    }
+
+    contentMd += `---\n\n*Machine discovery: This document is served automatically when requesting with \`Accept: text/markdown\`. For global project documentation see [llms.txt](https://pulse-lab.in/llms.txt).*`;
+
+    const distPath = path.join(mdDist, `${slug}.md`);
+    const pubPath = path.join(mdPublic, `${slug}.md`);
+    await fs.writeFile(distPath, contentMd, 'utf8');
+    await fs.writeFile(pubPath, contentMd, 'utf8');
+  }
+}
+
+await generateMarkdownForAgents();
+
+console.log('Successfully generated all SEO shells, sitemap, and agent markdown documents.');
