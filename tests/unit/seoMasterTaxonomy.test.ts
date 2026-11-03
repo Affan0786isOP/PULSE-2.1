@@ -5,7 +5,37 @@ import assessmentContent from '../../shared/content/assessmentContent.json';
 import metadata from '../../shared/seoMetadata.json';
 import { buildRouteSchema } from '../../shared/seoSchema.mjs';
 
-describe('PULSE 35-Skill SEO Taxonomy & Verification', () => {
+function parseRobotsGroups(content: string) {
+  const groups: Array<{ agents: string[]; directives: Array<{ name: string; value: string }> }> = [];
+  let current: (typeof groups)[number] | null = null;
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+
+    const userAgentMatch = line.match(/^user-agent:\s*(.+)$/i);
+    if (userAgentMatch) {
+      if (!current || current.directives.length > 0) {
+        current = { agents: [], directives: [] };
+        groups.push(current);
+      }
+      current.agents.push(userAgentMatch[1].trim().toLowerCase());
+      continue;
+    }
+
+    const directiveMatch = line.match(/^([a-z-]+):\s*(.*)$/i);
+    if (directiveMatch && current) {
+      current.directives.push({
+        name: directiveMatch[1].toLowerCase(),
+        value: directiveMatch[2].trim()
+      });
+    }
+  }
+
+  return groups;
+}
+
+describe('PULSE SEO crawler policy and taxonomy', () => {
   it('has an active and matching IndexNow key in public directory', () => {
     const keyFilePath = path.resolve(__dirname, '../../public/425e11679eaa4998a863c5fc45cfbcc1.txt');
     expect(fs.existsSync(keyFilePath)).toBe(true);
@@ -18,33 +48,75 @@ describe('PULSE 35-Skill SEO Taxonomy & Verification', () => {
     expect(fs.existsSync(llmsPath)).toBe(true);
     const content = fs.readFileSync(llmsPath, 'utf8');
 
-    // Tests
-    expect(content).toContain('/reaction-test');
-    expect(content).toContain('/direction-test');
-    expect(content).toContain('/colour-recognition');
-    expect(content).toContain('/block-memory');
-    expect(content).toContain('/number-memory');
+    for (const route of [
+      '/reaction-test',
+      '/direction-test',
+      '/colour-recognition',
+      '/block-memory',
+      '/number-memory',
+      '/guides/visual-reaction-time',
+      '/guides/stroop-effect-speed',
+      '/benchmarks/cognitive-percentiles'
+    ]) {
+      expect(content).toContain(route);
+    }
 
-    // Guides & Benchmarks
-    expect(content).toContain('/guides/visual-reaction-time');
-    expect(content).toContain('/guides/stroop-effect-speed');
-    expect(content).toContain('/benchmarks/cognitive-percentiles');
-
-    // Methodological facts
     expect(content).toContain('80.0ms');
     expect(content).toContain('refresh rate');
   });
 
-  it('configures explicit AI search crawler rules in robots.txt', () => {
+  it('separates AI search/retrieval crawlers from model-training crawlers', () => {
     const robotsPath = path.resolve(__dirname, '../../public/robots.txt');
     expect(fs.existsSync(robotsPath)).toBe(true);
-    const content = fs.readFileSync(robotsPath, 'utf8');
+    const groups = parseRobotsGroups(fs.readFileSync(robotsPath, 'utf8'));
 
-    expect(content).toContain('User-agent: GPTBot');
-    expect(content).toContain('User-agent: PerplexityBot');
-    expect(content).toContain('User-agent: ClaudeBot');
-    expect(content).toContain('Disallow: /mobile/');
-    expect(content).toContain('Sitemap: https://pulse-lab.in/sitemap.xml');
+    const groupFor = (agent: string) =>
+      groups.find(group => group.agents.includes(agent.toLowerCase()));
+
+    const has = (agent: string, name: string, value: string) =>
+      Boolean(groupFor(agent)?.directives.some(directive =>
+        directive.name === name.toLowerCase() && directive.value === value
+      ));
+
+    for (const agent of ['OAI-SearchBot', 'ChatGPT-User', 'PerplexityBot', 'Claude-SearchBot', 'Claude-User']) {
+      expect(groupFor(agent), agent + ' must have an explicit robots group').toBeDefined();
+      expect(has(agent, 'allow', '/'), agent + ' must be allowed on public pages').toBe(true);
+
+      for (const privatePath of ['/admin', '/admin/', '/api', '/api/', '/seo/', '/mobile/']) {
+        expect(has(agent, 'disallow', privatePath), agent + ' must be blocked from ' + privatePath).toBe(true);
+      }
+    }
+
+    for (const agent of ['GPTBot', 'ClaudeBot', 'Applebot-Extended', 'Google-Extended']) {
+      expect(groupFor(agent), agent + ' must have an explicit robots group').toBeDefined();
+      expect(has(agent, 'disallow', '/'), agent + ' must be excluded from model training').toBe(true);
+    }
+
+    const wildcard = groupFor('*');
+    expect(has('*', 'allow', '/')).toBe(true);
+    for (const privatePath of ['/admin', '/admin/', '/api', '/api/', '/seo/', '/mobile/']) {
+      expect(wildcard?.directives.some(directive =>
+        directive.name === 'disallow' && directive.value === privatePath
+      )).toBe(true);
+    }
+
+    // Google-Extended also controls Gemini grounding; its exclusion is deliberate
+    // under ai-train=no and does not block ordinary Googlebot indexing.
+    expect(has('Google-Extended', 'disallow', '/')).toBe(true);
+
+    expect(fs.readFileSync(robotsPath, 'utf8')).toContain('Sitemap: https://pulse-lab.in/sitemap.xml');
+  });
+
+  it('keeps the checked-in sitemap synchronized with indexable canonical routes', () => {
+    const sitemapPath = path.resolve(__dirname, '../../public/sitemap.xml');
+    const sitemap = fs.readFileSync(sitemapPath, 'utf8');
+    const urls = Array.from(sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), match => match[1]);
+    const expected = Object.entries(metadata.routes)
+      .filter(([, route]) => route.indexable)
+      .map(([pathname]) => metadata.site.url + (pathname === '/' ? '/' : pathname));
+
+    expect(urls).toEqual(expected);
+    expect(new Set(urls).size).toBe(urls.length);
   });
 
   it('includes scientific differentiation context in visual reaction test content', () => {
@@ -52,7 +124,7 @@ describe('PULSE 35-Skill SEO Taxonomy & Verification', () => {
     expect(reactionContent).toBeDefined();
 
     const diffSection = reactionContent.sections.find(
-      (s: any) => s.id === 'pulse-vs-conventional-tests'
+      (section: any) => section.id === 'pulse-vs-conventional-tests'
     );
     expect(diffSection).toBeDefined();
     expect(diffSection.heading).toContain('How PULSE Differs');
@@ -67,7 +139,7 @@ describe('PULSE 35-Skill SEO Taxonomy & Verification', () => {
 
     const guideSchema = buildRouteSchema(metadata as any, '/guides/visual-reaction-time');
     expect((guideSchema as any)['@graph']).toBeDefined();
-    const articleNode = (guideSchema as any)['@graph'].find((n: any) => n['@type'] === 'Article');
+    const articleNode = (guideSchema as any)['@graph'].find((node: any) => node['@type'] === 'Article');
     expect(articleNode).toBeDefined();
     expect(articleNode.headline).toContain('Visual Reaction Time');
   });
