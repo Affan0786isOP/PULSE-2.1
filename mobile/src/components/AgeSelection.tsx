@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useInRouterContext } from 'react-router-dom';
 import { VALID_AGE_GROUPS, AgeGroup } from '../lib/firestore';
 import { ArrowLeft, User, Check, Sparkles, Compass, Zap, Target, Layers, ShieldCheck, Award, ArrowRight, Info } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -24,11 +24,13 @@ interface AgeSelectionProps {
   assessmentId?: string;
   route?: string;
   onNavigate?: (view: string) => void;
+  initialShowPreFlight?: boolean;
 }
 
-export function AgeSelection({ onSelect, onCancel, assessmentId, route, onNavigate }: AgeSelectionProps) {
-  const navigate = useNavigate();
-  const [showPreFlight, setShowPreFlight] = useState<boolean>(true);
+export function AgeSelection({ onSelect, onCancel, assessmentId, route, onNavigate, initialShowPreFlight = true }: AgeSelectionProps) {
+  const inRouter = useInRouterContext();
+  const navigate = inRouter ? useNavigate() : () => {};
+  const [showPreFlight, setShowPreFlight] = useState<boolean>(initialShowPreFlight);
   const [selectedAge, setSelectedAge] = useState<AgeGroup | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 

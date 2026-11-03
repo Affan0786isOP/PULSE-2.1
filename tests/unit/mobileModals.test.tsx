@@ -6,7 +6,7 @@ import { AgeSelection } from '../../mobile/src/components/AgeSelection';
 describe('Mobile Age Selection Laboratory Light', () => {
   it('renders age cohort buttons on light gradient background', () => {
     const { container } = render(
-      <AgeSelection onSelect={() => {}} onCancel={() => {}} assessmentId="visual-reaction" />
+      <AgeSelection onSelect={() => {}} onCancel={() => {}} assessmentId="visual-reaction" initialShowPreFlight={false} />
     );
     expect(screen.getByText('Young Adults')).toBeDefined();
     const root = container.firstChild as HTMLElement;
