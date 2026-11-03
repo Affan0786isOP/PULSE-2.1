@@ -139,7 +139,7 @@ export function AssessmentHero3D() {
         <button 
           type="button"
           onClick={handlePrev}
-          className="mr-3 z-40 w-11 h-11 rounded-full bg-white dark:bg-[#181D23] shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] shrink-0"
+          className="mr-3 z-40 w-11 h-11 rounded-full bg-white dark:bg-[#181D23] shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.6)] border border-sky-100 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-[#0066FF] dark:hover:text-[#22C7D6] hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/50 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] shrink-0"
           aria-label="Previous assessment protocol"
         >
           <ChevronLeft size={21} strokeWidth={2.4} />
@@ -207,17 +207,17 @@ export function AssessmentHero3D() {
                   }}
                   className="rounded-[28px] overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] hover:ring-2 hover:ring-[#0066FF]/30 dark:hover:ring-[#22C7D6]/40 transition-shadow"
                 >
-                  {/* Background Layer 1: Active Card Dual-Tone Slate Theme Surface */}
+                  {/* Background Layer 1: Active Card Light & Dark Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[28px] bg-slate-800 dark:bg-[#181D23] border border-slate-700/80 dark:border-slate-800 shadow-[0_16px_36px_rgba(15,23,42,0.22)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.5)] text-white dark:text-slate-100 transition-opacity duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/98 via-[#F9FBFF]/96 to-[#EAF3FD]/92 dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-white/90 dark:border-slate-700/60 shadow-[0_20px_50px_rgba(0,102,255,0.13),0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7),0_0_25px_rgba(34,199,214,0.12)] text-[#090D1A] dark:text-slate-100 transition-opacity duration-300 pointer-events-none ${
                       isActive ? 'opacity-100' : 'opacity-0'
                     }`}
                     aria-hidden="true"
                   />
 
-                  {/* Background Layer 2: Inactive Card Dual-Tone Slate Theme Surface */}
+                  {/* Background Layer 2: Inactive Card Light & Dark Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[24px] bg-slate-800/90 dark:bg-[#12161B] border border-slate-700/70 dark:border-slate-800/80 shadow-md hover:border-slate-600 dark:hover:border-slate-700 text-white dark:text-slate-200 transition-all duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[24px] bg-gradient-to-b from-white/95 via-[#F1F6FD]/95 to-[#E4F0FC]/95 dark:from-[#161B22] dark:via-[#12161D] dark:to-[#0D1117] border border-sky-200/90 dark:border-slate-800/80 shadow-[0_8px_22px_rgba(0,102,255,0.08),0_2px_6px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)] hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 hover:shadow-[0_12px_28px_rgba(0,102,255,0.12)] dark:hover:shadow-[0_12px_28px_rgba(0,0,0,0.7)] text-[#090D1A] dark:text-slate-200 transition-all duration-300 pointer-events-none ${
                       isActive ? 'opacity-0' : 'opacity-100'
                     }`}
                     aria-hidden="true"
@@ -229,41 +229,59 @@ export function AssessmentHero3D() {
                       isActive ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                     }`}
                   >
+                    {/* Soft Blue Atmospheric Wash on Right Half of Card */}
+                    <div 
+                      className="absolute right-0 top-0 bottom-0 w-[55%] bg-gradient-to-l from-[#C0DEFA]/85 via-[#DBECFC]/50 to-transparent dark:from-[#22C7D6]/15 dark:via-[#0EA5E9]/10 dark:to-transparent pointer-events-none rounded-r-[28px]" 
+                      aria-hidden="true"
+                    />
+
                     {/* Left: Metadata & Actions */}
                     <div className="flex flex-col justify-between h-full z-10 flex-1 min-w-0">
                       <div>
                         {/* Protocol Counter (Clean 01 / 05 counter) */}
                         <div className="flex items-center gap-2 mb-2.5">
-                          <span className="font-mono text-[13px] font-bold text-white tracking-wider">
-                            {String(index + 1).padStart(2, '0')} <span className="text-slate-400 font-medium">/ 05</span>
+                          <span className="font-mono text-[13px] font-bold text-[#090D1A] dark:text-white tracking-wider">
+                            {String(index + 1).padStart(2, '0')} <span className="text-slate-500 dark:text-slate-400 font-medium">/ 05</span>
                           </span>
                         </div>
 
                         {/* Assessment Title */}
-                        <h3 className="font-heading font-extrabold text-2xl text-white tracking-tight leading-tight mb-2 whitespace-nowrap">
+                        <h3 className="font-heading font-extrabold text-2xl text-[#090D1A] dark:text-white tracking-tight leading-tight mb-2 whitespace-nowrap">
                           {assessment.title}
                         </h3>
 
                         {/* Assessment Subtext */}
-                        <p className="text-xs sm:text-[13px] text-slate-300 font-normal leading-relaxed max-w-[210px] line-clamp-2">
+                        <p className="text-xs sm:text-[13px] text-[#334155] dark:text-slate-300 font-normal leading-relaxed max-w-[210px] line-clamp-2">
                           {assessment.description}
                         </p>
                       </div>
 
-                      {/* Secondary Action: Try Protocol Button */}
+                      {/* Secondary Action: Try Protocol Outline Button */}
                       <div className="mt-3">
-                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-600 dark:border-slate-700 bg-slate-700/80 dark:bg-[#12161B] hover:bg-slate-700 dark:hover:bg-slate-800 text-sky-300 dark:text-[#22C7D6] text-xs sm:text-[12.5px] font-semibold shadow-sm active:scale-95 transition-all">
+                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-sky-300/80 dark:border-[#22C7D6]/40 bg-white/80 dark:bg-[#181D23]/90 hover:bg-sky-50/80 dark:hover:bg-[#22C7D6]/15 text-[#0066FF] dark:text-[#22C7D6] hover:text-[#0052CC] dark:hover:text-[#22C7D6] text-xs sm:text-[12.5px] font-semibold shadow-sm hover:shadow dark:shadow-[0_2px_10px_rgba(0,0,0,0.4)] active:scale-95 transition-all">
                           <span>Try {assessment.title}</span>
                           <ArrowRight size={13} strokeWidth={2.2} />
                         </div>
                       </div>
                     </div>
 
-                    {/* Right: Protocol Art Container */}
+                    {/* Right: Soft Brand-Tinted Protocol Art Medallion */}
                     <div className="relative w-36 h-36 flex items-center justify-center shrink-0 z-10">
-                      {/* Theme-Adaptive Medallion Shell */}
+                      {/* Outer Ambient Atmospheric Halo */}
                       <div 
-                        className="absolute inset-0 rounded-full bg-slate-700/80 dark:bg-[#12161B] border border-slate-600/80 dark:border-slate-800 shadow-sm pointer-events-none" 
+                        className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.1)_0%,rgba(186,230,253,0.2)_50%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(34,199,214,0.2)_0%,rgba(14,165,233,0.1)_50%,transparent_70%)] pointer-events-none" 
+                        aria-hidden="true"
+                      />
+
+                      {/* Medallion Shell with Brand Blue / Dark Slate Tint */}
+                      <div 
+                        className="absolute inset-0 rounded-full bg-gradient-to-b from-[#F0F7FF] via-[#E2EFFF] to-[#D4E8FC] dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-[#BFDBFE] dark:border-[#22C7D6]/30 shadow-[0_8px_20px_rgba(0,102,255,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.08)] pointer-events-none" 
+                        aria-hidden="true"
+                      />
+
+                      {/* Inner Well with Brand Blue / Cyan Tint */}
+                      <div 
+                        className="absolute inset-2.5 rounded-full bg-gradient-to-b from-[#1E3A8A]/20 via-[#0284C7]/15 to-[#0066FF]/20 dark:from-[#22C7D6]/20 dark:via-[#0284C7]/20 dark:to-[#0B0D10]/80 border border-[#93C5FD]/60 dark:border-[#22C7D6]/40 shadow-[inset_0_1px_4px_rgba(0,102,255,0.12)] dark:shadow-[inset_0_1px_6px_rgba(34,199,214,0.25)] pointer-events-none" 
                         aria-hidden="true"
                       />
 
@@ -271,7 +289,7 @@ export function AssessmentHero3D() {
                       <motion.img 
                         src={assessment.logo} 
                         alt={assessment.title}
-                        className="w-22 h-22 sm:w-24 sm:h-24 object-contain relative z-10" 
+                        className="w-22 h-22 sm:w-24 sm:h-24 object-contain relative z-10 drop-shadow-[0_4px_12px_rgba(0,102,255,0.2)] dark:drop-shadow-[0_4px_16px_rgba(34,199,214,0.3)]"
                         animate={isActive && !shouldReduceMotion ? { scale: [1, 1.02, 1] } : {}}
                         transition={{ duration: 3.5, repeat: shouldReduceMotion ? 0 : Infinity, ease: "easeInOut" }}
                       />
@@ -280,31 +298,44 @@ export function AssessmentHero3D() {
 
                   {/* Content Layer 2: Inactive Card Identifiable Art & Label */}
                   <div 
-                    className={`w-full h-full relative flex flex-col items-center pt-4 pb-3 overflow-hidden transition-all duration-300 group-hover:bg-white/10 dark:group-hover:bg-white/5 ${
+                    className={`w-full h-full relative flex flex-col items-center justify-between py-4 overflow-hidden transition-all duration-300 group-hover:bg-white/40 dark:group-hover:bg-white/5 ${
                       isActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
                     }`}
                   >
+                    {/* Ambient inner soft glow */}
+                    <div 
+                      className="absolute inset-0 bg-[radial-gradient(circle_at_right,rgba(186,230,253,0.3)_0%,rgba(0,102,255,0.06)_50%,transparent_75%)] dark:bg-[radial-gradient(circle_at_right,rgba(34,199,214,0.15)_0%,rgba(14,165,233,0.05)_50%,transparent_75%)] pointer-events-none" 
+                      aria-hidden="true" 
+                    />
+                    
                     {/* Top Protocol Number Badge */}
-                    <div className="z-10 font-mono text-[10px] font-bold text-slate-200 dark:text-slate-300 bg-slate-900/80 dark:bg-[#181D23] px-1.5 py-0.5 rounded shadow-sm border border-slate-700 dark:border-slate-700 shrink-0">
+                    <div className="z-10 font-mono text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-white/95 dark:bg-[#181D23] px-1.5 py-0.5 rounded shadow-sm border border-slate-300/80 dark:border-slate-700">
                       0{index + 1}
                     </div>
 
-                    {/* Fixed-Position Logo Badge to prevent up-and-down visual hopping */}
-                    <div className="relative flex items-center justify-center mt-3 shrink-0">
+                    {/* Identifiable Restrained Logo Badge */}
+                    <div className="relative flex items-center justify-center my-auto">
                       <div 
-                        className="w-10 h-10 rounded-full bg-slate-700/80 dark:bg-[#181D23] border border-slate-600/80 dark:border-slate-800 shadow-sm pointer-events-none flex items-center justify-center"
+                        className={`absolute rounded-full bg-gradient-to-b from-[#E0F2FE] via-[#BAE6FD] to-[#E0F2FE] dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-[#7DD3FC]/80 dark:border-[#22C7D6]/40 shadow-[0_2px_5px_rgba(0,102,255,0.12)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.6)] pointer-events-none ${
+                          offset === 1 ? 'w-10 h-10' :
+                          offset === 2 ? 'w-9 h-9' :
+                          offset === 3 ? 'w-8 h-8' : 'w-7.5 h-7.5'
+                        }`}
                         aria-hidden="true"
-                      >
-                        <img 
-                          src={assessment.logo} 
-                          alt={assessment.title}
-                          className="w-6 h-6 object-contain"
-                        />
-                      </div>
+                      />
+                      <img 
+                        src={assessment.logo} 
+                        alt={assessment.title}
+                        className={`object-contain relative z-10 drop-shadow-[0_1px_4px_rgba(0,102,255,0.2)] dark:drop-shadow-[0_1px_4px_rgba(34,199,214,0.25)] filter contrast-125 brightness-105 ${
+                          offset === 1 ? 'w-6.5 h-6.5' :
+                          offset === 2 ? 'w-6 h-6' :
+                          offset === 3 ? 'w-5.5 h-5.5' : 'w-5 h-5'
+                        }`}
+                      />
                     </div>
 
                     {/* Vertical Readable Title Label for Inactive Cards */}
-                    <div className="z-10 text-[10px] font-bold text-slate-200 dark:text-slate-300 tracking-wider uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 opacity-90 mt-auto overflow-hidden">
+                    <div className="z-10 text-[10.5px] font-bold text-[#090D1A] dark:text-slate-300 tracking-wider uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 opacity-90 mt-1">
                       {assessment.title}
                     </div>
                   </div>
@@ -318,7 +349,7 @@ export function AssessmentHero3D() {
         <button 
           type="button"
           onClick={handleNext}
-          className="ml-3 z-40 w-11 h-11 rounded-full bg-white dark:bg-[#181D23] shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] shrink-0"
+          className="ml-3 z-40 w-11 h-11 rounded-full bg-white dark:bg-[#181D23] shadow-[0_4px_16px_rgba(0,102,255,0.12),0_2px_4px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.6)] border border-sky-100 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-[#0066FF] dark:hover:text-[#22C7D6] hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/50 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] shrink-0"
           aria-label="Next assessment protocol"
         >
           <ChevronRight size={21} strokeWidth={2.4} />

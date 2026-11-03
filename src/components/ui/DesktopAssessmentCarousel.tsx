@@ -204,10 +204,10 @@ export function DesktopAssessmentCarousel() {
                   role="group"
                   aria-roledescription="slide"
                   aria-label={`${index + 1} of ${DESKTOP_ASSESSMENTS.length}: ${assessment.title}`}
-                  className={`absolute w-full h-full rounded-2xl bg-slate-800 dark:bg-[#181D23] border ${
+                  className={`absolute w-full h-full rounded-2xl bg-white dark:bg-[#181D23] border ${
                     isActive
-                      ? 'border-slate-700 dark:border-slate-700 shadow-xl'
-                      : 'border-slate-700/80 dark:border-slate-800 shadow-md'
+                      ? 'border-[#0066FF]/60 dark:border-[#22C7D6]/60 shadow-[0_16px_40px_rgba(0,102,255,0.12)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.6)] ring-1 ring-[#0066FF]/20 dark:ring-[#22C7D6]/20'
+                      : 'border-slate-200 dark:border-slate-800 shadow-sm'
                   } flex flex-col justify-between overflow-hidden cursor-pointer transition-colors duration-300`}
                   initial={false}
                   animate={{
@@ -233,10 +233,17 @@ export function DesktopAssessmentCarousel() {
                   }}
                 >
                   {/* Card Visual Header */}
-                  <div className="relative h-44 w-full bg-slate-700/80 dark:bg-[#12161B] flex items-center justify-center border-b border-slate-700 dark:border-slate-800 overflow-hidden shrink-0">
+                  <div className="relative h-44 w-full bg-slate-50 dark:bg-[#12161B] flex items-center justify-center border-b border-slate-100 dark:border-slate-800 overflow-hidden shrink-0">
                     {/* Visualizer Subtle Grid Graphic */}
-                    <div className="absolute inset-0 opacity-20 dark:opacity-20 bg-[radial-gradient(#94A3B8_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+                    <div className="absolute inset-0 opacity-40 dark:opacity-20 bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
                     
+                    {/* Radial Atmosphere Glow */}
+                    <div 
+                      className={`absolute inset-0 transition-opacity duration-500 pointer-events-none ${
+                        isActive ? 'opacity-100 bg-[radial-gradient(ellipse_at_center,_rgba(0,102,255,0.1)_0%,_transparent_70%)] dark:bg-[radial-gradient(ellipse_at_center,_rgba(34,199,214,0.15)_0%,_transparent_70%)]' : 'opacity-0'
+                      }`} 
+                    />
+
                     {/* Assessment Custom Logo Visual Focus */}
                     <motion.img
                       src={assessment.logo}
@@ -257,19 +264,19 @@ export function DesktopAssessmentCarousel() {
 
                   {/* Card Body */}
                   <div className="p-6 flex flex-col flex-1">
-                    <div className="text-[11px] text-sky-400 dark:text-[#22C7D6] font-mono font-bold tracking-widest mb-1.5 uppercase">
+                    <div className="text-[11px] text-[#0066FF] dark:text-[#22C7D6] font-mono font-bold tracking-widest mb-1.5 uppercase">
                       {assessment.protocolNumber} • {assessment.category}
                     </div>
-                    <h3 className="font-heading text-2xl font-extrabold text-white tracking-tight mb-2">
+                    <h3 className="font-heading text-2xl font-extrabold text-[#090D1A] dark:text-white tracking-tight mb-2">
                       {assessment.title}
                     </h3>
-                    <p className="text-slate-300 dark:text-slate-400 text-sm leading-relaxed mb-6 flex-1 line-clamp-3">
+                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6 flex-1 line-clamp-3">
                       {assessment.description}
                     </p>
                     <div className={`mt-auto flex items-center justify-center gap-2 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${
                       isActive
-                        ? 'bg-slate-700/90 dark:bg-[#22C7D6]/10 text-sky-300 dark:text-[#22C7D6] border border-slate-600 dark:border-[#22C7D6]/30'
-                        : 'bg-slate-700/50 dark:bg-slate-800 text-slate-300 dark:text-slate-400 border border-transparent'
+                        ? 'bg-sky-50 dark:bg-[#22C7D6]/10 text-[#0066FF] dark:text-[#22C7D6] border border-sky-200 dark:border-[#22C7D6]/30'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-transparent'
                     }`}>
                       {isActive ? (
                         <>
@@ -305,7 +312,7 @@ export function DesktopAssessmentCarousel() {
             onClick={() => handleSelect(idx)}
             className={`transition-all duration-300 rounded-full h-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
               idx === activeIndex
-                ? 'w-8 bg-[#0066FF] dark:bg-[#22C7D6] '
+                ? 'w-8 bg-[#0066FF] dark:bg-[#22C7D6] shadow-[0_0_8px_rgba(0,102,255,0.4)] dark:shadow-[0_0_8px_rgba(34,199,214,0.4)]'
                 : 'w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
             }`}
             aria-label={`Go to slide ${idx + 1}`}
