@@ -1,12 +1,17 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { IdbProfileStorage, type LocalProfile } from './idbProfileStorage';
 import { auth } from '../firebase';
+import { GoogleAuthProvider, signInWithPopup, signOut as fbSignOut, type User } from 'firebase/auth';
 import { ensureAuthenticatedUser } from '../firestore';
 
 interface ProfileContextValue {
   profiles: LocalProfile[];
   activeProfile: LocalProfile | null;
   loading: boolean;
+  user: User | null;
+  isGoogleUser: boolean;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
   setActiveProfile: (uid: string) => Promise<void>;
   createProfile: (profile: Omit<LocalProfile, 'profileUid' | 'revision'>) => Promise<LocalProfile>;
   deleteProfile: (uid: string) => Promise<void>;
@@ -19,17 +24,71 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [profiles, setProfiles] = useState<LocalProfile[]>([]);
   const [activeProfileUid, setActiveProfileUidState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(auth?.currentUser || null);
+
+  const isGoogleUser = Boolean(currentUser && !currentUser.isAnonymous && currentUser.email);
+
+  useEffect(() => {
+    if (!auth) return;
+    const unsub = auth.onAuthStateChanged((user) => {
+      setCurrentUser(user);
+    });
+    return unsub;
+  }, []);
 
   const getStorage = useCallback(() => {
-    const ownerUid = auth?.currentUser?.uid || 'guest';
+    const ownerUid = currentUser && !currentUser.isAnonymous ? currentUser.uid : 'guest';
     return new IdbProfileStorage(ownerUid);
-  }, []);
+  }, [currentUser]);
+
+  const signInWithGoogle = async () => {
+    if (!auth) throw new Error('Auth not configured');
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
+  const signOut = async () => {
+    if (!auth) return;
+    await fbSignOut(auth);
+    setActiveProfileUidState(null);
+    setProfiles([]);
+    await ensureAuthenticatedUser(); // seamlessly restores anonymous auth for guest trials
+  };
 
   const refreshProfiles = useCallback(async () => {
     try {
       setLoading(true);
       await ensureAuthenticatedUser();
       const storage = getStorage();
+
+      // If signed in with Google, pull server profiles and cache locally
+      if (auth?.currentUser && !auth.currentUser.isAnonymous) {
+        try {
+          const token = await auth.currentUser.getIdToken();
+          const res = await fetch('/api/profiles/my-profiles', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.profiles)) {
+              for (const p of data.profiles) {
+                await storage.saveProfile({
+                  profileUid: p.profileUid,
+                  displayName: p.displayName,
+                  discriminator: p.discriminator,
+                  leaderboardDisplayName: p.leaderboardDisplayName,
+                  ageGroup: p.ageGroup,
+                  themeAccent: p.themeAccent || 'cyan',
+                  avatarGlyph: p.avatarGlyph || 'reticle',
+                  shareAgeGroup: p.shareAgeGroupOnLeaderboard ?? true,
+                  revision: p.revision || 1
+                });
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
       const local = await storage.getProfiles();
       setProfiles(local);
 
@@ -49,7 +108,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     void refreshProfiles();
-  }, [refreshProfiles]);
+  }, [refreshProfiles, currentUser]);
 
   const setActiveProfile = async (uid: string) => {
     const storage = getStorage();
@@ -86,6 +145,8 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const localProfile: LocalProfile = {
       profileUid: profileRecord.profileUid,
       displayName: profileRecord.displayName,
+      discriminator: profileRecord.discriminator,
+      leaderboardDisplayName: profileRecord.leaderboardDisplayName,
       ageGroup: profileRecord.ageGroup,
       themeAccent: data.themeAccent,
       avatarGlyph: data.avatarGlyph,
@@ -130,6 +191,10 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         profiles,
         activeProfile,
         loading,
+        user: currentUser,
+        isGoogleUser,
+        signInWithGoogle,
+        signOut,
         setActiveProfile,
         createProfile,
         deleteProfile,
@@ -148,6 +213,10 @@ export function useProfiles(): ProfileContextValue {
       profiles: [],
       activeProfile: null,
       loading: false,
+      user: null,
+      isGoogleUser: false,
+      signInWithGoogle: async () => {},
+      signOut: async () => {},
       setActiveProfile: async () => {},
       createProfile: async (p) => ({ ...p, profileUid: 'guest', revision: 1 }),
       deleteProfile: async () => {},

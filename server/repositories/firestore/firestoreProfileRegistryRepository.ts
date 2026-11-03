@@ -12,6 +12,7 @@ import { AppError } from '../../models/replayContracts';
 
 export interface ReserveProfileParams {
   ownerUid: string;
+  ownerEmail?: string | null;
   displayName: string;
   ageGroup: string;
   shareAgeGroupOnLeaderboard?: boolean;
@@ -31,7 +32,7 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
   }
 
   async reserveProfile(params: ReserveProfileParams): Promise<{ success: boolean; profile: ProfileRecord }> {
-    const { ownerUid, displayName, ageGroup, shareAgeGroupOnLeaderboard = true } = params;
+    const { ownerUid, ownerEmail, displayName, ageGroup, shareAgeGroupOnLeaderboard = true } = params;
 
     const validation = validateProfileDisplayName(displayName);
     if (!validation.valid) {
@@ -45,17 +46,15 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
     }
 
     const accountRef = db.collection('accounts').doc(ownerUid);
-    const nameRef = db.collection('names').doc(normalizedName);
     const profileUid = this.generateProfileUid();
     const profileRef = db.collection('profiles').doc(profileUid);
 
     const now = Date.now();
+    const discriminator = Math.floor(1000 + Math.random() * 9000).toString();
+    const leaderboardDisplayName = `${displayName.trim()} #${discriminator}`;
 
     return await db.runTransaction(async (tx: Transaction) => {
-      const [accountSnap, nameSnap] = await Promise.all([
-        tx.get(accountRef),
-        tx.get(nameRef)
-      ]);
+      const accountSnap = await tx.get(accountRef);
 
       let accountData: AccountRegistry;
       if (!accountSnap.exists) {
@@ -64,8 +63,8 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
           profileCount: 0,
           profileUids: [],
           revision: 1,
-          isPermanentAccount: false,
-          email: null,
+          isPermanentAccount: Boolean(ownerEmail),
+          email: ownerEmail || null,
           createdAt: now,
           updatedAt: now
         };
@@ -73,21 +72,17 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
         accountData = accountSnap.data() as AccountRegistry;
       }
 
-      if (accountData.profileCount >= 5 || accountData.profileUids.length >= 5) {
-        throw new AppError('PROFILE_LIMIT_EXCEEDED: Accounts can hold a maximum of 5 profiles', 400);
+      if (accountData.profileCount >= 10 || accountData.profileUids.length >= 10) {
+        throw new AppError('PROFILE_LIMIT_EXCEEDED: Accounts can hold a maximum of 10 profiles', 400);
       }
 
-      if (nameSnap.exists) {
-        const nameData = nameSnap.data() as NameReservation;
-        if (nameData.status === 'active') {
-          throw new AppError('NAME_ALREADY_TAKEN: That display name is already in use', 409);
-        }
-        if (nameData.status === 'tombstone' && nameData.expiresAt) {
-          const exp = typeof nameData.expiresAt === 'number'
-            ? nameData.expiresAt
-            : (nameData.expiresAt as Timestamp)?.toMillis?.() || 0;
-          if (now < exp) {
-            throw new AppError('NAME_IN_COOLDOWN: That display name was recently deleted and is in cooldown', 409);
+      // Check duplicate name within the user's existing profiles
+      for (const existingUid of accountData.profileUids) {
+        const existingSnap = await tx.get(db.collection('profiles').doc(existingUid));
+        if (existingSnap.exists) {
+          const ep = existingSnap.data() as ProfileRecord;
+          if (ep.normalizedName === normalizedName) {
+            throw new AppError('NAME_ALREADY_TAKEN: You already have a profile with this display name', 409);
           }
         }
       }
@@ -96,8 +91,11 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
         profileUid,
         displayName: displayName.trim(),
         normalizedName,
+        discriminator,
+        leaderboardDisplayName,
         ageGroup: ageGroup as AgeGroup,
         ownerUid,
+        ownerEmail: ownerEmail || null,
         shareAgeGroupOnLeaderboard: Boolean(shareAgeGroupOnLeaderboard),
         revision: 1,
         lastRenamedAt: null,
@@ -105,18 +103,7 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
         updatedAt: now
       };
 
-      const newReservation: NameReservation = {
-        normalizedName,
-        profileUid,
-        ownerUid,
-        status: 'active',
-        tombstoneReason: null,
-        reservedAt: now,
-        expiresAt: null
-      };
-
       tx.set(profileRef, newProfile);
-      tx.set(nameRef, newReservation);
 
       if (!accountSnap.exists) {
         accountData.profileCount = 1;
@@ -126,6 +113,7 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
         tx.update(accountRef, {
           profileCount: accountData.profileCount + 1,
           profileUids: [...accountData.profileUids, profileUid],
+          email: ownerEmail || accountData.email || null,
           revision: (accountData.revision || 1) + 1,
           updatedAt: now
         });
@@ -135,33 +123,20 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
     });
   }
 
-  async checkNameAvailability(displayName: string): Promise<{ available: boolean; normalizedName: string; reason?: string }> {
+  async checkNameAvailability(displayName: string, ownerUid?: string): Promise<{ available: boolean; normalizedName: string; reason?: string }> {
     const validation = validateProfileDisplayName(displayName);
     if (!validation.valid) {
       return { available: false, normalizedName: '', reason: validation.error };
     }
 
-    const db = this.getDb();
-    if (!db) throw new AppError('Database unavailable', 503);
-
-    const nameRef = db.collection('names').doc(validation.normalized);
-    const snap = await nameRef.get();
-    if (!snap.exists) {
+    if (!ownerUid) {
       return { available: true, normalizedName: validation.normalized };
     }
 
-    const data = snap.data() as NameReservation;
-    if (data.status === 'active') {
+    const profiles = await this.getMyProfiles(ownerUid);
+    const taken = profiles.some(p => p.normalizedName === validation.normalized);
+    if (taken) {
       return { available: false, normalizedName: validation.normalized, reason: 'NAME_ALREADY_TAKEN' };
-    }
-
-    if (data.status === 'tombstone' && data.expiresAt) {
-      const exp = typeof data.expiresAt === 'number'
-        ? data.expiresAt
-        : (data.expiresAt as Timestamp)?.toMillis?.() || 0;
-      if (Date.now() < exp) {
-        return { available: false, normalizedName: validation.normalized, reason: 'NAME_IN_COOLDOWN' };
-      }
     }
 
     return { available: true, normalizedName: validation.normalized };
@@ -210,20 +185,6 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
         throw new AppError('Forbidden: You do not own this profile', 403);
       }
 
-      const now = Date.now();
-      const tombstoneExp = now + 30 * 24 * 60 * 60 * 1000; // 30-day deletion cooldown
-      const nameRef = db.collection('names').doc(profile.normalizedName);
-
-      tx.set(nameRef, {
-        normalizedName: profile.normalizedName,
-        profileUid: null,
-        ownerUid: null,
-        status: 'tombstone',
-        tombstoneReason: 'DELETE',
-        reservedAt: now,
-        expiresAt: tombstoneExp
-      });
-
       tx.delete(profileRef);
 
       if (accountSnap.exists) {
@@ -233,7 +194,7 @@ export class FirestoreProfileRegistryRepository implements IProfileRegistryRepos
           profileUids: nextUids,
           profileCount: nextUids.length,
           revision: (account.revision || 1) + 1,
-          updatedAt: now
+          updatedAt: Date.now()
         });
       }
 

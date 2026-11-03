@@ -4,6 +4,8 @@ import type { ObservatoryThemeId, ObservatoryGlyphId } from '../../../shared/con
 export interface LocalProfile {
   profileUid: string;
   displayName: string;
+  discriminator?: string;
+  leaderboardDisplayName?: string;
   ageGroup: AgeGroup;
   themeAccent: ObservatoryThemeId;
   avatarGlyph: ObservatoryGlyphId;

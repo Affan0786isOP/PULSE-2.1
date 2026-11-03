@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ProfileManager } from '../../../src/components/profiles/ProfileManager';
 
 describe('ProfileManager Component', () => {
-  it('renders list of profiles and shows limit capacity (1/5)', () => {
+  it('renders list of profiles and shows limit capacity (1/10)', () => {
     const profiles: any[] = [
       {
         profileUid: 'p1',
@@ -28,12 +28,12 @@ describe('ProfileManager Component', () => {
     );
 
     expect(screen.getByText('Participant Profiles')).toBeDefined();
-    expect(screen.getByText('+ Create Profile (1/5)')).toBeDefined();
+    expect(screen.getByText('+ Create Profile (1/10)')).toBeDefined();
     expect(screen.getByText('Nova')).toBeDefined();
   });
 
-  it('disables create button when 5 profiles exist', () => {
-    const profiles: any[] = Array.from({ length: 5 }, (_, i) => ({
+  it('disables create button when 10 profiles exist', () => {
+    const profiles: any[] = Array.from({ length: 10 }, (_, i) => ({
       profileUid: `p${i}`,
       displayName: `Pilot ${i}`,
       ageGroup: 'Adults (26–40)',
@@ -53,7 +53,7 @@ describe('ProfileManager Component', () => {
       />
     );
 
-    const btn = screen.getByText('+ Create Profile (5/5)');
+    const btn = screen.getByText('+ Create Profile (10/10)');
     expect((btn as HTMLButtonElement).disabled).toBe(true);
   });
 });

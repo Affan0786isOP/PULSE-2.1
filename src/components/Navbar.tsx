@@ -364,16 +364,36 @@ export function Navbar({
 
       {/* Right Info, Settings & Install Actions */}
       <div className="flex items-center gap-2 sm:gap-2.5">
-        {profileContext?.activeProfile && !isAssessmentActive && (
-          <div className="hidden sm:block">
-            <ProfilePill
-              activeProfile={profileContext.activeProfile}
-              onOpenManager={() => {
-                if (onNavigate) onNavigate('profiles');
-                else navigate('/profiles');
-              }}
-            />
-          </div>
+        {!isAssessmentActive && (
+          profileContext?.isGoogleUser ? (
+            <div className="hidden sm:flex items-center gap-2">
+              {profileContext.activeProfile && (
+                <ProfilePill
+                  activeProfile={profileContext.activeProfile}
+                  onOpenManager={() => {
+                    if (onNavigate) onNavigate('profiles');
+                    else navigate('/profiles');
+                  }}
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => profileContext.signOut()}
+                title={`Signed in as ${profileContext.user?.email}. Click to sign out.`}
+                className="text-[11px] font-mono px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--text-secondary)] transition-colors cursor-pointer"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => profileContext?.signInWithGoogle()}
+              className="hidden sm:inline-flex text-[11px] font-mono font-medium px-2.5 py-1 rounded-lg bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/30 hover:bg-[var(--accent)]/20 transition-all cursor-pointer"
+            >
+              Sign In
+            </button>
+          )
         )}
         {rightContent && (
           <div className="hidden sm:block">

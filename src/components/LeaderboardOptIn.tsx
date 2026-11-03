@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { submitLeaderboardResult, getLeaderboardResults, AssessmentType, AgeGroup } from '../lib/firestore';
 import { isValidLeaderboardScoreMetric, validateLeaderboardDisplayName } from '../../shared/domain/leaderboardEligibility';
+import { useProfiles } from '../lib/profiles/ProfileContext';
 
 
 interface LeaderboardOptInProps {
@@ -14,9 +15,12 @@ interface LeaderboardOptInProps {
 
 export function LeaderboardOptIn({ assessmentType, scoreMetric,
       sessionId, idempotencyKey, ageGroup, trials }: LeaderboardOptInProps) {
+  const { activeProfile } = useProfiles();
   const [optInState, setOptInState] = useState<'IDLE' | 'OPTING_IN' | 'SUBMITTING' | 'SUCCESS' | 'RECORDED' | 'PENDING_REVIEW' | 'STATUS_UNKNOWN' | 'ERROR'>('IDLE');
   
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState(
+    activeProfile?.leaderboardDisplayName || activeProfile?.displayName || ''
+  );
   const [errorMsg, setErrorMsg] = useState('');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const isSubmittingRef = useRef(false);
