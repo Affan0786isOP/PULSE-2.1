@@ -18,6 +18,7 @@ const ROUTES = [
   { name: 'assessments', path: '/assessments' },
   { name: 'leaderboard', path: '/leaderboard' },
   { name: 'improve', path: '/improve' },
+  { name: 'dataset', path: '/dataset' },
   { name: 'privacy', path: '/privacy' },
   { name: 'admin', path: '/admin' },
   { name: 'not-found', path: '/non-existent-page-404' },
