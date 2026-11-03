@@ -209,7 +209,7 @@ export function AssessmentHero3D() {
                 >
                   {/* Background Layer 1: Active Card Light & Dark Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/98 via-[#F9FBFF]/96 to-[#EAF3FD]/92 dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-slate-300 dark:border-slate-700/60 shadow-[0_20px_50px_rgba(0,102,255,0.13),0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7),0_0_25px_rgba(34,199,214,0.12)] text-[#090D1A] dark:text-slate-100 transition-opacity duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/98 via-[#F9FBFF]/96 to-[#EAF3FD]/92 dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-slate-300 dark:border-slate-700/60 shadow-[0_12px_32px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] text-[#090D1A] dark:text-slate-100 transition-opacity duration-300 pointer-events-none ${
                       isActive ? 'opacity-100' : 'opacity-0'
                     }`}
                     aria-hidden="true"
@@ -217,7 +217,7 @@ export function AssessmentHero3D() {
 
                   {/* Background Layer 2: Inactive Card Light & Dark Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[24px] bg-gradient-to-b from-white/95 via-[#F1F6FD]/95 to-[#E4F0FC]/95 dark:from-[#161B22] dark:via-[#12161D] dark:to-[#0D1117] border border-slate-300 dark:border-slate-800/80 shadow-[0_8px_22px_rgba(0,102,255,0.08),0_2px_6px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)] hover:border-slate-400 dark:hover:border-[#22C7D6]/40 hover:shadow-[0_12px_28px_rgba(0,102,255,0.12)] dark:hover:shadow-[0_12px_28px_rgba(0,0,0,0.7)] text-[#090D1A] dark:text-slate-200 transition-all duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[24px] bg-gradient-to-b from-white/95 via-[#F1F6FD]/95 to-[#E4F0FC]/95 dark:from-[#161B22] dark:via-[#12161D] dark:to-[#0D1117] border border-slate-300 dark:border-slate-800/80 shadow-sm hover:border-slate-400 dark:hover:border-slate-700 text-[#090D1A] dark:text-slate-200 transition-all duration-300 pointer-events-none ${
                       isActive ? 'opacity-0' : 'opacity-100'
                     }`}
                     aria-hidden="true"
@@ -229,12 +229,6 @@ export function AssessmentHero3D() {
                       isActive ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                     }`}
                   >
-                    {/* Soft Blue Atmospheric Wash on Right Half of Card */}
-                    <div 
-                      className="absolute right-0 top-0 bottom-0 w-[55%] bg-gradient-to-l from-[#C0DEFA]/85 via-[#DBECFC]/50 to-transparent dark:from-[#22C7D6]/15 dark:via-[#0EA5E9]/10 dark:to-transparent pointer-events-none rounded-r-[28px]" 
-                      aria-hidden="true"
-                    />
-
                     {/* Left: Metadata & Actions */}
                     <div className="flex flex-col justify-between h-full z-10 flex-1 min-w-0">
                       <div>
@@ -258,30 +252,18 @@ export function AssessmentHero3D() {
 
                       {/* Secondary Action: Try Protocol Outline Button */}
                       <div className="mt-3">
-                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-sky-300/80 dark:border-[#22C7D6]/40 bg-white/80 dark:bg-[#181D23]/90 hover:bg-sky-50/80 dark:hover:bg-[#22C7D6]/15 text-[#0066FF] dark:text-[#22C7D6] hover:text-[#0052CC] dark:hover:text-[#22C7D6] text-xs sm:text-[12.5px] font-semibold shadow-sm hover:shadow dark:shadow-[0_2px_10px_rgba(0,0,0,0.4)] active:scale-95 transition-all">
+                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#12161B] hover:bg-slate-50 dark:hover:bg-slate-800 text-[#0066FF] dark:text-[#22C7D6] text-xs sm:text-[12.5px] font-semibold shadow-sm active:scale-95 transition-all">
                           <span>Try {assessment.title}</span>
                           <ArrowRight size={13} strokeWidth={2.2} />
                         </div>
                       </div>
                     </div>
 
-                    {/* Right: Soft Brand-Tinted Protocol Art Medallion */}
+                    {/* Right: Protocol Art Container */}
                     <div className="relative w-36 h-36 flex items-center justify-center shrink-0 z-10">
-                      {/* Outer Ambient Atmospheric Halo */}
+                      {/* Medallion Shell */}
                       <div 
-                        className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.1)_0%,rgba(186,230,253,0.2)_50%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(34,199,214,0.2)_0%,rgba(14,165,233,0.1)_50%,transparent_70%)] pointer-events-none" 
-                        aria-hidden="true"
-                      />
-
-                      {/* Medallion Shell with Brand Blue / Dark Slate Tint */}
-                      <div 
-                        className="absolute inset-0 rounded-full bg-gradient-to-b from-[#F0F7FF] via-[#E2EFFF] to-[#D4E8FC] dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-[#BFDBFE] dark:border-[#22C7D6]/30 shadow-[0_8px_20px_rgba(0,102,255,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.08)] pointer-events-none" 
-                        aria-hidden="true"
-                      />
-
-                      {/* Inner Well with Brand Blue / Cyan Tint */}
-                      <div 
-                        className="absolute inset-2.5 rounded-full bg-gradient-to-b from-[#1E3A8A]/20 via-[#0284C7]/15 to-[#0066FF]/20 dark:from-[#22C7D6]/20 dark:via-[#0284C7]/20 dark:to-[#0B0D10]/80 border border-[#93C5FD]/60 dark:border-[#22C7D6]/40 shadow-[inset_0_1px_4px_rgba(0,102,255,0.12)] dark:shadow-[inset_0_1px_6px_rgba(34,199,214,0.25)] pointer-events-none" 
+                        className="absolute inset-0 rounded-full bg-slate-50 dark:bg-[#12161B] border border-slate-200 dark:border-slate-800 shadow-sm pointer-events-none" 
                         aria-hidden="true"
                       />
 
@@ -289,7 +271,7 @@ export function AssessmentHero3D() {
                       <motion.img 
                         src={assessment.logo} 
                         alt={assessment.title}
-                        className="w-22 h-22 sm:w-24 sm:h-24 object-contain relative z-10 drop-shadow-[0_4px_12px_rgba(0,102,255,0.2)] dark:drop-shadow-[0_4px_16px_rgba(34,199,214,0.3)]"
+                        className="w-22 h-22 sm:w-24 sm:h-24 object-contain relative z-10" 
                         animate={isActive && !shouldReduceMotion ? { scale: [1, 1.02, 1] } : {}}
                         transition={{ duration: 3.5, repeat: shouldReduceMotion ? 0 : Infinity, ease: "easeInOut" }}
                       />
@@ -302,12 +284,6 @@ export function AssessmentHero3D() {
                       isActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
                     }`}
                   >
-                    {/* Ambient inner soft glow */}
-                    <div 
-                      className="absolute inset-0 bg-[radial-gradient(circle_at_right,rgba(186,230,253,0.3)_0%,rgba(0,102,255,0.06)_50%,transparent_75%)] dark:bg-[radial-gradient(circle_at_right,rgba(34,199,214,0.15)_0%,rgba(14,165,233,0.05)_50%,transparent_75%)] pointer-events-none" 
-                      aria-hidden="true" 
-                    />
-                    
                     {/* Top Protocol Number Badge */}
                     <div className="z-10 font-mono text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-white/95 dark:bg-[#181D23] px-1.5 py-0.5 rounded shadow-sm border border-slate-300/80 dark:border-slate-700">
                       0{index + 1}
@@ -316,7 +292,7 @@ export function AssessmentHero3D() {
                     {/* Identifiable Restrained Logo Badge */}
                     <div className="relative flex items-center justify-center my-auto">
                       <div 
-                        className={`absolute rounded-full bg-gradient-to-b from-[#E0F2FE] via-[#BAE6FD] to-[#E0F2FE] dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-[#7DD3FC]/80 dark:border-[#22C7D6]/40 shadow-[0_2px_5px_rgba(0,102,255,0.12)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.6)] pointer-events-none ${
+                        className={`absolute rounded-full bg-white dark:bg-[#181D23] border border-slate-200 dark:border-slate-800 shadow-sm pointer-events-none ${
                           offset === 1 ? 'w-10 h-10' :
                           offset === 2 ? 'w-9 h-9' :
                           offset === 3 ? 'w-8 h-8' : 'w-7.5 h-7.5'
@@ -326,7 +302,7 @@ export function AssessmentHero3D() {
                       <img 
                         src={assessment.logo} 
                         alt={assessment.title}
-                        className={`object-contain relative z-10 drop-shadow-[0_1px_4px_rgba(0,102,255,0.2)] dark:drop-shadow-[0_1px_4px_rgba(34,199,214,0.25)] filter contrast-125 brightness-105 ${
+                        className={`object-contain relative z-10 ${
                           offset === 1 ? 'w-6.5 h-6.5' :
                           offset === 2 ? 'w-6 h-6' :
                           offset === 3 ? 'w-5.5 h-5.5' : 'w-5 h-5'
