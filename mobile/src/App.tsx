@@ -7,6 +7,7 @@ import { useSystemTheme } from './lib/useSystemTheme';
 import { Home } from './components/Home';
 import { RouteSEO } from './components/RouteSEO';
 import { PageViewTracker } from './components/PageViewTracker';
+import { RouteShellBoundary } from './components/RouteShellBoundary';
 
 import { 
   evaluateDeviceRouting, 
@@ -34,6 +35,8 @@ const NumberMemoryTest = React.lazy(() => import('./components/NumberMemoryTest'
 const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({ default: m.ColorTest })));
 const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
+const GuidesHub = React.lazy(() => import('./components/guides/GuidesHub').then(m => ({ default: m.GuidesHub })));
+const GuidePage = React.lazy(() => import('./components/guides/GuidePage').then(m => ({ default: m.GuidePage })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
 
 import { isDarkApparatusRoute } from './lib/routeTheme';
@@ -150,6 +153,7 @@ function App() {
                 className="flex-1 flex flex-col w-full"
               >
                 <React.Suspense fallback={<RouteFallback isDark={isDark} />}>
+                <RouteShellBoundary>
                 <RouteSEO />
                 <PageViewTracker surface="mobile" />
                 <Routes location={location}>
@@ -158,6 +162,11 @@ function App() {
                   <Route path="/index.html" element={<RedirectIndexHtml />} />
                   <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                   <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
+
+                  <Route path="/guides" element={<GuidesHub surface="mobile" />} />
+                  <Route path="/guides/*" element={<GuidePage surface="mobile" />} />
+                  <Route path="/benchmarks/*" element={<GuidePage surface="mobile" />} />
+
                   <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
                   <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
                   <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
@@ -178,6 +187,7 @@ function App() {
 
                   <Route path="*" element={<NotFound onNavigate={handleNavigate} />} />
                 </Routes>
+                </RouteShellBoundary>
                 </React.Suspense>
               </motion.div>
             </AnimatePresence>

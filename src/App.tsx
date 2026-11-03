@@ -7,6 +7,7 @@ import { useSystemTheme } from './lib/useSystemTheme';
 import { Home } from './components/Home';
 import { RouteSEO } from './components/RouteSEO';
 import { PageViewTracker } from './components/PageViewTracker';
+import { RouteShellBoundary } from './components/RouteShellBoundary';
 
 import { resolveDeviceRedirect } from './lib/deviceRouting';
 
@@ -85,6 +86,8 @@ const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({
 const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
 const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
+const GuidesHub = React.lazy(() => import('./components/guides/GuidesHub').then(m => ({ default: m.GuidesHub })));
+const GuidePage = React.lazy(() => import('./components/guides/GuidePage').then(m => ({ default: m.GuidePage })));
 const AdminPage = React.lazy(() => import('./components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 
 
@@ -200,6 +203,7 @@ function App() {
               className="w-full flex-1 flex flex-col"
             >
               <React.Suspense fallback={<RouteFallback isDark={isDark} />}>
+              <RouteShellBoundary>
               <RouteSEO />
               <PageViewTracker surface="desktop" />
               <Routes location={location}>
@@ -209,6 +213,10 @@ function App() {
                 <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
                 <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
                 <Route path="/admin" element={<AdminPage />} />
+
+                <Route path="/guides" element={<GuidesHub surface="desktop" />} />
+                <Route path="/guides/*" element={<GuidePage surface="desktop" />} />
+                <Route path="/benchmarks/*" element={<GuidePage surface="desktop" />} />
 
                 <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
                 <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
@@ -235,6 +243,7 @@ function App() {
 
                 <Route path="*" element={<NotFound onNavigate={handleNavigate} />} />
               </Routes>
+              </RouteShellBoundary>
               </React.Suspense>
             </motion.div>
           </AnimatePresence>

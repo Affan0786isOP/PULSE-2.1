@@ -4,7 +4,12 @@ fs.existsSync = existsSync;
 import path from 'node:path';
 import metadata from '../shared/seoMetadata.json' with { type: 'json' };
 import assessmentContent from '../shared/content/assessmentContent.json' with { type: 'json' };
+import guidesData from '../shared/content/guides.json' with { type: 'json' };
+import { validateGuideContent } from '../shared/content/guideValidator.mjs';
 import { buildRouteSchema } from '../shared/seoSchema.mjs';
+
+// Validate guides data before generating
+validateGuideContent(guidesData);
 
 const root = process.cwd();
 const distDir = process.env.PULSE_SEO_DIST_DIR
@@ -40,7 +45,8 @@ const navigationHtml = indexedPublicRoutes
   .join('');
 
 function schemaFor(pathname) {
-  return buildRouteSchema(metadata, pathname);
+  const guideDoc = guidesData[pathname];
+  return buildRouteSchema(metadata, pathname, undefined, guideDoc);
 }
 
 function robotsFor(route) {
@@ -49,8 +55,10 @@ function robotsFor(route) {
     : 'noindex, follow';
 }
 
-function slugFor(pathname) {
-  return pathname === '/' ? 'home' : pathname.replace(/^\//, '').replaceAll('/', '--');
+function relativeFilePathFor(pathname) {
+  if (pathname === '/') return 'home.html';
+  const clean = pathname.replace(/^\//, '');
+  return clean + '.html';
 }
 
 function replaceHead(html, pathname, route, isMobile, replaceShell = true) {
@@ -112,20 +120,60 @@ function replaceHead(html, pathname, route, isMobile, replaceShell = true) {
     '\n  </head>' +
     output.slice(closingHeadIndex + '</head>'.length);
 
-  // Guard the entry-point path as well as the generated route shells: if a future
-  // template change breaks insertion, fail the build instead of shipping missing SEO.
   if (!output.includes('<link rel="canonical" href="' + canonical + '" />')) {
     throw new Error('Canonical link was not generated for ' + (isMobile ? 'mobile ' : 'desktop ') + pathname);
   }
 
-  // Keep entry HTML's authored body intact when only regenerating its head.
   if (!replaceShell) return output;
 
   const fallbackHeading = escapeHtml(route.title.replace(/\s*\|\s*PULSE$/, ''));
   let innerContentHtml = '';
   const articleData = assessmentContent[pathname];
+  const guideDoc = guidesData[pathname];
 
-  if (articleData) {
+  if (guideDoc) {
+    const sectionsHtml = guideDoc.sections.map(section => {
+      const heading = '<h2 style="font-size:1.5rem;margin:2rem 0 0.75rem;color:#f4f7fa">' + escapeHtml(section.heading) + '</h2>';
+      const paragraphs = section.paragraphs.map(p => '<p style="margin:0 0 1rem;color:#94a3b8;line-height:1.7">' + escapeHtml(p) + '</p>').join('');
+      const list = section.listItems && section.listItems.length > 0
+        ? '<ul style="margin:0 0 1.5rem 1.5rem;padding:0;color:#94a3b8;line-height:1.7">' +
+          section.listItems.map(item => '<li style="margin-bottom:0.5rem">' + escapeHtml(item) + '</li>').join('') +
+          '</ul>'
+        : '';
+      return '<section id="' + escapeHtml(section.id) + '">' + heading + paragraphs + list + '</section>';
+    }).join('');
+
+    const citationsHtml = guideDoc.citations && guideDoc.citations.length > 0
+      ? '<section id="citations" style="margin-top:2.5rem;border-top:1px solid #1e293b;padding-top:1.5rem"><h2 style="font-size:1.35rem;margin:0 0 1rem;color:#f4f7fa">Academic References &amp; Citations</h2><ul style="padding-left:1.5rem;color:#94a3b8;line-height:1.7">' +
+        guideDoc.citations.map(c =>
+          '<li style="margin-bottom:0.5rem">' + escapeHtml(c.author) + ' (' + c.year + '). ' + escapeHtml(c.title) + (c.journal ? '. <em>' + escapeHtml(c.journal) + '</em>' : '') + (c.doi ? ' (DOI: ' + escapeHtml(c.doi) + ')' : '') + '</li>'
+        ).join('') +
+        '</ul></section>'
+      : '';
+
+    const ctaTarget = isMobile && guideDoc.interactiveCta
+      ? '/mobile' + guideDoc.interactiveCta.targetPath + '?ref=' + guideDoc.interactiveCta.referralToken
+      : (guideDoc.interactiveCta ? guideDoc.interactiveCta.targetPath + '?ref=' + guideDoc.interactiveCta.referralToken : '');
+
+    const ctaHtml = guideDoc.interactiveCta
+      ? '<div style="margin:2.5rem 0;padding:1.5rem;background:#11151c;border:1px solid #22c7d6;border-radius:8px;text-align:center">' +
+        '<p style="margin:0 0 1rem;font-weight:600;color:#f4f7fa">Ready to evaluate your baseline?</p>' +
+        '<a href="' + escapeHtml(ctaTarget) + '" style="display:inline-block;padding:0.75rem 1.5rem;background:#22c7d6;color:#0b0d10;font-weight:600;border-radius:6px;text-decoration:none">' + escapeHtml(guideDoc.interactiveCta.label) + '</a>' +
+        '</div>'
+      : '';
+
+    innerContentHtml =
+      '<article id="assessment-seo-article">' +
+      '<header style="margin-bottom:2rem">' +
+      '<h1 id="pulse-seo-shell-title" style="font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;margin:0 0 0.75rem">' + escapeHtml(guideDoc.title) + '</h1>' +
+      '<p style="font-size:1.125rem;color:#38bdf8;margin:0 0 1rem">' + escapeHtml(guideDoc.subtitle) + '</p>' +
+      '<p style="font-size:0.875rem;color:#64748b;margin:0">Published by PULSE Cognitive Research Team | ' + escapeHtml(guideDoc.datePublished) + '</p>' +
+      '</header>' +
+      sectionsHtml +
+      ctaHtml +
+      citationsHtml +
+      '</article>';
+  } else if (articleData) {
     const sectionsHtml = articleData.sections.map(section => {
       const heading = '<h2 style="font-size:1.5rem;margin:2rem 0 0.75rem;color:#f4f7fa">' + escapeHtml(section.heading) + '</h2>';
       const paragraphs = section.paragraphs.map(p => '<p style="margin:0 0 1rem;color:#94a3b8;line-height:1.7">' + escapeHtml(p) + '</p>').join('');
@@ -189,8 +237,9 @@ function replaceHead(html, pathname, route, isMobile, replaceShell = true) {
 }
 
 async function writeRouteShell(baseHtml, pathname, route, isMobile) {
+  const relativeFile = relativeFilePathFor(pathname);
   const relativeDir = isMobile ? path.join('seo', 'mobile') : 'seo';
-  const target = path.join(distDir, relativeDir, slugFor(pathname) + '.html');
+  const target = path.join(distDir, relativeDir, relativeFile);
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.writeFile(target, replaceHead(baseHtml, pathname, route, isMobile), 'utf8');
 }
@@ -292,3 +341,4 @@ await injectServiceWorkerPrecache(
   path.join(distDir, 'mobile', 'assets'),
   '/mobile/assets/'
 );
+console.log('Successfully generated all SEO shells and sitemap.');

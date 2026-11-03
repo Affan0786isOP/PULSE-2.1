@@ -6,11 +6,6 @@ import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import './index.css';
 import './lib/pwaStore';
 
-// Remove the build-time SEO shell immediately before React takes over the page.
-if (typeof document !== 'undefined') {
-  document.getElementById('pulse-seo-shell')?.remove();
-}
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
@@ -20,4 +15,3 @@ createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </StrictMode>,
 );
-

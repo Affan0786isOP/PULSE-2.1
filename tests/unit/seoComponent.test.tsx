@@ -58,7 +58,7 @@ describe('client SEO lifecycle', () => {
 
     await waitFor(() => {
       expect(document.title).toBe('Reaction Time Test | Visual Reaction Test | PULSE');
-      expect(currentStructuredData()['@type']).toBe('WebPage');
+      expect(currentStructuredData()['@type']).toBe('ItemPage');
       expect(currentStructuredData().url).toBe(window.location.origin + '/reaction-test');
     });
     expect(currentStructuredData().name).toBe('Reaction Time Test | Visual Reaction Test | PULSE');

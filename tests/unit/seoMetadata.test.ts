@@ -26,7 +26,11 @@ describe('SEO route registry', () => {
       '/direction-test',
       '/colour-recognition',
       '/block-memory',
-      '/number-memory'
+      '/number-memory',
+      '/guides',
+      '/guides/visual-reaction-time',
+      '/guides/stroop-effect-speed',
+      '/benchmarks/cognitive-percentiles'
     ]);
 
     expect(metadata.routes['/dataset'].indexable).toBe(false);
@@ -54,7 +58,7 @@ describe('SEO route registry', () => {
     expect(homeSchema['@graph'].map((node: { '@type': string }) => node['@type'])).toContain('SoftwareApplication');
 
     const reactionSchema = buildRouteSchema(metadata, '/reaction-test');
-    expect(reactionSchema['@type']).toBe('WebPage');
+    expect(reactionSchema['@type']).toBe('ItemPage');
     expect(reactionSchema.url).toBe('https://pulse-lab.in/reaction-test');
     expect(reactionSchema.name).toBe(metadata.routes['/reaction-test'].title);
   });
