@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Navbar } from './Navbar';
+import { PageShell } from './layout/PageShell';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -387,13 +387,13 @@ export function Dataset({ onNavigate }: DatasetProps) {
   };
 
   return (
-    <div
-      className="bg-transparent text-[var(--text-main)] min-h-[100dvh] w-full max-w-full overflow-x-hidden flex flex-col font-sans selection:bg-cyan-500/30 relative"
+    <PageShell
+      currentView="dataset"
+      onNavigate={onNavigate}
+      maxWidth="6xl"
+      contentClassName="flex flex-col gap-4 sm:gap-6 pb-12"
     >
-      <Navbar onNavigate={onNavigate} currentView="dataset" />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 min-w-0">
-        {/* Game Navigation with Left & Right Arrows */}
+      {/* Game Navigation with Left & Right Arrows */}
         <div className="flex items-center justify-between gap-4 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-2.5 shadow-sm">
           <button type="button"
             id="dataset-prev-btn"
@@ -886,8 +886,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
             </div>
           </div>
         )}
-      </main>
-    </div>
+    </PageShell>
   );
 }
 
