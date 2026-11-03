@@ -117,3 +117,11 @@ This file records verified architectural and engineering decisions established i
   5. Standardized Abort-on-Interrupt and SW lifecycle: coordinated `setServiceWorkerActiveSession(true/false)` across all 5 test engines on desktop and mobile, standardizing test interruption cleanup.
 - **Consequences:** Eliminates critical edge security leaks, prevents serverless outbox memory bloat, ensures transactional data integrity, and unifies cognitive engine test lifecycles.
 - **Evidence:** [`server/services/telegramNotifierService.ts`](../server/services/telegramNotifierService.ts), [`scripts/dedupeLeaderboardBestPerOwner.ts`](../scripts/dedupeLeaderboardBestPerOwner.ts), [`server/engines/assessmentEngine.ts`](../server/engines/assessmentEngine.ts), [`vercel.json`](../vercel.json).
+
+
+### Decision: Documentation Audit & Synchronization Baseline (2026-11-03)
+- **Status:** Accepted
+- **Context:** Documentation drift had accumulated across runtime requirements, dual-surface build steps, protocol QA instructions, agent toolchain guidance, and statements about the admin route surface.
+- **Decision:** Keep package metadata as the source of truth for Node/npm/tool versions; document the production desktop + mobile + SEO generation build sequence; remove obsolete refresh-rate calibration QA expectations; distinguish route presence from authorization and backend access; and record documentation verification as a source-backed task rather than asserting unverified behavior.
+- **Consequences:** Future documentation updates should inspect `package.json`, both application routers, the relevant admin component and server route registrations before making claims about runtime requirements, feature availability, or administrative access.
+- **Evidence:** [package.json](../package.json), [src/App.tsx](../src/App.tsx), [mobile/src/App.tsx](../mobile/src/App.tsx), [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md), [docs/TESTING.md](../docs/TESTING.md).
