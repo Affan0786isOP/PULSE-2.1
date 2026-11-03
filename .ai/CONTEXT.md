@@ -92,7 +92,7 @@
 
 
 
-## 7. Runtime & build baseline## 7. Runtime & build baseline
+## 7. Runtime & build baseline
 
 - Node.js engine floor: `>=24.12.0`.
 - Package manager: `npm@10.9.7`.
