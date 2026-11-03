@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 
 interface RouteShellBoundaryProps {
   children: React.ReactNode;
@@ -10,14 +10,18 @@ interface RouteShellBoundaryProps {
  * DOM to the screen, eliminating blank interval flashes during chunk loading.
  */
 export const RouteShellBoundary: React.FC<RouteShellBoundaryProps> = ({ children }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useLayoutEffect(() => {
     if (typeof document !== 'undefined') {
-      const shell = document.getElementById('pulse-seo-shell');
-      if (shell) {
-        shell.remove();
+      if (containerRef.current && containerRef.current.children.length > 0) {
+        const shell = document.getElementById('pulse-seo-shell');
+        if (shell) {
+          shell.remove();
+        }
       }
     }
-  }, []);
+  });
 
-  return <>{children}</>;
+  return <div ref={containerRef} style={{ display: 'contents' }}>{children}</div>;
 };

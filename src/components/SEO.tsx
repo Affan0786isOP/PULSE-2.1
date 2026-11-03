@@ -42,7 +42,7 @@ export function SEO({
   canonicalUrl,
   noindex,
   ogType = 'website',
-  ogImage = metadata.site.ogImage,
+  ogImage,
   schema,
   includeMobileAlternate = true
 }: SEOProps) {
@@ -52,7 +52,10 @@ export function SEO({
     title: string;
     description: string;
     indexable: boolean;
+    ogImage?: string;
   }>)[canonicalPath];
+
+  const effectiveOgImage = ogImage ?? routeMeta?.ogImage ?? metadata.site.ogImage;
 
   const isProd = isProductionHost();
   const siteUrl = isProd
@@ -97,7 +100,7 @@ export function SEO({
       matches.forEach(duplicate => duplicate.remove());
     };
 
-    const upsertLink = (relValue: string, hrefValue: string, extraSelector = '') => {
+    const upsertLink = (relValue: string, hrefValue: string, extraSelector = '', extraAttrs?: Record<string, string>) => {
       const matches = Array.from(document.querySelectorAll<HTMLLinkElement>(
         `link[rel="${relValue}"]${extraSelector}`
       ));
@@ -106,6 +109,9 @@ export function SEO({
         element.setAttribute('rel', relValue);
         if (extraSelector.includes('media=')) {
           element.setAttribute('media', 'only screen and (max-width: 768px)');
+        }
+        if (extraAttrs) {
+          Object.entries(extraAttrs).forEach(([k, v]) => element.setAttribute(k, v));
         }
         document.head.appendChild(element);
       }
@@ -125,7 +131,7 @@ export function SEO({
     upsertMeta('property', 'og:type', ogType);
     upsertMeta('property', 'og:site_name', metadata.site.name);
     upsertMeta('property', 'og:locale', 'en_US');
-    upsertMeta('property', 'og:image', ogImage);
+    upsertMeta('property', 'og:image', effectiveOgImage);
     upsertMeta('property', 'og:image:width', '1200');
     upsertMeta('property', 'og:image:height', '630');
     upsertMeta('property', 'og:image:type', 'image/png');
@@ -136,9 +142,14 @@ export function SEO({
     if (shouldAdvertiseMobile) {
       const mobilePath = canonicalPath === '/' ? '/mobile/' : '/mobile' + canonicalPath;
       upsertLink('alternate', siteUrl + mobilePath, mobileAlternateSelector);
+      upsertLink('alternate', finalCanonical, '[hreflang="x-default"]', { hreflang: 'x-default' });
+      upsertLink('alternate', finalCanonical, '[hreflang="en"]', { hreflang: 'en' });
     } else {
       document.querySelectorAll<HTMLLinkElement>(
         `link[rel="alternate"]${mobileAlternateSelector}`
+      ).forEach(link => link.remove());
+      document.querySelectorAll<HTMLLinkElement>(
+        'link[rel="alternate"][hreflang]'
       ).forEach(link => link.remove());
     }
 
@@ -146,7 +157,7 @@ export function SEO({
     upsertMeta('name', 'twitter:title', finalTitle);
     upsertMeta('name', 'twitter:description', finalDescription);
     upsertMeta('name', 'twitter:url', finalCanonical);
-    upsertMeta('name', 'twitter:image', ogImage);
+    upsertMeta('name', 'twitter:image', effectiveOgImage);
     upsertMeta('name', 'twitter:image:alt', 'PULSE cognitive benchmarking');
 
     const currentOwnerId = String(++nextOwnerId);
@@ -170,7 +181,7 @@ export function SEO({
     finalCanonical,
     effectiveNoindex,
     ogType,
-    ogImage,
+    effectiveOgImage,
     serializedSchema,
     includeMobileAlternate,
     routeMeta?.indexable,

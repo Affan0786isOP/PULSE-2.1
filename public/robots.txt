@@ -10,4 +10,36 @@ Disallow: /api/
 # Internal pre-rendered SEO shells (served via rewrites)
 Disallow: /seo/
 
+# Mobile app — duplicate content, canonicalized to desktop via rel=alternate
+Disallow: /mobile/
+
+# AI Search & Answer Engine Crawlers (Explicit Search & Citation Permissions)
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /seo/
+Disallow: /mobile/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /seo/
+Disallow: /mobile/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /seo/
+Disallow: /mobile/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /seo/
+Disallow: /mobile/
+
 Sitemap: https://pulse-lab.in/sitemap.xml

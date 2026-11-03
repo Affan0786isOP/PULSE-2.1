@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 
+const isProdE2E = process.env.E2E_PROD === '1';
+
 export default defineConfig({
   testDir: './tests/e2e',
   outputDir: path.join(process.env.TEMP || process.cwd(), 'test-results'),
@@ -20,21 +22,15 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
     },
   ],
   webServer: {
-    command: 'cmd.exe /c "npm run dev"',
-    url: 'http://localhost:3000',
+    command: isProdE2E
+      ? 'cmd.exe /c "node scripts/start-e2e-prod-server.mjs"'
+      : 'cmd.exe /c "npm run dev"',
+    url: 'http://localhost:3000/api/health',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

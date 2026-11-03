@@ -66,7 +66,7 @@ function replaceHead(html, pathname, route, isMobile, replaceShell = true) {
   const description = escapeHtml(route.description);
   const canonical = escapeHtml(absoluteUrl(pathname));
   const robots = escapeHtml(robotsFor(route));
-  const ogImage = escapeHtml(metadata.site.ogImage);
+  const ogImage = escapeHtml(route.ogImage ?? metadata.site.ogImage);
   const ogImageAlt = escapeHtml('PULSE cognitive benchmarking');
   const jsonLd = JSON.stringify(schemaFor(pathname)).replaceAll('</', '<\\/');
 
@@ -84,6 +84,11 @@ function replaceHead(html, pathname, route, isMobile, replaceShell = true) {
     ? '\n    <link rel="alternate" media="only screen and (max-width: 768px)" href="' +
       escapeHtml(absoluteUrl(mobilePathFor(pathname))) +
       '" />'
+    : '';
+
+  const hreflang = !isMobile && route.indexable
+    ? '\n    <link rel="alternate" hreflang="x-default" href="' + canonical + '" />' +
+      '\n    <link rel="alternate" hreflang="en" href="' + canonical + '" />'
     : '';
 
   const headTags =
@@ -108,6 +113,7 @@ function replaceHead(html, pathname, route, isMobile, replaceShell = true) {
     '\n    <meta name="twitter:image:alt" content="' + ogImageAlt + '" />' +
     '\n    <link rel="canonical" href="' + canonical + '" />' +
     alternate +
+    hreflang +
     '\n    <script id="pulse-seo-jsonld" type="application/ld+json">' + jsonLd + '</script>';
 
   const closingHeadIndex = output.toLowerCase().indexOf('</head>');
@@ -246,7 +252,14 @@ async function writeRouteShell(baseHtml, pathname, route, isMobile) {
 
 async function writeSitemap() {
   const urls = indexedPublicRoutes
-    .map(([pathname]) => '  <url><loc>' + escapeHtml(absoluteUrl(pathname)) + '</loc></url>')
+    .map(([pathname, route]) => {
+      const loc = '    <loc>' + escapeHtml(absoluteUrl(pathname)) + '</loc>';
+      const lastmod = route.lastmod ? '\n    <lastmod>' + route.lastmod + '</lastmod>' : '';
+      const changefreq = pathname.startsWith('/guides') || pathname.startsWith('/benchmarks')
+        ? '\n    <changefreq>monthly</changefreq>'
+        : '\n    <priority>0.8</priority>';
+      return '  <url>\n' + loc + lastmod + changefreq + '\n  </url>';
+    })
     .join('\n');
 
   const xml =
@@ -312,9 +325,9 @@ async function injectServiceWorkerPrecache(swPath, assetsDir, urlPrefix) {
       .filter((file) => /^index-[A-Za-z0-9_-]{8,}\.(?:js|css)$/.test(file))
       .map((file) => `${urlPrefix}${file}`);
 
-    // 2. Key assessment route assets (cached non-fatally to ensure offline test readiness)
+    // 2. Key assessment and guide route assets (cached non-fatally to ensure offline readiness)
     const keyRouteAssets = assetFiles
-      .filter((file) => /^(?:ReactionTest|DirectionTest|ColorTest|BlockMemoryTest|NumberMemoryTest|Assessments)-[A-Za-z0-9_-]{8,}\.js$/.test(file))
+      .filter((file) => /^(?:ReactionTest|DirectionTest|ColorTest|BlockMemoryTest|NumberMemoryTest|Assessments|GuidePage|GuidesHub|guides)-[A-Za-z0-9_-]{8,}\.js$/.test(file))
       .map((file) => `${urlPrefix}${file}`);
 
     if (entryAssets.length === 0) {

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      background-color: #080A0F;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #F8FAFC;
+      position: relative;
+    }
+
+    /* Grid background */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(168, 85, 247, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(34, 199, 214, 0.04) 1px, transparent 1px);
+      background-size: 38px 38px;
+    }
+
+    /* Radial glows */
+    .glow-purple {
+      position: absolute;
+      top: -120px;
+      right: 180px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%);
+      filter: blur(50px);
+      pointer-events: none;
+    }
+
+    .glow-cyan {
+      position: absolute;
+      bottom: -150px;
+      left: 80px;
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(34, 199, 214, 0.12) 0%, rgba(8, 10, 15, 0) 70%);
+      filter: blur(50px);
+      pointer-events: none;
+    }
+
+    /* Outer border & frame */
+    .frame-border {
+      position: absolute;
+      inset: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      pointer-events: none;
+    }
+
+    .corner-mark {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+    }
+    .corner-tl { top: 20px; left: 20px; border-top: 2px solid #A855F7; border-left: 2px solid #A855F7; }
+    .corner-tr { top: 20px; right: 20px; border-top: 2px solid #22C7D6; border-right: 2px solid #22C7D6; }
+    .corner-bl { bottom: 20px; left: 20px; border-bottom: 2px solid #22C7D6; border-left: 2px solid #22C7D6; }
+    .corner-br { bottom: 20px; right: 20px; border-bottom: 2px solid #A855F7; border-right: 2px solid #A855F7; }
+
+    /* Content Layout */
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      padding: 60px 68px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.28em;
+      color: #FFFFFF;
+      line-height: 1;
+    }
+
+    .brand-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: #64748B;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(168, 85, 247, 0.08);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 9999px;
+      padding: 8px 18px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #A855F7;
+      box-shadow: 0 0 10px #A855F7;
+    }
+
+    .badge-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #C084FC;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* Main Grid: Left copy, Right graphic */
+    .main-body {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .category-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      color: #C084FC;
+      text-transform: uppercase;
+    }
+
+    .title {
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1.14;
+      letter-spacing: -0.025em;
+      color: #FFFFFF;
+    }
+
+    .title-highlight {
+      background: linear-gradient(135deg, #A855F7 0%, #38BDF8 60%, #22C7D6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .description {
+      font-size: 19px;
+      line-height: 1.5;
+      color: #94A3B8;
+      font-weight: 400;
+      max-width: 580px;
+    }
+
+    /* Right column: Graphic visualization showing Distribution / Bell curve / Percentiles */
+    .viz-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 22px 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .viz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 10px;
+    }
+
+    .viz-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: #64748B;
+      text-transform: uppercase;
+    }
+
+    .viz-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #A855F7;
+    }
+
+    /* Bell Curve Graphic SVG */
+    .chart-container {
+      background: #000000;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px 14px 8px 14px;
+      position: relative;
+    }
+
+    /* Quantile Breakdown Grid */
+    .quantiles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .q-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .q-box.highlight {
+      background: rgba(34, 199, 214, 0.06);
+      border-color: rgba(34, 199, 214, 0.3);
+    }
+
+    .q-box.purple {
+      background: rgba(168, 85, 247, 0.06);
+      border-color: rgba(168, 85, 247, 0.3);
+    }
+
+    .q-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #94A3B8;
+    }
+
+    .q-box.highlight .q-tag { color: #22C7D6; }
+    .q-box.purple .q-tag { color: #C084FC; }
+
+    .q-latency {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-top: 2px;
+    }
+
+    .q-desc {
+      font-size: 10px;
+      color: #64748B;
+      margin-top: 2px;
+    }
+
+    /* Footer Meta */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .footer-tags {
+      display: flex;
+      gap: 20px;
+    }
+
+    .f-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #64748B;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .f-tag strong {
+      color: #CBD5E1;
+      font-weight: 600;
+    }
+
+    .url-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #C084FC;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow-purple"></div>
+  <div class="glow-cyan"></div>
+  <div class="frame-border"></div>
+  
+  <div class="corner-mark corner-tl"></div>
+  <div class="corner-mark corner-tr"></div>
+  <div class="corner-mark corner-bl"></div>
+  <div class="corner-mark corner-br"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand-lockup">
+        <svg viewBox="0 0 100 100" width="34" height="34" fill="none">
+          <path d="M 12 8 L 61 8 C 75.9 8 88 20.1 88 35 C 88 49.9 75.9 62 61 62 L 46 62 L 46 45 L 61 45 C 66.5 45 71 40.5 71 35 C 71 29.5 66.5 25 61 25 L 12 25 Z" fill="#A855F7"/>
+          <path d="M 12 55 L 36 38 L 36 75 L 12 92 Z" fill="#22C7D6"/>
+        </svg>
+        <div class="brand-text">
+          <span class="brand-title">PULSE</span>
+          <span class="brand-sub">EMPIRICAL NORMS &bull; V2.1</span>
+        </div>
+      </div>
+
+      <div class="badge">
+        <div class="badge-dot"></div>
+        <span class="badge-text">EMPIRICAL POPULATION DISTRIBUTIONS</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-body">
+      <div class="left-col">
+        <div class="category-tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C084FC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          PSYCHOMETRIC PERCENTILES &bull; N=50,000+
+        </div>
+        <h1 class="title">Cognitive Benchmarks: <br/><span class="title-highlight">Empirical Distributions</span></h1>
+        <p class="description">
+          Session-level empirical distributions, quantile brackets (P10/P50/P90), skew-normal modeling, and psychometric norms across verified cohorts.
+        </p>
+      </div>
+
+      <!-- Right Column: Visualization Card -->
+      <div class="viz-card">
+        <div class="viz-header">
+          <span class="viz-title">Normal Response Distribution</span>
+          <span class="viz-status">&bull; &mu;=214ms &sigma;=28ms</span>
+        </div>
+
+        <!-- Bell Curve SVG Chart -->
+        <div class="chart-container">
+          <svg viewBox="0 0 380 110" width="100%" height="95" fill="none">
+            <defs>
+              <linearGradient id="curveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#22C7D6" stop-opacity="0.3"/>
+                <stop offset="35%" stop-color="#22C7D6" stop-opacity="0.8"/>
+                <stop offset="65%" stop-color="#A855F7" stop-opacity="0.8"/>
+                <stop offset="100%" stop-color="#A855F7" stop-opacity="0.2"/>
+              </linearGradient>
+              <linearGradient id="fillGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#22C7D6" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#22C7D6" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Grid lines -->
+            <line x1="20" y1="85" x2="360" y2="85" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+            <line x1="100" y1="20" x2="100" y2="85" stroke="rgba(34,199,214,0.3)" stroke-width="1" stroke-dasharray="2 2"/>
+            <line x1="190" y1="10" x2="190" y2="85" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+            <line x1="280" y1="25" x2="280" y2="85" stroke="rgba(168,85,247,0.3)" stroke-width="1" stroke-dasharray="2 2"/>
+
+            <!-- Bell Curve Area & Stroke -->
+            <path d="M 20 85 C 60 85, 90 75, 120 50 C 150 25, 170 12, 190 12 C 210 12, 230 25, 260 50 C 290 75, 320 85, 360 85 Z" fill="url(#fillGrad)"/>
+            <path d="M 20 85 C 60 85, 90 75, 120 50 C 150 25, 170 12, 190 12 C 210 12, 230 25, 260 50 C 290 75, 320 85, 360 85" stroke="url(#curveGrad)" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- Axis Labels -->
+            <text x="100" y="98" fill="#22C7D6" font-family="JetBrains Mono" font-size="9" text-anchor="middle" font-weight="600">P90: 172ms</text>
+            <text x="190" y="98" fill="#F8FAFC" font-family="JetBrains Mono" font-size="9" text-anchor="middle" font-weight="700">P50: 214ms</text>
+            <text x="280" y="98" fill="#C084FC" font-family="JetBrains Mono" font-size="9" text-anchor="middle" font-weight="600">P10: 268ms</text>
+          </svg>
+        </div>
+
+        <!-- 3 Quantile Badges -->
+        <div class="quantiles-grid">
+          <div class="q-box highlight">
+            <span class="q-tag">P90 (TOP 10%)</span>
+            <span class="q-latency">&lt; 172 ms</span>
+            <span class="q-desc">Esports Elite</span>
+          </div>
+
+          <div class="q-box">
+            <span class="q-tag">P50 (MEDIAN)</span>
+            <span class="q-latency">214 ms</span>
+            <span class="q-desc">Standard Norm</span>
+          </div>
+
+          <div class="q-box purple">
+            <span class="q-tag">P10 (BOTTOM)</span>
+            <span class="q-latency">&gt; 268 ms</span>
+            <span class="q-desc">Fatigued Baseline</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-tags">
+        <div class="f-tag">COHORT: <strong>ACTIVE DESKTOP &bull; 144Hz+</strong></div>
+        <div class="f-tag">&bull;</div>
+        <div class="f-tag">STATISTICS: <strong>TRIMMED MEAN &bull; IQR</strong></div>
+        <div class="f-tag">&bull;</div>
+        <div class="f-tag">SAMPLE SIZE: <strong>50,000+ SESSIONS</strong></div>
+      </div>
+      <div class="url-pill">pulse-lab.in/benchmarks/cognitive-percentiles</div>
+    </div>
+  </div>
+</body>
+</html>

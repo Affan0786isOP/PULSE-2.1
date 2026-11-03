@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { motion } from 'motion/react';
 import {
   PHYSIOLOGICAL_FACTORS,
@@ -41,6 +42,7 @@ const improveSections = [
   { id: "factors", label: "Physiological factors" },
   { id: "checklist", label: "Preparation checklist" },
   { id: "ledger", label: "Research findings" },
+  { id: "guides", label: "Research guides" },
   { id: "expectations", label: "Expectations" },
   { id: "recommendations", label: "Best practices" },
 ];
@@ -481,6 +483,73 @@ export function Improve({
                     </button>
                   </div>
                 </div>
+              </div>
+            </section>
+
+            {/* Section: Research Deep Dives */}
+            <section id="guides" className="scroll-mt-8">
+              <div className="mb-4 text-center md:text-left">
+                <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
+                  Scientific resources
+                </span>
+                <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-[#090D1A] dark:text-white">
+                  Research deep dives &amp; guides
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                <Link
+                  to="/guides/visual-reaction-time"
+                  className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 transition-colors shadow-xs group"
+                >
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#0066FF] dark:text-[#22C7D6] font-semibold">Guide</span>
+                    <h3 className="font-heading font-semibold text-sm text-[#090D1A] dark:text-white mt-1 mb-2 group-hover:text-[#0066FF] dark:group-hover:text-[#22C7D6] transition-colors">
+                      Visual Reaction Time
+                    </h3>
+                    <p className="text-xs text-[#334155] dark:text-slate-300 leading-relaxed">
+                      Sensory reflex pathways, synaptic transmission limits, and browser display lag dynamics.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] mt-4 flex items-center gap-1">
+                    Read guide &rarr;
+                  </span>
+                </Link>
+
+                <Link
+                  to="/guides/stroop-effect-speed"
+                  className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 transition-colors shadow-xs group"
+                >
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#0066FF] dark:text-[#22C7D6] font-semibold">Guide</span>
+                    <h3 className="font-heading font-semibold text-sm text-[#090D1A] dark:text-white mt-1 mb-2 group-hover:text-[#0066FF] dark:group-hover:text-[#22C7D6] transition-colors">
+                      Stroop Effect &amp; Interference
+                    </h3>
+                    <p className="text-xs text-[#334155] dark:text-slate-300 leading-relaxed">
+                      Automatic semantic processing, prefrontal inhibition, and conflict resolution speed.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] mt-4 flex items-center gap-1">
+                    Read guide &rarr;
+                  </span>
+                </Link>
+
+                <Link
+                  to="/benchmarks/cognitive-percentiles"
+                  className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 transition-colors shadow-xs group"
+                >
+                  <div>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#0066FF] dark:text-[#22C7D6] font-semibold">Benchmark</span>
+                    <h3 className="font-heading font-semibold text-sm text-[#090D1A] dark:text-white mt-1 mb-2 group-hover:text-[#0066FF] dark:group-hover:text-[#22C7D6] transition-colors">
+                      Cognitive Percentiles
+                    </h3>
+                    <p className="text-xs text-[#334155] dark:text-slate-300 leading-relaxed">
+                      Session-level empirical distributions and statistical methodology across timing tasks.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] mt-4 flex items-center gap-1">
+                    Explore benchmarks &rarr;
+                  </span>
+                </Link>
               </div>
             </section>
 
