@@ -25,7 +25,7 @@ describe('Navbar Component', () => {
     expect(brandLink.getAttribute('href')).toBe('/');
   });
 
-  it('renders supported navigation links without Dataset or Analytics', () => {
+  it('renders navigation links for Assessments, Leaderboard, Dataset, Analytics, About', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <Navbar currentView="home" />
@@ -33,8 +33,8 @@ describe('Navbar Component', () => {
     );
     expect(screen.getByRole('link', { name: /^assessments$/i })).toBeDefined();
     expect(screen.getByRole('link', { name: /^leaderboard$/i })).toBeDefined();
-    expect(screen.queryByRole('link', { name: /^dataset$/i })).toBeNull();
-    expect(screen.queryByRole('link', { name: /^analytics$/i })).toBeNull();
+    expect(screen.getByRole('link', { name: /^dataset$/i })).toBeDefined();
+    expect(screen.getByRole('link', { name: /^analytics$/i })).toBeDefined();
     expect(screen.getByRole('link', { name: /^about$/i })).toBeDefined();
   });
 
