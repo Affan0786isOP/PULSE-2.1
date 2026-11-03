@@ -209,7 +209,7 @@ export function AssessmentHero3D() {
                 >
                   {/* Background Layer 1: Active Card Light & Dark Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/98 via-[#F9FBFF]/96 to-[#EAF3FD]/92 dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-white/90 dark:border-slate-700/60 shadow-[0_20px_50px_rgba(0,102,255,0.13),0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7),0_0_25px_rgba(34,199,214,0.12)] text-[#090D1A] dark:text-slate-100 transition-opacity duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/98 via-[#F9FBFF]/96 to-[#EAF3FD]/92 dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-slate-300 dark:border-slate-700/60 shadow-[0_20px_50px_rgba(0,102,255,0.13),0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.7),0_0_25px_rgba(34,199,214,0.12)] text-[#090D1A] dark:text-slate-100 transition-opacity duration-300 pointer-events-none ${
                       isActive ? 'opacity-100' : 'opacity-0'
                     }`}
                     aria-hidden="true"
@@ -217,7 +217,7 @@ export function AssessmentHero3D() {
 
                   {/* Background Layer 2: Inactive Card Light & Dark Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[24px] bg-gradient-to-b from-white/95 via-[#F1F6FD]/95 to-[#E4F0FC]/95 dark:from-[#161B22] dark:via-[#12161D] dark:to-[#0D1117] border border-sky-200/90 dark:border-slate-800/80 shadow-[0_8px_22px_rgba(0,102,255,0.08),0_2px_6px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)] hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 hover:shadow-[0_12px_28px_rgba(0,102,255,0.12)] dark:hover:shadow-[0_12px_28px_rgba(0,0,0,0.7)] text-[#090D1A] dark:text-slate-200 transition-all duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[24px] bg-gradient-to-b from-white/95 via-[#F1F6FD]/95 to-[#E4F0FC]/95 dark:from-[#161B22] dark:via-[#12161D] dark:to-[#0D1117] border border-slate-300 dark:border-slate-800/80 shadow-[0_8px_22px_rgba(0,102,255,0.08),0_2px_6px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.5)] hover:border-slate-400 dark:hover:border-[#22C7D6]/40 hover:shadow-[0_12px_28px_rgba(0,102,255,0.12)] dark:hover:shadow-[0_12px_28px_rgba(0,0,0,0.7)] text-[#090D1A] dark:text-slate-200 transition-all duration-300 pointer-events-none ${
                       isActive ? 'opacity-0' : 'opacity-100'
                     }`}
                     aria-hidden="true"
