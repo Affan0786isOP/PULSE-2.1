@@ -37,6 +37,22 @@ vi.mock('../../src/lib/usePwaInstall', () => ({
   usePwaInstall: () => mockPwa,
 }));
 
+vi.mock('../../src/lib/useAuthoritativeStats', () => ({
+  useAuthoritativeStats: () => ({
+    testsCount: 5,
+    resultsCount: 120,
+    isLoadingResults: false,
+  }),
+}));
+
+vi.mock('../../mobile/src/lib/useAuthoritativeStats', () => ({
+  useAuthoritativeStats: () => ({
+    testsCount: 5,
+    resultsCount: 120,
+    isLoadingResults: false,
+  }),
+}));
+
 describe('PWA Installation UI & Functional Audit', () => {
   beforeEach(() => {
     mockPwa.isInstalled = false;
