@@ -37,10 +37,46 @@ const PUBLIC_TRIAL_BOOLEAN_FIELDS = [
 ] as const;
 
 const PUBLIC_TRIAL_STRING_FIELDS = [
-  'validity', 'qualityFlag', 'displayDelayOffsetSource', 'foreperiodCategory',
+  'validity', 'qualityFlag', 'foreperiodCategory',
   'targetDirection', 'chosenDirection', 'userResponse', 'targetColor', 'chosenColor',
   'wordName', 'wordColor', 'condition', 'instruction', 'metricType'
 ] as const;
+
+// Public observations must contain only server-defined categorical values.
+// Never copy arbitrary client strings into the Firestore-readable publicDataset collection.
+const PUBLIC_TRIAL_STRING_VALUES: Record<
+  (typeof PUBLIC_TRIAL_STRING_FIELDS)[number],
+  ReadonlySet<string>
+> = {
+  validity: new Set([
+    'VALID',
+    'FALSE_START_PRE_STIMULUS',
+    'ANTICIPATORY_TOO_FAST',
+    'FALSE_START_PHYSIOLOGICAL',
+    'TIMEOUT',
+    'INCORRECT',
+    'ABORTED'
+  ]),
+  qualityFlag: new Set([
+    'ANTICIPATORY_RT',
+    'TIMEOUT_EXCEEDED',
+    'PREMATURE_TRIGGER',
+    'ANTICIPATORY_RESPONSE',
+    'PREMATURE_TRIGGER',
+    'ACCURACY_ERROR'
+  ]),
+  foreperiodCategory: new Set(['SHORT', 'LONG']),
+  targetDirection: new Set(['UP', 'DOWN', 'LEFT', 'RIGHT']),
+  chosenDirection: new Set(['UP', 'DOWN', 'LEFT', 'RIGHT']),
+  userResponse: new Set(['UP', 'DOWN', 'LEFT', 'RIGHT', 'RED', 'BLUE', 'GREEN', 'YELLOW', 'PURPLE']),
+  targetColor: new Set(['RED', 'BLUE', 'GREEN', 'YELLOW', 'PURPLE']),
+  chosenColor: new Set(['RED', 'BLUE', 'GREEN', 'YELLOW', 'PURPLE']),
+  wordName: new Set(['RED', 'BLUE', 'GREEN', 'YELLOW', 'PURPLE']),
+  wordColor: new Set(['RED', 'BLUE', 'GREEN', 'YELLOW', 'PURPLE']),
+  condition: new Set(['standard', 'congruent', 'incongruent']),
+  instruction: new Set(['WORD', 'COLOR']),
+  metricType: new Set(['reaction_time', 'input_latency'])
+};
 
 function sanitizeNestedPublicValue(value: unknown, depth = 0): unknown {
   if (value === null || typeof value === 'boolean') return value;
@@ -81,7 +117,9 @@ function sanitizePublicTrials(value: unknown): Record<string, unknown>[] {
     }
     for (const key of PUBLIC_TRIAL_STRING_FIELDS) {
       const candidate = source[key];
-      if (typeof candidate === 'string' && candidate.length <= 160) safe[key] = candidate;
+      if (typeof candidate === 'string' && PUBLIC_TRIAL_STRING_VALUES[key].has(candidate)) {
+        safe[key] = candidate;
+      }
     }
     for (const key of ['generatedSequence', 'playerSequence'] as const) {
       const candidate = sanitizeNestedPublicValue(source[key]);
@@ -419,7 +457,9 @@ export class ResearchService implements IResearchService {
       device: serverDeviceCategory,
       scoreMetric: currentScore,
       totalTrials: progressionTrials.length,
-      progressionTrials,
+      // Sanitize before persistence: authenticated clients can read publicDataset
+      // directly from Firestore and do not pass through the API DTO sanitizer.
+      progressionTrials: sanitizePublicTrials(progressionTrials),
       ...derivedMetrics
     };
 
