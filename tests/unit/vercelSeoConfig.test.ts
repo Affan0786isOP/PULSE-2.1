@@ -13,8 +13,8 @@ describe('Vercel technical SEO routing', () => {
     const pairs = redirects.map(rule => [rule.source, rule.destination]);
     expect(pairs).toContainEqual(['/visual-reaction', '/reaction-test']);
     expect(pairs).toContainEqual(['/direction', '/direction-test']);
+    expect(pairs).toContainEqual(['/analytics', '/dataset']);
     expect(pairs).toContainEqual(['/index.html', '/']);
-    expect(pairs.some(([source, destination]) => String(source).includes('dataset') || String(destination).includes('dataset'))).toBe(false);
   });
 
   it('does not have a catch-all SPA rewrite', () => {
@@ -65,8 +65,8 @@ describe('Vercel technical SEO routing', () => {
     const wildcardRobots = headers.filter(h => h.source === '/:path*' && hasRobotsHeader(h));
     expect(wildcardRobots).toHaveLength(1);
 
-    // Only the API keeps a production-specific robots override.
-    for (const source of ['/api/:path*']) {
+    // Production-only route overrides mark intentionally non-indexable pages and APIs.
+    for (const source of ['/dataset', '/analytics', '/mobile/dataset', '/mobile/analytics', '/api/:path*']) {
       const rule = headers.find(h =>
         h.source === source && hasRobotsHeader(h)
       );

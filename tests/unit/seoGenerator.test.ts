@@ -156,11 +156,11 @@ describe('SEO Shell Generator Output Verification', () => {
     });
   }
 
-  it('does not generate shells for retired Dataset and Analytics routes', () => {
-    for (const route of ['dataset', 'analytics']) {
-      expect(fs.existsSync(path.join(distDir, 'seo', `${route}.html`))).toBe(false);
-      expect(fs.existsSync(path.join(distDir, 'seo', 'mobile', `${route}.html`))).toBe(false);
-    }
+  it('correctly marks non-indexable routes with noindex in robots meta tag', () => {
+    const datasetPath = path.join(distDir, 'seo', 'dataset.html');
+    expect(fs.existsSync(datasetPath)).toBe(true);
+    const content = fs.readFileSync(datasetPath, 'utf8');
+    expect(content).toContain('<meta name="robots" content="noindex, follow" />');
   });
 
   it('generates root entry metadata and schema from the shared SEO registry', () => {
@@ -193,11 +193,10 @@ describe('SEO Shell Generator Output Verification', () => {
     expect(locations).not.toContain('https://pulse-lab.in/analytics');
   });
 
-  it('does not advertise retired Dataset pages as mobile alternates', () => {
-    const mobileDatasetShell = path.join(distDir, 'seo', 'mobile', 'dataset.html');
-    const mobileAnalyticsShell = path.join(distDir, 'seo', 'mobile', 'analytics.html');
-    expect(fs.existsSync(mobileDatasetShell)).toBe(false);
-    expect(fs.existsSync(mobileAnalyticsShell)).toBe(false);
+  it('does not advertise non-indexable pages as mobile alternates', () => {
+    const content = fs.readFileSync(path.join(distDir, 'seo', 'dataset.html'), 'utf8');
+    expect(content).toContain('<meta name="robots" content="noindex, follow" />');
+    expect(content).not.toContain('rel="alternate" media="only screen and (max-width: 768px)"');
   });
 
   it('fails fast when base shell is missing from input template', () => {

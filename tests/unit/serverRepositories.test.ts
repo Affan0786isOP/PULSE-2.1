@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as crypto from 'crypto';
 import type { Firestore } from 'firebase-admin/firestore';
 import { FirestoreSessionRepository } from '../../server/repositories/firestore/firestoreSessionRepository';
+import { FirestoreResearchDatasetRepository } from '../../server/repositories/firestore/firestoreResearchDatasetRepository';
 import { FirestoreResearchSubmissionRepository } from '../../server/repositories/firestore/firestoreResearchSubmissionRepository';
 import { getAssessmentVersionMetadata } from '../../shared/contracts/common';
 import { FirestoreLeaderboardRepository } from '../../server/repositories/firestore/firestoreLeaderboardRepository';
@@ -640,6 +641,18 @@ describe('Firestore Repositories Unit Tests', () => {
     const entry = await repo.getEntryById('ts-entry-1');
     expect(entry).not.toBeNull();
     expect(entry?.createdAt).toBe(expectedMillis);
+  });
+
+  it('validates cursor format in queryRawDataset before query.startAfter (BUG-22)', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreResearchDatasetRepository(() => mockDb);
+
+    await expect(
+      repo.queryRawDataset({
+        limitCount: 10,
+        cursor: 'invalid/slash/cursor'
+      })
+    ).rejects.toThrow('INVALID_CURSOR');
   });
 
 });

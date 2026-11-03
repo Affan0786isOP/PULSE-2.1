@@ -41,7 +41,13 @@ export function MobileHomeFooter({ onNavigate }: MobileHomeFooterProps) {
         >
           Leaderboard
         </button>
-
+        <button
+          type="button"
+          onClick={() => handleLink('/dataset')}
+          className="min-h-[44px] px-2 py-1 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-lg"
+        >
+          Dataset
+        </button>
         <button
           type="button"
           onClick={() => handleLink('/about')}

@@ -486,6 +486,7 @@ describe('Server Application Services Unit Tests', () => {
             return executeSubmissionTransaction(input);
           }),
         } as any,
+        {} as any,
       );
 
       const trials = Array.from({ length: 10 }, (_, index) => {
@@ -564,6 +565,7 @@ describe('Server Application Services Unit Tests', () => {
       {
         findById: vi.fn(async () => consumedSession),
       } as any,
+      {} as any,
       {} as any
     );
 
@@ -595,6 +597,7 @@ describe('Server Application Services Unit Tests', () => {
         getAndValidateSession: vi.fn(async () => ({ valid: true, session: rapidSession })),
       } as any,
       {} as any,
+      {} as any,
       {} as any
     );
 
@@ -610,4 +613,32 @@ describe('Server Application Services Unit Tests', () => {
     ).rejects.toMatchObject({ message: expect.stringContaining('implausibly short') });
   });
 
+  it('preserves completedAtTimestamp in getDataset public records (BUG-13)', async () => {
+    const mockDatasetRepo = {
+      queryRawDataset: vi.fn(async () => ({
+        results: [
+          {
+            id: 'res-doc-1',
+            sessionId: 'sess-1',
+            assessmentType: 'visual-reaction',
+            ageGroup: 'Young adults (18–25)',
+            completedAtTimestamp: 1705000000000,
+            completedAtMonth: '2024-01',
+            scoreMetric: 220,
+            derivedMetrics: { averageReactionTime: 220 }
+          }
+        ],
+        sessionMap: new Map(),
+        trialsBySession: new Map(),
+        hasMore: false,
+        nextCursor: null
+      })),
+      getDatasetSummary: vi.fn()
+    };
+
+    const service = new ResearchService({} as any, {} as any, {} as any, mockDatasetRepo as any);
+    const res = await service.getDataset({ limitCount: 10 });
+    expect(res.records).toHaveLength(1);
+    expect(res.records[0].completedAtTimestamp).toBe(1705000000000);
+  });
 });

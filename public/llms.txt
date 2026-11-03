@@ -20,6 +20,8 @@ Canonical website: https://pulse-lab.in
 
 ## Non-public / non-indexed
 
+- [Dataset](https://pulse-lab.in/dataset): Research dataset release page (unindexed).
+- [Analytics](https://pulse-lab.in/analytics): Telemetry placeholder (unindexed).
 - [Admin](https://pulse-lab.in/admin/): Private administration area (do not index).
 
 ## Notes

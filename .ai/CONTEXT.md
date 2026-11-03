@@ -45,7 +45,7 @@
 [Firebase Firestore] (Admin SDK)
        ├── assessmentTrials (5-yr retention, pseudonymous UID-scoped)
        ├── assessmentResults (5-yr retention, derived metrics)
-       ├── publicDataset (Indefinite, anonymized research archive; server-write-only; no product browser/API)
+       ├── publicDataset (Indefinite, fully anonymized, open research)
        ├── leaderboardResults (voluntary public alias; no automated expiry found in reviewed code)
        └── adminAuditLogs (7-yr retention, immutable moderation log)
 ```
@@ -76,7 +76,7 @@
 
 ## 5. Security & Trust Invariants
 - **Client writes are rejected:** `firestore.rules` enforces `allow write: if false` on all canonical collections. All mutations must occur via `server.ts`.
-- **Zero PII in research archive:** `publicDataset` records omit user IDs, session IDs, emails, and exact timestamps (aggregated to `completedAtMonth` YYYY-MM). The Dataset explorer and public read API are retired; assessment submissions continue writing anonymized records.
+- **Zero PII in open dataset:** Public records omit user IDs, session IDs, emails, and exact timestamps (aggregated to `completedAtMonth` YYYY-MM).
 - **Administrative operations:** Web admin routes and UI have been audited and removed to minimize attack surface. Moderation actions are executed directly via server CLI scripts utilizing Firebase Admin credentials (`FIREBASE_SERVICE_ACCOUNT`).
 - **Targeted Telegram Telemetry:** Real-time observability streams low-noise events (page visits to `/`, `/about`, `/assessments`, `/leaderboard`, plus canonical assessment completions and leaderboard uploads) to a Telegram Forum Supergroup via `TelegramNotifierService` and durable outbox pacing.
 
@@ -85,11 +85,7 @@
 ## 6. Important Files Before Editing
 - **Timing & Validation:** [`src/lib/protocolValidators.ts`](../src/lib/protocolValidators.ts)
 - **Client Firestore API:** [`src/lib/firestore.ts`](../src/lib/firestore.ts)
+- **Dataset Explorer:** [src/components/Dataset.tsx](../src/components/Dataset.tsx) & [mobile/src/components/Dataset.tsx](../mobile/src/components/Dataset.tsx)
 - **Aspect Scaling:** [src/lib/useBaselineScale.ts](../src/lib/useBaselineScale.ts)
 - **Server API & Provenance:** [`server.ts`](../server.ts)
 - **Design Tokens:** [`src/DESIGN_SYSTEM.md`](../src/DESIGN_SYSTEM.md) and [`src/styles/pulse-aesthetic.css`](../src/styles/pulse-aesthetic.css)
-
-
-## 7. Product surface retirement
-- The public Dataset/Analytics explorer, its desktop/mobile routes, navigation links, charts, exports, and read-only `/api/research/dataset*` endpoints were removed on 2026-11-01.
-- Assessment ingestion remains active: the server continues writing anonymized research records to `publicDataset` alongside assessment results. No stored Firestore records were deleted.

@@ -79,8 +79,7 @@ describe('About and Privacy Light Design System Migration', () => {
 
       // Table contents
       expect(screen.getByText('1. Local Client State')).toBeDefined();
-      expect(screen.getByText('2. Retained Research Archive')).toBeDefined();
-      expect(screen.getByText(/No public Dataset browser, export, or read API is provided/i)).toBeDefined();
+      expect(screen.getByText('2. Cloud Research Records')).toBeDefined();
       expect(screen.getByText('3. Public Leaderboards')).toBeDefined();
       expect(screen.getByText('4. Infrastructure Logs')).toBeDefined();
 

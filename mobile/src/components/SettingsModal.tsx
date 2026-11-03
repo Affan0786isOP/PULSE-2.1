@@ -32,6 +32,7 @@ import { usePwaInstall } from '../lib/usePwaInstall';
 import { AddToHomeScreenModal } from './AddToHomeScreenModal';
 import { useModalAccessibility } from '../lib/modalAccessibility';
 import { clearClientLeaderboardCache } from '../lib/firestore';
+import { clearAuthoritativeStatsCache } from '../lib/useAuthoritativeStats';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -235,6 +236,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         'pulse_force_mobile',
         'pulse_refresh_rate_cached',
         'pulse_refresh_rate_fp',
+        'pulse_authoritative_stats',
         'pulse_improve_checklist_v1',
         'pulse_user_settings'
       ];
@@ -274,6 +276,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
       resetSettingsToDefaults();
       clearClientLeaderboardCache();
+      clearAuthoritativeStatsCache();
 
       if (typeof caches !== 'undefined') {
         try {

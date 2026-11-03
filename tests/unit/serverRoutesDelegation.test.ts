@@ -68,6 +68,17 @@ describe('Server Route Delegation Tests', () => {
         previousPersonalBest: null,
         personalBest: 199.5
       })),
+      getDataset: vi.fn(async () => ({
+        records: [],
+        count: 0,
+        hasMore: false,
+        nextCursor: null
+      })),
+      getDatasetSummary: vi.fn(async () => ({
+        totalRecords: 10,
+        totalTrials: 100,
+        counts: { 'visual-reaction': 10 }
+      }))
     };
 
     const mockLeaderboardService: ILeaderboardService = {

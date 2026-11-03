@@ -4,6 +4,24 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { Home } from '../../src/components/Home';
 import { CANONICAL_ASSESSMENT_IDS } from '../../shared/contracts/common';
 
+const mockStats = vi.hoisted(() => ({
+  testsCount: 5,
+  resultsCount: 90 as number | null,
+  isLoadingResults: false,
+}));
+
+vi.mock('../../src/lib/useAuthoritativeStats', () => ({
+  useAuthoritativeStats: () => mockStats,
+}));
+
+vi.mock('../../src/lib/settingsStore', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/lib/settingsStore')>();
+  return {
+    ...actual,
+    useReducedMotionPreference: () => false,
+  };
+});
+
 function CurrentPath() {
   const location = useLocation();
   return <output data-testid="current-path">{location.pathname}</output>;
@@ -20,6 +38,9 @@ function renderHome() {
 
 afterEach(() => {
   cleanup();
+  mockStats.testsCount = CANONICAL_ASSESSMENT_IDS.length;
+  mockStats.resultsCount = 90;
+  mockStats.isLoadingResults = false;
   vi.clearAllMocks();
 });
 
@@ -37,8 +58,8 @@ describe('Desktop Home Redesign', () => {
     expect(screen.getByRole('link', { name: /pulse home/i })).toBeDefined();
     expect(screen.getAllByRole('link', { name: 'Assessments' })[0]).toBeDefined();
     expect(screen.getAllByRole('link', { name: 'Leaderboard' })[0]).toBeDefined();
-    expect(screen.queryByRole('link', { name: 'Dataset' })).toBeNull();
-    expect(screen.queryByRole('link', { name: 'Analytics' })).toBeNull();
+    expect(screen.getAllByRole('link', { name: 'Dataset' })[0]).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Analytics' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'About' })).toBeDefined();
     expect(screen.getByRole('button', { name: /platform information/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /settings/i })).toBeDefined();
@@ -51,13 +72,18 @@ describe('Desktop Home Redesign', () => {
     expect(startTestingBtn.getAttribute('href')).toBe('/assessments');
   });
 
-  it('renders the assessment count and Free / No sign-up without research totals', () => {
+  it('renders the metrics row with Tests, live Results, and Free / No sign-up', () => {
     renderHome();
-    expect(screen.getByText(String(CANONICAL_ASSESSMENT_IDS.length))).toBeDefined();
+    // 5 Tests
+    expect(screen.getByText('5')).toBeDefined();
     expect(screen.getByText('Tests')).toBeDefined();
+    // Live results count
+    expect(screen.getByText('90')).toBeDefined();
+    expect(screen.getByText('Results')).toBeDefined();
+    // Free / No sign-up
     expect(screen.getByText('Free')).toBeDefined();
     expect(screen.getByText('No sign-up')).toBeDefined();
-    expect(screen.queryByText('Results')).toBeNull();
+    // Objection remover
     expect(screen.getByText('Free, no sign-up required')).toBeDefined();
   });
 

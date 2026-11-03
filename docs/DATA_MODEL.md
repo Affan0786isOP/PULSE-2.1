@@ -11,7 +11,7 @@ This document defines the data structures, Firestore collections, TypeScript typ
 | **`experimentSessions`** | Ephemeral experiment tokens & PRNG seeds | Server Backend Only (`allow read, write: if false;`) | Server Backend Only | **90 days** (or upon consumption) |
 | **`assessmentTrials`** | Granular millisecond-level trial telemetry | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
 | **`assessmentResults`** | Aggregated assessment outcome summaries | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
-| **`publicDataset`** | Anonymized, versioned research archive records retained from assessment submissions; no user-facing browse/export surface | Server Backend Only (no client read) | Server Backend Only | **Indefinite** (research archive) |
+| **`publicDataset`** | Anonymized open research benchmark records | Authenticated Users (`auth != null`) | Server Backend Only | **Indefinite** (Open science) |
 | **`leaderboardResults`** | Voluntary opted-in public rank records (one best score per owner) | Server Backend Only (`/api/leaderboard` returns sanitized display view) | Server Backend Only | Not automatically purged; participant GDPR erasure supported via `DELETE /api/leaderboard/mine`. |
 | **`leaderboardPrivateMeta`** | Private submission receipts, trial digests, owner UIDs, and moderation metadata | Server Backend Only (Client read denied) | Server Backend Only | Retained with assessment lifespan or purged upon participant erasure. |
 | **`leaderboardOwnerIndex`** | Pseudonymous owner best-score index and transaction locking | Server Backend Only (Client read denied) | Server Backend Only | Updated transactional state tracking participant best scores. |
@@ -95,9 +95,7 @@ interface AssessmentTrialDoc {
 ```
 
 ### 3.3 `publicDataset` (Anonymized Research Archive)
-Assessment submissions continue writing anonymized, versioned records to this collection. Client reads are denied and no public Dataset UI or read API is provided. Existing documents are preserved; feature removal does not delete stored research data.
-
-The strict zero-PII boundary excludes user IDs, session IDs, and IP addresses.
+Enforces strict zero-PII boundary: no user IDs, no session IDs, no IP addresses.
 ```typescript
 interface PublicDatasetDoc {
   schemaVersion: 1;

@@ -6,18 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased] - 2026-11-01
-
-### Removed
-- Removed the public Dataset/Analytics explorer from desktop and mobile, including routes, navigation links, charts, filters, exports, homepage record-count displays, and SEO/deployment entries.
-- Removed the read-only `/api/research/dataset*` endpoints and their query-only service/repository layer.
-
-### Preserved
-- Existing Firestore research records were not deleted or migrated.
-- Assessment submissions continue to write anonymized `publicDataset` records and `assessmentResults` through the server-authoritative transaction.
-
----
-
 ## [2.6.1] - 2026-10-30
 
 ### Fixed

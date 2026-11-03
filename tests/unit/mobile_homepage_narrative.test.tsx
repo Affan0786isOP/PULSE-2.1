@@ -18,7 +18,24 @@ import { MobileAssessmentSwipeStrip } from '../../mobile/src/components/ui/Mobil
 import { getAssessmentLaunchRoute, ASSESSMENT_LAUNCH_ROUTES } from '../../shared/registries/routeRegistry';
 import { HOMEPAGE_ASSESSMENT_PRESENTATION } from '../../shared/homepage/assessmentPresentation';
 
-// Mock settingsStore hooks
+// Mock authoritative stats and settingsStore hooks
+vi.mock('../../mobile/src/lib/useAuthoritativeStats', () => ({
+  useAuthoritativeStats: () => ({
+    testsCount: 5,
+    resultsCount: 15420,
+    isLoadingResults: false,
+  }),
+}));
+
+vi.mock('../../mobile/src/lib/settingsStore', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    useReducedMotionPreference: () => false,
+    triggerHaptic: () => {},
+  };
+});
+
 describe('Mobile Homepage Narrative Redesign Suite', () => {
   const NEW_COMPONENT_FILES = [
     'mobile/src/components/ui/MobileAssessmentSwipeStrip.tsx',

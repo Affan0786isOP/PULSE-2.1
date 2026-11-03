@@ -197,6 +197,8 @@ export function Navbar({
   const navItems = [
     { id: 'assessments', label: 'Assessments', to: '/assessments' },
     { id: 'leaderboard', label: 'Leaderboard', to: '/leaderboard' },
+    { id: 'dataset', label: 'Dataset', to: '/dataset' },
+    { id: 'analytics', label: 'Analytics', to: '/analytics' },
     { id: 'about', label: 'About', to: '/about' }
   ];
 
