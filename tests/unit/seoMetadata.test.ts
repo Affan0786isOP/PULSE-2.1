@@ -55,7 +55,10 @@ describe('SEO route registry', () => {
 
   it('builds consistent structured data for home and assessment routes', () => {
     const homeSchema = buildRouteSchema(metadata, '/');
-    expect(homeSchema['@graph'].map((node: { '@type': string }) => node['@type'])).toContain('SoftwareApplication');
+    const homeGraph: unknown = (homeSchema as { '@graph'?: unknown })['@graph'];
+    expect(Array.isArray(homeGraph)).toBe(true);
+    if (!Array.isArray(homeGraph)) throw new Error('Home schema graph must be an array');
+    expect(homeGraph.map((node: { '@type'?: unknown }) => node['@type'])).toContain('SoftwareApplication');
 
     const reactionSchema = buildRouteSchema(metadata, '/reaction-test');
     expect(reactionSchema['@type']).toBe('ItemPage');
