@@ -18,7 +18,7 @@ This document outlines the security controls, cryptographic attestation mechanis
 ### 1.2 Zero-PII Anonymous Participant Architecture
 - **No User Credentials:** The platform does not collect, store, or process user email addresses, passwords, phone numbers, or physical identities.
 - **Anonymous Tokens:** Participants are provisioned anonymous Firebase Authentication tokens (`request.auth.uid`).
-- **Research Archive Sanitization:** The server-written archive collection (`publicDataset`) contains zero user IDs, zero session IDs, zero IP addresses, and aggregates completion dates to coarse year-months (`YYYY-MM`). The public Dataset/Analytics browser and read/export API have been removed; retained records are not publicly browsable through PULSE.
+- **Research Dataset Sanitization:** The public benchmark collection (`publicDataset`) contains zero user IDs, zero session IDs, zero IP addresses, and aggregates completion dates to coarse year-months (`YYYY-MM`).
 - **Telemetry Safeguards & Opt-Out:** Operational activity tracking is strictly limited to four allowlisted pages (`/`, `/about`, `/assessments`, `/leaderboard`), assessment results, and leaderboard uploads. Device identification uses a pseudonymous random profile ID (`dev_uuid`) stored in `localStorage` without tracking physical hardware or personal identity. Participants can opt out at any time via `setTelemetryOptOut(true)`, which immediately purges the identifier from storage and halts future telemetry dispatches.
 
 ### 1.3 Rate Limiting & Denial of Service Protection
@@ -55,7 +55,7 @@ PULSE operates in compliance with international privacy mandates:
 | 3 | Chronologically replayed trial logs | Session consumption/idempotency guards and stored server-derived metrics | **MITIGATED; RESIDUAL RISK** |
 | 4 | Synthetic/automated reaction and memory scores | Plausibility floors and suspicious-score moderation; no server-secret per-trial challenge yet | **MITIGATED; RESIDUAL RISK** |
 | 5 | Direct leaderboard-document reads or writes | Firestore rules deny client access; public data goes through the display-only API | **BLOCKED BY RULES** |
-| 6 | Identity leakage in retained research records | Research-record schema minimization and separate private leaderboard metadata | **MITIGATED; VERIFY DEPLOYED DATA** |
+| 6 | Identity leakage in open research data | Dataset schema minimization and separate private leaderboard metadata | **MITIGATED; VERIFY DEPLOYED DATA** |
 | 7 | Attack surface on administrative interfaces | Public web-admin UI and routes removed; privileged changes restricted to trusted server-side CLI operations with Firebase Admin credentials and operational logging | **REDUCED; CLI ACCESS REMAINS PRIVILEGED** |
 
 ---
