@@ -17,9 +17,9 @@ test.describe('Home Page', () => {
     if (!isMobile) {
       await expect(page.getByRole('heading', { name: /Measure.*your mind/i })).toBeVisible();
       await expect(page).toHaveURL(/.*\/$/);
-      const scene2 = page.getByRole('heading', { name: /Explore the five tests/i });
-      await scene2.scrollIntoViewIfNeeded();
-      await expect(scene2).toBeVisible();
+      const scene = page.getByRole('heading', { name: /See your results/i });
+      await scene.scrollIntoViewIfNeeded();
+      await expect(scene).toBeVisible();
     } else {
       await page.waitForURL(/\/mobile\/?/);
       await expect(page.getByRole('heading', { name: /Measure.*your mind/i })).toBeVisible();

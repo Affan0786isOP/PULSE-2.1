@@ -77,38 +77,30 @@ export function FAQScene() {
     >
       <div className="max-w-4xl mx-auto">
         {/* Section Header */}
-        <div className="mb-12">
-          <motion.div 
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-[#12161B] border border-sky-200 dark:border-[#22C7D6]/40 text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-4 shadow-sm"
-            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <HelpCircle size={13} />
-            <span>[ SYSTEM INQUIRIES // DOCUMENTATION ]</span>
-          </motion.div>
-
-          <motion.h2 
-            className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#090D1A] dark:text-white mb-4 text-balance"
-            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.06 }}
-          >
+        <motion.div 
+          className="mb-12"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#090D1A] dark:text-white mb-4 text-balance">
             Frequently Asked Questions
-          </motion.h2>
+          </h2>
 
-          <motion.p 
-            className="text-slate-600 dark:text-slate-400 text-base sm:text-lg leading-relaxed text-pretty font-normal"
-            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.12 }}
-          >
+          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg leading-relaxed text-pretty font-normal">
             Quick answers about tests, results, and privacy.
-          </motion.p>
-        </div>
+          </p>
+        </motion.div>
 
         {/* Accordion Container */}
-        <div className="space-y-3">
+        <motion.div 
+          className="space-y-3"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
+        >
           {FAQ_ITEMS.map((item) => {
             const isOpen = openId === item.id;
             const triggerId = `faq-trigger-${item.id}`;
@@ -159,7 +151,7 @@ export function FAQScene() {
               </div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

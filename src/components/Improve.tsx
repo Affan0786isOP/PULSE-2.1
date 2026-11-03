@@ -192,7 +192,8 @@ export function Improve({
       onNavigate={onNavigate}
       decorativeWaves="none"
       maxWidth="full"
-      contentClassName="pt-8 pb-24"
+      disableScaling={true}
+      contentClassName="pt-6 pb-24"
     >
       <div ref={scrollContainerRef} className="w-full">
         <ScrollProgress 
@@ -204,8 +205,8 @@ export function Improve({
           className="lg:hidden"
         />
 
-        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 xl:gap-16 px-4 sm:px-6 lg:px-8">
-          <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-8 self-start z-10 px-0 order-1 lg:order-1 flex justify-center lg:justify-start">
+        <div className="w-full max-w-[1600px] mx-auto flex flex-col lg:flex-row gap-8 xl:gap-14 px-4 sm:px-6 lg:px-8 xl:px-12">
+          <aside className="w-full lg:w-56 xl:w-64 shrink-0 lg:sticky lg:top-24 self-start z-20 px-0 order-1 lg:order-1 flex justify-center lg:justify-start">
             <div className="w-full max-w-full sm:max-w-sm lg:max-w-none bg-white/80 dark:bg-[#12161B]/80 backdrop-blur-sm lg:bg-transparent p-3 sm:p-4 lg:p-0 rounded-xl border border-slate-200/80 dark:border-slate-800 lg:border-none mb-4 lg:mb-0 shadow-xs lg:shadow-none">
               <HookSidebar
                 items={improveSections}
@@ -226,10 +227,6 @@ export function Improve({
           >
             {/* Header Section */}
             <div className="text-center md:text-left border-b border-slate-200/80 dark:border-slate-800 pb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[#BFDBFE] dark:border-[#22C7D6]/40 bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] text-xs font-mono mb-3 font-semibold">
-                <BookOpen size={13} />
-                <span>Performance guide</span>
-              </div>
               <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight text-[#090D1A] dark:text-white mb-3">
                 Performance &amp; Consistency
               </h1>
@@ -239,7 +236,14 @@ export function Improve({
             </div>
 
             {/* Section 1: Physiological Factors */}
-            <section id="factors" className="scroll-mt-8">
+            <motion.section 
+              id="factors" 
+              className="scroll-mt-8"
+              initial={isReducedMotionActive() ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="mb-6 text-center md:text-left">
                 <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                   Biological &amp; environmental factors
@@ -260,15 +264,29 @@ export function Improve({
                   return (
                     <div
                       key={`factor-${factor.id}`}
-                      className="bg-white/90 dark:bg-[#12161B] backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-xl p-4.5 flex flex-col justify-between transition-all hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 hover:shadow-xs"
+                      className={`backdrop-blur-sm border rounded-xl p-4.5 flex flex-col justify-between transition-all hover:shadow-xs ${
+                        isHigherLatency
+                          ? "bg-rose-50/50 dark:bg-[#1f1316]/50 border-rose-200/60 dark:border-rose-900/40 hover:border-rose-300 dark:hover:border-rose-800/60"
+                          : "bg-emerald-50/50 dark:bg-[#0f1d19]/50 border-emerald-200/60 dark:border-emerald-900/40 hover:border-emerald-300 dark:hover:border-emerald-800/60"
+                      }`}
                     >
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <div className="w-8 h-8 rounded-md bg-[#F0F7FF] dark:bg-[#181D23] border border-[#BFDBFE] dark:border-slate-700 flex items-center justify-center text-[#0066FF] dark:text-[#22C7D6]">
+                          <div
+                            className={`w-8 h-8 rounded-md border flex items-center justify-center ${
+                              isHigherLatency
+                                ? "bg-rose-100/70 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/50 text-rose-600 dark:text-rose-400"
+                                : "bg-emerald-100/70 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50 text-emerald-600 dark:text-emerald-400"
+                            }`}
+                          >
                             <IconComp size={16} />
                           </div>
                           <span
-                            className={`font-mono text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${evidence.className}`}
+                            className={`text-[11px] font-sans font-medium tracking-tight ${
+                              isHigherLatency
+                                ? "text-rose-600/80 dark:text-rose-400/80"
+                                : "text-emerald-700/80 dark:text-emerald-400/80"
+                            }`}
                           >
                             {evidence.label}
                           </span>
@@ -280,24 +298,45 @@ export function Improve({
                           {factor.desc}
                         </p>
                       </div>
-                      <span
-                        className={`inline-flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded border w-fit ${
+                      <div
+                        className={`flex items-center gap-2 pt-2 border-t mt-auto ${
                           isHigherLatency
-                            ? "bg-red-50 text-red-700 border-red-200"
-                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            ? "border-rose-200/50 dark:border-rose-900/40"
+                            : "border-emerald-200/50 dark:border-emerald-900/40"
                         }`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${isHigherLatency ? 'bg-red-500' : 'bg-emerald-500'}`} />
-                        {isHigherLatency ? "Associated with higher latency" : "Supports response consistency"}
-                      </span>
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                            isHigherLatency
+                              ? "bg-rose-500 dark:bg-rose-400"
+                              : "bg-emerald-500 dark:bg-emerald-400"
+                          }`}
+                        />
+                        <span
+                          className={`text-[11px] font-sans font-medium ${
+                            isHigherLatency
+                              ? "text-rose-700 dark:text-rose-300"
+                              : "text-emerald-700 dark:text-emerald-300"
+                          }`}
+                        >
+                          {isHigherLatency ? "Associated with higher latency" : "Supports response consistency"}
+                        </span>
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            </section>
+            </motion.section>
 
             {/* Section 2: Action Checklist */}
-            <section id="checklist" className="scroll-mt-8">
+            <motion.section 
+              id="checklist" 
+              className="scroll-mt-8"
+              initial={isReducedMotionActive() ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="text-center sm:text-left">
                   <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
@@ -361,7 +400,7 @@ export function Improve({
                           className={`w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                             isChecked
                               ? "bg-[#0066FF] text-white font-bold"
-                              : "bg-white border border-slate-300 text-transparent"
+                              : "bg-white dark:bg-[#181D23] border border-slate-300 dark:border-slate-700 text-transparent"
                           }`}
                         >
                           <Check size={13} strokeWidth={3} />
@@ -391,10 +430,17 @@ export function Improve({
                   </span>
                 </div>
               </div>
-            </section>
+            </motion.section>
 
             {/* Section 3: Research Ledger */}
-            <section id="ledger" className="scroll-mt-8">
+            <motion.section 
+              id="ledger" 
+              className="scroll-mt-8"
+              initial={isReducedMotionActive() ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="mb-4 text-center md:text-left">
                 <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                   Research ledger
@@ -424,7 +470,7 @@ export function Improve({
                       <span className="font-heading text-xs font-semibold text-[#090D1A] dark:text-white tracking-wide uppercase block">
                         {activeEntry.domain}
                       </span>
-                      <span className={`font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded border inline-block mt-0.5 ${activeEvidence.className}`}>
+                      <span className="text-[11px] font-sans font-medium text-slate-500 dark:text-slate-400 block mt-0.5">
                         {activeEvidence.label}
                       </span>
                     </div>
@@ -452,7 +498,7 @@ export function Improve({
                     </div>
                   </div>
                   {activeEntry.citation.doi && (
-                    <span className="text-[10px] font-mono text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 inline-flex items-center gap-1 w-fit">
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-[#12161B] px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 inline-flex items-center gap-1 w-fit">
                       <span>DOI: {activeEntry.citation.doi}</span>
                       <ExternalLink size={10} />
                     </span>
@@ -484,10 +530,17 @@ export function Improve({
                   </div>
                 </div>
               </div>
-            </section>
+            </motion.section>
 
             {/* Section: Research Deep Dives */}
-            <section id="guides" className="scroll-mt-8">
+            <motion.section 
+              id="guides" 
+              className="scroll-mt-8"
+              initial={isReducedMotionActive() ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="mb-4 text-center md:text-left">
                 <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                   Scientific resources
@@ -551,10 +604,17 @@ export function Improve({
                   </span>
                 </Link>
               </div>
-            </section>
+            </motion.section>
 
             {/* Section 4: Expectation Management */}
-            <section id="expectations" className="scroll-mt-8">
+            <motion.section 
+              id="expectations" 
+              className="scroll-mt-8"
+              initial={isReducedMotionActive() ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="mb-4 text-center md:text-left">
                 <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                   Expectation management
@@ -579,10 +639,17 @@ export function Improve({
                   </p>
                 </div>
               </div>
-            </section>
+            </motion.section>
 
             {/* Section 5: System Recommendations */}
-            <section id="recommendations" className="scroll-mt-8">
+            <motion.section 
+              id="recommendations" 
+              className="scroll-mt-8"
+              initial={isReducedMotionActive() ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="mb-6 text-center md:text-left">
                 <span className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase block mb-1">
                   Best practices
@@ -635,7 +702,7 @@ export function Improve({
                   </div>
                 ))}
               </div>
-            </section>
+            </motion.section>
 
             {/* Bottom Actions */}
             <section className="pt-4 text-center border-t border-slate-200/80 dark:border-slate-800">

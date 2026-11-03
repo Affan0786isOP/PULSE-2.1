@@ -35,12 +35,6 @@ describe('About and Privacy Light Design System Migration', () => {
       expect(screen.getByText('Colour Recognition')).toBeDefined();
       expect(screen.getByText('Block Memory')).toBeDefined();
       expect(screen.getByText('Number Memory')).toBeDefined();
-
-      // Scientific metrics
-      expect(screen.getAllByText('Latency (ms)')).toHaveLength(2);
-      expect(screen.getByText('Choice Speed (ms)')).toBeDefined();
-      expect(screen.getByText('Spatial Span')).toBeDefined();
-      expect(screen.getByText('Digit Span')).toBeDefined();
     });
 
     it('injects structured ABOUT_SCHEMA json-ld and enforces single main landmark', () => {

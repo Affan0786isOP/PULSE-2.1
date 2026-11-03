@@ -72,12 +72,6 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
 
       <main className="flex-1 w-full max-w-md mx-auto px-4 py-4 flex flex-col gap-3">
         <header className="mb-2">
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0066FF]" />
-            <span className="font-mono text-[10px] text-[#0066FF] tracking-widest uppercase font-semibold">
-              TEST BATTERY
-            </span>
-          </div>
           <h1 className="font-heading text-2xl font-bold tracking-tight text-[#090D1A] dark:text-[#F5F7FA]">
             Assessments
           </h1>

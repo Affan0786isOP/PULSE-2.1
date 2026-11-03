@@ -35,6 +35,7 @@ describe('Navbar Component', () => {
     expect(screen.getByRole('link', { name: /^leaderboard$/i })).toBeDefined();
     expect(screen.getByRole('link', { name: /^dataset$/i })).toBeDefined();
     expect(screen.getByRole('link', { name: /^analytics$/i })).toBeDefined();
+    expect(screen.getByRole('link', { name: /^improve$/i })).toBeDefined();
     expect(screen.getByRole('link', { name: /^about$/i })).toBeDefined();
   });
 

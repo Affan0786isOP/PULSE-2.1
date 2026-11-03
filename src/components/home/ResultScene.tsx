@@ -1,20 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { Info } from 'lucide-react';
 import { useReducedMotionPreference } from '../../lib/settingsStore';
 
 export function ResultScene() {
   const shouldReduceMotion = useReducedMotionPreference();
-  const [metricValue, setMetricValue] = useState(shouldReduceMotion ? 142 : 0);
+  const [metricValue, setMetricValue] = useState(shouldReduceMotion ? 239 : 0);
+  const [hasStartedCount, setHasStartedCount] = useState(false);
 
-  useEffect(() => {
-    if (shouldReduceMotion) {
-      setMetricValue(142);
-      return;
-    }
-    const timer = setTimeout(() => setMetricValue(142), 300);
-    return () => clearTimeout(timer);
-  }, [shouldReduceMotion]);
+  const startCounting = useCallback(() => {
+    if (shouldReduceMotion || hasStartedCount) return;
+    setHasStartedCount(true);
+    const start = performance.now();
+    const duration = 650;
+    const target = 239;
+
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setMetricValue(Math.round(eased * target));
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      }
+    };
+    requestAnimationFrame(tick);
+  }, [shouldReduceMotion, hasStartedCount]);
 
   return (
     <section
@@ -23,30 +34,32 @@ export function ResultScene() {
       aria-label="Example assessment results"
     >
       <div className="max-w-5xl mx-auto">
-        <div className="mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-[#12161B] border border-sky-200 dark:border-[#22C7D6]/40 text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-3">
-            <span>[ SAMPLE RESULT ]</span>
-          </div>
+        <motion.div 
+          className="mb-6"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        >
           <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#090D1A] dark:text-white mb-2 text-balance">
             See your results
           </h2>
           <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl">
             A clear snapshot of your performance after each test.
           </p>
-        </div>
+        </motion.div>
 
         <motion.div
           className="rounded-2xl bg-white dark:bg-[#181D23] border border-slate-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm"
-          initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.1 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          onViewportEnter={startCounting}
+          transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800/80 mb-5">
             <span className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Visual Reaction · Example
-            </span>
-            <span className="text-[11px] font-mono font-bold rounded-full px-3 py-1 bg-sky-50 dark:bg-[#22C7D6]/10 text-[#0066FF] dark:text-[#22C7D6] border border-sky-200 dark:border-[#22C7D6]/30">
-              ILLUSTRATIVE DATA
             </span>
           </div>
 
@@ -65,7 +78,7 @@ export function ResultScene() {
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#12161B] border border-slate-100 dark:border-slate-800 flex flex-col justify-center">
               <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase block mb-1">Median</span>
-              <span className="font-heading text-2xl font-bold text-[#090D1A] dark:text-white">139 <span className="text-xs font-mono text-slate-400 dark:text-slate-500">ms</span></span>
+              <span className="font-heading text-2xl font-bold text-[#090D1A] dark:text-white">236 <span className="text-xs font-mono text-slate-400 dark:text-slate-500">ms</span></span>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#12161B] border border-slate-100 dark:border-slate-800 flex flex-col justify-center">

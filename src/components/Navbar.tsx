@@ -199,6 +199,7 @@ export function Navbar({
     { id: 'leaderboard', label: 'Leaderboard', to: '/leaderboard' },
     { id: 'dataset', label: 'Dataset', to: '/dataset' },
     { id: 'analytics', label: 'Analytics', to: '/analytics' },
+    { id: 'improve', label: 'Improve', to: '/improve' },
     { id: 'about', label: 'About', to: '/about' }
   ];
 
@@ -345,7 +346,7 @@ export function Navbar({
               className={`relative text-[13.5px] lg:text-[14.5px] min-[2560px]:text-[16px] font-medium transition-colors ${
                 isLight 
                   ? (isActive ? 'text-[#0066FF] font-semibold' : 'text-[#475569] hover:text-[#090D1A]')
-                  : (isActive ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]')
+                  : (isActive ? 'text-[#F5F7FA] font-semibold' : 'text-[#F5F7FA]/75 hover:text-[#F5F7FA]')
               }`}
             >
               {item.label}
@@ -408,13 +409,9 @@ export function Navbar({
             onClick={handleToggleTheme}
             aria-label={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
             title={isDarkActive ? "Switch to light theme" : "Switch to dark theme"}
-            className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 min-[2560px]:w-10 min-[2560px]:h-10 rounded-full text-xs active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 cursor-pointer shrink-0 ${
-              isLight
-                ? 'border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm focus-visible:ring-[#0066FF]'
-                : 'border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] focus-visible:ring-[var(--accent)]'
-            }`}
+            className="flex items-center justify-center p-1.5 rounded text-black dark:text-[#F5F7FA] hover:opacity-75 active:scale-95 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black dark:focus-visible:ring-[#F5F7FA] cursor-pointer shrink-0"
           >
-            {isDarkActive ? <Sun size={15} strokeWidth={2.2} /> : <Moon size={15} strokeWidth={2.2} />}
+            {isDarkActive ? <Sun size={17} strokeWidth={2.2} /> : <Moon size={17} strokeWidth={2.2} />}
           </button>
         )}
 
@@ -428,16 +425,11 @@ export function Navbar({
           }}
           aria-label="Platform Information"
           title={isAssessmentActive ? "Info unavailable during active assessment" : "Platform Information"}
-          className={`flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 ${
-            isLight 
-              ? 'border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#0066FF] shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm focus-visible:ring-[#0066FF]'
-              : 'border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--accent)] focus-visible:ring-[var(--accent)]'
-          } ${
+          className={`flex items-center justify-center p-1.5 rounded text-black dark:text-[#F5F7FA] hover:opacity-75 active:scale-95 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black dark:focus-visible:ring-[#F5F7FA] shrink-0 ${
             isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
           }`}
         >
-          <Info size={15} strokeWidth={2.2} />
-          <span className="hidden sm:inline">Info</span>
+          <Info size={17} strokeWidth={2.2} />
         </button>
 
         <button
@@ -450,16 +442,11 @@ export function Navbar({
           aria-disabled={isAssessmentActive}
           aria-label="Settings"
           title={isAssessmentActive ? "Settings unavailable during active assessment" : "Application Settings"}
-          className={`flex items-center gap-1.5 px-3 sm:px-3.5 min-[2560px]:px-4 py-1.5 sm:py-2 min-[2560px]:py-2.5 rounded-full text-xs sm:text-[13px] min-[2560px]:text-[14px] font-medium active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 ${
-            isLight
-              ? 'border border-slate-200/90 bg-white/85 hover:bg-white text-slate-700 hover:text-[#090D1A] shadow-[0_2px_6px_rgba(0,0,0,0.03)] hover:shadow-sm focus-visible:ring-[#0066FF]'
-              : 'border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:ring-[var(--accent)]'
-          } ${
+          className={`flex items-center justify-center p-1.5 rounded text-black dark:text-[#F5F7FA] hover:opacity-75 active:scale-95 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black dark:focus-visible:ring-[#F5F7FA] shrink-0 ${
             isAssessmentActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
           }`}
         >
-          <Settings size={15} strokeWidth={2.2} />
-          <span>Settings</span>
+          <Settings size={17} strokeWidth={2.2} />
         </button>
 
         {/* Hamburger Menu Toggle for mobile / tablets (< md) */}

@@ -39,13 +39,12 @@ export function HookSidebar({
                 data-slot="hook-sidebar-item"
                 onClick={() => onChange(index)}
                 style={{
-                  borderLeftColor: isActive ? color : 'transparent',
-                  color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  borderLeftColor: isActive ? (color || 'var(--accent)') : 'transparent',
                 }}
-                className={`w-full text-left px-3 py-1.5 rounded-r-md text-xs font-mono transition-colors duration-150 border-l-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] active:bg-[var(--surface-2)] ${
+                className={`w-full text-left px-3 py-1.5 rounded-r-md text-xs font-mono transition-colors duration-150 border-l-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
                   isActive
-                    ? 'bg-[var(--surface-2)]/70 font-semibold'
-                    : 'hover:bg-[var(--surface-1)] hover:text-[var(--text-primary)]'
+                    ? 'bg-sky-50 dark:bg-[#181D23] font-semibold text-[#0066FF] dark:text-[#22C7D6]'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#12161B] hover:text-[#090D1A] dark:hover:text-white'
                 }`}
               >
                 {item.label}

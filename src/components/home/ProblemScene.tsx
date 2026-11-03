@@ -35,17 +35,20 @@ export function ProblemScene() {
       aria-label="How PULSE works and measurement limits"
     >
       <div className="max-w-5xl mx-auto">
-        <div className="mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-[#12161B] border border-sky-200 dark:border-[#22C7D6]/40 text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-3">
-            [ QUICK GUIDE ]
-          </div>
+        <motion.div 
+          className="mb-6"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        >
           <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#090D1A] dark:text-white mb-2 text-balance">
             How it works
           </h2>
           <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl">
             Choose a test, try a few rounds, and review your result. Device and browser timing can vary; use results for personal tracking, not medical diagnosis.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           {STEPS.map((step, index) => {
@@ -54,9 +57,10 @@ export function ProblemScene() {
               <motion.article
                 key={step.number}
                 className="rounded-2xl bg-white dark:bg-[#181D23] border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm"
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: shouldReduceMotion ? 0 : index * 0.05 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : index * 0.08, ease: [0.16, 1, 0.3, 1] }}
               >
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-mono text-xs font-bold text-[#0066FF] dark:text-[#22C7D6]">{step.number}</span>

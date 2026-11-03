@@ -83,12 +83,6 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
       <div className="w-full flex flex-col">
         {/* Section Header */}
         <header className="mb-8 md:mb-10 flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#0066FF] dark:bg-[#22C7D6]" />
-            <span className="font-mono text-xs text-[#0066FF] dark:text-[#22C7D6] tracking-widest uppercase font-semibold">
-              TEST BATTERY
-            </span>
-          </div>
           <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#090D1A] dark:text-white">
             Assessments
           </h1>
@@ -132,11 +126,6 @@ export function Assessments({ onNavigate }: { onNavigate: (view: string) => void
                   alt={assessment.title}
                   className="w-24 h-24 sm:w-26 sm:h-26 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute top-3.5 right-3.5 z-20">
-                   <span className="font-mono text-[10px] text-slate-700 dark:text-slate-300 bg-white/95 dark:bg-[#12161B] backdrop-blur-md px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 uppercase tracking-wider font-semibold shadow-xs">
-                     {assessment.badge}
-                   </span>
-                </div>
                 <div className="absolute bottom-3 left-4 z-20">
                   <span className="font-mono text-[11px] text-[#0066FF] dark:text-[#22C7D6] font-semibold tracking-wider">
                     {assessment.protocolNumber}

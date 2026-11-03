@@ -61,10 +61,6 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
       <div className="w-full flex flex-col gap-12">
         {/* Header / Intro */}
         <header className="border-b border-slate-200/80 dark:border-slate-800 pb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-[#BFDBFE] dark:border-[#22C7D6]/40 bg-[#E0F2FE] dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] text-xs font-mono mb-4 font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0066FF] dark:bg-[#22C7D6]" />
-            <span>PULSE {APP_VERSION} &bull; Scientific Benchmarking</span>
-          </div>
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#090D1A] dark:text-white mb-4">
             About Pulse Evaluator
           </h1>
@@ -111,9 +107,6 @@ export function About({ onNavigate }: { onNavigate?: (view: string) => void }) {
                       <div className="w-10 h-10 rounded-lg bg-[#F0F7FF] dark:bg-[#181D23] border border-[#BFDBFE] dark:border-slate-700 flex items-center justify-center p-1.5">
                         <img src={proto.logo} alt={proto.title} className="w-7 h-7 object-contain" />
                       </div>
-                      <span className="font-mono text-[10px] text-slate-600 dark:text-slate-300 uppercase tracking-wider bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-semibold">
-                        {proto.metric}
-                      </span>
                     </div>
                     <h3 className="font-heading font-semibold text-base text-[#090D1A] dark:text-white mb-1 group-hover:text-[#0066FF] dark:group-hover:text-[#22C7D6] transition-colors">
                       {proto.title}

@@ -100,7 +100,7 @@ export const PageShell: React.FC<PageShellProps> = ({
     <div
       data-theme={effectiveTheme}
       style={effectiveStyle}
-      className={`min-h-[100dvh] w-full font-sans overflow-x-hidden relative flex flex-col ${
+      className={`min-h-[100dvh] w-full font-sans relative flex flex-col ${
         isDarkApparatus
           ? 'bg-[#12161B] text-white selection:bg-[#0066FF]/30'
           : (effectiveTheme === 'dark'

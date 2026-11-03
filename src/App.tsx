@@ -93,22 +93,7 @@ const AdminPage = React.lazy(() => import('./components/admin/AdminPage').then(m
 
 import { isDarkApparatusRoute } from './lib/routeTheme';
 
-const RouteFallback = ({ isDark }: { isDark?: boolean }) => (
-  <div
-    className={`min-h-[100dvh] flex-1 flex flex-col items-center justify-center p-6 text-center font-sans ${
-      isDark
-        ? 'bg-[#12161B] text-slate-400'
-        : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-slate-600'
-    }`}
-  >
-    <div
-      className={`w-8 h-8 rounded-full border-2 ${
-        isDark ? 'border-[#22C7D6]' : 'border-[#0066FF]'
-      } border-t-transparent animate-spin mb-3`}
-    />
-    <div className="text-xs font-mono uppercase tracking-widest opacity-80">Loading Module...</div>
-  </div>
-);
+const RouteFallback = ({ isDark }: { isDark?: boolean }) => null;
 
 function App() {
   const navigate = useNavigate();
@@ -188,7 +173,7 @@ function App() {
           isDark
             ? (isDarkApparatus ? 'bg-[#12161B] text-[var(--text-main)]' : 'bg-[#0B0D10] text-[var(--text-main)]')
             : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A]'
-        } relative font-sans overflow-x-clip selection:bg-cyan-500/30`}
+        } relative font-sans selection:bg-cyan-500/30`}
       >
         <DeferredAnalytics />
 

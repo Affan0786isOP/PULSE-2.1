@@ -10,6 +10,11 @@ import { initSentry } from './lib/sentry';
 
 initSentry();
 
+// Remove static pre-render SEO shell immediately before mounting React root
+if (typeof document !== 'undefined') {
+  document.getElementById('pulse-seo-shell')?.remove();
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>

@@ -11,9 +11,8 @@ import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { PageShell } from './layout/PageShell';
 
 // Narrative Scenes below the fold
-import { AssessmentsScene } from './home/AssessmentsScene';
-import { ProblemScene } from './home/ProblemScene';
 import { ResultScene } from './home/ResultScene';
+import { ProblemScene } from './home/ProblemScene';
 import { FAQScene } from './home/FAQScene';
 import { FinalCTAScene } from './home/FinalCTAScene';
 import { HomeFooter } from './home/HomeFooter';
@@ -205,22 +204,19 @@ export function Home() {
         </div>
       </section>
 
-      {/* 02 — Explore the tests */}
-      <AssessmentsScene />
-
-      {/* 03 — See a sample result */}
+      {/* 02 — See a sample result */}
       <ResultScene />
 
-      {/* 04 — How it works, with concise measurement limits */}
+      {/* 03 — How it works, with concise measurement limits */}
       <ProblemScene />
 
-      {/* 05 — Essential questions */}
+      {/* 04 — Essential questions */}
       <FAQScene />
 
-      {/* 06 — Final action */}
+      {/* 05 — Final action */}
       <FinalCTAScene />
 
-      {/* 07 — Footer and useful links */}
+      {/* 06 — Footer and useful links */}
       <HomeFooter />
     </PageShell>
   );

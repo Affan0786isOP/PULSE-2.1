@@ -90,7 +90,6 @@ describe('Homepage Narrative Redesign Suite', () => {
 
       // Check sequential scene tags
       const heroIdx = content.indexOf('id="hero"');
-      const assessmentsIdx = content.indexOf('<AssessmentsScene');
       const resultIdx = content.indexOf('<ResultScene');
       const problemIdx = content.indexOf('<ProblemScene');
       const faqIdx = content.indexOf('<FAQScene');
@@ -98,8 +97,7 @@ describe('Homepage Narrative Redesign Suite', () => {
       const footerIdx = content.indexOf('<HomeFooter');
 
       expect(heroIdx).toBeGreaterThan(-1);
-      expect(assessmentsIdx).toBeGreaterThan(heroIdx);
-      expect(resultIdx).toBeGreaterThan(assessmentsIdx);
+      expect(resultIdx).toBeGreaterThan(heroIdx);
       expect(problemIdx).toBeGreaterThan(resultIdx);
       expect(faqIdx).toBeGreaterThan(problemIdx);
       expect(ctaIdx).toBeGreaterThan(faqIdx);
@@ -119,10 +117,8 @@ describe('Homepage Narrative Redesign Suite', () => {
       expect(html).toContain('Start Testing');
 
       // Narrative sections
-      expect(html).toContain('Explore the five tests');
       expect(html).toContain('See your results');
       expect(html).toContain('How it works');
-      expect(html).toContain('SAMPLE RESULT');
       expect(html).toContain('How browser timing works');
       expect(html).not.toContain('How the Assessment Flow Operates');
       expect(html).toContain('Frequently Asked Questions');

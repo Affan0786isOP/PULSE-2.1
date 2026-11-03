@@ -16,41 +16,23 @@ export function FinalCTAScene() {
       className="relative w-full py-16 lg:py-24 border-t border-slate-200 dark:border-slate-800/80 scroll-mt-24 transition-colors duration-300"
       aria-label="Launch Assessment Call to Action"
     >
-      <div className="max-w-4xl mx-auto text-center">
-        <motion.div 
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-[#12161B] border border-sky-200 dark:border-[#22C7D6]/40 text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-6 shadow-sm"
-          initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <span>[ INITIATE // EVALUATION RUN ]</span>
-        </motion.div>
-
-        <motion.h2 
-          className="font-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#090D1A] dark:text-white mb-6 text-balance"
-          initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.06 }}
-        >
+      <motion.div 
+        className="max-w-4xl mx-auto text-center"
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.25 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#090D1A] dark:text-white mb-6 text-balance">
           Ready to see how you perform?
-        </motion.h2>
+        </h2>
 
-        <motion.p 
-          className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-6 leading-relaxed text-pretty font-normal"
-          initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.12 }}
-        >
+        <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-6 leading-relaxed text-pretty font-normal">
           Free to try. No account required.
-        </motion.p>
+        </p>
 
         {/* Action Buttons */}
-        <motion.div 
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.18 }}
-        >
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             type="button"
             onClick={() => navigate(primaryLaunchRoute)}
@@ -68,8 +50,8 @@ export function FinalCTAScene() {
             <span>Explore all assessments</span>
             <ArrowRight size={14} className="text-slate-400 dark:text-slate-500" />
           </Link>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </section>
   );
 }
