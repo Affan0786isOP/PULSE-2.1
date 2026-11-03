@@ -101,7 +101,7 @@ function sanitizeNestedPublicValue(value: unknown, depth = 0): unknown {
 
 function sanitizePublicSequence(value: unknown): number[] | string | undefined {
   if (typeof value === 'string') {
-    return value.length <= 50 && /^\\d*$/.test(value) ? value : undefined;
+    return value.length <= 50 && /^\d*$/.test(value) ? value : undefined;
   }
   if (Array.isArray(value) &&
       value.length <= 50 &&
