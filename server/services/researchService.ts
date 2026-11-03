@@ -99,6 +99,18 @@ function sanitizeNestedPublicValue(value: unknown, depth = 0): unknown {
   return undefined;
 }
 
+function sanitizePublicSequence(value: unknown): number[] | string | undefined {
+  if (typeof value === 'string') {
+    return value.length <= 50 && /^\\d*$/.test(value) ? value : undefined;
+  }
+  if (Array.isArray(value) &&
+      value.length <= 50 &&
+      value.every(item => typeof item === 'number' && Number.isSafeInteger(item) && item >= 0 && item <= 8)) {
+    return value as number[];
+  }
+  return undefined;
+}
+
 function sanitizePublicTrials(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) return [];
   return value.slice(0, 200).flatMap((trial) => {
@@ -121,7 +133,7 @@ function sanitizePublicTrials(value: unknown): Record<string, unknown>[] {
       }
     }
     for (const key of ['generatedSequence', 'playerSequence'] as const) {
-      const candidate = sanitizeNestedPublicValue(source[key]);
+      const candidate = sanitizePublicSequence(source[key]);
       if (candidate !== undefined) safe[key] = candidate;
     }
 
