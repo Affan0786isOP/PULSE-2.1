@@ -96,7 +96,8 @@ export function unrollTrialsFromDatasetDocs(
         timedOut: pt.timedOut === true,
         falseStart: pt.falseStart === true,
         // Public records deliberately retain month precision; empty means unknown, not "now".
-        timestamp: typeof doc.completedAtMonth === 'string' ? doc.completedAtMonth : '',
+        timestamp: '',
+        completedAtMonth: typeof doc.completedAtMonth === 'string' ? doc.completedAtMonth : undefined,
         device: typeof doc.deviceCategory === 'string'
           ? doc.deviceCategory
           : (typeof doc.device === 'string' ? doc.device : 'unknown'),

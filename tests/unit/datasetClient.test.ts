@@ -121,7 +121,8 @@ describe('Dataset API client', () => {
     expect(trials[0].condition).toBe('arrow-up');
     expect(trials[0].participantId).toBe('');
     expect(trials[0].experimentId).toBe('public-assessment-1');
-    expect(trials[0].timestamp).toBe('2026-10');
+    expect(trials[0].timestamp).toBe('');
+    expect(trials[0].completedAtMonth).toBe('2026-10');
     expect(trials[0].screenWidth).toBe(0);
     expect(trials[0].screenHeight).toBe(0);
     expect(Number.isNaN(trials[1].stimulusTimestamp)).toBe(true);
