@@ -73,33 +73,37 @@
     ],
     "faq": [
       {
+        "question": "What is considered a fast visual reaction time?",
+        "answer": "Typical healthy adult reaction time to a visual cue ranges between 200ms and 260ms on calibrated desktop hardware. Scores below 190ms are exceptional, while responses under 80.0ms are recorded as anticipatory false starts."
+      },
+      {
         "question": "Why do reaction times differ across devices?",
-        "answer": "Operating systems, display panels, and input controllers each introduce variable latency, producing slight differences between phones, tablets, and desktop computers."
+        "answer": "Operating systems, display refresh panels (60Hz vs 144Hz+), and input controllers (wired USB vs Bluetooth) each introduce variable hardware latency, producing measurable differences between phones, tablets, and desktop computers."
       },
       {
-        "question": "Can visual reaction time improve with practice?",
-        "answer": "Consistent testing can improve familiarity, motor readiness, and response consistency, though physiological limits constrain absolute reaction thresholds."
+        "question": "Can visual reaction time improve with regular training?",
+        "answer": "Consistent testing improves stimulus anticipation, motor readiness, and temporal consistency, though biological retinal phototransduction and neural conduction enforce physiological limits."
       },
       {
-        "question": "What counts as a false start?",
-        "answer": "Inputs initiated while the stimulus is waiting or within 80ms of stimulus presentation are recorded as false starts."
+        "question": "How does PULSE detect and handle false starts?",
+        "answer": "PULSE flags any input registered before stimulus presentation or within 80.0 milliseconds of stimulus onset as an anticipatory false start to safeguard benchmark integrity."
       }
     ],
     "relatedLinks": [
+      {
+        "path": "/guides/visual-reaction-time",
+        "label": "Visual Reaction Time Guide",
+        "description": "Explore sensory phototransduction, neural transmission delays, and browser measurement dynamics."
+      },
       {
         "path": "/direction-test",
         "label": "Directional Choice Test",
         "description": "Evaluate discrimination and motor response speed with directional cues."
       },
       {
-        "path": "/improve",
-        "label": "Performance Guide",
-        "description": "Review environmental factors and preparation habits for cognitive benchmarking."
-      },
-      {
-        "path": "/assessments",
-        "label": "All Assessments",
-        "description": "Explore the full suite of cognitive benchmarks in PULSE."
+        "path": "/benchmarks/cognitive-percentiles",
+        "label": "Cognitive Benchmarks",
+        "description": "Compare session-level empirical distributions and laboratory baselines."
       }
     ]
   },
@@ -146,8 +150,20 @@
     ],
     "faq": [
       {
+        "question": "What does the Directional Choice Test measure?",
+        "answer": "It benchmarks choice reaction time and visual discrimination. Unlike simple visual detection, you must identify target orientation and initiate the matching directional motor output."
+      },
+      {
         "question": "Why is choice reaction time slower than simple reaction time?",
-        "answer": "Choice tasks require sensory discrimination and action selection stages before motor command initiation, adding cognitive processing time."
+        "answer": "Choice tasks require cognitive cortical discrimination (Hick-Hyman Law) before motor initiation, typically adding 100ms to 180ms compared to simple visual cues."
+      },
+      {
+        "question": "What input method is recommended for directional choice benchmarking?",
+        "answer": "A physical keyboard with dedicated arrow keys provides the lowest polling jitter and clearest spatial mapping compared to touchscreens."
+      },
+      {
+        "question": "What counts as an invalid trial in the direction test?",
+        "answer": "Responses occurring before stimulus presentation or under 80.0ms are flagged as false starts, while trials exceeding 3000ms are marked as timed out."
       }
     ],
     "relatedLinks": [
@@ -206,20 +222,32 @@
     ],
     "faq": [
       {
-        "question": "Why do button positions shuffle?",
-        "answer": "Shuffling button positions ensures each response requires active visual identification rather than habitual spatial motor memory."
+        "question": "What is the Stroop Effect in colour recognition?",
+        "answer": "The Stroop effect occurs when reading the word involuntarily interferes with naming its ink color (e.g. the word RED printed in green ink). Resolving this conflict demands conscious cognitive control."
+      },
+      {
+        "question": "How is cognitive conflict cost calculated in PULSE?",
+        "answer": "PULSE computes the difference in average response latency between incongruent stimulus trials and congruent stimulus trials. A lower conflict cost indicates superior executive inhibition."
+      },
+      {
+        "question": "What false start threshold applies to colour recognition?",
+        "answer": "Because Stroop tasks involve word identification and response selection, responses registered under 80.01 milliseconds are rejected as anticipatory responses."
+      },
+      {
+        "question": "Can cognitive inhibition speed be trained?",
+        "answer": "Regular cognitive training and mindfulness can enhance selective attention and reduce distraction vulnerability, leading to more consistent conflict resolution."
       }
     ],
     "relatedLinks": [
       {
-        "path": "/direction-test",
-        "label": "Directional Choice Test",
-        "description": "Benchmark choice latency and directional discrimination."
+        "path": "/guides/stroop-effect-speed",
+        "label": "Stroop Effect & Inhibition Guide",
+        "description": "Learn how automated word processing creates mental interference and how executive control resolves it."
       },
       {
-        "path": "/block-memory",
-        "label": "Block Memory Test",
-        "description": "Evaluate spatial working memory through sequential tapping."
+        "path": "/direction-test",
+        "label": "Directional Choice Test",
+        "description": "Measure spatial discrimination latency."
       }
     ]
   },
@@ -266,8 +294,20 @@
     ],
     "faq": [
       {
-        "question": "How quickly do blocks flash?",
-        "answer": "Each block highlights for 400ms followed by a 200ms inter-stimulus pause before moving to the next position in the sequence."
+        "question": "What cognitive capacity does the Block Memory assessment test?",
+        "answer": "It evaluates visuospatial working memory and sequential recall, modeled after the clinical Corsi Block-Tapping test."
+      },
+      {
+        "question": "How does the difficulty scale across assessment levels?",
+        "answer": "The assessment begins with a 3-block sequence. Each successful replication increments the sequence length by one block, increasing working memory load."
+      },
+      {
+        "question": "When does the Block Memory test terminate?",
+        "answer": "The test concludes automatically after 3 cumulative unsuccessful sequence replications, recording your highest successfully completed sequence span."
+      },
+      {
+        "question": "Are Block Memory results scored by response time or sequence span?",
+        "answer": "Primary scoring is based on maximum block span and total correctly recalled sequences. Response latency is recorded as secondary telemetry."
       }
     ],
     "relatedLinks": [
@@ -326,8 +366,20 @@
     ],
     "faq": [
       {
-        "question": "How long is each number displayed?",
-        "answer": "Exposure time scales dynamically with digit length, providing sufficient time to read each numerical string before input begins."
+        "question": "What is the Digit Span memory test?",
+        "answer": "Digit span is an established neuropsychological benchmark measuring verbal and phonological working memory capacity (the phonological loop in Baddeleys model)."
+      },
+      {
+        "question": "How long are digits displayed before recall?",
+        "answer": "Each number string appears on screen for a fixed duration proportional to digit length before input is prompted."
+      },
+      {
+        "question": "How does assessment termination work for Number Memory?",
+        "answer": "Similar to the block memory protocol, the assessment terminates immediately upon your third cumulative incorrect attempt, establishing your maximum digit capacity."
+      },
+      {
+        "question": "What is the average human digit memory span?",
+        "answer": "According to Millers classic psychological baseline, average human working memory capacity holds approximately 7 plus-or-minus 2 items in immediate recall."
       }
     ],
     "relatedLinks": [

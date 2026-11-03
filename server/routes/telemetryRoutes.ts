@@ -2,6 +2,7 @@ import type { Express, Request, Response } from 'express';
 import { ITelegramNotifierService } from '../services/interfaces/ITelegramNotifierService';
 import { isTrackedPageRoute, isActivitySurface, PageViewRequest } from '../../shared/types/telemetry';
 import { isValidDeviceId } from '../../shared/telemetry/deviceId';
+import { isValidReferralToken } from '../../shared/contracts/referralContract';
 
 export interface TelemetryRouteDependencies {
   telegramService: ITelegramNotifierService;
@@ -20,7 +21,7 @@ export function registerTelemetryRoutes(
         return;
       }
 
-      const { eventId, route, surface, deviceId, clientTimestampMs } = body;
+      const { eventId, route, surface, deviceId, referralSource, clientTimestampMs } = body;
 
       // Validate eventId (must be a valid UUID string 20-50 chars)
       if (typeof eventId !== 'string' || eventId.length < 20 || eventId.length > 50) {
@@ -50,11 +51,20 @@ export function registerTelemetryRoutes(
         validDeviceId = deviceId;
       }
 
+      // Validate referralSource if provided (strictly allowlisted token)
+      let validReferral: string | undefined;
+      if (referralSource !== undefined && referralSource !== null) {
+        if (isValidReferralToken(referralSource)) {
+          validReferral = referralSource;
+        }
+      }
+
       const payload: PageViewRequest = {
         eventId,
         route,
         surface,
         deviceId: validDeviceId,
+        referralSource: validReferral,
         clientTimestampMs: typeof clientTimestampMs === 'number' ? clientTimestampMs : undefined
       };
 

@@ -75,6 +75,20 @@ describe('SEO Shell Generator Output Verification', () => {
       expectedTitlePart: 'Number Memory Test: Forward Digit Recall | PULSE',
       expectedHeading: 'Number Memory Test',
       expectedFragment: 'Digit Span Working Memory'
+    },
+    {
+      file: 'seo/guides/visual-reaction-time.html',
+      mobileFile: 'seo/mobile/guides/visual-reaction-time.html',
+      expectedTitlePart: 'Visual Reaction Time: Physiology &amp; Latency Guide | PULSE',
+      expectedHeading: 'Human Visual Reaction Time: Physiology, Measurement &amp; Real-World Latency',
+      expectedFragment: 'The Physiological Visual Reflex Arc'
+    },
+    {
+      file: 'seo/benchmarks/cognitive-percentiles.html',
+      mobileFile: 'seo/mobile/benchmarks/cognitive-percentiles.html',
+      expectedTitlePart: 'Cognitive Benchmarks &amp; Empirical Distributions | PULSE',
+      expectedHeading: 'PULSE Cognitive Benchmarks: Session-Level Empirical Distributions',
+      expectedFragment: 'Session-Level Empirical Distribution Contract'
     }
   ];
 

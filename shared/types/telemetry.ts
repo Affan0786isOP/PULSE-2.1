@@ -7,7 +7,11 @@ export const TRACKED_PAGE_ROUTES = [
   '/',
   '/about',
   '/assessments',
-  '/leaderboard'
+  '/leaderboard',
+  '/guides',
+  '/guides/visual-reaction-time',
+  '/guides/stroop-effect-speed',
+  '/benchmarks/cognitive-percentiles'
 ] as const;
 
 export type TrackedPageRoute = (typeof TRACKED_PAGE_ROUTES)[number];
@@ -19,6 +23,7 @@ export interface PageViewRequest {
   route: TrackedPageRoute;
   surface: ActivitySurface;
   deviceId?: string; // Pseudonymous browser-profile UUID (dev_...)
+  referralSource?: string; // Optional allowlisted referral token (e.g. guide-vrt)
   clientTimestampMs?: number; // Diagnostic only; never authoritative
 }
 
@@ -75,7 +80,7 @@ export interface LeaderboardNotification {
 }
 
 export function isTrackedPageRoute(route: unknown): route is TrackedPageRoute {
-  return typeof route === 'string' && (TRACKED_PAGE_ROUTES as readonly string[]).includes(route);
+  return typeof route === 'string' && (TRACKED_PAGE_ROUTES as readonly string[]).includes(route as TrackedPageRoute);
 }
 
 export function isActivitySurface(surface: unknown): surface is ActivitySurface {

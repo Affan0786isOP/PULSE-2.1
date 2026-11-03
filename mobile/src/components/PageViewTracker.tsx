@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { isTrackedPageRoute, ActivitySurface, PageViewRequest } from '@shared/types/telemetry';
 import { getOrCreateDeviceId, isTelemetryOptedOut } from '@shared/telemetry/deviceId';
+import { captureReferralFromUrl, getActiveReferralToken } from '@shared/lib/referralManager';
 
 interface PageViewTrackerProps {
   surface: ActivitySurface;
@@ -27,6 +28,9 @@ export function PageViewTracker({ surface }: PageViewTrackerProps) {
   const lastTrackedRef = useRef<{ route: string; timestamp: number } | null>(null);
 
   useEffect(() => {
+    // Capture and sanitize any referral query parameters
+    captureReferralFromUrl();
+
     if (isTelemetryOptedOut()) return;
 
     const normalizedRoute = normalizeTrackedRoute(location.pathname, surface);
@@ -52,12 +56,14 @@ export function PageViewTracker({ surface }: PageViewTrackerProps) {
       : `evt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
     const deviceId = getOrCreateDeviceId();
+    const referralSource = getActiveReferralToken() ?? undefined;
 
     const payload: PageViewRequest = {
       eventId,
       route: normalizedRoute,
       surface,
       deviceId,
+      referralSource,
       clientTimestampMs: now
     };
 
