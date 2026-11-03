@@ -280,44 +280,31 @@ export function AssessmentHero3D() {
 
                   {/* Content Layer 2: Inactive Card Identifiable Art & Label */}
                   <div 
-                    className={`w-full h-full relative flex flex-col items-center justify-between py-4 overflow-hidden transition-all duration-300 group-hover:bg-white/40 dark:group-hover:bg-white/5 ${
+                    className={`w-full h-full relative flex flex-col items-center pt-4 pb-3 overflow-hidden transition-all duration-300 group-hover:bg-white/40 dark:group-hover:bg-white/5 ${
                       isActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
                     }`}
                   >
-                    {/* Ambient inner soft glow */}
-                    <div 
-                      className="absolute inset-0 bg-[radial-gradient(circle_at_right,rgba(186,230,253,0.3)_0%,rgba(0,102,255,0.06)_50%,transparent_75%)] dark:bg-[radial-gradient(circle_at_right,rgba(34,199,214,0.15)_0%,rgba(14,165,233,0.05)_50%,transparent_75%)] pointer-events-none" 
-                      aria-hidden="true" 
-                    />
-                    
                     {/* Top Protocol Number Badge */}
-                    <div className="z-10 font-mono text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-white/95 dark:bg-[#181D23] px-1.5 py-0.5 rounded shadow-sm border border-slate-300/80 dark:border-slate-700">
+                    <div className="z-10 font-mono text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-white/95 dark:bg-[#181D23] px-1.5 py-0.5 rounded shadow-sm border border-slate-300/80 dark:border-slate-700 shrink-0">
                       0{index + 1}
                     </div>
 
-                    {/* Identifiable Restrained Logo Badge */}
-                    <div className="relative flex items-center justify-center my-auto">
+                    {/* Fixed-Position Logo Badge to prevent up-and-down visual hopping */}
+                    <div className="relative flex items-center justify-center mt-3 shrink-0">
                       <div 
-                        className={`absolute rounded-full bg-white dark:bg-[#181D23] border border-slate-200 dark:border-slate-800 shadow-sm pointer-events-none ${
-                          offset === 1 ? 'w-10 h-10' :
-                          offset === 2 ? 'w-9 h-9' :
-                          offset === 3 ? 'w-8 h-8' : 'w-7.5 h-7.5'
-                        }`}
+                        className="w-10 h-10 rounded-full bg-white dark:bg-[#181D23] border border-slate-200 dark:border-slate-800 shadow-sm pointer-events-none flex items-center justify-center"
                         aria-hidden="true"
-                      />
-                      <img 
-                        src={assessment.logo} 
-                        alt={assessment.title}
-                        className={`object-contain relative z-10 ${
-                          offset === 1 ? 'w-6.5 h-6.5' :
-                          offset === 2 ? 'w-6 h-6' :
-                          offset === 3 ? 'w-5.5 h-5.5' : 'w-5 h-5'
-                        }`}
-                      />
+                      >
+                        <img 
+                          src={assessment.logo} 
+                          alt={assessment.title}
+                          className="w-6 h-6 object-contain"
+                        />
+                      </div>
                     </div>
 
                     {/* Vertical Readable Title Label for Inactive Cards */}
-                    <div className="z-10 text-[10.5px] font-bold text-[#090D1A] dark:text-slate-300 tracking-wider uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 opacity-90 mt-1">
+                    <div className="z-10 text-[10px] font-bold text-[#090D1A] dark:text-slate-300 tracking-wider uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 opacity-80 mt-auto overflow-hidden">
                       {assessment.title}
                     </div>
                   </div>

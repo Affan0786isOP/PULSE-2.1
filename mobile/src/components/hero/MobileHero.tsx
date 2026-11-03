@@ -209,10 +209,10 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
         {/* Primary CTA: Start Testing */}
         <button 
           onClick={handleStartTesting}
-          className="w-full h-[54px] rounded-full bg-gradient-to-r from-[#0066FF] to-[#0052CC] hover:from-[#005FE6] hover:to-[#0047B3] text-white font-semibold text-[16px] shadow-[0_10px_25px_-5px_rgba(0,102,255,0.4),0_4px_10px_-2px_rgba(0,102,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[0.98] transition-all flex items-center justify-center gap-2 group mb-6"
+          className="w-full h-[50px] rounded-xl bg-[#090D1A] active:bg-[#1E293B] dark:bg-white dark:active:bg-slate-100 text-white dark:text-[#090D1A] font-semibold text-[15px] border border-slate-900/10 dark:border-white/20 shadow-sm active:scale-[0.985] transition-all duration-200 flex items-center justify-center gap-2 group mb-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
         >
           <span>Start Testing</span>
-          <ArrowRight size={19} className="group-active:translate-x-0.5 transition-transform" />
+          <ArrowRight size={17} strokeWidth={2.2} className="group-active:translate-x-0.5 transition-transform" />
         </button>
 
         {/* Verified Statistics Section */}
