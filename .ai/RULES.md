@@ -15,7 +15,7 @@ These rules govern all AI coding agents working within the PULSE repository. The
 ## 2. Code Modification Boundaries
 1. **No Unprompted Refactors:** Do not refactor, reformat, or rewrite code outside the strict scope of the user's prompt.
 2. **Preserve Application Architecture:** Do not alter routing strategies (`/` desktop vs `/mobile/` PWA), state management models, or component contracts unless explicitly instructed.
-3. **No Unvetted Dependencies:** Do not install new packages without explicit justification and compatibility verification with React 19, Vite 6, and Tailwind CSS v4.
+3. **No Unvetted Dependencies:** Do not install new packages without explicit justification and compatibility verification with the versions declared in `package.json` (currently React 19, Vite 8, and Tailwind CSS v4).
 4. **Preserve Comments & Docstrings:** Retain existing explanatory comments, citations, and protocol docstrings unless directly obsolete.
 
 ---
@@ -49,3 +49,9 @@ These rules govern all AI coding agents working within the PULSE repository. The
 ## 6. Documentation Maintenance
 1. **Synchronize Documentation:** When architectural or data model changes are made, update [`docs/PROJECT_SPEC.md`](../docs/PROJECT_SPEC.md), [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md), and [`docs/DATA_MODEL.md`](../docs/DATA_MODEL.md).
 2. **Never Mark Planned as Implemented:** Clearly distinguish implemented features from planned enhancements across all docs.
+
+
+## 7. Toolchain source of truth
+
+- Treat `package.json` (`engines`, `packageManager`, dependencies, and scripts) as the authoritative source for runtime and toolchain versions. Do not preserve hard-coded Vite or Node versions in agent guidance after the manifest changes.
+- The current declared Node floor is `>=24.12.0`; the package manager is `npm@10.9.7`.

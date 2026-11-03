@@ -5,7 +5,7 @@ This document details the testing framework, type verification, protocol QA proc
 ---
 
 ## 1. Test Stack & Infrastructure
-- **Unit & Integration Test Runner:** [Vitest](https://vitest.dev/) (`vitest run --passWithNoTests`)
+- **Unit & Integration Test Runner:** [Vitest](https://vitest.dev/) (`npm test` runs `vitest run`; the repository script does not use `--passWithNoTests`).
 - **Static Type Checking:** TypeScript Compiler (`tsc --noEmit`)
 - **Dual-Surface Validation:** Root desktop project (`tsconfig.json`) + mobile subproject (`mobile/tsconfig.json`)
 - **Security Rule Linter:** `@firebase/eslint-plugin-security-rules`
@@ -38,7 +38,7 @@ When modifying assessment components, verify the following timing and physiologi
 ### 3.1 Visual Reaction Test QA
 - **Stimulus Delay:** Confirm foreperiod falls within $100\text{ms} - 3000\text{ms}$.
 - **Physiological Floor:** Clicks during standby or $< 80\text{ms}$ after stimulus must register as `FALSE_START_PRE_STIMULUS` or `ANTICIPATORY_TOO_FAST`.
-- **Display Latency Offset:** Confirm RAF calibration runs on initial mount and displays detected refresh rate.
+- **Latency scoring:** Confirm new Visual Reaction observations use unadjusted browser-measured latency rounded to two decimal places; do not expect a refresh-rate detector or display-offset calibration UI.
 
 ### 3.2 Direction Flanker QA
 - **Arrow Alignment:** Center target arrow must correctly alternate between congruent (`< < < < <`) and incongruent (`< < > < <`) conditions across 10 trials.
@@ -68,3 +68,8 @@ Before submitting code changes, complete this checklist:
 - [ ] Reduced-motion mode has been tested and suppresses non-essential UI animations.
 - [ ] Active assessment lockout is honored (Navbar navigation, modals, and tab switching are blocked during ongoing cognitive testing).
 - [ ] Mobile responsive layout has been verified at $375\text{px}$, $768\text{px}$, and $1280\text{px}$ viewports.
+
+
+## 5. Toolchain baseline
+
+The repository currently declares Node.js `>=24.12.0`, npm `10.9.7`, Vite `8.3.5`, TypeScript `~5.8.2`, and Vitest `5.0.5` in `package.json`. Re-check the manifest before copying these versions into CI or contributor instructions.
