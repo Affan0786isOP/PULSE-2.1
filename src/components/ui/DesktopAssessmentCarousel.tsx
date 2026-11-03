@@ -184,7 +184,7 @@ export function DesktopAssessmentCarousel() {
         {/* Navigation Prev Button */}
         <button
           onClick={handlePrev}
-          className="absolute left-4 z-40 p-3 rounded-full bg-white/90 dark:bg-[#181D23]/90 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-[#20262E] transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
+          className="absolute left-4 z-40 p-3 rounded-full bg-[#181D23] border border-slate-700/80 text-slate-300 hover:text-white hover:bg-[#20262E] transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22C7D6]"
           aria-label="Previous assessment"
         >
           <ChevronLeft size={22} />
@@ -204,10 +204,10 @@ export function DesktopAssessmentCarousel() {
                   role="group"
                   aria-roledescription="slide"
                   aria-label={`${index + 1} of ${DESKTOP_ASSESSMENTS.length}: ${assessment.title}`}
-                  className={`absolute w-full h-full rounded-2xl bg-white dark:bg-[#181D23] border ${
+                  className={`absolute w-full h-full rounded-2xl bg-[#181D23] border ${
                     isActive
-                      ? 'border-slate-300 dark:border-slate-700 shadow-md'
-                      : 'border-slate-200 dark:border-slate-800 shadow-sm'
+                      ? 'border-slate-700 shadow-xl'
+                      : 'border-slate-800 shadow-md'
                   } flex flex-col justify-between overflow-hidden cursor-pointer transition-colors duration-300`}
                   initial={false}
                   animate={{
@@ -233,9 +233,9 @@ export function DesktopAssessmentCarousel() {
                   }}
                 >
                   {/* Card Visual Header */}
-                  <div className="relative h-44 w-full bg-slate-50 dark:bg-[#12161B] flex items-center justify-center border-b border-slate-100 dark:border-slate-800 overflow-hidden shrink-0">
+                  <div className="relative h-44 w-full bg-[#12161B] flex items-center justify-center border-b border-slate-800 overflow-hidden shrink-0">
                     {/* Visualizer Subtle Grid Graphic */}
-                    <div className="absolute inset-0 opacity-40 dark:opacity-20 bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
                     
                     {/* Assessment Custom Logo Visual Focus */}
                     <motion.img
@@ -257,19 +257,19 @@ export function DesktopAssessmentCarousel() {
 
                   {/* Card Body */}
                   <div className="p-6 flex flex-col flex-1">
-                    <div className="text-[11px] text-[#0066FF] dark:text-[#22C7D6] font-mono font-bold tracking-widest mb-1.5 uppercase">
+                    <div className="text-[11px] text-[#22C7D6] font-mono font-bold tracking-widest mb-1.5 uppercase">
                       {assessment.protocolNumber} • {assessment.category}
                     </div>
-                    <h3 className="font-heading text-2xl font-extrabold text-[#090D1A] dark:text-white tracking-tight mb-2">
+                    <h3 className="font-heading text-2xl font-extrabold text-white tracking-tight mb-2">
                       {assessment.title}
                     </h3>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6 flex-1 line-clamp-3">
+                    <p className="text-slate-300 text-sm leading-relaxed mb-6 flex-1 line-clamp-3">
                       {assessment.description}
                     </p>
                     <div className={`mt-auto flex items-center justify-center gap-2 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${
                       isActive
-                        ? 'bg-sky-50 dark:bg-[#22C7D6]/10 text-[#0066FF] dark:text-[#22C7D6] border border-sky-200 dark:border-[#22C7D6]/30'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-transparent'
+                        ? 'bg-[#22C7D6]/10 text-[#22C7D6] border border-[#22C7D6]/30'
+                        : 'bg-[#12161B] text-slate-400 border border-slate-800'
                     }`}>
                       {isActive ? (
                         <>
@@ -290,7 +290,7 @@ export function DesktopAssessmentCarousel() {
         {/* Navigation Next Button */}
         <button
           onClick={handleNext}
-          className="absolute right-4 z-40 p-3 rounded-full bg-white/90 dark:bg-[#181D23]/90 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-[#20262E] transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6]"
+          className="absolute right-4 z-40 p-3 rounded-full bg-[#181D23] border border-slate-700/80 text-slate-300 hover:text-white hover:bg-[#20262E] transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22C7D6]"
           aria-label="Next assessment"
         >
           <ChevronRight size={22} />
