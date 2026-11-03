@@ -109,8 +109,8 @@ describe('ResearchService publicDataset privacy boundary', () => {
           valid: false,
           level: 2,
           sequenceLength: 4,
-          generatedSequence: [1, 2, 3, 4],
-          playerSequence: [1],
+          generatedSequence: { contact: injectedEmail },
+          playerSequence: { contact: injectedEmail },
           // Memory calculators retain client metadata on aborted attempts.
           // These values must never reach the Firestore-readable public archive.
           validity: `ABORTED ${injectedEmail}`,
