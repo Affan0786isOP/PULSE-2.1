@@ -62,7 +62,6 @@ const PUBLIC_TRIAL_STRING_VALUES: Record<
     'TIMEOUT_EXCEEDED',
     'PREMATURE_TRIGGER',
     'ANTICIPATORY_RESPONSE',
-    'PREMATURE_TRIGGER',
     'ACCURACY_ERROR'
   ]),
   foreperiodCategory: new Set(['SHORT', 'LONG']),
