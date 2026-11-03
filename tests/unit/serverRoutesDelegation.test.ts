@@ -122,6 +122,24 @@ describe('Server Route Delegation Tests', () => {
       expect(pbRes.status).toBe(200);
       expect(pbRes.body['personalBest']).toBe(199.5);
       expect(mockPbService.getPersonalBest).toHaveBeenCalledTimes(1);
+
+      // Dataset aliases are canonicalized before reaching the service.
+      const datasetRes = await makeRequest(server, 'GET', '/api/research/dataset?assessmentType=reaction&limit=10');
+      expect(datasetRes.status).toBe(200);
+      expect(mockResearchService.getDataset).toHaveBeenCalledWith({
+        assessmentType: 'visual-reaction',
+        ageGroup: null,
+        completedAtMonth: null,
+        limitCount: 10,
+        cursor: null
+      });
+
+      // Invalid limits and unknown protocols must fail rather than silently falling back to defaults.
+      const invalidLimitRes = await makeRequest(server, 'GET', '/api/research/dataset?limit=0');
+      expect(invalidLimitRes.status).toBe(400);
+      const invalidTypeRes = await makeRequest(server, 'GET', '/api/research/dataset?assessmentType=unknown-protocol');
+      expect(invalidTypeRes.status).toBe(400);
+      expect(mockResearchService.getDataset).toHaveBeenCalledTimes(1);
     } finally {
       await new Promise<void>(resolve => server.close(() => resolve()));
     }

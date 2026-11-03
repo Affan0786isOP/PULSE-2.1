@@ -13,7 +13,7 @@ import type {
 import type { PublicDatasetRecord } from '../models/researchModels';
 import type { TrialObservationPayload } from '../models/submissionModels';
 import { VALID_AGE_GROUPS, VALID_ASSESSMENT_TYPES } from '../config/constants';
-import { normalizeAssessmentType } from '../engines/assessmentTypes';
+import { normalizeLeaderboardAssessmentType } from '../../shared/domain/leaderboardEligibility';
 import { validateAndDeriveAssessmentFromTrials } from '../engines/assessmentEngine';
 import { deriveForeperiodCategory } from '../engines/reactionCalculator';
 import { computeCanonicalTrialsDigest, signProvenancePayload } from './provenanceService';
@@ -21,6 +21,94 @@ import { getIdempotency, setIdempotency } from './idempotencyService';
 import { ISessionService } from './interfaces/ISessionService';
 import { AppError, SessionAlreadyConsumedError } from '../models/replayContracts';
 import { getAssessmentVersionMetadata } from '../../shared/contracts/common';
+
+
+const PUBLIC_TRIAL_NUMERIC_FIELDS = [
+  'trialNumber', 'trialIndex', 'sequenceNumber', 'attemptNumber',
+  'reactionTime', 'rawLatencyMs', 'inputLatencyMs', 'accuracy',
+  'displayDelayOffsetMs', 'stimulusScheduledAtPerfMs', 'stimulusPresentedAtPerfMs',
+  'responseDetectedAtPerfMs', 'foreperiodMs', 'level', 'sequenceLength',
+  'responseDurationMs', 'correctSelections', 'interTapTimeMs'
+] as const;
+
+const PUBLIC_TRIAL_BOOLEAN_FIELDS = [
+  'falseStart', 'timedOut', 'valid', 'correct', 'correctness',
+  'displayDelayOffsetEstimated'
+] as const;
+
+const PUBLIC_TRIAL_STRING_FIELDS = [
+  'validity', 'qualityFlag', 'displayDelayOffsetSource', 'foreperiodCategory',
+  'targetDirection', 'chosenDirection', 'userResponse', 'targetColor', 'chosenColor',
+  'wordName', 'wordColor', 'condition', 'instruction', 'metricType'
+] as const;
+
+function sanitizeNestedPublicValue(value: unknown, depth = 0): unknown {
+  if (value === null || typeof value === 'boolean') return value;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+  if (typeof value === 'string') return value.length <= 160 ? value : value.slice(0, 160);
+  if (Array.isArray(value)) {
+    if (value.length > 200 || depth > 2) return undefined;
+    return value.map(item => sanitizeNestedPublicValue(item, depth + 1))
+      .filter(item => item !== undefined);
+  }
+  if (value && typeof value === 'object' && depth < 2) {
+    const safe: Record<string, unknown> = {};
+    for (const [key, nestedValue] of Object.entries(value as Record<string, unknown>).slice(0, 40)) {
+      if (!/^[a-zA-Z][a-zA-Z0-9_]{0,31}$/.test(key)) continue;
+      if (/(^id$|participant|session|user|email|ip|uid|token|secret|deviceId|timestamp|createdAt)/i.test(key)) continue;
+      const cleanValue = sanitizeNestedPublicValue(nestedValue, depth + 1);
+      if (cleanValue !== undefined) safe[key] = cleanValue;
+    }
+    return safe;
+  }
+  return undefined;
+}
+
+function sanitizePublicTrials(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 200).flatMap((trial) => {
+    if (!trial || typeof trial !== 'object' || Array.isArray(trial)) return [];
+    const source = trial as Record<string, unknown>;
+    const safe: Record<string, unknown> = {};
+
+    for (const key of PUBLIC_TRIAL_NUMERIC_FIELDS) {
+      const candidate = source[key];
+      if (typeof candidate === 'number' && Number.isFinite(candidate)) safe[key] = candidate;
+    }
+    for (const key of PUBLIC_TRIAL_BOOLEAN_FIELDS) {
+      const candidate = source[key];
+      if (typeof candidate === 'boolean') safe[key] = candidate;
+    }
+    for (const key of PUBLIC_TRIAL_STRING_FIELDS) {
+      const candidate = source[key];
+      if (typeof candidate === 'string' && candidate.length <= 160) safe[key] = candidate;
+    }
+    for (const key of ['generatedSequence', 'playerSequence'] as const) {
+      const candidate = sanitizeNestedPublicValue(source[key]);
+      if (candidate !== undefined) safe[key] = candidate;
+    }
+
+    return [safe];
+  });
+}
+
+function firstFiniteNumber(...values: unknown[]): number | undefined {
+  for (const value of values) {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+  }
+  return undefined;
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  return values.find((value): value is string => typeof value === 'string' && value.length <= 160);
+}
+
+function sanitizePublicObject(value: unknown): Record<string, unknown> | undefined {
+  const clean = sanitizeNestedPublicValue(value);
+  return clean !== null && typeof clean === 'object' && !Array.isArray(clean)
+    ? clean as Record<string, unknown>
+    : undefined;
+}
 
 export class ResearchService implements IResearchService {
   constructor(
@@ -240,6 +328,9 @@ export class ResearchService implements IResearchService {
 
       const baseProgressionItem: Record<string, unknown> = {
         trialNumber,
+        trialIndex: typeof tp.trialIndex === 'number' && Number.isFinite(tp.trialIndex) ? tp.trialIndex : idx + 1,
+        sequenceNumber: typeof tp.sequenceNumber === 'number' && Number.isFinite(tp.sequenceNumber) ? tp.sequenceNumber : idx + 1,
+        attemptNumber: typeof tp.attemptNumber === 'number' && Number.isFinite(tp.attemptNumber) ? tp.attemptNumber : 1,
         falseStart,
         timedOut,
         valid,
@@ -306,6 +397,15 @@ export class ResearchService implements IResearchService {
     });
 
     const versionMetadata = getAssessmentVersionMetadata(assessmentType);
+
+    const currentScoreCandidate = isSpeedAssessment
+      ? derivedMetrics['averageReactionTime']
+      : derivedMetrics['longestSeq'];
+    const currentScore: number | null =
+      typeof currentScoreCandidate === 'number' && Number.isFinite(currentScoreCandidate)
+        ? currentScoreCandidate
+        : null;
+
     const publicDatasetDoc = {
       ageGroup: authoritativeAgeGroup,
       assessmentType,
@@ -317,16 +417,11 @@ export class ResearchService implements IResearchService {
       trialsDigest,
       deviceCategory: serverDeviceCategory,
       device: serverDeviceCategory,
+      scoreMetric: currentScore,
+      totalTrials: progressionTrials.length,
       progressionTrials,
       ...derivedMetrics
     };
-
-    let currentScore: number | null = null;
-    if (isSpeedAssessment) {
-      currentScore = typeof derivedMetrics['averageReactionTime'] === 'number' ? (derivedMetrics['averageReactionTime'] as number) : null;
-    } else {
-      currentScore = typeof derivedMetrics['longestSeq'] === 'number' ? (derivedMetrics['longestSeq'] as number) : null;
-    }
 
     let previousPersonalBest: number | null = null;
     try {
@@ -350,7 +445,7 @@ export class ResearchService implements IResearchService {
             }
           }
         }
-        if (s !== null && !isNaN(s)) {
+        if (s !== null && Number.isFinite(s)) {
           if (previousPersonalBest === null) {
             previousPersonalBest = s;
           } else if (isSpeedAssessment && s < previousPersonalBest) {
@@ -413,104 +508,67 @@ export class ResearchService implements IResearchService {
     });
 
     const records: PublicDatasetRecord[] = rawData.results.map(data => {
-      const sId = data.sessionId;
-      const sessionData = sId ? rawData.sessionMap.get(sId) : undefined;
-      const rawTrials = sId ? (rawData.trialsBySession.get(sId) || []) : [];
+      const derived = data.derivedMetrics && typeof data.derivedMetrics === 'object'
+        ? data.derivedMetrics as Record<string, unknown>
+        : {};
+      const rawAssessmentType = typeof data.assessmentType === 'string' ? data.assessmentType : 'unknown';
+      const canonicalType = normalizeLeaderboardAssessmentType(rawAssessmentType);
+      const rawMonth = typeof data.completedAtMonth === 'string' ? data.completedAtMonth.trim() : '';
+      const completedAtMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(rawMonth) ? rawMonth : undefined;
+      const derivedScore = canonicalType === 'visual-reaction' ||
+        canonicalType === 'direction' ||
+        canonicalType === 'color-recognition'
+        ? firstFiniteNumber(derived.averageReactionTime, data.averageReactionTime)
+        : firstFiniteNumber(derived.longestSeq, data.longestSeq);
+      const scoreMetric = data.scoreMetric === null
+        ? null
+        : firstFiniteNumber(data.scoreMetric, derivedScore);
+      const rawTotalTrials = data.totalTrials;
+      const totalTrials = typeof rawTotalTrials === 'number' &&
+        Number.isSafeInteger(rawTotalTrials) && rawTotalTrials >= 0
+        ? rawTotalTrials
+        : (Array.isArray(data.progressionTrials) ? data.progressionTrials.length : undefined);
 
-      rawTrials.sort((a, b) => {
-        const numA = typeof a['trialNumber'] === 'number' ? (a['trialNumber'] as number) : (typeof a['trialIndex'] === 'number' ? (a['trialIndex'] as number) : (typeof a['sequenceNumber'] === 'number' ? (a['sequenceNumber'] as number) : 0));
-        const numB = typeof b['trialNumber'] === 'number' ? (b['trialNumber'] as number) : (typeof b['trialIndex'] === 'number' ? (b['trialIndex'] as number) : (typeof b['sequenceNumber'] === 'number' ? (b['sequenceNumber'] as number) : 0));
-        return numA - numB;
-      });
-
-      const sanitizedTrials = rawTrials.map((tp: Record<string, unknown>, idx: number) => {
-        const trialNumber = typeof tp['trialNumber'] === 'number' ? (tp['trialNumber'] as number) : (idx + 1);
-        const rawRt = typeof tp['reactionTime'] === 'number' ? (tp['reactionTime'] as number) : (typeof tp['reactionTimeMs'] === 'number' ? (tp['reactionTimeMs'] as number) : null);
-        const falseStart = tp['falseStart'] === true;
-        const timedOut = tp['timedOut'] === true;
-        const valid = typeof tp['valid'] === 'boolean' ? (tp['valid'] as boolean) : (!falseStart && !timedOut);
-
-        const trialItem: Record<string, unknown> = {
-          trialNumber,
-          trialIndex: typeof tp['trialIndex'] === 'number' ? tp['trialIndex'] : trialNumber,
-          sequenceNumber: typeof tp['sequenceNumber'] === 'number' ? tp['sequenceNumber'] : trialNumber,
-          attemptNumber: typeof tp['attemptNumber'] === 'number' ? tp['attemptNumber'] : 1,
-          reactionTime: rawRt,
-          falseStart,
-          timedOut,
-          valid,
-        };
-
-        if (typeof tp['correct'] === 'boolean') trialItem.correct = tp['correct'];
-        if (typeof tp['correctness'] === 'boolean') trialItem.correctness = tp['correctness'];
-        if (typeof tp['accuracy'] === 'number') trialItem.accuracy = tp['accuracy'];
-        if (typeof tp['validity'] === 'string') trialItem.validity = tp['validity'];
-        if (tp['qualityFlag'] !== undefined) trialItem.qualityFlag = tp['qualityFlag'];
-
-        if (typeof tp['rawLatencyMs'] === 'number') trialItem.rawLatencyMs = tp['rawLatencyMs'];
-        else if (typeof tp['rawReactionTime'] === 'number') trialItem.rawLatencyMs = tp['rawReactionTime'];
-        if (typeof tp['displayDelayOffsetMs'] === 'number') trialItem.displayDelayOffsetMs = tp['displayDelayOffsetMs'];
-
-        if (typeof tp['stimulusScheduledAtPerfMs'] === 'number') trialItem.stimulusScheduledAtPerfMs = tp['stimulusScheduledAtPerfMs'];
-        if (typeof tp['stimulusPresentedAtPerfMs'] === 'number') trialItem.stimulusPresentedAtPerfMs = tp['stimulusPresentedAtPerfMs'];
-        if (typeof tp['responseDetectedAtPerfMs'] === 'number') trialItem.responseDetectedAtPerfMs = tp['responseDetectedAtPerfMs'];
-
-        if (typeof tp['foreperiodMs'] === 'number') trialItem.foreperiodMs = tp['foreperiodMs'];
-        if (typeof tp['foreperiodCategory'] === 'string') trialItem.foreperiodCategory = tp['foreperiodCategory'];
-
-        if (typeof tp['targetDirection'] === 'string') trialItem.targetDirection = tp['targetDirection'];
-        if (typeof tp['chosenDirection'] === 'string') trialItem.chosenDirection = tp['chosenDirection'];
-        if (typeof tp['userResponse'] === 'string' || tp['userResponse'] === null) trialItem.userResponse = tp['userResponse'];
-
-        if (typeof tp['targetColor'] === 'string') trialItem.targetColor = tp['targetColor'];
-        if (typeof tp['chosenColor'] === 'string') trialItem.chosenColor = tp['chosenColor'];
-        if (typeof tp['wordName'] === 'string') trialItem.wordName = tp['wordName'];
-        if (typeof tp['wordColor'] === 'string') trialItem.wordColor = tp['wordColor'];
-        if (typeof tp['condition'] === 'string') trialItem.condition = tp['condition'];
-        if (typeof tp['instruction'] === 'string') trialItem.instruction = tp['instruction'];
-
-        if (typeof tp['level'] === 'number') trialItem.level = tp['level'];
-        if (typeof tp['sequenceLength'] === 'number') trialItem.sequenceLength = tp['sequenceLength'];
-        if (typeof tp['interTapTimeMs'] === 'number') trialItem.interTapTimeMs = tp['interTapTimeMs'];
-        if (typeof tp['responseDurationMs'] === 'number') trialItem.responseDurationMs = tp['responseDurationMs'];
-
-        return trialItem;
-      });
-
-      let derivedMonth = data.completedAtMonth;
-      if (!derivedMonth && (data.completedAtTimestamp || data.createdAt)) {
-        const d = new Date(data.completedAtTimestamp || data.createdAt!);
-        if (!isNaN(d.getTime())) {
-          derivedMonth = d.toISOString().substring(0, 7);
-        }
-      }
-
-      const dm = data.derivedMetrics;
       return {
         id: data.id,
-        assessmentType: normalizeAssessmentType(data.assessmentType || 'unknown'),
-        ageGroup: data.ageGroup || (sessionData?.['ageGroup'] as string | undefined) || undefined,
-        completedAtMonth: derivedMonth || undefined,
-        completedAtTimestamp: data.completedAtTimestamp ?? data.createdAt ?? undefined,
-        deviceCategory: (sessionData?.['deviceCategory'] as string | undefined) || (sessionData?.['device'] as string | undefined) || undefined,
-        device: (sessionData?.['device'] as string | undefined) || (sessionData?.['deviceCategory'] as string | undefined) || undefined,
-        inputModality: (sessionData?.['inputModality'] as string | undefined) || (sessionData?.['inputMethod'] as string | undefined) || undefined,
-        displayRefreshRateHz: (sessionData?.['displayRefreshRateHz'] as number | undefined) || (sessionData?.['refreshRateHz'] as number | undefined) || undefined,
-        refreshRateHz: (sessionData?.['refreshRateHz'] as number | undefined) || (sessionData?.['displayRefreshRateHz'] as number | undefined) || undefined,
-        provenanceToken: data.provenanceToken,
-        trialsDigest: data.trialsDigest,
-        scoreMetric: data.scoreMetric,
-        averageReactionTime: (dm?.['averageReactionTime'] as number | undefined) ?? data.averageReactionTime,
-        medianReactionTime: (dm?.['medianReactionTime'] as number | undefined) ?? data.medianReactionTime,
-        fastestReactionTime: (dm?.['fastestReactionTime'] as number | undefined) ?? data.fastestReactionTime,
-        slowestReactionTime: (dm?.['slowestReactionTime'] as number | undefined) ?? data.slowestReactionTime,
-        longestSeq: (dm?.['longestSeq'] as number | undefined) ?? data.longestSeq,
-        highestLevel: (dm?.['highestLevel'] as number | undefined) ?? data.highestLevel,
-        accuracy: (dm?.['accuracy'] as number | undefined) ?? data.accuracy,
-        congruentAvg: (dm?.['congruentAvg'] as number | undefined) ?? data.congruentAvg,
-        incongruentAvg: (dm?.['incongruentAvg'] as number | undefined) ?? data.incongruentAvg,
-        interferenceCost: (dm?.['interferenceCost'] as number | undefined) ?? data.interferenceCost,
-        progressionTrials: sanitizedTrials
+        assessmentType: canonicalType || rawAssessmentType,
+        ageGroup: firstString(data.ageGroup),
+        completedAtMonth,
+        deviceCategory: firstString(data.deviceCategory),
+        device: firstString(data.device),
+        inputModality: firstString(data.inputModality, data.inputMethod),
+        displayRefreshRateHz: firstFiniteNumber(data.displayRefreshRateHz, data.refreshRateHz),
+        refreshRateHz: firstFiniteNumber(data.refreshRateHz, data.displayRefreshRateHz),
+        schemaVersion: firstFiniteNumber(data.schemaVersion),
+        assessmentVersion: firstString(data.assessmentVersion),
+        protocolVersion: firstString(data.protocolVersion),
+        datasetSchemaVersion: firstString(data.datasetSchemaVersion),
+        metricsVersion: firstString(data.metricsVersion),
+        provenanceVersion: firstString(data.provenanceVersion),
+        provenanceToken: firstString(data.provenanceToken),
+        trialsDigest: firstString(data.trialsDigest),
+        scoreMetric,
+        consistency: firstFiniteNumber(derived.consistency, data.consistency),
+        totalFalseStarts: firstFiniteNumber(derived.totalFalseStarts, data.totalFalseStarts),
+        totalCorrect: firstFiniteNumber(derived.totalCorrect, data.totalCorrect),
+        totalIncorrect: firstFiniteNumber(derived.totalIncorrect, data.totalIncorrect),
+        correctCount: firstFiniteNumber(derived.correctCount, data.correctCount),
+        totalAttempts: firstFiniteNumber(derived.totalAttempts, data.totalAttempts),
+        overallAccuracy: firstFiniteNumber(derived.overallAccuracy, data.overallAccuracy),
+        totalTimeMs: firstFiniteNumber(derived.totalTimeMs, data.totalTimeMs),
+        temporalDynamics: sanitizePublicObject(derived.temporalDynamics ?? data.temporalDynamics),
+        averageReactionTime: firstFiniteNumber(derived.averageReactionTime, data.averageReactionTime),
+        medianReactionTime: firstFiniteNumber(derived.medianReactionTime, data.medianReactionTime),
+        fastestReactionTime: firstFiniteNumber(derived.fastestReactionTime, data.fastestReactionTime),
+        slowestReactionTime: firstFiniteNumber(derived.slowestReactionTime, data.slowestReactionTime),
+        longestSeq: firstFiniteNumber(derived.longestSeq, data.longestSeq),
+        highestLevel: firstFiniteNumber(derived.highestLevel, data.highestLevel),
+        accuracy: firstFiniteNumber(derived.accuracy, data.accuracy),
+        congruentAvg: firstFiniteNumber(derived.congruentAvg, data.congruentAvg),
+        incongruentAvg: firstFiniteNumber(derived.incongruentAvg, data.incongruentAvg),
+        interferenceCost: firstFiniteNumber(derived.interferenceCost, data.interferenceCost),
+        totalTrials,
+        progressionTrials: sanitizePublicTrials(data.progressionTrials)
       };
     });
 

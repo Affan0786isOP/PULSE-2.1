@@ -42,6 +42,10 @@ describe('Protocol Validators', () => {
     ageGroup: 'Adults (26–40)',
     completedAtMonth: '2023-10',
     provenanceToken: 'a'.repeat(64),
+    provenanceVersion: 'v2.0.0',
+    trialsDigest: 'b'.repeat(64),
+    scoreMetric: 250,
+    totalTrials: 1,
     deviceCategory: 'desktop',
     device: 'desktop',
     progressionTrials: [
@@ -62,6 +66,14 @@ describe('Protocol Validators', () => {
     it('rejects malformed completedAtMonth', () => {
       expect(isValidBaseObservation({ ...baseValidObservation, completedAtMonth: '2023-13' })).toBe(false);
       expect(isValidBaseObservation({ ...baseValidObservation, completedAtMonth: '23-10' })).toBe(false);
+    });
+
+    it('accepts current publicDataset metadata and rejects malformed metric metadata', () => {
+      expect(isValidBaseObservation(baseValidObservation)).toBe(true);
+      expect(isValidBaseObservation({ ...baseValidObservation, totalTrials: -1 })).toBe(false);
+      expect(isValidBaseObservation({ ...baseValidObservation, totalTrials: 1.5 })).toBe(false);
+      expect(isValidBaseObservation({ ...baseValidObservation, scoreMetric: Number.NaN })).toBe(false);
+      expect(isValidBaseObservation({ ...baseValidObservation, trialsDigest: 'bad-digest' })).toBe(false);
     });
   });
 

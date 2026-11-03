@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import guidesData from '../../../../shared/content/guides.json';
-import { GuideDocument } from '../../../../shared/content/guideValidator.d.mts';
+import type { GuideDocument } from '../../../../shared/content/guideValidator.d.mts';
 import { BookOpen, ArrowRight, BarChart3, Clock, Compass } from 'lucide-react';
 
 interface GuidesHubProps {
