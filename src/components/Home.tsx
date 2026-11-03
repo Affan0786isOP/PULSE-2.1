@@ -4,9 +4,10 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useReducedMotionPreference } from '../lib/settingsStore';
+import { useAuthoritativeStats } from '../lib/useAuthoritativeStats';
 import { useBaselineScale } from '../lib/useBaselineScale';
+import { AnimatedResultCount } from './ui/AnimatedResultCount';
 import { AssessmentHero3D } from './ui/AssessmentHero3D';
-import { CANONICAL_ASSESSMENT_IDS } from '../../shared/contracts/common';
 import { PageShell } from './layout/PageShell';
 
 // Narrative Scenes below the fold
@@ -78,6 +79,7 @@ const HOME_SCHEMA = {
 
 export function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
+  const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
   const { scale } = useBaselineScale();
   const [viewportHeight, setViewportHeight] = React.useState<number>(() => typeof window !== 'undefined' ? window.innerHeight : 900);
 
@@ -154,24 +156,48 @@ export function Home() {
               </div>
             </div>
 
-            {/* Assessment availability */}
-            <div className="w-full max-w-[340px] sm:max-w-[360px] min-[2560px]:max-w-[420px] grid grid-cols-2 items-center py-1.5 relative">
-              <Link
+            {/* Metrics Row (3 Distinct Stats: Tests, Results, Free / No sign-up) */}
+            <div className="w-full max-w-[340px] sm:max-w-[360px] min-[2560px]:max-w-[420px] grid grid-cols-3 items-center py-1.5 relative">
+              {/* Col 1: Canonical Tests */}
+              <Link 
                 to="/assessments"
-                aria-label={`View ${CANONICAL_ASSESSMENT_IDS.length} available tests`}
+                aria-label={`View ${testsCount} available tests`}
                 className="flex flex-col items-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] rounded-lg active:opacity-75 transition-opacity"
-                title={`${CANONICAL_ASSESSMENT_IDS.length} available assessment batteries`}
+                title={`${testsCount} available assessment batteries`}
               >
                 <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] dark:text-white tracking-tight">
-                  {CANONICAL_ASSESSMENT_IDS.length}
+                  {testsCount}
                 </span>
                 <span className="text-[12px] min-[2560px]:text-[13.5px] font-semibold text-[#1E293B] dark:text-slate-300 mt-0.5">
                   Tests
                 </span>
               </Link>
-              <div className="absolute left-1/2 top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#BFDBFE] dark:bg-slate-700" aria-hidden="true" />
-              <div className="flex flex-col items-center text-center" title="100% free with no account required">
-                <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] dark:text-white tracking-tight">
+
+              {/* Divider */}
+              <div className="absolute left-[33.33%] top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#BFDBFE] dark:bg-slate-700" aria-hidden="true" />
+
+              {/* Col 2: Authoritative Dynamic Results Count */}
+              <div
+                className="flex flex-col items-center text-center"
+                title="Count of public research result records in Firestore"
+              >
+                <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] dark:text-white tracking-tight flex items-center justify-center min-h-[28px]">
+                  <AnimatedResultCount value={resultsCount} isLoading={isLoadingResults} />
+                </span>
+                <span className="text-[12px] min-[2560px]:text-[13.5px] font-semibold text-[#1E293B] dark:text-slate-300 mt-0.5">
+                  Results
+                </span>
+              </div>
+
+              {/* Divider */}
+              <div className="absolute left-[66.66%] top-1/2 -translate-y-1/2 h-7 w-[1px] bg-[#BFDBFE] dark:bg-slate-700" aria-hidden="true" />
+
+              {/* Col 3: Product-specific stat: Free / No sign-up */}
+              <div
+                className="flex flex-col items-center text-center"
+                title="100% free with no account required"
+              >
+                <span className="font-heading font-extrabold text-[22px] sm:text-[24px] min-[2560px]:text-[28px] leading-tight text-[#090D1A] dark:text-white tracking-tight flex items-center justify-center">
                   Free
                 </span>
                 <span className="text-[12px] min-[2560px]:text-[13.5px] font-semibold text-[#1E293B] dark:text-slate-300 mt-0.5 leading-tight">
