@@ -1,6 +1,7 @@
 import type express from 'express';
 import type { Express } from 'express';
-import { VALID_ASSESSMENT_TYPES } from '../config/constants';
+import { VALID_AGE_GROUPS, VALID_ASSESSMENT_TYPES } from '../config/constants';
+import { normalizeLeaderboardAssessmentType } from '../../shared/domain/leaderboardEligibility';
 import { verifyFirebaseUserToken } from '../middleware/auth';
 import { isMobileUserAgent } from '../middleware/deviceRouting';
 import { safeCompareHex, signProvenancePayload } from '../services/provenanceService';
@@ -253,12 +254,56 @@ export function registerResearchRoutes(
   // Public Research Dataset Retrieval Endpoint with complete cursor-based pagination
   app.get('/api/research/dataset', async (req, res) => {
     try {
-      const rawType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : null;
-      const assessmentType = rawType && rawType !== 'all' ? rawType : null;
-      const ageGroup = typeof req.query.ageGroup === 'string' && req.query.ageGroup !== 'all' ? req.query.ageGroup.trim() : null;
-      const completedAtMonth = typeof req.query.completedAtMonth === 'string' && req.query.completedAtMonth !== 'all' ? req.query.completedAtMonth.trim() : null;
-      const limitCount = req.query.limit ? Math.min(Math.max(1, parseInt(String(req.query.limit), 10) || 100), 250) : 100;
-      const cursor = typeof req.query.cursor === 'string' && req.query.cursor.trim() ? req.query.cursor.trim() : null;
+      if (req.query.assessmentType !== undefined && typeof req.query.assessmentType !== 'string') {
+        return res.status(400).json({ success: false, error: 'assessmentType must be a single string value', records: [] });
+      }
+      const rawType = typeof req.query.assessmentType === 'string' ? req.query.assessmentType.trim() : '';
+      let assessmentType: string | null = null;
+      if (rawType && rawType.toLowerCase() !== 'all') {
+        const canonicalType = normalizeLeaderboardAssessmentType(rawType);
+        if (!canonicalType) {
+          return res.status(400).json({ success: false, error: 'Unsupported assessmentType', records: [] });
+        }
+        assessmentType = canonicalType;
+      }
+
+      if (req.query.ageGroup !== undefined && typeof req.query.ageGroup !== 'string') {
+        return res.status(400).json({ success: false, error: 'ageGroup must be a single string value', records: [] });
+      }
+      const rawAgeGroup = typeof req.query.ageGroup === 'string' ? req.query.ageGroup.trim() : '';
+      const ageGroup = rawAgeGroup && rawAgeGroup.toLowerCase() !== 'all' ? rawAgeGroup : null;
+      if (ageGroup && !(VALID_AGE_GROUPS as readonly string[]).includes(ageGroup)) {
+        return res.status(400).json({ success: false, error: 'Unsupported ageGroup', records: [] });
+      }
+
+      if (req.query.completedAtMonth !== undefined && typeof req.query.completedAtMonth !== 'string') {
+        return res.status(400).json({ success: false, error: 'completedAtMonth must be a single string value', records: [] });
+      }
+      const rawMonth = typeof req.query.completedAtMonth === 'string' ? req.query.completedAtMonth.trim() : '';
+      const completedAtMonth = rawMonth && rawMonth.toLowerCase() !== 'all' ? rawMonth : null;
+      if (completedAtMonth && !/^\d{4}-(0[1-9]|1[0-2])$/.test(completedAtMonth)) {
+        return res.status(400).json({ success: false, error: 'completedAtMonth must use YYYY-MM format', records: [] });
+      }
+
+      let limitCount = 100;
+      if (req.query.limit !== undefined) {
+        const rawLimit = req.query.limit;
+        if (typeof rawLimit !== 'string' || !/^\d+$/.test(rawLimit.trim())) {
+          return res.status(400).json({ success: false, error: 'limit must be a positive integer', records: [] });
+        }
+        const parsedLimit = Number(rawLimit);
+        if (!Number.isSafeInteger(parsedLimit) || parsedLimit < 1) {
+          return res.status(400).json({ success: false, error: 'limit must be a positive integer', records: [] });
+        }
+        limitCount = Math.min(parsedLimit, 250);
+      }
+
+      if (req.query.cursor !== undefined && typeof req.query.cursor !== 'string') {
+        return res.status(400).json({ success: false, error: 'cursor must be a single string value', records: [] });
+      }
+      const cursor = typeof req.query.cursor === 'string' && req.query.cursor.trim()
+        ? req.query.cursor.trim()
+        : null;
 
       try {
         const result = await services.researchService.getDataset({

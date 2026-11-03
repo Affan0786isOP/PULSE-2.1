@@ -534,7 +534,10 @@ describe('Server Application Services Unit Tests', () => {
         protocolVersion: 'v1.1.0',
         datasetSchemaVersion: 'v1.0.0',
         metricsVersion: 'v1.1.0',
+        scoreMetric: 250,
+        totalTrials: 10,
       });
+      expect(capturedSubmission.publicDatasetDoc.progressionTrials).toHaveLength(10);
       expect(executeSubmissionTransaction).toHaveBeenCalledTimes(1);
     } finally {
       if (previousSecret === undefined) delete process.env.PULSE_PROVENANCE_SECRET;
@@ -613,23 +616,51 @@ describe('Server Application Services Unit Tests', () => {
     ).rejects.toMatchObject({ message: expect.stringContaining('implausibly short') });
   });
 
-  it('preserves completedAtTimestamp in getDataset public records (BUG-13)', async () => {
+  it('returns anonymized public records without private identifiers or exact timestamps', async () => {
     const mockDatasetRepo = {
       queryRawDataset: vi.fn(async () => ({
         results: [
           {
-            id: 'res-doc-1',
-            sessionId: 'sess-1',
-            assessmentType: 'visual-reaction',
+            id: 'public-doc-1',
+            assessmentType: 'colour-recognition',
             ageGroup: 'Young adults (18–25)',
-            completedAtTimestamp: 1705000000000,
-            completedAtMonth: '2024-01',
-            scoreMetric: 220,
-            derivedMetrics: { averageReactionTime: 220 }
+            completedAtMonth: '2026-10',
+            completedAtTimestamp: 1790899200000,
+            participantId: 'private-user-id',
+            sessionId: 'private-session-id',
+            deviceCategory: 'desktop',
+            averageReactionTime: 241.5,
+            consistency: 94.2,
+            totalFalseStarts: 2,
+            totalCorrect: 8,
+            totalIncorrect: 2,
+            correctCount: 8,
+            totalAttempts: 10,
+            overallAccuracy: 80,
+            totalTimeMs: 5200,
+            temporalDynamics: {
+              analysisVersion: 'temporal-v1',
+              foreperiodSensitivity: 0.12,
+              shortWindow: { count: 5, meanRt: 240, sessionId: 'must-not-leak' },
+              longWindow: { count: 5, meanRt: 243, participantId: 'must-not-leak' },
+              temporalStability: 0.91
+            },
+            progressionTrials: [
+              {
+                trialNumber: 4,
+                trialIndex: 3,
+                sequenceNumber: 7,
+                attemptNumber: 2,
+                reactionTime: 241.5,
+                correct: true,
+                condition: 'congruent',
+                participantId: 'private-user-id',
+                sessionId: 'private-session-id',
+                email: 'private@example.invalid'
+              }
+            ]
           }
         ],
-        sessionMap: new Map(),
-        trialsBySession: new Map(),
         hasMore: false,
         nextCursor: null
       })),
@@ -637,8 +668,47 @@ describe('Server Application Services Unit Tests', () => {
     };
 
     const service = new ResearchService({} as any, {} as any, {} as any, mockDatasetRepo as any);
-    const res = await service.getDataset({ limitCount: 10 });
-    expect(res.records).toHaveLength(1);
-    expect(res.records[0].completedAtTimestamp).toBe(1705000000000);
+    const result = await service.getDataset({ limitCount: 10 });
+
+    expect(result.records).toHaveLength(1);
+    const record = result.records[0];
+    expect(record.assessmentType).toBe('color-recognition');
+    expect(record.completedAtMonth).toBe('2026-10');
+    expect(record.scoreMetric).toBe(241.5);
+    expect(record.totalTrials).toBe(1);
+    expect(record).toMatchObject({
+      consistency: 94.2,
+      totalFalseStarts: 2,
+      totalCorrect: 8,
+      totalIncorrect: 2,
+      correctCount: 8,
+      totalAttempts: 10,
+      overallAccuracy: 80,
+      totalTimeMs: 5200
+    });
+    expect(record.temporalDynamics).toMatchObject({
+      analysisVersion: 'temporal-v1',
+      foreperiodSensitivity: 0.12,
+      temporalStability: 0.91,
+      shortWindow: { count: 5, meanRt: 240 },
+      longWindow: { count: 5, meanRt: 243 }
+    });
+    expect(record.temporalDynamics?.shortWindow).not.toHaveProperty('sessionId');
+    expect(record.temporalDynamics?.longWindow).not.toHaveProperty('participantId');
+    expect(record).not.toHaveProperty('completedAtTimestamp');
+    expect(record).not.toHaveProperty('participantId');
+    expect(record).not.toHaveProperty('sessionId');
+    expect(record.progressionTrials[0]).toMatchObject({
+      trialNumber: 4,
+      trialIndex: 3,
+      sequenceNumber: 7,
+      attemptNumber: 2,
+      reactionTime: 241.5,
+      correct: true,
+      condition: 'congruent'
+    });
+    expect(record.progressionTrials[0]).not.toHaveProperty('participantId');
+    expect(record.progressionTrials[0]).not.toHaveProperty('sessionId');
+    expect(record.progressionTrials[0]).not.toHaveProperty('email');
   });
 });

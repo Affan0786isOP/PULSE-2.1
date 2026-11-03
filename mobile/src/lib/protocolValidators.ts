@@ -46,8 +46,12 @@ export const COMMON_DATASET_KEYS = [
   'protocolVersion',
   'datasetSchemaVersion',
   'metricsVersion',
+  'provenanceVersion',
   'completedAtMonth',
   'provenanceToken',
+  'trialsDigest',
+  'scoreMetric',
+  'totalTrials',
   'deviceCategory',
   'device',
   'progressionTrials',
@@ -68,7 +72,6 @@ export const DIRECTION_KEYS = [
   ...COMMON_DATASET_KEYS,
   'accuracy',
   'totalCorrect',
-  'totalTrials',
   'totalIncorrect',
   'totalFalseStarts',
   'averageReactionTime',
@@ -125,6 +128,15 @@ export function isValidBaseObservation(obs: Record<string, unknown>): boolean {
 
   // Security & Provenance
   if (typeof obs.provenanceToken !== 'string' || !/^[a-f0-9]{64}$/.test(obs.provenanceToken)) return false;
+  if (obs.provenanceVersion !== undefined &&
+      (typeof obs.provenanceVersion !== 'string' || !obs.provenanceVersion || obs.provenanceVersion.length > 32)) return false;
+  if (obs.trialsDigest !== undefined &&
+      (typeof obs.trialsDigest !== 'string' || !/^[a-f0-9]{64}$/.test(obs.trialsDigest))) return false;
+  if (obs.scoreMetric !== undefined &&
+      obs.scoreMetric !== null &&
+      (typeof obs.scoreMetric !== 'number' || !Number.isFinite(obs.scoreMetric) || obs.scoreMetric < 0 || obs.scoreMetric > 10000)) return false;
+  if (obs.totalTrials !== undefined &&
+      (typeof obs.totalTrials !== 'number' || !Number.isSafeInteger(obs.totalTrials) || obs.totalTrials < 0 || obs.totalTrials > 1000)) return false;
 
   // Device
   if (typeof obs.deviceCategory !== 'string' || (obs.deviceCategory !== 'desktop' && obs.deviceCategory !== 'mobile')) return false;
