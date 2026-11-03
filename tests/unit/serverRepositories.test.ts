@@ -195,10 +195,11 @@ function createMockDb(): Firestore {
 function createDatasetMockDb(seed: Record<string, Record<string, unknown>[]>): Firestore {
   const store = new Map<string, Map<string, Record<string, unknown>>>();
   for (const [collectionName, rows] of Object.entries(seed)) {
-    store.set(collectionName, new Map(rows.map(row => {
+    const entries: Array<[string, Record<string, unknown>]> = rows.map(row => {
       const { id, ...data } = row;
       return [String(id), data];
-    })));
+    });
+    store.set(collectionName, new Map(entries));
   }
 
   const clone = (value: Record<string, unknown>) =>

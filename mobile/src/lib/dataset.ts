@@ -68,10 +68,10 @@ export function unrollTrialsFromDatasetDocs(
         : '';
 
       const trialNumber = finite(pt.trialNumber) && pt.trialNumber > 0
-        ? Math.floor(pt.trialNumber)
+        ? Math.max(1, Math.floor(pt.trialNumber))
         : idx + 1;
       const attemptNumber = finite(pt.attemptNumber) && pt.attemptNumber > 0
-        ? Math.floor(pt.attemptNumber)
+        ? Math.max(1, Math.floor(pt.attemptNumber))
         : 1;
 
       unrolled.push({
@@ -116,7 +116,10 @@ export const fetchDatasetObservations = async (
   filters: { assessmentType?: string; ageGroup?: string },
   observationLimit: number = 1000
 ): Promise<{ observations: DatasetObservation[]; totalCount: number | null; error?: string; isSampleLimited: boolean }> => {
-  const safeLimit = Math.max(1, Math.min(5000, Math.floor(Number(observationLimit) || 1000)));
+  const requestedLimit = Number(observationLimit);
+  const safeLimit = Number.isFinite(requestedLimit)
+    ? Math.min(5000, Math.max(1, Math.floor(requestedLimit)))
+    : 1000;
   const pageSize = 250;
   const observations: DatasetObservation[] = [];
   const seenCursors = new Set<string>();

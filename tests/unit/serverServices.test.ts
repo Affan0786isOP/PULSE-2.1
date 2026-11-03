@@ -673,5 +673,3 @@ describe('Server Application Services Unit Tests', () => {
     expect(record.progressionTrials[0]).not.toHaveProperty('email');
   });
 });
-  });
-});

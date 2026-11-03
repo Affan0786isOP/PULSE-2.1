@@ -24,6 +24,23 @@ describe('Dataset API client', () => {
     vi.unstubAllGlobals();
   });
 
+
+  it('clamps a zero observation cap to one record instead of the default cap', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, records: datasetPage(0, 1), count: 1, hasMore: false, nextCursor: null
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, totalRecords: 1, counts: { 'visual-reaction': 1 }
+      }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await fetchDatasetObservations({ assessmentType: 'visual-reaction' }, 0);
+
+    expect(result.observations).toHaveLength(1);
+    expect(String(fetchMock.mock.calls[0][0])).toContain('limit=1');
+  });
+
   it('follows cursors and reports the filtered total', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(jsonResponse({
