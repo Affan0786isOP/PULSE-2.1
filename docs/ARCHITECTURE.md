@@ -187,3 +187,8 @@ The Firestore database enforces strict role isolation via [`firestore.rules`](..
 Desktop and mobile assessment surfaces use the shared `shared/timing/framePacer.ts` helper to target an average of approximately 60 live-timer UI text updates per second. This is a software presentation optimization only: it does not set the physical display refresh rate, quantize stimulus presentation timestamps, or promise uniform timer intervals on variable-refresh displays.
 
 Stimulus presentation and response events continue to use high-resolution monotonic browser timestamps. For Visual Reaction, Direction, and Color Recognition, new protocol/metrics metadata is `v1.1.0`: scoring uses unadjusted browser-measured latency rounded to two decimal places, without theoretical half-frame offset subtraction. Memory assessments remain `v1.0.0`. The shared `getAssessmentVersionMetadata()` contract is used by both server write paths so `publicDataset` and `assessmentResults` carry synchronized version metadata. Historical digest normalization remains unchanged.
+
+
+## 8. Current client route surfaces
+
+The desktop route table is mounted in `src/App.tsx`; the mobile PWA has its own route table in `mobile/src/App.tsx`. The mobile surface shares selected desktop components and shared contracts but remains a separately built web/PWA surface, not a native application. Document routes independently against each router. The desktop router currently includes `/admin`, while the mobile router does not expose that path in its route table. Treat the presence of a route, the admin UI's authorization behavior, and backend administrative API availability as separate security questions; do not claim the entire admin surface is removed based on only one layer.

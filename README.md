@@ -34,7 +34,7 @@ Visit [`http://localhost:3000`](http://localhost:3000) in your browser. Mobile v
 
 PULSE operates as a dual-surface application connecting React 19 clients to an Express Node.js application server with Google Cloud Firestore and Firebase Authentication.
 
-- **Frontend:** React 19.0, TypeScript 5.8, Vite 6.2, Tailwind CSS 4.1, Motion (`motion/react`), Lucide Icons.
+- **Frontend:** React 19, TypeScript 5.8, Vite 8, Tailwind CSS 4.1, Motion (`motion/react`), Lucide Icons.
 - **Visualizations:** Visx, Recharts, D3.
 - **Backend:** Express 5.3, `express-rate-limit`, Firebase Admin SDK.
 - **Database & Auth:** Google Cloud Firestore (Server-authoritative writes), Firebase Anonymous Authentication.
@@ -53,7 +53,7 @@ PULSE operates as a dual-surface application connecting React 19 clients to an E
 
 ## 📊 Research Data & Leaderboard
 
-- **Research Dataset Explorer (`/dataset`):** Interactive distribution curves, demographic age filters, and one-click CSV/JSON research exports.
+- **Research Dataset Explorer (`/dataset`, `/analytics`):** Interactive distribution views and cohort filters. Confirm available export formats in the current UI before describing them as supported.
 - **Global Leaderboard (`/leaderboard`):** Top 100 rankings per assessment protocol backed by cryptographic HMAC-SHA256 provenance proofs.
 - **Cognitive Optimization (`/improve`):** Evidence-based guides on sleep, circadian rhythms, and reaction time training.
 
@@ -72,9 +72,9 @@ PULSE operates as a dual-surface application connecting React 19 clients to an E
 | Command | Action |
 | :--- | :--- |
 | `npm run dev` | Full-stack development server (Express + Vite) on port 3000 |
-| `npm run build` | Builds desktop SPA bundle and bundles ESM Express server |
+| `npm run build` | Builds desktop SPA, mobile PWA, SEO prerender pages, and ESM Express server |
 | `npm run dev:mobile` | Standalone mobile Vite dev server |
-| `npm run build:mobile` | Builds mobile PWA bundle |
+| `npm run build:mobile` | Builds mobile PWA bundle and regenerates SEO prerender pages |
 | `npm start` | Runs production server (`dist/server.js`) |
 | `npm run lint` | Runs desktop TypeScript type check |
 | `npm run check` | Dual-surface type check (Desktop + Mobile) |
@@ -92,3 +92,6 @@ PULSE operates as a dual-surface application connecting React 19 clients to an E
 - **[Design System & Tokens](docs/DESIGN_SYSTEM.md):** Color tokens, typography, and official brand assets.
 - **[Testing & Verification](docs/TESTING.md):** QA checklists and verification procedures.
 - **[AI Agent Rules](.ai/RULES.md):** Strict guidelines for AI coding agents.
+
+
+> **Runtime requirement:** Node.js 24.12.0 or newer is required by `package.json` (`engines.node`).

@@ -16,11 +16,11 @@
 ---
 
 ## 2. Technology Stack
-- **Frontend Core:** React 19.0.1, TypeScript 5.8.2, Vite 8.3.5, React Router DOM 7.18.2.
-- **Styling & Motion:** Tailwind CSS 4.1.14 (with `@tailwindcss/vite`), `motion/react` 12.23.24, Lucide React icons.
+- **Frontend Core:** React 19.3.1, TypeScript 5.8.2, Vite 8.3.5, React Router DOM 7.18.2.
+- **Styling & Motion:** Tailwind CSS 4.1.14 (with `@tailwindcss/vite`), `motion/react` (`^14.4.0`), Lucide React icons.
 - **Data Visualization:** Recharts 3.10.1.
 - **Backend / API:** Express 5.3.0 on Node.js (via `tsx` in dev, `esbuild` bundled in prod), `express-rate-limit`.
-- **Database & Auth:** Firebase Web SDK 12.17.1 (client, anonymous auth + read-only Firestore), Firebase Admin SDK 14.3.0 (server-authoritative writes and HMAC verification).
+- **Database & Auth:** Firebase Web SDK 13.x (client, anonymous auth + read-only Firestore), Firebase Admin SDK 14.3.0 (server-authoritative writes and HMAC verification).
 - **Target Surfaces:** Dual-surface application architecture:
   - Desktop SPA: `src/` (root Vite instance on port 3000)
   - Mobile PWA: `mobile/` (sub-Vite instance with dedicated manifest and touch-optimized components)
@@ -89,3 +89,13 @@
 - **Aspect Scaling:** [src/lib/useBaselineScale.ts](../src/lib/useBaselineScale.ts)
 - **Server API & Provenance:** [`server.ts`](../server.ts)
 - **Design Tokens:** [`src/DESIGN_SYSTEM.md`](../src/DESIGN_SYSTEM.md) and [`src/styles/pulse-aesthetic.css`](../src/styles/pulse-aesthetic.css)
+
+
+
+## 7. Runtime & build baseline
+
+- Node.js engine floor: `>=24.12.0`.
+- Package manager: `npm@10.9.7`.
+- `npm run build` runs the desktop Vite build, mobile Vite build, SEO page generation, and Express server bundle in sequence.
+- The desktop router currently mounts `/admin`; do not repeat earlier statements that all admin UI routes are removed without re-auditing `src/App.tsx`, the admin component, and its authorization behavior.
+- Both `/dataset` and `/analytics` route to the Dataset Explorer. Do not describe `/analytics` as a separate analytics dashboard unless the implementation supports that claim.
