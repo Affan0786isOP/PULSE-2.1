@@ -45,9 +45,8 @@ afterEach(() => {
 });
 
 describe('Desktop Home Redesign', () => {
-  it('renders the light-mode reference heading, eyebrow badge, and descriptor', () => {
+  it('renders the light-mode reference heading and descriptor', () => {
     renderHome();
-    expect(screen.getByText('COGNITIVE BENCHMARKING')).toBeDefined();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Measure.*your/);
     expect(screen.getByText('mind.')).toBeDefined();
     expect(screen.getByText(/Test your reaction speed, memory, and attention/i)).toBeDefined();

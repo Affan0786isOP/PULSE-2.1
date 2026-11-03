@@ -40,7 +40,6 @@ afterEach(() => {
 describe('MobileHero', () => {
   it('renders the reference-driven heading and descriptor', () => {
     renderHero();
-    expect(screen.getByText('COGNITIVE BENCHMARKING')).toBeDefined();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Measure.*your/);
     expect(screen.getByText('mind.')).toBeDefined();
     expect(screen.getByText(/Test your reaction speed, memory, and attention right in your browser, with no account required\./i)).toBeDefined();

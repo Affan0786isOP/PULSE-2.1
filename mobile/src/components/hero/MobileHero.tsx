@@ -132,15 +132,6 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
       {/* Main Hero Content */}
       <div className="relative z-20 w-full max-w-md mx-auto px-6 pt-2 pb-2 flex-1 flex flex-col justify-center">
         
-        {/* Eyebrow Badge */}
-        <div className="mb-4">
-          <div className="inline-flex items-center rounded-full bg-[#E0F2FE]/85 dark:bg-[#181D23] border border-[#BAE6FD]/80 dark:border-slate-700 px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.06)]">
-            <span className="text-[10px] font-mono font-bold tracking-[0.18em] text-[#0369A1] dark:text-[#22C7D6] uppercase">
-              COGNITIVE BENCHMARKING
-            </span>
-          </div>
-        </div>
-
         {/* Hero Headline */}
         <h1 className="font-heading font-extrabold text-[2.75rem] leading-[1.05] tracking-tight text-[#090D1A] dark:text-[#F5F7FA] mb-3 text-balance">
           Measure<br />

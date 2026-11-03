@@ -114,15 +114,6 @@ export function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 xl:gap-10 min-[2560px]:gap-16 items-center w-full">
           {/* Left Column: Hero Copy, Shortcuts, CTA & Metrics */}
           <div aria-labelledby="hero-heading" className="flex flex-col justify-center w-full max-w-[420px] xl:max-w-[480px] min-[2560px]:max-w-[580px]">
-            {/* Eyebrow Badge */}
-            <div className={`mb-2.5 sm:mb-3 ${shouldReduceMotion ? '' : 'animate-home-fade home-stagger-1'}`}>
-              <div className="inline-flex items-center rounded-full bg-[#E0F2FE] dark:bg-[#12161B] border border-[#7DD3FC] dark:border-[#22C7D6]/40 px-3.5 py-1 backdrop-blur-sm shadow-[0_2px_8px_rgba(2,132,199,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                <span className="text-[11px] sm:text-[11.5px] min-[2560px]:text-[12.5px] font-mono font-bold tracking-[0.2em] text-[#0284C7] dark:text-[#22C7D6] uppercase">
-                  COGNITIVE BENCHMARKING
-                </span>
-              </div>
-            </div>
-
             {/* Headline */}
             <h1 
               id="hero-heading"

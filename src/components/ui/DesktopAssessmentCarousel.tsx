@@ -206,7 +206,7 @@ export function DesktopAssessmentCarousel() {
                   aria-label={`${index + 1} of ${DESKTOP_ASSESSMENTS.length}: ${assessment.title}`}
                   className={`absolute w-full h-full rounded-2xl bg-white dark:bg-[#181D23] border ${
                     isActive
-                      ? 'border-[#0066FF]/60 dark:border-[#22C7D6]/60 shadow-[0_16px_40px_rgba(0,102,255,0.12)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.6)] ring-1 ring-[#0066FF]/20 dark:ring-[#22C7D6]/20'
+                      ? 'border-slate-300 dark:border-slate-700 shadow-md'
                       : 'border-slate-200 dark:border-slate-800 shadow-sm'
                   } flex flex-col justify-between overflow-hidden cursor-pointer transition-colors duration-300`}
                   initial={false}
@@ -237,13 +237,6 @@ export function DesktopAssessmentCarousel() {
                     {/* Visualizer Subtle Grid Graphic */}
                     <div className="absolute inset-0 opacity-40 dark:opacity-20 bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
                     
-                    {/* Radial Atmosphere Glow */}
-                    <div 
-                      className={`absolute inset-0 transition-opacity duration-500 pointer-events-none ${
-                        isActive ? 'opacity-100 bg-[radial-gradient(ellipse_at_center,_rgba(0,102,255,0.1)_0%,_transparent_70%)] dark:bg-[radial-gradient(ellipse_at_center,_rgba(34,199,214,0.15)_0%,_transparent_70%)]' : 'opacity-0'
-                      }`} 
-                    />
-
                     {/* Assessment Custom Logo Visual Focus */}
                     <motion.img
                       src={assessment.logo}
@@ -312,7 +305,7 @@ export function DesktopAssessmentCarousel() {
             onClick={() => handleSelect(idx)}
             className={`transition-all duration-300 rounded-full h-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
               idx === activeIndex
-                ? 'w-8 bg-[#0066FF] dark:bg-[#22C7D6] shadow-[0_0_8px_rgba(0,102,255,0.4)] dark:shadow-[0_0_8px_rgba(34,199,214,0.4)]'
+                ? 'w-8 bg-[#0066FF] dark:bg-[#22C7D6] '
                 : 'w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
             }`}
             aria-label={`Go to slide ${idx + 1}`}
