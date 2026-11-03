@@ -209,7 +209,7 @@ export function AssessmentHero3D() {
                 >
                   {/* Background Layer 1: Active Card Light & Dark Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/98 via-[#F9FBFF]/96 to-[#EAF3FD]/92 dark:from-[#181D23] dark:via-[#141920] dark:to-[#0F1318] border border-slate-300 dark:border-slate-700/60 shadow-[0_12px_32px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] text-[#090D1A] dark:text-slate-100 transition-opacity duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[28px] bg-white dark:bg-[#181D23] border border-slate-300 dark:border-slate-700/60 shadow-[0_12px_32px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] text-[#090D1A] dark:text-slate-100 transition-opacity duration-300 pointer-events-none ${
                       isActive ? 'opacity-100' : 'opacity-0'
                     }`}
                     aria-hidden="true"
@@ -217,7 +217,7 @@ export function AssessmentHero3D() {
 
                   {/* Background Layer 2: Inactive Card Light & Dark Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[24px] bg-gradient-to-b from-white/95 via-[#F1F6FD]/95 to-[#E4F0FC]/95 dark:from-[#161B22] dark:via-[#12161D] dark:to-[#0D1117] border border-slate-300 dark:border-slate-800/80 shadow-sm hover:border-slate-400 dark:hover:border-slate-700 text-[#090D1A] dark:text-slate-200 transition-all duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[24px] bg-slate-50 dark:bg-[#12161B] border border-slate-300 dark:border-slate-800/80 shadow-sm hover:border-slate-400 dark:hover:border-slate-700 text-[#090D1A] dark:text-slate-200 transition-all duration-300 pointer-events-none ${
                       isActive ? 'opacity-0' : 'opacity-100'
                     }`}
                     aria-hidden="true"
