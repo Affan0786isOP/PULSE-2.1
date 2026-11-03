@@ -390,6 +390,18 @@ export class ResearchService implements IResearchService {
     });
 
     const versionMetadata = getAssessmentVersionMetadata(assessmentType);
+
+    let currentScore: number | null = null;
+    if (isSpeedAssessment) {
+      currentScore = typeof derivedMetrics['averageReactionTime'] === 'number'
+        ? (derivedMetrics['averageReactionTime'] as number)
+        : null;
+    } else {
+      currentScore = typeof derivedMetrics['longestSeq'] === 'number'
+        ? (derivedMetrics['longestSeq'] as number)
+        : null;
+    }
+
     const publicDatasetDoc = {
       ageGroup: authoritativeAgeGroup,
       assessmentType,
@@ -401,16 +413,11 @@ export class ResearchService implements IResearchService {
       trialsDigest,
       deviceCategory: serverDeviceCategory,
       device: serverDeviceCategory,
+      scoreMetric: currentScore,
+      totalTrials: progressionTrials.length,
       progressionTrials,
       ...derivedMetrics
     };
-
-    let currentScore: number | null = null;
-    if (isSpeedAssessment) {
-      currentScore = typeof derivedMetrics['averageReactionTime'] === 'number' ? (derivedMetrics['averageReactionTime'] as number) : null;
-    } else {
-      currentScore = typeof derivedMetrics['longestSeq'] === 'number' ? (derivedMetrics['longestSeq'] as number) : null;
-    }
 
     let previousPersonalBest: number | null = null;
     try {
@@ -504,9 +511,19 @@ export class ResearchService implements IResearchService {
       const canonicalType = normalizeLeaderboardAssessmentType(rawAssessmentType);
       const rawMonth = typeof data.completedAtMonth === 'string' ? data.completedAtMonth.trim() : '';
       const completedAtMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(rawMonth) ? rawMonth : undefined;
+      const derivedScore = canonicalType === 'visual-reaction' ||
+        canonicalType === 'direction' ||
+        canonicalType === 'color-recognition'
+        ? firstFiniteNumber(derived.averageReactionTime, data.averageReactionTime)
+        : firstFiniteNumber(derived.longestSeq, data.longestSeq);
       const scoreMetric = data.scoreMetric === null
         ? null
-        : firstFiniteNumber(data.scoreMetric);
+        : firstFiniteNumber(data.scoreMetric, derivedScore);
+      const rawTotalTrials = data.totalTrials;
+      const totalTrials = typeof rawTotalTrials === 'number' &&
+        Number.isSafeInteger(rawTotalTrials) && rawTotalTrials >= 0
+        ? rawTotalTrials
+        : (Array.isArray(data.progressionTrials) ? data.progressionTrials.length : undefined);
 
       return {
         id: data.id,
@@ -537,7 +554,7 @@ export class ResearchService implements IResearchService {
         congruentAvg: firstFiniteNumber(derived.congruentAvg, data.congruentAvg),
         incongruentAvg: firstFiniteNumber(derived.incongruentAvg, data.incongruentAvg),
         interferenceCost: firstFiniteNumber(derived.interferenceCost, data.interferenceCost),
-        totalTrials: firstFiniteNumber(data.totalTrials),
+        totalTrials,
         progressionTrials: sanitizePublicTrials(data.progressionTrials)
       };
     });

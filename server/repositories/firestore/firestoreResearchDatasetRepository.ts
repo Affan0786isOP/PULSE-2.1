@@ -45,10 +45,11 @@ export class FirestoreResearchDatasetRepository implements IResearchDatasetRepos
       throw new Error('INVALID_LIMIT');
     }
 
-    const cursor = options.cursor == null ? null : options.cursor.trim();
-    if (cursor !== null && !isValidCursor(cursor)) {
+    const rawCursor: unknown = options.cursor;
+    if (rawCursor !== null && rawCursor !== undefined && !isValidCursor(rawCursor)) {
       throw new Error('INVALID_CURSOR');
     }
+    const cursor = typeof rawCursor === 'string' ? rawCursor.trim() : null;
 
     // The public, anonymized collection is the source of truth for public research queries.
     let q: Query = db.collection('publicDataset');

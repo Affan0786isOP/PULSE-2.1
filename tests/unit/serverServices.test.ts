@@ -534,7 +534,10 @@ describe('Server Application Services Unit Tests', () => {
         protocolVersion: 'v1.1.0',
         datasetSchemaVersion: 'v1.0.0',
         metricsVersion: 'v1.1.0',
+        scoreMetric: 250,
+        totalTrials: 10,
       });
+      expect(capturedSubmission.publicDatasetDoc.progressionTrials).toHaveLength(10);
       expect(executeSubmissionTransaction).toHaveBeenCalledTimes(1);
     } finally {
       if (previousSecret === undefined) delete process.env.PULSE_PROVENANCE_SECRET;
@@ -656,6 +659,8 @@ describe('Server Application Services Unit Tests', () => {
     const record = result.records[0];
     expect(record.assessmentType).toBe('color-recognition');
     expect(record.completedAtMonth).toBe('2026-10');
+    expect(record.scoreMetric).toBe(241.5);
+    expect(record.totalTrials).toBe(1);
     expect(record).not.toHaveProperty('completedAtTimestamp');
     expect(record).not.toHaveProperty('participantId');
     expect(record).not.toHaveProperty('sessionId');

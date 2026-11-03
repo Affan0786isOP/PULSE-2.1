@@ -790,6 +790,18 @@ describe('Firestore Repositories Unit Tests', () => {
     });
   });
 
+  it('rejects non-string cursor values without throwing a property access error', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreResearchDatasetRepository(() => mockDb);
+
+    await expect(
+      repo.queryRawDataset({
+        limitCount: 10,
+        cursor: 123 as unknown as string
+      })
+    ).rejects.toThrow('INVALID_CURSOR');
+  });
+
   it('validates cursor format in queryRawDataset before query.startAfter (BUG-22)', async () => {
     const mockDb = createMockDb();
     const repo = new FirestoreResearchDatasetRepository(() => mockDb);
