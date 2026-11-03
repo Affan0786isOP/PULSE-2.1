@@ -171,6 +171,8 @@ export function buildRouteSchema(metadata, pathname, canonicalUrlOverride, guide
 
   if (isAssessmentRoute) {
     const assessmentName = route?.title?.split('|')[0]?.trim() ?? 'Cognitive Assessment';
+    const SITE_LAUNCH_DATE = '2026-10-01';
+    const SCHEMA_BUILD_DATE = route?.lastmod || '2026-11-01';
     return {
       '@context': 'https://schema.org',
       '@type': 'ItemPage',
@@ -179,6 +181,8 @@ export function buildRouteSchema(metadata, pathname, canonicalUrlOverride, guide
       name: route?.title ?? assessmentName + ' | ' + site.name,
       description: route?.description ?? site.description,
       image: site.ogImage,
+      datePublished: SITE_LAUNCH_DATE,
+      dateModified: SCHEMA_BUILD_DATE,
       isPartOf: { '@id': siteRoot + '/#website' },
       about: { '@id': siteRoot + '/#organization' },
       mainEntity: {

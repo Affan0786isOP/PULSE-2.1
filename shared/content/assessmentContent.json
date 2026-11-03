@@ -42,6 +42,14 @@
         ]
       },
       {
+        "id": "pulse-vs-conventional-tests",
+        "heading": "How PULSE Differs from Conventional Click Tests",
+        "paragraphs": [
+          "Many conventional web click tests (such as uncalibrated reaction time games or Human Benchmark alternatives) simply record click timestamps without accounting for browser frame intervals or anticipatory gaming.",
+          "PULSE implements standardized cognitive psychophysics principles: 10 structured trials, randomized foreperiods ranging from 100ms to 3000ms to prevent rhythm entrainment, an empirical 80.0ms anticipatory cutoff to filter out chance guesses, and display frame rate considerations. This provides reliable longitudinal personal baselines rather than volatile gaming scores."
+        ]
+      },
+      {
         "id": "hardware-variances",
         "heading": "Hardware and Environmental Timing",
         "paragraphs": [

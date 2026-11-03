@@ -12,6 +12,8 @@ export interface RouteMetadata {
   description: string;
   indexable: boolean;
   clientFallback: boolean;
+  lastmod?: string;
+  ogImage?: string;
 }
 
 export interface SeoMetadata {

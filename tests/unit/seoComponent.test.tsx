@@ -60,6 +60,8 @@ describe('client SEO lifecycle', () => {
       expect(document.title).toBe('Reaction Time Test | Visual Reaction Test | PULSE');
       expect(currentStructuredData()['@type']).toBe('ItemPage');
       expect(currentStructuredData().url).toBe(window.location.origin + '/reaction-test');
+      expect(currentStructuredData().datePublished).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(currentStructuredData().dateModified).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
     expect(currentStructuredData().name).toBe('Reaction Time Test | Visual Reaction Test | PULSE');
     expect(document.querySelectorAll('script#pulse-seo-jsonld')).toHaveLength(1);

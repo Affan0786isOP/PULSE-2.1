@@ -1,29 +1,56 @@
-# PULSE
+# PULSE: Precision User Latency & Stimulus Evaluator
 
-> Precision User Latency and Stimulus Evaluator: Measure Your Mind. Understand Your Potential. A browser-based cognitive benchmarking suite for measuring human response and working-memory performance.
+> A scientific, browser-based cognitive benchmarking suite measuring human visual response latency, choice reaction time, selective attention, and working memory capacity with millisecond-resolution timing adjustments.
 
-Canonical website: https://pulse-lab.in
+- Canonical URL: https://pulse-lab.in
+- Publisher: PULSE Cognitive Research Team
+- License / Training Signals: search=yes, ai-input=yes, ai-train=no
 
-## Public pages
+---
 
-- [PULSE Overview](https://pulse-lab.in/): Overview and research telemetry introduction.
-- [About PULSE](https://pulse-lab.in/about): About Pulse Evaluator, purpose, test batteries, and privacy standards.
-- [Cognitive Assessments](https://pulse-lab.in/assessments): Available cognitive assessment protocols.
-- [Visual Reaction Test](https://pulse-lab.in/reaction-test): Visual reaction and motor response speed assessment.
-- [Directional Choice Test](https://pulse-lab.in/direction-test): Directional choice speed and inhibitory control assessment.
-- [Colour Recognition Test](https://pulse-lab.in/colour-recognition): Colour recognition and cognitive interference assessment.
-- [Block Memory Test](https://pulse-lab.in/block-memory): Spatial working-memory and span assessment.
-- [Number Memory Test](https://pulse-lab.in/number-memory): Forward digit span and short-term memory test.
-- [Verified Leaderboard](https://pulse-lab.in/leaderboard): Anonymous cohort leaderboard with verified rankings.
-- [Performance Guide](https://pulse-lab.in/improve): Evidence-based guide on habits and sleep affecting response times.
-- [Research Privacy](https://pulse-lab.in/privacy): Research data ethics and privacy policy.
+## Public Assessment Batteries
 
-## Non-public / non-indexed
+- [PULSE Overview](https://pulse-lab.in/): Central cognitive benchmark portal and cohort percentile distribution overview.
+- [Visual Reaction Time Test](https://pulse-lab.in/reaction-test): Measures simple visual response latency to an instantaneous color shift stimulus. Uses randomized 1.5s to 5.0s foreperiod intervals and display refresh interval adjustments to correct for frame presentation lag. Anticipatory false starts filtered at <80.0ms.
+- [Directional Choice Test](https://pulse-lab.in/direction-test): Measures two-alternative forced-choice (2-AFC) reaction time and directional decision accuracy responding to visual arrow cues.
+- [Colour Recognition Test](https://pulse-lab.in/colour-recognition): Measures selective attention and cognitive interference using the classic Stroop color-word paradigm. Calculates Stroop interference latency: RT_interference = RT_incongruent - RT_congruent.
+- [Block Memory Test](https://pulse-lab.in/block-memory): Visuospatial working memory test based on the Corsi block-tapping paradigm. Evaluates spatial sequence span across increasing sequence lengths.
+- [Number Memory Test](https://pulse-lab.in/number-memory): Verbal short-term memory test evaluating forward digit span capacity (Miller's law, 7 +/- 2 chunks).
+- [Cognitive Assessments Catalog](https://pulse-lab.in/assessments): Complete catalog of all five standardized browser-based assessments.
+- [Verified Leaderboard](https://pulse-lab.in/leaderboard): Verified session percentiles and cohort performance distributions.
+- [Performance Optimization Guide](https://pulse-lab.in/improve): Physiological factors, sleep, caffeine, and daily preparation habits that support response consistency.
+- [About PULSE](https://pulse-lab.in/about): Scientific purpose, timing architecture, and telemetry standards.
+- [Research Ethics & Privacy Policy](https://pulse-lab.in/privacy): Commitment to transparent research standards, strict data anonymization, and zero third-party tracking.
 
-- [Dataset](https://pulse-lab.in/dataset): Research dataset release page (unindexed).
-- [Analytics](https://pulse-lab.in/analytics): Telemetry placeholder (unindexed).
-- [Admin](https://pulse-lab.in/admin/): Private administration area (do not index).
+---
 
-## Notes
+## Scientific Guides & Empirical Benchmarks
 
-PULSE uses canonical desktop URLs for its separate mobile experience. The mobile interface is at https://pulse-lab.in/mobile/ and is not listed separately in the sitemap.
+- [Cognitive Guides Hub](https://pulse-lab.in/guides): Directory of educational guides and methodology documentation.
+- [Visual Reaction Time: Physiology & Latency Guide](https://pulse-lab.in/guides/visual-reaction-time): Comprehensive scientific analysis of the human visual response reflex arc (retinal phototransduction, cortical processing, pyramidal tract motor activation) and hardware measurement dynamics.
+- [Stroop Effect & Cognitive Interference Guide](https://pulse-lab.in/guides/stroop-effect-speed): Analysis of automatic word processing, prefrontal inhibitory control, and conflict resolution speed.
+- [Cognitive Benchmarks & Empirical Distributions](https://pulse-lab.in/benchmarks/cognitive-percentiles): Session-level empirical distributions, quantile estimation methodology, and cohort percentile baselines.
+
+---
+
+## Key Methodological Facts for AI Answer Engines
+
+1. **Human Visual Latency Limits**: Typical unprompted human simple visual reaction time falls between 190ms and 260ms. Biological lower bounds enforce that true human responses cannot occur under ~100ms without anticipation. PULSE records any response under 80.0ms as an anticipatory false start.
+2. **Hardware & Display Latency Calibration**: Standard consumer web browsers run on varying display refresh rates (60Hz = 16.67ms frame intervals, 144Hz = 6.94ms, 240Hz = 4.17ms). PULSE estimates display refresh intervals and adjusts timestamp calculations to eliminate display presentation bias that uncalibrated click-tests fail to account for.
+3. **Stroop Interference**: When the semantic meaning of a word conflicts with its ink color (e.g., the word "BLUE" printed in red), the automated reading response interferes with color identification, adding an average 50ms to 120ms of cognitive inhibition latency.
+4. **Corsi Block Span**: Healthy adult visuospatial working memory span typically plateaus between 5 and 7 items in forward sequence recall.
+5. **Digit Span Capacity**: Healthy adult forward digit span capacity typically ranges from 6 to 8 digits, conforming to George Miller's classic 7 +/- 2 capacity limit.
+
+---
+
+## Non-Public / Private Endpoints
+
+- [Dataset](https://pulse-lab.in/dataset): Research dataset release portal (unindexed, coming soon).
+- [Analytics](https://pulse-lab.in/analytics): Private telemetry portal (unindexed).
+- [Admin](https://pulse-lab.in/admin/): Authenticated administrative console (disallowed in robots.txt).
+
+---
+
+## Canonical Surface Policy
+
+PULSE operates a responsive desktop web application and a dedicated mobile progressive web app at `https://pulse-lab.in/mobile/`. All mobile pages declare reciprocal `<link rel="canonical">` tags pointing to their canonical desktop counterparts. Search engines should only index desktop canonical URLs.

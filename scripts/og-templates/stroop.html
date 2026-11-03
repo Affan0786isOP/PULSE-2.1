@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      background-color: #07090E;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #F8FAFC;
+      position: relative;
+    }
+
+    /* Grid background */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(239, 68, 68, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+      background-size: 38px 38px;
+    }
+
+    /* Radial glows: Dual color interference (Red vs Cyan/Blue) */
+    .glow-conflict-red {
+      position: absolute;
+      top: -100px;
+      right: 150px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.14) 0%, rgba(239, 68, 68, 0) 70%);
+      filter: blur(50px);
+      pointer-events: none;
+    }
+
+    .glow-conflict-cyan {
+      position: absolute;
+      bottom: -120px;
+      left: 100px;
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(34, 199, 214, 0.12) 0%, rgba(7, 9, 14, 0) 70%);
+      filter: blur(50px);
+      pointer-events: none;
+    }
+
+    /* Outer border & frame */
+    .frame-border {
+      position: absolute;
+      inset: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      pointer-events: none;
+    }
+
+    .corner-mark {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+    }
+    .corner-tl { top: 20px; left: 20px; border-top: 2px solid #EF4444; border-left: 2px solid #EF4444; }
+    .corner-tr { top: 20px; right: 20px; border-top: 2px solid #22C7D6; border-right: 2px solid #22C7D6; }
+    .corner-bl { bottom: 20px; left: 20px; border-bottom: 2px solid #22C7D6; border-left: 2px solid #22C7D6; }
+    .corner-br { bottom: 20px; right: 20px; border-bottom: 2px solid #EF4444; border-right: 2px solid #EF4444; }
+
+    /* Content Layout */
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      padding: 60px 68px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.28em;
+      color: #FFFFFF;
+      line-height: 1;
+    }
+
+    .brand-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: #64748B;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 9999px;
+      padding: 8px 18px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #EF4444;
+      box-shadow: 0 0 10px #EF4444;
+    }
+
+    .badge-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #F87171;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* Main Grid: Left copy, Right graphic */
+    .main-body {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .category-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      color: #F87171;
+      text-transform: uppercase;
+    }
+
+    .title {
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1.14;
+      letter-spacing: -0.025em;
+      color: #FFFFFF;
+    }
+
+    .title-conflict {
+      background: linear-gradient(135deg, #EF4444 0%, #F59E0B 50%, #22C7D6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .description {
+      font-size: 19px;
+      line-height: 1.5;
+      color: #94A3B8;
+      font-weight: 400;
+      max-width: 580px;
+    }
+
+    /* Right column: Graphic visualization showing Cognitive Conflict */
+    .viz-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .viz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 12px;
+    }
+
+    .viz-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: #64748B;
+      text-transform: uppercase;
+    }
+
+    .viz-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #EF4444;
+    }
+
+    /* Stimulus Conflict Demonstration Box */
+    .conflict-display {
+      background: #000000;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .conflict-word {
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #22C7D6; /* INCONGRUENT: The word says RED, but ink is CYAN */
+      text-shadow: 0 0 24px rgba(34, 199, 214, 0.4);
+    }
+
+    .conflict-caption {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: #94A3B8;
+      margin-top: 4px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .conflict-subtag {
+      color: #EF4444;
+      font-weight: 600;
+    }
+
+    /* Comparison rows: Congruent vs Incongruent */
+    .stroop-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .stroop-row.penalty {
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .row-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .row-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #F1F5F9;
+    }
+
+    .row-desc {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #64748B;
+      margin-top: 2px;
+    }
+
+    .row-latency {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .c-green { color: #10B981; }
+    .c-red { color: #EF4444; }
+
+    .delta-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .delta-label {
+      font-size: 11px;
+      color: #FCA5A5;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    .delta-val {
+      font-size: 14px;
+      font-weight: 800;
+      color: #EF4444;
+    }
+
+    /* Footer Meta */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .footer-tags {
+      display: flex;
+      gap: 20px;
+    }
+
+    .f-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #64748B;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .f-tag strong {
+      color: #CBD5E1;
+      font-weight: 600;
+    }
+
+    .url-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #EF4444;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow-conflict-red"></div>
+  <div class="glow-conflict-cyan"></div>
+  <div class="frame-border"></div>
+  
+  <div class="corner-mark corner-tl"></div>
+  <div class="corner-mark corner-tr"></div>
+  <div class="corner-mark corner-bl"></div>
+  <div class="corner-mark corner-br"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand-lockup">
+        <svg viewBox="0 0 100 100" width="34" height="34" fill="none">
+          <path d="M 12 8 L 61 8 C 75.9 8 88 20.1 88 35 C 88 49.9 75.9 62 61 62 L 46 62 L 46 45 L 61 45 C 66.5 45 71 40.5 71 35 C 71 29.5 66.5 25 61 25 L 12 25 Z" fill="#EF4444"/>
+          <path d="M 12 55 L 36 38 L 36 75 L 12 92 Z" fill="#22C7D6"/>
+        </svg>
+        <div class="brand-text">
+          <span class="brand-title">PULSE</span>
+          <span class="brand-sub">RESEARCH GUIDES &bull; V2.1</span>
+        </div>
+      </div>
+
+      <div class="badge">
+        <div class="badge-dot"></div>
+        <span class="badge-text">EXECUTIVE CONTROL &bull; ACC DYNAMICS</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-body">
+      <div class="left-col">
+        <div class="category-tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+          </svg>
+          COGNITIVE INTERFERENCE &bull; INHIBITION
+        </div>
+        <h1 class="title">Stroop Effect: <br/><span class="title-conflict">Automaticity vs Control</span></h1>
+        <p class="description">
+          Anterior Cingulate Cortex conflict resolution, automated lexical processing, and empirical response latency penalties under incongruent stimulus conditions.
+        </p>
+      </div>
+
+      <!-- Right Column: Visualization Card -->
+      <div class="viz-card">
+        <div class="viz-header">
+          <span class="viz-title">Stimulus Interference Paradox</span>
+          <span class="viz-status">&bull; CONFLICT ACTIVE</span>
+        </div>
+
+        <!-- Incongruent Word Demonstration -->
+        <div class="conflict-display">
+          <div class="conflict-word">RED</div>
+          <div class="conflict-caption">
+            <span>INK: <strong style="color:#22C7D6;">CYAN</strong></span>
+            <span>&bull;</span>
+            <span class="conflict-subtag">SEMANTIC CONFLICT</span>
+          </div>
+        </div>
+
+        <!-- Latency Difference -->
+        <div class="stroop-row">
+          <div class="row-meta">
+            <span class="row-title">Congruent Baseline</span>
+            <span class="row-desc">Semantic word matches ink color</span>
+          </div>
+          <span class="row-latency c-green">520 ms</span>
+        </div>
+
+        <div class="stroop-row penalty">
+          <div class="row-meta">
+            <span class="row-title">Incongruent Conflict</span>
+            <span class="row-desc">Automatic reading override delay</span>
+          </div>
+          <span class="row-latency c-red">660 ms</span>
+        </div>
+
+        <div class="delta-badge">
+          <span class="delta-label">ACC INTERFERENCE COST</span>
+          <span class="delta-val">+140 ms (+26.9%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-tags">
+        <div class="f-tag">PARADIGM: <strong>CLASSIC STROOP (1935)</strong></div>
+        <div class="f-tag">&bull;</div>
+        <div class="f-tag">BRAIN REGION: <strong>ANTERIOR CINGULATE</strong></div>
+        <div class="f-tag">&bull;</div>
+        <div class="f-tag">TASK: <strong>COLOR-WORD INTERFERENCE</strong></div>
+      </div>
+      <div class="url-pill">pulse-lab.in/guides/stroop-effect-speed</div>
+    </div>
+  </div>
+</body>
+</html>

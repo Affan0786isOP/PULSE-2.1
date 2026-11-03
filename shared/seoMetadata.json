@@ -12,97 +12,116 @@
       "title": "PULSE — Precision User Latency & Stimulus Evaluator",
       "description": "A browser-based cognitive benchmarking suite measuring visual reaction latency, directional choice speed, and working memory with millisecond-resolution timing.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01"
     },
     "/about": {
       "title": "About PULSE — Cognitive Benchmarking Suite",
       "description": "Learn about PULSE (Precision User Latency & Stimulus Evaluator), our standardized browser-based cognitive tests, telemetry engine, and privacy standards.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01"
     },
     "/assessments": {
       "title": "Cognitive Tests for Reaction Time & Memory | PULSE",
       "description": "Browser-based tests measuring reaction time, directional choice speed, color recognition, block recall, and number memory.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01"
     },
     "/leaderboard": {
       "title": "Verified Leaderboard & Cohort Rankings | PULSE",
       "description": "Compare anonymous PULSE assessment results across reaction time, attention, and memory with verified cohort rankings.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01"
     },
     "/dataset": {
       "title": "Dataset Coming Soon | PULSE",
       "description": "The public PULSE research dataset is being prepared for release.",
       "indexable": false,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01"
     },
     "/improve": {
       "title": "Improve Reaction Time & Memory | PULSE",
       "description": "Review research, physiological factors, and preparation habits that affect response time and measurement consistency.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01"
     },
     "/privacy": {
       "title": "Research Data Ethics & Privacy Policy | PULSE",
       "description": "Our commitment to transparent research standards, strict data anonymization, telemetry consent guidelines, and open scientific integrity.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01"
     },
     "/reaction-test": {
       "title": "Reaction Time Test | Visual Reaction Test | PULSE",
       "description": "Benchmark visual reaction time using PULSE's browser-based reaction test, featuring randomized stimulus delays and an estimated display refresh adjustment.",
       "indexable": true,
-      "clientFallback": true
+      "clientFallback": true,
+      "lastmod": "2026-11-01"
     },
     "/direction-test": {
       "title": "Directional Choice Test: Response Speed | PULSE",
       "description": "Measure choice reaction time and directional accuracy with PULSE's arrow task, testing how quickly you respond to visual direction cues.",
       "indexable": true,
-      "clientFallback": true
+      "clientFallback": true,
+      "lastmod": "2026-11-01"
     },
     "/colour-recognition": {
       "title": "Colour Recognition Test: Stroop Task | PULSE",
       "description": "Test selective attention and Stroop interference by identifying colour stimuli in PULSE's browser-based colour recognition assessment.",
       "indexable": true,
-      "clientFallback": true
+      "clientFallback": true,
+      "lastmod": "2026-11-01"
     },
     "/block-memory": {
       "title": "Block Memory Test: Spatial Sequence Recall | PULSE",
       "description": "Test visuospatial working memory with PULSE's block sequence recall task: observe the pattern, then repeat the blocks in the correct order.",
       "indexable": true,
-      "clientFallback": true
+      "clientFallback": true,
+      "lastmod": "2026-11-01"
     },
     "/number-memory": {
       "title": "Number Memory Test: Forward Digit Recall | PULSE",
       "description": "Measure short-term memory with PULSE's forward digit-span test, which asks you to recall increasingly long number sequences in their original order.",
       "indexable": true,
-      "clientFallback": true
+      "clientFallback": true,
+      "lastmod": "2026-11-01"
     },
     "/guides": {
       "title": "Cognitive Science Guides & Research Benchmarks | PULSE",
       "description": "Educational articles and methodological guides covering human visual latency, cognitive inhibition, and session benchmark distributions.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01"
     },
     "/guides/visual-reaction-time": {
       "title": "Visual Reaction Time: Physiology & Latency Guide | PULSE",
       "description": "A scientific analysis of human visual response latency, sensory reflex arcs, and browser measurement dynamics.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01",
+      "ogImage": "https://pulse-lab.in/og-guides-reaction.png"
     },
     "/guides/stroop-effect-speed": {
       "title": "Stroop Effect & Cognitive Interference Guide | PULSE",
       "description": "Learn how automated word processing causes cognitive interference and how the brain resolves mental conflict.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01",
+      "ogImage": "https://pulse-lab.in/og-guides-stroop.png"
     },
     "/benchmarks/cognitive-percentiles": {
       "title": "Cognitive Benchmarks & Empirical Distributions | PULSE",
       "description": "Session-level empirical distributions and statistical methodology for browser-based reaction latency benchmarks.",
       "indexable": true,
-      "clientFallback": false
+      "clientFallback": false,
+      "lastmod": "2026-11-01",
+      "ogImage": "https://pulse-lab.in/og-benchmarks.png"
     }
   }
 }
