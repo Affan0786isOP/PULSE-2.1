@@ -1,32 +1,6 @@
-export interface RawAssessmentResultRecord {
+export interface RawPublicDatasetRecord {
   id: string;
-  sessionId?: string;
-  participantId?: string;
-  assessmentType?: string;
-  ageGroup?: string;
-  assessmentVersion?: string;
-  protocolVersion?: string;
-  datasetSchemaVersion?: string;
-  metricsVersion?: string;
-  derivedMetrics?: Record<string, unknown>;
-  temporalDynamics?: unknown;
-  scoreMetric?: number | null;
-  averageReactionTime?: number;
-  medianReactionTime?: number;
-  fastestReactionTime?: number;
-  slowestReactionTime?: number;
-  longestSeq?: number;
-  highestLevel?: number;
-  accuracy?: number;
-  congruentAvg?: number;
-  incongruentAvg?: number;
-  interferenceCost?: number;
-  isNewPersonalBest?: boolean;
-  completedAtTimestamp?: number;
-  completedAtMonth?: string;
-  provenanceToken?: string;
-  trialsDigest?: string;
-  createdAt?: number;
+  [key: string]: unknown;
 }
 
 export interface DatasetQueryOptions {
@@ -38,9 +12,7 @@ export interface DatasetQueryOptions {
 }
 
 export interface RawDatasetQueryResult {
-  results: RawAssessmentResultRecord[];
-  sessionMap: Map<string, Record<string, unknown>>;
-  trialsBySession: Map<string, Record<string, unknown>[]>;
+  results: RawPublicDatasetRecord[];
   hasMore: boolean;
   nextCursor: string | null;
 }
@@ -56,12 +28,17 @@ export interface PublicDatasetRecord {
   assessmentType: string;
   ageGroup?: string;
   completedAtMonth?: string;
-  completedAtTimestamp?: number;
   deviceCategory?: string;
   device?: string;
   inputModality?: string;
   displayRefreshRateHz?: number;
   refreshRateHz?: number;
+  schemaVersion?: number;
+  assessmentVersion?: string;
+  protocolVersion?: string;
+  datasetSchemaVersion?: string;
+  metricsVersion?: string;
+  provenanceVersion?: string;
   provenanceToken?: string;
   trialsDigest?: string;
   scoreMetric?: number | null;
@@ -75,5 +52,6 @@ export interface PublicDatasetRecord {
   congruentAvg?: number;
   incongruentAvg?: number;
   interferenceCost?: number;
+  totalTrials?: number;
   progressionTrials: Record<string, unknown>[];
 }

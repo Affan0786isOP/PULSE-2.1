@@ -5,7 +5,6 @@ export interface DatasetObservation {
   ageGroup?: string;
   assessmentType: string;
   completedAtMonth?: string;
-  completedAtTimestamp?: number;
   device?: string;
   deviceCategory?: string;
   progressionTrials?: any[];
@@ -34,19 +33,19 @@ export function unrollTrialsFromDatasetDocs(
   const unrolled: RawTrialObservation[] = [];
 
   datasetDocs.forEach((doc) => {
-    if (selectedGameId && doc.assessmentType && doc.assessmentType !== selectedGameId) {
-      return;
-    }
+    if (selectedGameId && doc.assessmentType && doc.assessmentType !== selectedGameId) return;
 
     const trials = Array.isArray(doc.progressionTrials) ? doc.progressionTrials : [];
-    trials.forEach((pt: any, idx: number) => {
-      const rt = typeof pt.reactionTime === 'number'
+    trials.forEach((value: unknown, idx: number) => {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return;
+      const pt = value as Record<string, unknown>;
+      const finite = (candidate: unknown): candidate is number =>
+        typeof candidate === 'number' && Number.isFinite(candidate);
+      const rt = finite(pt.reactionTime)
         ? pt.reactionTime
-        : (typeof pt.rawLatencyMs === 'number'
-          ? pt.rawLatencyMs
-          : (typeof pt.inputLatencyMs === 'number' ? pt.inputLatencyMs : 0));
+        : (finite(pt.rawLatencyMs) ? pt.rawLatencyMs : (finite(pt.inputLatencyMs) ? pt.inputLatencyMs : Number.NaN));
 
-      const numericAccuracy = typeof pt.accuracy === 'number'
+      const numericAccuracy = finite(pt.accuracy)
         ? (pt.accuracy > 1 ? pt.accuracy / 100 : pt.accuracy)
         : null;
       const accuracy = typeof pt.correct === 'boolean'
@@ -56,33 +55,56 @@ export function unrollTrialsFromDatasetDocs(
         ? pt.valid
         : (typeof pt.validity === 'string'
           ? pt.validity.toUpperCase() === 'VALID'
-          : (!pt.falseStart && !pt.timedOut && rt > 80));
+          : (!pt.falseStart && !pt.timedOut && finite(rt) && rt > 80));
 
-      const targetDir = pt.targetDirection
-        ? String(pt.targetDirection).toUpperCase()
-        : (pt.condition ? String(pt.condition).replace('arrow-', '').toUpperCase() : '');
+      const rawDirection = typeof pt.targetDirection === 'string'
+        ? pt.targetDirection
+        : (typeof pt.condition === 'string' && /^arrow-/i.test(pt.condition)
+          ? pt.condition.replace(/^arrow-/i, '')
+          : '');
+      const normalizedDirection = rawDirection.toUpperCase();
+      const targetDirection = ['UP', 'DOWN', 'LEFT', 'RIGHT'].includes(normalizedDirection)
+        ? normalizedDirection
+        : '';
+
+      const trialNumber = finite(pt.trialNumber) && pt.trialNumber > 0
+        ? Math.floor(pt.trialNumber)
+        : idx + 1;
+      const attemptNumber = finite(pt.attemptNumber) && pt.attemptNumber > 0
+        ? Math.floor(pt.attemptNumber)
+        : 1;
 
       unrolled.push({
-        id: `${doc.id}-tr-${pt.trialNumber || idx + 1}`,
-        participantId: doc.participantId || doc.id,
-        experimentId: doc.experimentId || doc.id,
-        condition: targetDir ? `arrow-${targetDir.toLowerCase()}` : (pt.condition || 'standard'),
-        test: doc.assessmentType || selectedGameId || 'visual-reaction',
-        trialNumber: pt.trialNumber || idx + 1,
-        stimulusTimestamp: pt.stimulusPresentedAtPerfMs || 0,
-        responseTimestamp: pt.responseDetectedAtPerfMs || 0,
+        id: `${doc.id}-tr-${trialNumber}-attempt-${attemptNumber}-${idx + 1}`,
+        // A public record ID groups trials within one anonymized assessment; it is not a participant ID.
+        participantId: '',
+        experimentId: doc.id,
+        condition: targetDirection
+          ? `arrow-${targetDirection.toLowerCase()}`
+          : (typeof pt.condition === 'string' ? pt.condition : 'standard'),
+        test: doc.assessmentType || selectedGameId || 'unknown',
+        trialNumber,
+        trialIndex: finite(pt.trialIndex) ? pt.trialIndex : idx + 1,
+        sequenceNumber: finite(pt.sequenceNumber) ? pt.sequenceNumber : idx + 1,
+        attemptNumber,
+        stimulusTimestamp: finite(pt.stimulusPresentedAtPerfMs) ? pt.stimulusPresentedAtPerfMs : Number.NaN,
+        responseTimestamp: finite(pt.responseDetectedAtPerfMs) ? pt.responseDetectedAtPerfMs : Number.NaN,
         reactionTime: rt,
         accuracy,
         correct: typeof pt.correct === 'boolean' ? pt.correct : undefined,
         valid,
-        timedOut: Boolean(pt.timedOut),
-        falseStart: Boolean(pt.falseStart),
-        timestamp: doc.completedAtMonth || new Date().toISOString(),
-        device: doc.deviceCategory || doc.device || 'Web Browser',
-        screenWidth: typeof doc.screenWidth === 'number' ? doc.screenWidth : 1440,
-        screenHeight: typeof doc.screenHeight === 'number' ? doc.screenHeight : 900,
+        timedOut: pt.timedOut === true,
+        falseStart: pt.falseStart === true,
+        // Public records deliberately retain month precision; empty means unknown, not "now".
+        timestamp: typeof doc.completedAtMonth === 'string' ? doc.completedAtMonth : '',
+        device: typeof doc.deviceCategory === 'string'
+          ? doc.deviceCategory
+          : (typeof doc.device === 'string' ? doc.device : 'unknown'),
+        // Public records do not include viewport dimensions. Zero is an unknown sentinel, not a measurement.
+        screenWidth: finite(doc.screenWidth) && doc.screenWidth > 0 ? doc.screenWidth : 0,
+        screenHeight: finite(doc.screenHeight) && doc.screenHeight > 0 ? doc.screenHeight : 0,
         ageGroup: doc.ageGroup,
-        foreperiodMs: pt.foreperiodMs
+        foreperiodMs: finite(pt.foreperiodMs) ? pt.foreperiodMs : undefined
       });
     });
   });
@@ -129,12 +151,23 @@ export const fetchDatasetObservations = async (
         nextCursor?: string | null;
       };
 
-      if (!response.ok || payload.success !== true || !Array.isArray(payload.records)) {
+      if (!response.ok || payload.success !== true || !Array.isArray(payload.records) ||
+          typeof payload.hasMore !== 'boolean') {
         throw new Error(payload.error || `Dataset API request failed (HTTP ${response.status}).`);
+      }
+      const requestedPageSize = Math.min(pageSize, safeLimit - observations.length);
+      if (payload.records.length > requestedPageSize) {
+        throw new Error('Dataset API returned more records than requested.');
+      }
+      if (payload.records.some(record => !record || typeof record.id !== 'string' || !record.id.trim())) {
+        throw new Error('Dataset API returned a record without a valid ID.');
       }
 
       observations.push(...payload.records);
-      hasMore = payload.hasMore === true;
+      hasMore = payload.hasMore;
+      if (hasMore && payload.records.length === 0) {
+        throw new Error('Dataset API reported more pages without returning any records.');
+      }
 
       if (hasMore) {
         const nextCursor = typeof payload.nextCursor === 'string' && payload.nextCursor.trim()
@@ -179,9 +212,13 @@ export const fetchDatasetObservations = async (
     if (totalCount !== null && totalCount < observations.length) totalCount = observations.length;
 
     observations.sort((a, b) => {
-      const timeA = Number(a.completedAtTimestamp || (a.completedAtMonth ? new Date(a.completedAtMonth).getTime() : 0));
-      const timeB = Number(b.completedAtTimestamp || (b.completedAtMonth ? new Date(b.completedAtMonth).getTime() : 0));
-      return timeB - timeA;
+      const monthA = typeof a.completedAtMonth === 'string' && /^\\d{4}-(0[1-9]|1[0-2])$/.test(a.completedAtMonth)
+        ? a.completedAtMonth
+        : '';
+      const monthB = typeof b.completedAtMonth === 'string' && /^\\d{4}-(0[1-9]|1[0-2])$/.test(b.completedAtMonth)
+        ? b.completedAtMonth
+        : '';
+      return monthB.localeCompare(monthA) || a.id.localeCompare(b.id);
     });
 
     return { observations, totalCount, isSampleLimited };

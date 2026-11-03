@@ -191,6 +191,107 @@ function createMockDb(): Firestore {
   return rawDb as Firestore;
 }
 
+
+function createDatasetMockDb(seed: Record<string, Record<string, unknown>[]>): Firestore {
+  const store = new Map<string, Map<string, Record<string, unknown>>>();
+  for (const [collectionName, rows] of Object.entries(seed)) {
+    store.set(collectionName, new Map(rows.map(row => {
+      const { id, ...data } = row;
+      return [String(id), data];
+    })));
+  }
+
+  const clone = (value: Record<string, unknown>) =>
+    JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
+
+  const db = {
+    collection(name: string) {
+      if (!store.has(name)) store.set(name, new Map());
+      const rows = store.get(name)!;
+
+      const makeQuery = (initialFilters: Array<{ field: string; op: string; value: unknown }> = [], initialOrder?: string, initialDirection = 'asc') => {
+        const filters = [...initialFilters];
+        let orderField = initialOrder;
+        let orderDirection = initialDirection;
+        let limitCount = Number.POSITIVE_INFINITY;
+        let cursorId: string | null = null;
+        const query: any = {
+          where(field: string, op: string, value: unknown) {
+            filters.push({ field, op, value });
+            return query;
+          },
+          orderBy(field: string, direction = 'asc') {
+            orderField = field;
+            orderDirection = direction;
+            return query;
+          },
+          limit(count: number) {
+            limitCount = count;
+            return query;
+          },
+          startAfter(cursor: unknown) {
+            cursorId = typeof cursor === 'string'
+              ? cursor
+              : (cursor && typeof cursor === 'object' && typeof (cursor as { id?: unknown }).id === 'string'
+                ? (cursor as { id: string }).id
+                : null);
+            return query;
+          },
+          async get() {
+            let matching = Array.from(rows.entries()).filter(([, data]) => filters.every(filter => {
+              const actual = data[filter.field];
+              if (filter.op === '==') return actual === filter.value;
+              if (filter.op === 'in') return Array.isArray(filter.value) && filter.value.includes(actual);
+              return false;
+            }));
+
+            if (orderField === '__name__') {
+              matching.sort((a, b) => a[0].localeCompare(b[0]));
+            } else if (orderField) {
+              matching.sort((a, b) => String(a[1][orderField!] ?? '').localeCompare(String(b[1][orderField!] ?? '')));
+            }
+            if (orderDirection === 'desc') matching.reverse();
+
+            if (cursorId) {
+              const cursorIndex = matching.findIndex(([id]) => id === cursorId);
+              matching = cursorIndex >= 0
+                ? matching.slice(cursorIndex + 1)
+                : matching.filter(([id]) => orderDirection === 'desc' ? id < cursorId! : id > cursorId!);
+            }
+
+            const docs = matching.slice(0, limitCount).map(([id, data]) => ({
+              id,
+              data: () => clone(data)
+            }));
+            return { docs, size: docs.length, empty: docs.length === 0 };
+          }
+        };
+        return query;
+      };
+
+      return {
+        doc(id: string) {
+          return {
+            id,
+            async get() {
+              const data = rows.get(id);
+              return { id, exists: !!data, data: () => data ? clone(data) : undefined };
+            }
+          };
+        },
+        where(field: string, op: string, value: unknown) {
+          return makeQuery([{ field, op, value }]);
+        },
+        orderBy(field: string, direction = 'asc') {
+          return makeQuery([], field, direction);
+        }
+      };
+    }
+  };
+
+  return db as unknown as Firestore;
+}
+
 describe('Firestore Repositories Unit Tests', () => {
   it('SessionRepository creates and retrieves session', async () => {
     const mockDb = createMockDb();
@@ -641,6 +742,51 @@ describe('Firestore Repositories Unit Tests', () => {
     const entry = await repo.getEntryById('ts-entry-1');
     expect(entry).not.toBeNull();
     expect(entry?.createdAt).toBe(expectedMillis);
+  });
+
+
+  it('queries and summarizes the anonymized publicDataset, including legacy aliases', async () => {
+    const mockDb = createDatasetMockDb({
+      publicDataset: [
+        { id: 'a-visual', assessmentType: 'visual-reaction', progressionTrials: [{}, {}] },
+        { id: 'b-color', assessmentType: 'color-recognition', progressionTrials: [{}] },
+        { id: 'c-colour', assessmentType: 'colour-recognition', progressionTrials: [{}, {}, {}] }
+      ],
+      assessmentResults: [
+        { id: 'private-only', assessmentType: 'visual-reaction', participantId: 'must-not-leak' }
+      ]
+    });
+    const repo = new FirestoreResearchDatasetRepository(() => mockDb);
+
+    const firstPage = await repo.queryRawDataset({
+      assessmentType: 'color-recognition',
+      limitCount: 1
+    });
+    expect(firstPage.results.map(record => record.id)).toEqual(['b-color']);
+    expect(firstPage.hasMore).toBe(true);
+    expect(firstPage.nextCursor).toBe('b-color');
+
+    const secondPage = await repo.queryRawDataset({
+      assessmentType: 'color-recognition',
+      limitCount: 1,
+      cursor: firstPage.nextCursor
+    });
+    expect(secondPage.results.map(record => record.id)).toEqual(['c-colour']);
+    expect(secondPage.hasMore).toBe(false);
+    expect(secondPage.results[0].participantId).toBeUndefined();
+
+    const summary = await repo.getDatasetSummary();
+    expect(summary).toEqual({
+      totalRecords: 3,
+      totalTrials: 6,
+      counts: {
+        'visual-reaction': 1,
+        direction: 0,
+        'color-recognition': 2,
+        'block-memory': 0,
+        'number-memory': 0
+      }
+    });
   });
 
   it('validates cursor format in queryRawDataset before query.startAfter (BUG-22)', async () => {

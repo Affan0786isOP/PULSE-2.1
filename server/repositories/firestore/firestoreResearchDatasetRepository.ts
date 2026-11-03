@@ -4,135 +4,123 @@ import type {
   DatasetQueryOptions,
   RawDatasetQueryResult,
   RawDatasetSummaryCounts,
-  RawAssessmentResultRecord
+  RawPublicDatasetRecord
 } from '../../models/researchModels';
-import { VALID_ASSESSMENT_TYPES } from '../../config/constants';
+import { normalizeLeaderboardAssessmentType } from '../../../shared/domain/leaderboardEligibility';
+
+const DATASET_TYPE_ALIASES: Record<string, readonly string[]> = {
+  'visual-reaction': ['visual-reaction', 'reaction-test', 'reaction', 'visual', 'visual-reaction-test'],
+  direction: ['direction', 'direction-test', 'direction-reflex'],
+  'color-recognition': ['color-recognition', 'colour-recognition', 'color-test', 'colour-test', 'color', 'colour', 'color-rec', 'colour-rec'],
+  'block-memory': ['block-memory', 'block-memory-test', 'block'],
+  'number-memory': ['number-memory', 'number-memory-test', 'number']
+};
+
+const SUMMARY_PAGE_SIZE = 500;
+
+function getAssessmentTypeAliases(value: string): readonly string[] {
+  const canonical = normalizeLeaderboardAssessmentType(value);
+  return canonical ? DATASET_TYPE_ALIASES[canonical] : [value];
+}
+
+function isValidCursor(cursor: unknown): cursor is string {
+  return typeof cursor === 'string' &&
+    cursor.trim().length > 0 &&
+    !cursor.includes('/') &&
+    cursor.length <= 1500;
+}
+
+function finiteNonNegative(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+}
 
 export class FirestoreResearchDatasetRepository implements IResearchDatasetRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
 
   async queryRawDataset(options: DatasetQueryOptions): Promise<RawDatasetQueryResult> {
     const db = this.getDb();
-    if (!db) {
-      throw new Error('DATABASE_UNAVAILABLE');
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
+
+    if (!Number.isInteger(options.limitCount) || options.limitCount < 1 || options.limitCount > 250) {
+      throw new Error('INVALID_LIMIT');
     }
 
-    let q: Query = db.collection('assessmentResults');
+    const cursor = options.cursor == null ? null : options.cursor.trim();
+    if (cursor !== null && !isValidCursor(cursor)) {
+      throw new Error('INVALID_CURSOR');
+    }
+
+    // The public, anonymized collection is the source of truth for public research queries.
+    let q: Query = db.collection('publicDataset');
 
     if (options.assessmentType) {
-      const aliases = options.assessmentType === 'color-recognition'
-        ? ['color-recognition', 'colour-recognition', 'color-test', 'colour-test']
-        : [options.assessmentType];
-
-      if (aliases.length === 1) {
-        q = q.where('assessmentType', '==', aliases[0]);
-      } else {
-        q = q.where('assessmentType', 'in', aliases);
-      }
+      const aliases = getAssessmentTypeAliases(options.assessmentType);
+      q = aliases.length === 1
+        ? q.where('assessmentType', '==', aliases[0])
+        : q.where('assessmentType', 'in', [...aliases]);
     }
 
-    if (options.ageGroup) {
-      q = q.where('ageGroup', '==', options.ageGroup);
-    }
-
-    if (options.completedAtMonth) {
-      q = q.where('completedAtMonth', '==', options.completedAtMonth);
-    }
+    if (options.ageGroup) q = q.where('ageGroup', '==', options.ageGroup);
+    if (options.completedAtMonth) q = q.where('completedAtMonth', '==', options.completedAtMonth);
 
     q = q.orderBy('__name__');
-
-    if (options.cursor) {
-      if (typeof options.cursor !== 'string' || !options.cursor.trim() || options.cursor.includes('/') || options.cursor.length > 1500) {
-        throw new Error('INVALID_CURSOR');
-      }
-      q = q.startAfter(options.cursor.trim());
-    }
-
+    if (cursor) q = q.startAfter(cursor);
     q = q.limit(options.limitCount + 1);
 
     const snap = await q.get();
     const hasMore = snap.docs.length > options.limitCount;
     const pageDocs = hasMore ? snap.docs.slice(0, options.limitCount) : snap.docs;
+    const results: RawPublicDatasetRecord[] = pageDocs.map(docSnap => ({
+      ...(docSnap.data() as Record<string, unknown>),
+      id: docSnap.id
+    }));
     const nextCursor = hasMore && pageDocs.length > 0 ? pageDocs[pageDocs.length - 1].id : null;
 
-    const sessionIds = pageDocs
-      .map(docSnap => docSnap.data().sessionId)
-      .filter((id): id is string => typeof id === 'string' && id.length > 0);
-
-    const sessionMap = new Map<string, Record<string, unknown>>();
-    if (sessionIds.length > 0) {
-      const sessionSnaps = await Promise.all(
-        sessionIds.map(id => db.collection('experimentSessions').doc(id).get())
-      );
-      sessionSnaps.forEach(sSnap => {
-        if (sSnap.exists) {
-          sessionMap.set(sSnap.id, sSnap.data() as Record<string, unknown>);
-        }
-      });
-    }
-
-    const trialsBySession = new Map<string, Record<string, unknown>[]>();
-    for (let i = 0; i < sessionIds.length; i += 30) {
-      const chunk = sessionIds.slice(i, i + 30);
-      const trialsSnap = await db.collection('assessmentTrials').where('sessionId', 'in', chunk).get();
-      trialsSnap.docs.forEach(tDoc => {
-        const tData = tDoc.data() as Record<string, unknown>;
-        const sId = tData.sessionId as string | undefined;
-        if (sId) {
-          if (!trialsBySession.has(sId)) {
-            trialsBySession.set(sId, []);
-          }
-          trialsBySession.get(sId)!.push(tData);
-        }
-      });
-    }
-
-    const results: RawAssessmentResultRecord[] = pageDocs.map(docSnap => ({
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<RawAssessmentResultRecord, 'id'>)
-    }));
-
-    return {
-      results,
-      sessionMap,
-      trialsBySession,
-      hasMore,
-      nextCursor
-    };
+    return { results, hasMore, nextCursor };
   }
 
   async getDatasetSummary(): Promise<RawDatasetSummaryCounts> {
     const db = this.getDb();
-    if (!db) {
-      throw new Error('DATABASE_UNAVAILABLE');
-    }
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
     const counts: Record<string, number> = {
       'visual-reaction': 0,
-      'direction': 0,
+      direction: 0,
       'color-recognition': 0,
       'block-memory': 0,
       'number-memory': 0
     };
 
-    const [resultsCountSnap, trialsCountSnap, ...typeCountSnaps] = await Promise.all([
-      db.collection('assessmentResults').count().get(),
-      db.collection('assessmentTrials').count().get(),
-      ...VALID_ASSESSMENT_TYPES.map(type =>
-        db.collection('assessmentResults').where('assessmentType', '==', type).count().get()
-      )
-    ]);
+    let totalRecords = 0;
+    let totalTrials = 0;
+    let cursor: string | null = null;
 
-    const totalRecords = resultsCountSnap.data().count;
-    const totalTrials = trialsCountSnap.data().count;
-    VALID_ASSESSMENT_TYPES.forEach((type, idx) => {
-      counts[type] = typeCountSnaps[idx]?.data().count || 0;
-    });
+    // Walk the public collection in bounded pages so legacy aliases and trial arrays
+    // are counted consistently with the records exposed by the dataset endpoint.
+    while (true) {
+      let q: Query = db.collection('publicDataset').orderBy('__name__').limit(SUMMARY_PAGE_SIZE);
+      if (cursor) q = q.startAfter(cursor);
 
-    return {
-      totalRecords,
-      totalTrials,
-      counts
-    };
+      const snap = await q.get();
+      if (snap.docs.length === 0) break;
+
+      totalRecords += snap.docs.length;
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data() as Record<string, unknown>;
+        const canonicalType = normalizeLeaderboardAssessmentType(data.assessmentType);
+        if (canonicalType) counts[canonicalType] += 1;
+
+        if (Array.isArray(data.progressionTrials)) {
+          totalTrials += data.progressionTrials.length;
+        } else {
+          totalTrials += finiteNonNegative(data.totalTrials) ?? 0;
+        }
+      }
+
+      if (snap.docs.length < SUMMARY_PAGE_SIZE) break;
+      cursor = snap.docs[snap.docs.length - 1].id;
+    }
+
+    return { totalRecords, totalTrials, counts };
   }
 }
