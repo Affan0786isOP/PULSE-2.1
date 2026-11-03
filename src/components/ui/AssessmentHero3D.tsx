@@ -139,7 +139,7 @@ export function AssessmentHero3D() {
         <button 
           type="button"
           onClick={handlePrev}
-          className="mr-3 z-40 w-11 h-11 rounded-full bg-[#181D23] shadow-md border border-slate-700/80 flex items-center justify-center text-slate-300 hover:text-white hover:bg-[#20262E] active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22C7D6] shrink-0"
+          className="mr-3 z-40 w-11 h-11 rounded-full bg-white dark:bg-[#181D23] shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] shrink-0"
           aria-label="Previous assessment protocol"
         >
           <ChevronLeft size={21} strokeWidth={2.4} />
@@ -207,17 +207,17 @@ export function AssessmentHero3D() {
                   }}
                   className="rounded-[28px] overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] hover:ring-2 hover:ring-[#0066FF]/30 dark:hover:ring-[#22C7D6]/40 transition-shadow"
                 >
-                  {/* Background Layer 1: Active Card Dark Slate Technical Surface */}
+                  {/* Background Layer 1: Active Card Dual-Tone Slate Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[28px] bg-[#181D23] border border-slate-700/70 shadow-[0_16px_40px_rgba(0,0,0,0.4)] text-slate-100 transition-opacity duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[28px] bg-slate-800 dark:bg-[#181D23] border border-slate-700/80 dark:border-slate-800 shadow-[0_16px_36px_rgba(15,23,42,0.22)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.5)] text-white dark:text-slate-100 transition-opacity duration-300 pointer-events-none ${
                       isActive ? 'opacity-100' : 'opacity-0'
                     }`}
                     aria-hidden="true"
                   />
 
-                  {/* Background Layer 2: Inactive Card Dark Slate Surface */}
+                  {/* Background Layer 2: Inactive Card Dual-Tone Slate Theme Surface */}
                   <div 
-                    className={`absolute inset-0 rounded-[24px] bg-[#12161B] border border-slate-800/80 shadow-md hover:border-slate-700 text-slate-200 transition-all duration-300 pointer-events-none ${
+                    className={`absolute inset-0 rounded-[24px] bg-slate-800/90 dark:bg-[#12161B] border border-slate-700/70 dark:border-slate-800/80 shadow-md hover:border-slate-600 dark:hover:border-slate-700 text-white dark:text-slate-200 transition-all duration-300 pointer-events-none ${
                       isActive ? 'opacity-0' : 'opacity-100'
                     }`}
                     aria-hidden="true"
@@ -250,9 +250,9 @@ export function AssessmentHero3D() {
                         </p>
                       </div>
 
-                      {/* Secondary Action: Try Protocol Outline Button */}
+                      {/* Secondary Action: Try Protocol Button */}
                       <div className="mt-3">
-                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-700 bg-[#12161B] hover:bg-slate-800 text-[#22C7D6] text-xs sm:text-[12.5px] font-semibold shadow-sm active:scale-95 transition-all">
+                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-600 dark:border-slate-700 bg-slate-700/80 dark:bg-[#12161B] hover:bg-slate-700 dark:hover:bg-slate-800 text-sky-300 dark:text-[#22C7D6] text-xs sm:text-[12.5px] font-semibold shadow-sm active:scale-95 transition-all">
                           <span>Try {assessment.title}</span>
                           <ArrowRight size={13} strokeWidth={2.2} />
                         </div>
@@ -261,9 +261,9 @@ export function AssessmentHero3D() {
 
                     {/* Right: Protocol Art Container */}
                     <div className="relative w-36 h-36 flex items-center justify-center shrink-0 z-10">
-                      {/* Medallion Shell */}
+                      {/* Theme-Adaptive Medallion Shell */}
                       <div 
-                        className="absolute inset-0 rounded-full bg-[#12161B] border border-slate-800 shadow-sm pointer-events-none" 
+                        className="absolute inset-0 rounded-full bg-slate-700/80 dark:bg-[#12161B] border border-slate-600/80 dark:border-slate-800 shadow-sm pointer-events-none" 
                         aria-hidden="true"
                       />
 
@@ -280,19 +280,19 @@ export function AssessmentHero3D() {
 
                   {/* Content Layer 2: Inactive Card Identifiable Art & Label */}
                   <div 
-                    className={`w-full h-full relative flex flex-col items-center pt-4 pb-3 overflow-hidden transition-all duration-300 group-hover:bg-white/5 ${
+                    className={`w-full h-full relative flex flex-col items-center pt-4 pb-3 overflow-hidden transition-all duration-300 group-hover:bg-white/10 dark:group-hover:bg-white/5 ${
                       isActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
                     }`}
                   >
                     {/* Top Protocol Number Badge */}
-                    <div className="z-10 font-mono text-[10px] font-bold text-slate-300 bg-[#181D23] px-1.5 py-0.5 rounded shadow-sm border border-slate-700 shrink-0">
+                    <div className="z-10 font-mono text-[10px] font-bold text-slate-200 dark:text-slate-300 bg-slate-900/80 dark:bg-[#181D23] px-1.5 py-0.5 rounded shadow-sm border border-slate-700 dark:border-slate-700 shrink-0">
                       0{index + 1}
                     </div>
 
                     {/* Fixed-Position Logo Badge to prevent up-and-down visual hopping */}
                     <div className="relative flex items-center justify-center mt-3 shrink-0">
                       <div 
-                        className="w-10 h-10 rounded-full bg-[#181D23] border border-slate-800 shadow-sm pointer-events-none flex items-center justify-center"
+                        className="w-10 h-10 rounded-full bg-slate-700/80 dark:bg-[#181D23] border border-slate-600/80 dark:border-slate-800 shadow-sm pointer-events-none flex items-center justify-center"
                         aria-hidden="true"
                       >
                         <img 
@@ -304,7 +304,7 @@ export function AssessmentHero3D() {
                     </div>
 
                     {/* Vertical Readable Title Label for Inactive Cards */}
-                    <div className="z-10 text-[10px] font-bold text-slate-300 tracking-wider uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 opacity-80 mt-auto overflow-hidden">
+                    <div className="z-10 text-[10px] font-bold text-slate-200 dark:text-slate-300 tracking-wider uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 opacity-90 mt-auto overflow-hidden">
                       {assessment.title}
                     </div>
                   </div>
@@ -318,7 +318,7 @@ export function AssessmentHero3D() {
         <button 
           type="button"
           onClick={handleNext}
-          className="ml-3 z-40 w-11 h-11 rounded-full bg-[#181D23] shadow-md border border-slate-700/80 flex items-center justify-center text-slate-300 hover:text-white hover:bg-[#20262E] active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22C7D6] shrink-0"
+          className="ml-3 z-40 w-11 h-11 rounded-full bg-white dark:bg-[#181D23] shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] shrink-0"
           aria-label="Next assessment protocol"
         >
           <ChevronRight size={21} strokeWidth={2.4} />
