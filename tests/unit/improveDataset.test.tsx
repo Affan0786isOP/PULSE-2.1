@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { cleanup, render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
+import { DatasetComingSoon } from '../../src/components/DatasetComingSoon';
 import { Improve } from '../../src/components/Improve';
 
-describe('Improve Light System Migration', () => {
+describe('Dataset and Improve Light System Migration', () => {
   beforeEach(() => {
     localStorage.clear();
     document.title = '';
@@ -14,6 +15,23 @@ describe('Improve Light System Migration', () => {
 
   afterEach(() => {
     cleanup();
+  });
+
+  describe('Dataset Coming Soon', () => {
+    it('renders truthful coming-soon messaging and navigation to assessments', () => {
+      render(
+        <MemoryRouter initialEntries={['/dataset']}>
+          <DatasetComingSoon />
+        </MemoryRouter>
+      );
+
+      expect(screen.getByText('PUBLIC RESEARCH DATASET: COMING SOON')).toBeDefined();
+      expect(screen.getByText('Explore Assessments')).toBeDefined();
+
+      const mainLandmarks = screen.getAllByRole('main');
+      expect(mainLandmarks).toHaveLength(1);
+      expect(mainLandmarks[0].id).toBe('main-content');
+    });
   });
 
   describe('Improve Performance Guide', () => {
