@@ -1,89 +1,22 @@
 import React, { useMemo } from 'react';
 import type { RawTrialObservation } from '../lib/trialStore';
 import { DatasetObservation } from '../lib/dataset';
-import { VALID_AGE_GROUPS } from '../lib/firestore';
-import { triggerHaptic } from '../lib/settingsStore';
+import { DatasetTooltip } from '@shared/dataset/DatasetTooltip';
+import { medianValue } from '@shared/dataset/analytics';
+import { MedianRtGauge } from '@shared/dataset/MedianRtGauge';
 import {
-  Gauge,
-  RadarChart,
-  RadarGrid,
-  RadarAxis,
-  RadarArea,
-  RadarLabels,
-  BarChart,
-  Bar,
-  BarXAxis,
-  RingChart,
-  Ring,
-  RingCenter,
-  Grid
-} from '../bklit-ui/charts';
-import {
-  ResponsiveContainer,
-  ScatterChart,
-  Scatter,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip
+  ResponsiveContainer, ScatterChart, Scatter, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip,
+  RadarChart as RechartsRadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  BarChart as RechartsBarChart, Bar, RadialBarChart, RadialBar, Cell,
 } from 'recharts';
 
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: any[];
-  label?: string | number;
-}
-
-function DirectionCustomTooltip({ active, payload, label }: CustomTooltipProps) {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-[var(--bg-surface-solid)] backdrop-blur-md border border-[var(--border-subtle)] rounded-lg p-3 shadow-xl font-mono text-xs z-50 text-[var(--text-primary)]">
-        {label !== undefined && (
-          <div className="text-[var(--text-muted)] font-semibold mb-1.5 border-b border-[var(--border-subtle)] pb-1">
-            {typeof label === 'number' ? ('Trial ' + label) : String(label)}
-          </div>
-        )}
-        {payload.map((entry, index) => (
-          <div
-            key={'dir-tooltip-' + index}
-            className="flex items-center justify-between gap-4 py-0.5"
-            style={{ color: entry.color || entry.fill || 'var(--cyan-primary)' }}
-          >
-            <div className="flex items-center gap-1.5">
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: entry.color || entry.fill || 'var(--cyan-primary)' }}
-              />
-              <span className="text-[var(--text-secondary)]">{entry.name || 'Value'}:</span>
-            </div>
-            <span className="font-bold">
-              {entry.name === 'Accuracy' ? (entry.value === 1 ? 'Accurate (100%)' : 'Error (0%)') : (entry.value + ' ms')}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return null;
-}
 
 interface DirectionDatasetProps {
   trials: RawTrialObservation[];
   datasetDocs: DatasetObservation[];
 }
 
-
-function medianValue(values: number[]): number {
-  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
-  if (sorted.length === 0) return 0;
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 1
-    ? sorted[middle]
-    : (sorted[middle - 1] + sorted[middle]) / 2;
-}
 
 export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps) {
   // Use observed trial latencies; if trial-level records are unavailable, use real session summaries.
@@ -147,6 +80,14 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     { key: 'LEFT', label: 'LEFT' },
   ];
 
+  const radarChartData = useMemo(() => {
+    const values = radarData[0]?.values || {};
+    return radarMetrics.map(({ key, label }) => ({
+      direction: label,
+      accuracy: values[key] ?? 0,
+    }));
+  }, [radarData]);
+
   // Cohort medians use one real session summary per assessment.
   const ageGroupData = useMemo(() => {
     const groups: Record<string, number[]> = {};
@@ -203,6 +144,9 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     ];
   }, [trials]);
 
+  const ringChartData = useMemo(() => ringData.map((ring) => ({ ...ring, percent: ring.maxValue > 0 ? (ring.value / ring.maxValue) * 100 : 0 })), [ringData]);
+  const ringTotal = useMemo(() => ringData.reduce((total, ring) => total + ring.value, 0), [ringData]);
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full min-w-0">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
@@ -214,7 +158,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               Median Reaction Time
             </span>
           </div>
-          {medianRT > 0 ? <Gauge value={medianRT} centerValue={medianRT} suffix="ms" /> : <span className="font-mono text-sm text-[var(--text-muted)]">NO DATA</span>}
+          {medianRT > 0 ? <MedianRtGauge value={medianRT} centerValue={medianRT} /> : <span className="font-mono text-sm text-[var(--text-muted)]">NO DATA</span>}
         </div>
 
         {/* Directional Profile (Radar) */}
@@ -226,12 +170,14 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
           </div>
           <div className="flex-1 min-h-[250px] w-full flex items-center justify-center">
             {trials.length > 0 ? (
-              <RadarChart data={radarData} metrics={radarMetrics} domain={radarDomain}>
-                <RadarGrid />
-                <RadarAxis />
-                <RadarArea index={0} />
-                <RadarLabels />
-              </RadarChart>
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsRadarChart data={radarChartData} outerRadius="72%">
+                  <PolarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
+                  <PolarAngleAxis dataKey="direction" tick={{ fill: 'var(--chart-text)', fontSize: 11, fontFamily: 'monospace' }} />
+                  <PolarRadiusAxis angle={30} domain={radarDomain} tick={false} axisLine={false} />
+                  <Radar name="Accuracy" dataKey="accuracy" stroke="var(--cyan-primary)" strokeWidth={2} fill="var(--cyan-primary)" fillOpacity={0.28} dot={{ r: 3, fill: "var(--cyan-primary)" }} activeDot={{ r: 5 }} />
+                </RechartsRadarChart>
+              </ResponsiveContainer>
             ) : (
               <span className="text-[var(--text-muted)] font-mono text-sm">NO DATA</span>
             )}
@@ -247,12 +193,20 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
           </div>
           <div className="flex-1 min-h-[250px] w-full flex items-center justify-center">
              {ringData.length > 0 ? (
-               <RingChart data={ringData} strokeWidth={16} ringGap={8}>
-                 <RingCenter />
-                 {ringData.map((r, i) => (
-                   <Ring key={i} index={i} color={r.color} />
-                 ))}
-               </RingChart>
+               <div className="relative mx-auto aspect-square w-full max-w-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadialBarChart data={ringChartData} innerRadius="34%" outerRadius="86%" startAngle={-90} endAngle={270} barSize={14}>
+                  <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                  <RadialBar dataKey="percent" cornerRadius={7} background={{ fill: 'var(--border-subtle)' }}>
+                    {ringChartData.map((ring, index) => <Cell key={`ring-${index}`} fill={ring.color} />)}
+                  </RadialBar>
+                </RadialBarChart>
+              </ResponsiveContainer>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span className="font-mono text-xl font-bold text-[var(--text-primary)]">{ringTotal.toLocaleString()}</span>
+                <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-muted)]">Total</span>
+              </div>
+            </div>
              ) : (
                <span className="text-[var(--text-muted)] font-mono text-sm">NO DATA</span>
              )}
@@ -270,12 +224,14 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             </h3>
           </div>
           <div className="h-64 sm:h-72 w-full">
-            <BarChart data={ageGroupData} xDataKey="ageGroup">
-              <Grid />
-              <YAxis />
-              <BarXAxis />
-              <Bar dataKey="medianRT" fill="var(--cyan-primary)" />
-            </BarChart>
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsBarChart data={ageGroupData} margin={{ top: 8, right: 12, left: -18, bottom: 4 }}>
+                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} />
+                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} axisLine={false} unit="ms" />
+                <Bar dataKey="medianRT" name="Median RT" fill="var(--cyan-primary)" radius={[4, 4, 0, 0]} />
+              </RechartsBarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -314,7 +270,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
                 />
                 <Tooltip
                   cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.2)' }}
-                  content={<DirectionCustomTooltip />}
+                  content={<DatasetTooltip variant="direction" />}
                   allowEscapeViewBox={{ x: false, y: true }}
                   wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
                 />
@@ -358,7 +314,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
                   domain={['auto', 'auto']}
                 />
                 <Tooltip
-                  content={<DirectionCustomTooltip />}
+                  content={<DatasetTooltip variant="direction" />}
                   allowEscapeViewBox={{ x: false, y: true }}
                   wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
                 />
