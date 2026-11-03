@@ -94,7 +94,7 @@ export function unrollTrialsFromDatasetDocs(
         : (typeof trial.condition === 'string' ? trial.condition : 'standard');
 
       const month = typeof doc.completedAtMonth === 'string' &&
-        /^\\d{4}-(0[1-9]|1[0-2])$/.test(doc.completedAtMonth)
+        /^\d{4}-(0[1-9]|1[0-2])$/.test(doc.completedAtMonth)
         ? doc.completedAtMonth
         : undefined;
 

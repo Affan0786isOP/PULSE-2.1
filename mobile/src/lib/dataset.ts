@@ -120,10 +120,10 @@ export const fetchDatasetObservations = async (
     if (totalCount !== null && totalCount < observations.length) totalCount = observations.length;
 
     observations.sort((a, b) => {
-      const monthA = typeof a.completedAtMonth === 'string' && /^\\d{4}-(0[1-9]|1[0-2])$/.test(a.completedAtMonth)
+      const monthA = typeof a.completedAtMonth === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(a.completedAtMonth)
         ? a.completedAtMonth
         : '';
-      const monthB = typeof b.completedAtMonth === 'string' && /^\\d{4}-(0[1-9]|1[0-2])$/.test(b.completedAtMonth)
+      const monthB = typeof b.completedAtMonth === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(b.completedAtMonth)
         ? b.completedAtMonth
         : '';
       return monthB.localeCompare(monthA) || a.id.localeCompare(b.id);
