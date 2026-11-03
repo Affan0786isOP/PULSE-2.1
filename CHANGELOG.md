@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] - 2026-11-03
+
+### Documentation
+- Synchronized contributor runtime requirements with the Node.js `>=24.12.0` engine floor and npm package-manager pin.
+- Documented the actual production build sequence: desktop Vite build, mobile PWA build, SEO page generation, and Express server bundling.
+- Removed obsolete refresh-rate calibration QA guidance in favor of the current unadjusted-latency protocol.
+- Clarified that desktop and mobile maintain separate route tables and that route presence, authorization, and backend administrative access are distinct concerns.
+- Updated AI agent toolchain guidance to derive versions from `package.json`.
+
 ## [2.6.1] - 2026-10-30
 
 ### Fixed
