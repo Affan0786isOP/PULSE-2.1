@@ -29,7 +29,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   const [avatarGlyph, setAvatarGlyph] = React.useState<any>('reticle');
   const [submitting, setSubmitting] = React.useState(false);
 
-  const canCreate = profiles.length < 5;
+  const canCreate = profiles.length < 10;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +85,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                 : 'bg-slate-800 text-slate-500 cursor-not-allowed'
             }`}
           >
-            + Create Profile ({profiles.length}/5)
+            + Create Profile ({profiles.length}/10)
           </button>
         </div>
       </div>

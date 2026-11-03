@@ -6,6 +6,7 @@ export class ProfileRegistryService {
 
   async reserveProfile(params: {
     ownerUid: string;
+    ownerEmail?: string | null;
     displayName: string;
     ageGroup: string;
     shareAgeGroupOnLeaderboard?: boolean;
@@ -13,8 +14,8 @@ export class ProfileRegistryService {
     return this.repository.reserveProfile(params);
   }
 
-  async checkNameAvailability(displayName: string): Promise<{ available: boolean; normalizedName: string; reason?: string }> {
-    return this.repository.checkNameAvailability(displayName);
+  async checkNameAvailability(displayName: string, ownerUid?: string): Promise<{ available: boolean; normalizedName: string; reason?: string }> {
+    return this.repository.checkNameAvailability(displayName, ownerUid);
   }
 
   async getMyProfiles(ownerUid: string): Promise<ProfileRecord[]> {

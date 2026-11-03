@@ -45,19 +45,21 @@ describe('FirestoreProfileRegistryRepository', () => {
     expect(result.profile.displayName).toBe('Nova Pilot');
     expect(result.profile.normalizedName).toBe('nova pilot');
     expect(result.profile.profileUid).toHaveLength(16);
-    expect(mockTx.set).toHaveBeenCalledTimes(2); // profile doc & name doc
+    expect(result.profile.discriminator).toMatch(/^\d{4}$/);
+    expect(result.profile.leaderboardDisplayName).toContain('Nova Pilot #');
+    expect(mockTx.set).toHaveBeenCalledTimes(1); // profile doc
     expect(mockTx.update).toHaveBeenCalledTimes(1); // account doc updated
   });
 
-  it('rejects reservation when account has already reached 5 profiles', async () => {
+  it('rejects reservation when account has already reached 10 profiles', async () => {
     mockTx.get.mockImplementation(async (ref: any) => {
       if (ref.path.startsWith('accounts/')) {
         return {
           exists: true,
           data: () => ({
             ownerUid: 'user1',
-            profileCount: 5,
-            profileUids: ['p1', 'p2', 'p3', 'p4', 'p5']
+            profileCount: 10,
+            profileUids: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']
           })
         };
       }
@@ -66,19 +68,19 @@ describe('FirestoreProfileRegistryRepository', () => {
 
     await expect(repo.reserveProfile({
       ownerUid: 'user1',
-      displayName: 'Nova 6',
+      displayName: 'Nova 11',
       ageGroup: 'Adults (26–40)',
       shareAgeGroupOnLeaderboard: false
     })).rejects.toThrowError(/PROFILE_LIMIT_EXCEEDED/);
   });
 
-  it('rejects reservation when name is already actively reserved', async () => {
+  it('rejects reservation when the same user already has a profile with that name', async () => {
     mockTx.get.mockImplementation(async (ref: any) => {
       if (ref.path.startsWith('accounts/')) {
         return { exists: true, data: () => ({ ownerUid: 'user1', profileCount: 1, profileUids: ['p1'] }) };
       }
-      if (ref.path.startsWith('names/')) {
-        return { exists: true, data: () => ({ status: 'active', profileUid: 'p0' }) };
+      if (ref.path === 'profiles/p1') {
+        return { exists: true, data: () => ({ profileUid: 'p1', normalizedName: 'nova pilot' }) };
       }
       return { exists: false };
     });
@@ -89,5 +91,25 @@ describe('FirestoreProfileRegistryRepository', () => {
       ageGroup: 'Adults (26–40)',
       shareAgeGroupOnLeaderboard: false
     })).rejects.toThrowError(/NAME_ALREADY_TAKEN/);
+  });
+
+  it('allows different accounts to use the same profile display name', async () => {
+    mockTx.get.mockImplementation(async (ref: any) => {
+      if (ref.path.startsWith('accounts/user2')) {
+        return { exists: true, data: () => ({ ownerUid: 'user2', profileCount: 0, profileUids: [] }) };
+      }
+      return { exists: false };
+    });
+
+    const result = await repo.reserveProfile({
+      ownerUid: 'user2',
+      displayName: 'Nova Pilot',
+      ageGroup: 'Adults (26–40)',
+      shareAgeGroupOnLeaderboard: true
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.profile.displayName).toBe('Nova Pilot');
+    expect(result.profile.ownerUid).toBe('user2');
   });
 });

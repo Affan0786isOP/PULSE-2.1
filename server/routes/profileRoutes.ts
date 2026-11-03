@@ -11,12 +11,13 @@ export function registerProfileRoutes(
   // Check display name availability
   app.post('/api/profiles/check-name', async (req: express.Request, res: express.Response) => {
     try {
+      const user = await verifyFirebaseUserToken(req).catch(() => null);
       const { displayName } = req.body || {};
       if (!displayName || typeof displayName !== 'string') {
         return res.status(400).json({ success: false, error: 'displayName is required' });
       }
 
-      const result = await profileService.checkNameAvailability(displayName);
+      const result = await profileService.checkNameAvailability(displayName, user?.uid);
       return res.json({ success: true, ...result });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -43,6 +44,7 @@ export function registerProfileRoutes(
 
       const result = await profileService.reserveProfile({
         ownerUid: user.uid,
+        ownerEmail: user.email || null,
         displayName,
         ageGroup,
         shareAgeGroupOnLeaderboard

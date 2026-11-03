@@ -22,6 +22,8 @@ export const VALID_OBSERVATORY_GLYPHS = [
 
 export type ObservatoryGlyphId = typeof VALID_OBSERVATORY_GLYPHS[number]['id'];
 
+export const MAX_PROFILES_PER_ACCOUNT = 10;
+
 export const RESERVED_PROFILE_NAMES = new Set([
   'admin',
   'administrator',
@@ -116,8 +118,11 @@ export interface ProfileRecord {
   profileUid: string;
   displayName: string;
   normalizedName: string;
+  discriminator?: string;
+  leaderboardDisplayName?: string;
   ageGroup: AgeGroup;
   ownerUid: string;
+  ownerEmail?: string | null;
   shareAgeGroupOnLeaderboard: boolean;
   revision: number;
   lastRenamedAt: unknown | null;
@@ -180,6 +185,8 @@ export type LeaderboardIdentity =
 export interface LocalProfile {
   profileUid: string;
   displayName: string;
+  discriminator?: string;
+  leaderboardDisplayName?: string;
   ageGroup: AgeGroup;
   themeAccent?: ObservatoryThemeId;
   avatarGlyph?: ObservatoryGlyphId;

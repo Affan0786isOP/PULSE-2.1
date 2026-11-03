@@ -187,8 +187,8 @@ export function validateLeaderboardDisplayName(value: unknown): LeaderboardAlias
   }
 
   // Support Unicode scripts while excluding markup, URLs, @handles, and punctuation-heavy payloads.
-  if (!/^[\p{L}\p{M}\p{N} ._'-]+$/u.test(normalized)) {
-    return { valid: false, error: 'Use letters, numbers, spaces, periods, apostrophes, underscores, or hyphens only.' };
+  if (!/^[\p{L}\p{M}\p{N} ._#'-]+$/u.test(normalized)) {
+    return { valid: false, error: 'Use letters, numbers, spaces, periods, apostrophes, underscores, hashes, or hyphens only.' };
   }
 
   if (/(?:https?:\/\/|www\.)/iu.test(normalized) ||
