@@ -103,6 +103,13 @@ function firstString(...values: unknown[]): string | undefined {
   return values.find((value): value is string => typeof value === 'string' && value.length <= 160);
 }
 
+function sanitizePublicObject(value: unknown): Record<string, unknown> | undefined {
+  const clean = sanitizeNestedPublicValue(value);
+  return clean !== null && typeof clean === 'object' && !Array.isArray(clean)
+    ? clean as Record<string, unknown>
+    : undefined;
+}
+
 export class ResearchService implements IResearchService {
   constructor(
     private readonly sessionService: ISessionService,
@@ -544,6 +551,15 @@ export class ResearchService implements IResearchService {
         provenanceToken: firstString(data.provenanceToken),
         trialsDigest: firstString(data.trialsDigest),
         scoreMetric,
+        consistency: firstFiniteNumber(derived.consistency, data.consistency),
+        totalFalseStarts: firstFiniteNumber(derived.totalFalseStarts, data.totalFalseStarts),
+        totalCorrect: firstFiniteNumber(derived.totalCorrect, data.totalCorrect),
+        totalIncorrect: firstFiniteNumber(derived.totalIncorrect, data.totalIncorrect),
+        correctCount: firstFiniteNumber(derived.correctCount, data.correctCount),
+        totalAttempts: firstFiniteNumber(derived.totalAttempts, data.totalAttempts),
+        overallAccuracy: firstFiniteNumber(derived.overallAccuracy, data.overallAccuracy),
+        totalTimeMs: firstFiniteNumber(derived.totalTimeMs, data.totalTimeMs),
+        temporalDynamics: sanitizePublicObject(derived.temporalDynamics ?? data.temporalDynamics),
         averageReactionTime: firstFiniteNumber(derived.averageReactionTime, data.averageReactionTime),
         medianReactionTime: firstFiniteNumber(derived.medianReactionTime, data.medianReactionTime),
         fastestReactionTime: firstFiniteNumber(derived.fastestReactionTime, data.fastestReactionTime),

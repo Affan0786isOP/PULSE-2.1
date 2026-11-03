@@ -42,6 +42,15 @@ export interface PublicDatasetRecord {
   provenanceToken?: string;
   trialsDigest?: string;
   scoreMetric?: number | null;
+  consistency?: number;
+  totalFalseStarts?: number;
+  totalCorrect?: number;
+  totalIncorrect?: number;
+  correctCount?: number;
+  totalAttempts?: number;
+  overallAccuracy?: number;
+  totalTimeMs?: number;
+  temporalDynamics?: Record<string, unknown>;
   averageReactionTime?: number;
   medianReactionTime?: number;
   fastestReactionTime?: number;

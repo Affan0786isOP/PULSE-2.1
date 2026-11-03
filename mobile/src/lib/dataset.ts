@@ -11,9 +11,25 @@ export interface DatasetObservation {
   averageReactionTime?: number;
   medianReactionTime?: number;
   fastestReactionTime?: number;
+  slowestReactionTime?: number;
+  consistency?: number;
   standardDeviation?: number;
   totalFalseStarts?: number;
+  totalCorrect?: number;
+  totalIncorrect?: number;
+  correctCount?: number;
+  totalAttempts?: number;
+  overallAccuracy?: number;
+  totalTimeMs?: number;
   totalTrials?: number;
+  scoreMetric?: number | null;
+  temporalDynamics?: Record<string, unknown>;
+  congruentAvg?: number;
+  incongruentAvg?: number;
+  interferenceCost?: number;
+  highestLevel?: number;
+  longestSeq?: number;
+  accuracy?: number;
   errorRate?: number;
   [key: string]: any; // metrics
 }

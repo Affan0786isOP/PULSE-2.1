@@ -630,6 +630,21 @@ describe('Server Application Services Unit Tests', () => {
             sessionId: 'private-session-id',
             deviceCategory: 'desktop',
             averageReactionTime: 241.5,
+            consistency: 94.2,
+            totalFalseStarts: 2,
+            totalCorrect: 8,
+            totalIncorrect: 2,
+            correctCount: 8,
+            totalAttempts: 10,
+            overallAccuracy: 80,
+            totalTimeMs: 5200,
+            temporalDynamics: {
+              analysisVersion: 'temporal-v1',
+              foreperiodSensitivity: 0.12,
+              shortWindow: { count: 5, meanRt: 240, sessionId: 'must-not-leak' },
+              longWindow: { count: 5, meanRt: 243, participantId: 'must-not-leak' },
+              temporalStability: 0.91
+            },
             progressionTrials: [
               {
                 trialNumber: 4,
@@ -661,6 +676,25 @@ describe('Server Application Services Unit Tests', () => {
     expect(record.completedAtMonth).toBe('2026-10');
     expect(record.scoreMetric).toBe(241.5);
     expect(record.totalTrials).toBe(1);
+    expect(record).toMatchObject({
+      consistency: 94.2,
+      totalFalseStarts: 2,
+      totalCorrect: 8,
+      totalIncorrect: 2,
+      correctCount: 8,
+      totalAttempts: 10,
+      overallAccuracy: 80,
+      totalTimeMs: 5200
+    });
+    expect(record.temporalDynamics).toMatchObject({
+      analysisVersion: 'temporal-v1',
+      foreperiodSensitivity: 0.12,
+      temporalStability: 0.91,
+      shortWindow: { count: 5, meanRt: 240 },
+      longWindow: { count: 5, meanRt: 243 }
+    });
+    expect(record.temporalDynamics?.shortWindow).not.toHaveProperty('sessionId');
+    expect(record.temporalDynamics?.longWindow).not.toHaveProperty('participantId');
     expect(record).not.toHaveProperty('completedAtTimestamp');
     expect(record).not.toHaveProperty('participantId');
     expect(record).not.toHaveProperty('sessionId');
