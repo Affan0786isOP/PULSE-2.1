@@ -29,6 +29,7 @@ describe('SEO route registry', () => {
       '/number-memory'
     ]);
 
+    expect(metadata.routes['/dataset'].indexable).toBe(false);
     expect(metadata.routes).not.toHaveProperty('/analytics');
     expect(metadata.routes).not.toHaveProperty('/admin');
   });
@@ -58,16 +59,15 @@ describe('SEO route registry', () => {
     expect(reactionSchema.name).toBe(metadata.routes['/reaction-test'].title);
   });
 
-  it('does not register retired Dataset routes in route or SEO metadata', () => {
-    expect(resolveRoute('/dataset')).toBeUndefined();
-    expect(resolveRoute('/analytics')).toBeUndefined();
-    expect(metadata.routes).not.toHaveProperty('/dataset');
+  it('keeps redirected aliases out of the canonical metadata registry', () => {
+    expect(resolveRoute('/analytics')?.canonicalPath).toBe('/dataset');
     expect(metadata.routes).not.toHaveProperty('/analytics');
   });
 
   it('uses the route registry for canonical aliases and mobile-prefixed paths', () => {
     expect(getCanonicalPath('/visual-reaction')).toBe('/reaction-test');
     expect(getCanonicalPath('/mobile/color-test/')).toBe('/colour-recognition');
+    expect(getCanonicalPath('/analytics')).toBe('/dataset');
     expect(getCanonicalPath('/privacy-policy')).toBe('/privacy');
   });
 
