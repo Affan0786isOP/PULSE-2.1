@@ -191,36 +191,55 @@ describe('PageShell Layout & Architecture', () => {
       .toBe(window.location.origin + '/unknown-seo-route');
   });
 
-  it('applies uniform baseline scaling by default on desktop viewports and allows disabling via disableScaling', () => {
+  it('scales only explicitly opted-in fixed stages and active assessment stages', () => {
     const originalW = window.innerWidth;
     const originalH = window.innerHeight;
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1920 });
     Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 1080 });
 
     try {
-      const { container: scaledContainer, unmount: unmountScaled } = render(
+      const { container: contentContainer, unmount: unmountContent } = render(
         <MemoryRouter initialEntries={['/about']}>
           <PageShell currentView="about">
-            <div>Scaled Content</div>
+            <div>Fluid Content</div>
           </PageShell>
         </MemoryRouter>
       );
+      const contentRoot = contentContainer.firstElementChild as HTMLElement;
+      expect(contentRoot.style.zoom).toBeFalsy();
+      expect(contentRoot.style.minHeight).toBeFalsy();
+      unmountContent();
 
+      const { container: scaledContainer, unmount: unmountScaled } = render(
+        <MemoryRouter initialEntries={['/']}>
+          <PageShell currentView="home" enableScaling>
+            <div>Fixed Stage</div>
+          </PageShell>
+        </MemoryRouter>
+      );
       const scaledRoot = scaledContainer.firstElementChild as HTMLElement;
       expect(scaledRoot.style.zoom).toBe('1.5');
       expect(scaledRoot.style.minHeight).toMatch(/calc\((100dvh \/ 1\.5|66\.6667dvh)\)/);
       unmountScaled();
 
-      const { container: unscaledContainer } = render(
-        <MemoryRouter initialEntries={['/about']}>
-          <PageShell currentView="about" disableScaling={true}>
-            <div>Unscaled Content</div>
+      const { container: activeContainer, unmount: unmountActive } = render(
+        <MemoryRouter initialEntries={['/reaction-test']}>
+          <PageShell currentView="reaction-test" isAssessmentActive>
+            <div>Active Stimulus</div>
           </PageShell>
         </MemoryRouter>
       );
+      expect((activeContainer.firstElementChild as HTMLElement).style.zoom).toBe('1.5');
+      unmountActive();
 
-      const unscaledRoot = unscaledContainer.firstElementChild as HTMLElement;
-      expect(unscaledRoot.style.zoom).toBeFalsy();
+      const { container: disabledContainer } = render(
+        <MemoryRouter initialEntries={['/']}>
+          <PageShell currentView="home" enableScaling disableScaling>
+            <div>Explicitly Unscaled Stage</div>
+          </PageShell>
+        </MemoryRouter>
+      );
+      expect((disabledContainer.firstElementChild as HTMLElement).style.zoom).toBeFalsy();
     } finally {
       Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: originalW });
       Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: originalH });
