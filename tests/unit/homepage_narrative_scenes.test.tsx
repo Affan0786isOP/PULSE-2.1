@@ -78,7 +78,7 @@ describe('Homepage Narrative Redesign Suite', () => {
   });
 
   describe('Desktop Home Sequential Integration', () => {
-    it('verifies desktop Home keeps the concise sections in conversion-focused order', () => {
+    it('verifies desktop Home preserves hero and mounts all 8 narrative scenes plus footer in canonical order', () => {
       const desktopHomePath = path.join(process.cwd(), 'src/components/Home.tsx');
       const content = fs.readFileSync(desktopHomePath, 'utf-8');
 
@@ -90,21 +90,26 @@ describe('Homepage Narrative Redesign Suite', () => {
 
       // Check sequential scene tags
       const heroIdx = content.indexOf('id="hero"');
-      const resultIdx = content.indexOf('<ResultScene');
+      const proofIdx = content.indexOf('<ProofScene');
+      const assessmentsIdx = content.indexOf('<AssessmentsScene');
       const problemIdx = content.indexOf('<ProblemScene');
+      const resultIdx = content.indexOf('<ResultScene');
+      const whyPulseIdx = content.indexOf('<WhyPulseScene');
+      const howItWorksIdx = content.indexOf('<HowItWorksScene');
       const faqIdx = content.indexOf('<FAQScene');
       const ctaIdx = content.indexOf('<FinalCTAScene');
       const footerIdx = content.indexOf('<HomeFooter');
 
       expect(heroIdx).toBeGreaterThan(-1);
-      expect(resultIdx).toBeGreaterThan(heroIdx);
-      expect(problemIdx).toBeGreaterThan(resultIdx);
-      expect(faqIdx).toBeGreaterThan(problemIdx);
+      expect(proofIdx).toBeGreaterThan(heroIdx);
+      expect(assessmentsIdx).toBeGreaterThan(proofIdx);
+      expect(problemIdx).toBeGreaterThan(assessmentsIdx);
+      expect(resultIdx).toBeGreaterThan(problemIdx);
+      expect(whyPulseIdx).toBeGreaterThan(resultIdx);
+      expect(howItWorksIdx).toBeGreaterThan(whyPulseIdx);
+      expect(faqIdx).toBeGreaterThan(howItWorksIdx);
       expect(ctaIdx).toBeGreaterThan(faqIdx);
       expect(footerIdx).toBeGreaterThan(ctaIdx);
-      expect(content).not.toContain('<ProofScene');
-      expect(content).not.toContain('<WhyPulseScene');
-      expect(content).not.toContain('<HowItWorksScene');
     });
 
     it('renders desktop Home into static markup containing live hero and narrative sections', () => {
@@ -117,10 +122,11 @@ describe('Homepage Narrative Redesign Suite', () => {
       expect(html).toContain('Start Testing');
 
       // Narrative sections
+      expect(html).toContain('Explore the five tests');
       expect(html).toContain('See your results');
       expect(html).toContain('How it works');
       expect(html).toContain('How browser timing works');
-      expect(html).not.toContain('How the Assessment Flow Operates');
+      expect(html).toContain('How the Assessment Flow Operates');
       expect(html).toContain('Frequently Asked Questions');
       expect(html).toContain('Ready to see how you perform?');
     });

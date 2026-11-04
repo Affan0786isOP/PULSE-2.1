@@ -11,8 +11,12 @@ import { AssessmentHero3D } from './ui/AssessmentHero3D';
 import { PageShell } from './layout/PageShell';
 
 // Narrative Scenes below the fold
-import { ResultScene } from './home/ResultScene';
+import { ProofScene } from './home/ProofScene';
+import { AssessmentsScene } from './home/AssessmentsScene';
 import { ProblemScene } from './home/ProblemScene';
+import { ResultScene } from './home/ResultScene';
+import { WhyPulseScene } from './home/WhyPulseScene';
+import { HowItWorksScene } from './home/HowItWorksScene';
 import { FAQScene } from './home/FAQScene';
 import { FinalCTAScene } from './home/FinalCTAScene';
 import { HomeFooter } from './home/HomeFooter';
@@ -204,19 +208,31 @@ export function Home() {
         </div>
       </section>
 
-      {/* 02 — See a sample result */}
-      <ResultScene />
+      {/* 02 — Proof: Client-side Measurement Pipeline */}
+      <ProofScene />
 
-      {/* 03 — How it works, with concise measurement limits */}
+      {/* 03 — Assessments: 2D Discovery Carousel */}
+      <AssessmentsScene />
+
+      {/* 04 — Problem: Perception vs Measurement */}
       <ProblemScene />
 
-      {/* 04 — Essential questions */}
+      {/* 05 — Result: Empirical Telemetry & Feedback */}
+      <ResultScene />
+
+      {/* 06 — Why PULSE: Core Principles */}
+      <WhyPulseScene />
+
+      {/* 07 — How It Works: 4-Step Process */}
+      <HowItWorksScene />
+
+      {/* 08 — FAQ: Accessible Accordion */}
       <FAQScene />
 
-      {/* 05 — Final action */}
+      {/* 09 — Final CTA: Low-friction Action */}
       <FinalCTAScene />
 
-      {/* 06 — Footer and useful links */}
+      {/* 10 — Home Footer */}
       <HomeFooter />
     </PageShell>
   );
