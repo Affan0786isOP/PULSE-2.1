@@ -98,12 +98,13 @@ export interface TrialProgressionPoint {
   mobileN: number;
   overallN: number;
 }
-/** One-pass five-trial progression retaining its deliberately broader original eligibility rule. */
+/** One-pass trial progression up to maxTrials (default 10) retaining its deliberately broader original eligibility rule. */
 export function calculateTrialProgression<T extends DatasetAnalyticsTrial>(
   trials: readonly T[],
   getSessionKey: DatasetSessionKeyResolver<T> = (trial) => trial.experimentId || trial.sessionId || trial.id,
+  maxTrials: number = 10,
 ): TrialProgressionPoint[] {
-  const groups = Array.from({ length: 5 }, () => ({
+  const groups = Array.from({ length: maxTrials }, () => ({
     desktopRTs: [] as number[], mobileRTs: [] as number[], allRTs: [] as number[],
     desktopSessions: new Set<DatasetSessionKey>(),
     mobileSessions: new Set<DatasetSessionKey>(),
@@ -111,7 +112,7 @@ export function calculateTrialProgression<T extends DatasetAnalyticsTrial>(
   }));
   for (const trial of trials) {
     const number = trial.trialNumber;
-    if (!Number.isInteger(number) || (number as number) < 1 || (number as number) > 5 || trial.falseStart || !(trial.reactionTime > 80)) continue;
+    if (!Number.isInteger(number) || (number as number) < 1 || (number as number) > maxTrials || trial.falseStart || !(trial.reactionTime > 80)) continue;
     const group = groups[(number as number) - 1];
     const key = getSessionKey(trial);
     group.allRTs.push(trial.reactionTime);

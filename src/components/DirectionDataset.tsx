@@ -106,7 +106,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
         .map((doc) => Number(doc.medianReactionTime ?? doc.averageReactionTime))
         .filter((value) => Number.isFinite(value) && value > 80 && value < 2000);
       return {
-        ageGroup: `${short} (n=${sessionRTs.length})`,
+        ageGroup: short,
         medianRT: Math.round(medianValue(sessionRTs)),
         n: sessionRTs.length
       };

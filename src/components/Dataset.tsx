@@ -59,9 +59,6 @@ function HeroLatencyMetric({ value }: HeroLatencyMetricProps) {
         <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
           Median Reaction Time
         </span>
-        <span className="text-[10px] font-mono text-cyan-400 font-semibold tracking-wider uppercase">
-          POPULATION
-        </span>
       </div>
 
       <div className="my-auto py-2">
@@ -205,7 +202,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
         .map((doc) => Number(doc.medianReactionTime ?? doc.averageReactionTime))
         .filter((value) => Number.isFinite(value) && value > 80 && value < 2000);
       return {
-        day: `${short} (n=${sessionRTs.length})`,
+        day: short,
         value: Math.round(medianValue(sessionRTs)),
         n: sessionRTs.length
       };
@@ -438,7 +435,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
               <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
                   <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-                    Platform Latency
+                    Device Comparison
                   </span>
                   <span className="text-[10px] font-mono text-purple-400 font-semibold tracking-wider uppercase">
                     MEDIAN RT
@@ -465,7 +462,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   </div>
                 </div>
                 <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)]">
-                  <span>Delta</span>
                   <span className="text-purple-400 font-medium">
                     {deviceComparisonData[0]?.value && deviceComparisonData[1]?.value
                       ? `+${Math.abs(deviceComparisonData[1].value - deviceComparisonData[0].value)} ms Mobile`
@@ -480,9 +476,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
                     Sessions in Dataset
                   </span>
-                  <span className="flex items-center gap-1 text-[10px] font-mono text-cyan-400 font-semibold tracking-wider uppercase">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> LIVE
-                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                 </div>
                 <div className="my-auto py-2">
                   <span className="text-3xl sm:text-4xl font-mono text-[var(--text-primary)] font-bold">
@@ -490,8 +484,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   </span>
                 </div>
                 <div className="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] flex items-center justify-between">
-                  <span>Sample</span>
-                  <span>Opt-in anonymous research</span>
+                  <span>Aggregated research protocol</span>
                 </div>
               </div>
 
@@ -501,9 +494,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
                     Fastest Session
                   </span>
-                  <span className="text-[10px] font-mono text-emerald-400 font-semibold tracking-wider uppercase">
-                    PEAK SPEED
-                  </span>
                 </div>
                 <div className="my-auto py-2 flex items-baseline gap-1.5">
                   <span className="text-3xl sm:text-4xl font-mono text-emerald-400 font-bold">
@@ -512,8 +502,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   <span className="text-sm font-mono text-[var(--text-muted)]">ms</span>
                 </div>
                 <div className="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] flex items-center justify-between">
-                  <span>Record</span>
-                  <span>Fastest per-session mean</span>
+                  <span>Lowest session median</span>
                 </div>
               </div>
             </div>
@@ -666,7 +655,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
             >
               <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
                 <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                  Trial Progression (Trials 1–5)
+                  Trial Progression (Trials 1–10)
                 </span>
                 <div className="flex items-center gap-3 text-xs font-mono">
                   <span className="flex items-center gap-1.5 text-[#00f0ff]">
