@@ -515,7 +515,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         vertical={false}
                       />
                       <XAxis
-                        dataKey="foreperiod"
+                        dataKey="interval"
                         stroke="var(--chart-text)"
                         fontSize={9}
                         fontFamily="monospace"
