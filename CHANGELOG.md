@@ -6,7 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased] - 2026-11-03
+## [Unreleased]
+
+### Added
+- **Direction Choice Reaction Time (CRT) Telemetry Redesign:**
+  - Implemented a 5-row responsive dashboard layout across desktop (`src/components/DirectionDataset.tsx`) and mobile PWA (`mobile/src/components/DirectionDataset.tsx`).
+  - Row 1: Unified dual-metric 4-card overview pairing Reaction Time with Accuracy (Median Performance, Desktop vs Mobile Device Comparison, Total Attempts & Total Correct, and Average Performance).
+  - Row 2: Side-by-side Age Cohort analysis featuring *Median RT by Age Group* and *Median Accuracy by Age Group*.
+  - Row 3: Directional Profile 4-cardinal-axis Radar (`UP`, `RIGHT`, `DOWN`, `LEFT`) with interactive view toggle (`[ Accuracy % | Reaction Time | Both ]`), paired with an aggregated $4 \times 5$ Speed vs Accuracy density heatmap protecting individual session privacy.
+  - Row 4: Consistency Distribution stacked Desktop/Mobile bar chart and a 4-tier mutually exclusive Attempt Outcomes ring (*Correct Responses*, *Incorrect Direction*, *Premature*, *Timeout*).
+  - Row 5: Full-width Trial Sequence Progression (Trials 1–10) rendering the overall population median RT curve.
+  - Added dedicated analytics functions to `@shared/dataset/analytics`: `calculateDirectionalProfile`, `calculateDirectionHeatmap`, `calculateDirectionAttemptOutcomes`, `calculateDirectionDerivedConsistency`, and `calculateDirectionTrialProgression`.
+
+- **Visual Reaction (VRT) Telemetry & Statistical Standardization:**
+  - Standardized the Foreperiod vs Reaction Time area chart to 6 non-overlapping intervals (`100–500ms`, `501–1000ms`, `1001–1500ms`, `1501–2000ms`, `2001–2500ms`, `2501–3000ms`) with latest valid attempt per session.
+  - Implemented 4-tier trial validity classification (*Valid*, *Premature*, *Anticipatory*, *Timeout*) in donut visualizations.
+  - Added population-level consistency distributions using coefficient of variation with small-cell privacy protection.
+  - Standardized Trial Sequence Progression to display a single overall population median RT trajectory across Trials 1–10.
+  - Replaced legacy session count in the top overview card with aggregate Total Trials.
 
 ### Documentation
 - Synchronized contributor runtime requirements with the Node.js `>=24.12.0` engine floor and npm package-manager pin.

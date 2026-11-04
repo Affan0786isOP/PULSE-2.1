@@ -141,6 +141,16 @@ interface PublicDatasetDoc {
   congruentAvg?: number;
   incongruentAvg?: number;
   interferenceCost?: number;
+  directionProfile?: {
+    upAccuracy?: number;
+    upMedianRt?: number;
+    rightAccuracy?: number;
+    rightMedianRt?: number;
+    downAccuracy?: number;
+    downMedianRt?: number;
+    leftAccuracy?: number;
+    leftMedianRt?: number;
+  };
   // Memory specific
   highestLevel?: number;
   longestSeq?: number;
