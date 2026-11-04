@@ -115,7 +115,7 @@ describe('desktop and mobile leaderboard components', () => {
     }
   });
 
-  it('does not show a successful refresh toast when the mobile leaderboard request fails', async () => {
+  it('keeps cached mobile standings visible and avoids a success toast when refresh fails', async () => {
     vi.mocked(getMobileLeaderboardResults)
       .mockResolvedValueOnce(makeEntries('visual-reaction'))
       .mockRejectedValueOnce(new Error('Network error'));
@@ -129,8 +129,29 @@ describe('desktop and mobile leaderboard components', () => {
     expect(await screen.findByText('Speed Winner')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Refresh Leaderboard' }));
 
-    expect(await screen.findByText('Unable to Load Leaderboard')).toBeTruthy();
+    expect(await screen.findByText('Network error')).toBeTruthy();
+    expect(screen.getByText('Speed Winner')).toBeTruthy();
+    expect(screen.queryByText('Unable to Load Leaderboard')).toBeNull();
     expect(screen.queryByText(/Leaderboard updated/i)).toBeNull();
+  });
+
+  it('keeps cached desktop standings visible when refresh fails', async () => {
+    vi.mocked(getDesktopLeaderboardResults)
+      .mockResolvedValueOnce(makeEntries('visual-reaction'))
+      .mockRejectedValueOnce(new Error('Network error'));
+
+    render(
+      <MemoryRouter initialEntries={['/leaderboard']}>
+        <DesktopLeaderboard onNavigate={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Speed Winner')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh Leaderboard' }));
+
+    expect(await screen.findByText('Network error')).toBeTruthy();
+    expect(screen.getByText('Speed Winner')).toBeTruthy();
+    expect(screen.queryByText('Unable to Load Leaderboard')).toBeNull();
   });
 
 });
