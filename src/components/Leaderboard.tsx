@@ -459,7 +459,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                 ))}
               </div>
             </div>
-          ) : error ? (
+          ) : error && displayedEntries.length === 0 ? (
             <div role="alert" className="py-16 flex flex-col items-center justify-center text-center max-w-md mx-auto my-auto">
               <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-500 mb-4 shadow-xs">
                 <AlertCircle size={24} />
@@ -501,6 +501,12 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             </div>
           ) : (
             <div className="overflow-x-auto">
+              {error && (
+                <div role="alert" className="mb-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                  <AlertCircle size={14} className="shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-400 font-medium text-xs sm:text-[13px]">
