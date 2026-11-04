@@ -57,6 +57,9 @@ describe('Service Worker Tier 2 Caching', () => {
     expect(desktopSw).toContain(safeTimeout);
     expect(mobileSw).toContain(safeTimeout);
     expect(mobileSw).not.toContain("setTimeout(() => resolve(false), 200)");
+    expect(mobileSw).toContain(`catch {
+        // Unknown client state must never permit an unsafe worker takeover.
+        resolve(true);`);
   });
 
   it('strictly bypasses cross-origin requests to prevent caching external resources', () => {
