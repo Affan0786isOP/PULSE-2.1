@@ -1,57 +1,73 @@
-# PULSE Robots.txt & AI Crawler Governance Policy
-# RFC 9309 Compliant Crawler Directives & Content-Signal Specifications
-
 User-agent: *
 Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
-
-# Private & API routes
 Disallow: /admin
 Disallow: /admin/
+Disallow: /api
 Disallow: /api/
-
-# Internal pre-rendered SEO shells (served transparently via rewrites)
 Disallow: /seo/
-
-# Mobile app - duplicate canonicalized content
 Disallow: /mobile/
 
-# AI Search & Retrieval Crawlers (Search & Citation Permitted; Model Training Disallowed)
-User-agent: GPTBot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
+# AI search and user-directed retrieval (not model-training crawlers).
+# These crawlers can access public canonical pages only.
+User-agent: OAI-SearchBot
 Allow: /
 Disallow: /admin
+Disallow: /admin/
+Disallow: /api
+Disallow: /api/
+Disallow: /seo/
+Disallow: /mobile/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api
 Disallow: /api/
 Disallow: /seo/
 Disallow: /mobile/
 
 User-agent: PerplexityBot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Disallow: /admin
+Disallow: /admin/
+Disallow: /api
 Disallow: /api/
 Disallow: /seo/
 Disallow: /mobile/
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api
+Disallow: /api/
+Disallow: /seo/
+Disallow: /mobile/
+
+User-agent: Claude-User
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api
+Disallow: /api/
+Disallow: /seo/
+Disallow: /mobile/
+
+# Model-training crawlers are explicitly excluded.
+User-agent: GPTBot
+Disallow: /
 
 User-agent: ClaudeBot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /seo/
-Disallow: /mobile/
+Disallow: /
 
 User-agent: Applebot-Extended
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /seo/
-Disallow: /mobile/
+Disallow: /
 
-# Explicit Disallow for Model Training Crawlers while Preserving Google Search
+# Google-Extended controls Gemini training AND grounding in Gemini Apps.
+# This is blocked to honor ai-train=no; Googlebot remains allowed for Google Search.
 User-agent: Google-Extended
-Content-Signal: search=yes, ai-input=yes, ai-train=no
 Disallow: /
 
 Sitemap: https://pulse-lab.in/sitemap.xml
