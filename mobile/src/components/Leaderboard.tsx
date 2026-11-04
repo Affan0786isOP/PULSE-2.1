@@ -112,7 +112,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
     setSearchParams(nextParams);
   }, [searchParams, setSearchParams]);
 
-  const fetchLeaderboard = useCallback(async (protocolToFetch?: AssessmentType, options?: { bypassCache?: boolean }) => {
+  const fetchLeaderboard = useCallback(async (protocolToFetch?: AssessmentType, options?: { bypassCache?: boolean }): Promise<boolean> => {
     const targetProtocol = protocolToFetch || selectedProtocol;
     const fetchId = ++activeFetchIdRef.current;
     setLoading(true);
@@ -121,15 +121,17 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
     try {
       const data = options ? await getLeaderboardResults(targetProtocol, options) : await getLeaderboardResults(targetProtocol);
       // Guard against out-of-order resolution if user switched tabs
-      if (fetchId !== activeFetchIdRef.current) return;
+      if (fetchId !== activeFetchIdRef.current) return false;
       const valid = (Array.isArray(data) ? data : []).filter(e => isOptedInLeaderboardUser(e?.displayName));
       setEntries(valid);
       setLastUpdated((data as any).fetchedAt || new Date());
       if ((data as any).warning) {
         setError((data as any).warning);
+        return false;
       }
+      return true;
     } catch (err: any) {
-      if (fetchId !== activeFetchIdRef.current) return;
+      if (fetchId !== activeFetchIdRef.current) return false;
       console.error("Leaderboard fetch error:", err);
       // N3: If working entries already exist, do NOT wipe them on error or 429
       setEntries(prev => (prev.length > 0 ? prev : []));
@@ -139,6 +141,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
           ? "Too many refresh requests. Showing latest standings — please try again shortly."
           : (err?.message || "Cloud leaderboard could not be reached.")
       );
+      return false;
     } finally {
       if (fetchId === activeFetchIdRef.current) {
         setLoading(false);
@@ -172,8 +175,8 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
 
   const handleManualRefresh = async () => {
     triggerHaptic('tap');
-    await fetchLeaderboard(undefined, { bypassCache: true });
-    triggerToast('Leaderboard updated • just now');
+    const updated = await fetchLeaderboard(undefined, { bypassCache: true });
+    if (updated) triggerToast('Leaderboard updated • just now');
   };
 
   return (
