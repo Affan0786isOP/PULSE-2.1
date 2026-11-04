@@ -24,7 +24,7 @@ import { VALID_AGE_GROUPS, AssessmentType } from '../lib/firestore';
 import { ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Monitor, Smartphone } from 'lucide-react';
 import { DirectionDataset } from './DirectionDataset';
 import {
-  calculateReactionTimeDistribution, calculateTrialProgression,
+  calculateTrialProgression,
   getAgeGroupShortLabel, medianValue,
 } from '@shared/dataset/analytics';
 import { DatasetTooltip } from '@shared/dataset/DatasetTooltip';
@@ -81,7 +81,6 @@ function HeroLatencyMetric({ value }: HeroLatencyMetricProps) {
           </div>
           <div className="flex justify-between items-center text-[10px] font-mono text-[var(--text-muted)] mt-1">
             <span>150ms</span>
-            <span className="text-cyan-400/80 font-medium">Cohort Window</span>
             <span>450ms</span>
           </div>
         </div>
@@ -182,16 +181,40 @@ export function Dataset({ onNavigate }: DatasetProps) {
     return sessionAvgs.length ? Math.round(Math.min(...sessionAvgs)) : 0;
   }, [trials]);
 
-  // 2. Reaction Time Distribution Data (Area Chart)
+  // 2. Reaction Time vs Foreperiod (Delay intervals)
+  const foreperiodData = useMemo(() => {
+    const bins = [
+      { label: '100–500ms', min: 100, max: 500, rts: [] as number[] },
+      { label: '500–1000ms', min: 500, max: 1000, rts: [] as number[] },
+      { label: '1000–1500ms', min: 1000, max: 1500, rts: [] as number[] },
+      { label: '1500–2000ms', min: 1500, max: 2000, rts: [] as number[] },
+      { label: '2000–2500ms', min: 2000, max: 2500, rts: [] as number[] },
+      { label: '2500–3000ms', min: 2500, max: 3000, rts: [] as number[] },
+    ];
 
-  // 2. Reaction Time Distribution Data (Area Chart)
-  const distributionData = useMemo(
-    () => calculateReactionTimeDistribution(
-      trials,
-      (trial) => trial.experimentId || trial.sessionId || trial.id,
-    ),
-    [trials],
-  );
+    trials.forEach((t) => {
+      if (
+        typeof t.foreperiodMs === 'number' &&
+        t.foreperiodMs >= 100 &&
+        t.foreperiodMs <= 3000 &&
+        !t.falseStart &&
+        !t.timedOut &&
+        t.reactionTime > 80 &&
+        t.reactionTime < 2000
+      ) {
+        const bin = bins.find(
+          (b) => t.foreperiodMs! >= b.min && (b.max === 3000 ? t.foreperiodMs! <= b.max : t.foreperiodMs! < b.max)
+        );
+        if (bin) bin.rts.push(t.reactionTime);
+      }
+    });
+
+    return bins.map((bin) => ({
+      foreperiod: bin.label,
+      medianRT: Math.round(medianValue(bin.rts)),
+      n: bin.rts.length,
+    }));
+  }, [trials]);
 
   // Cohort comparisons use one session-level summary per assessment, not a mixture of session and trial records.
   const ageGroupData = useMemo(() => {
@@ -461,13 +484,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     </span>
                   </div>
                 </div>
-                <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)]">
-                  <span className="text-purple-400 font-medium">
-                    {deviceComparisonData[0]?.value && deviceComparisonData[1]?.value
-                      ? `+${Math.abs(deviceComparisonData[1].value - deviceComparisonData[0].value)} ms Mobile`
-                      : 'Equally distributed'}
-                  </span>
-                </div>
               </div>
 
               {/* Card 3: Sessions in Dataset */}
@@ -476,7 +492,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
                     Sessions in Dataset
                   </span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                 </div>
                 <div className="my-auto py-2">
                   <span className="text-3xl sm:text-4xl font-mono text-[var(--text-primary)] font-bold">
@@ -509,38 +524,31 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
             {/* 2. AREA & BAR */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
-              {/* Area */}
+              {/* Reaction Time vs Foreperiod */}
               <div
-                id="chart-card-area"
+                id="chart-card-foreperiod"
                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-xs relative overflow-hidden min-w-0"
               >
                 <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                    Reaction Time Distribution
+                    Reaction Time vs Foreperiod
                   </span>
                   <div className="flex items-center gap-3 text-xs font-mono">
                     <span className="flex items-center gap-1.5 text-[#00f0ff]">
-                      <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Desktop
-                    </span>
-                    <span className="flex items-center gap-1.5 text-[#a78bfa]">
-                      <span className="w-2 h-2 rounded-full bg-[#a78bfa]" /> Mobile
+                      <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Median RT
                     </span>
                   </div>
                 </div>
                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={distributionData}
+                      data={foreperiodData}
                       margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
                     >
                       <defs>
-                        <linearGradient id="areaDesktopGrad" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="areaForeperiodGrad" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.35} />
                           <stop offset="95%" stopColor="#00f0ff" stopOpacity={0.0} />
-                        </linearGradient>
-                        <linearGradient id="areaMobileGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#a78bfa" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid
@@ -549,7 +557,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         vertical={false}
                       />
                       <XAxis
-                        dataKey="label"
+                        dataKey="foreperiod"
                         stroke="var(--chart-text)"
                         fontSize={9}
                         fontFamily="monospace"
@@ -563,6 +571,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         fontFamily="monospace"
                         tickLine={false}
                         axisLine={false}
+                        unit="ms"
                       />
                       <Tooltip 
                         content={<DatasetTooltip />} 
@@ -571,19 +580,11 @@ export function Dataset({ onNavigate }: DatasetProps) {
                       />
                       <Area
                         type="monotone"
-                        dataKey="desktop"
-                        name="Desktop Cohort"
+                        dataKey="medianRT"
+                        name="Median RT"
                         stroke="#00f0ff"
                         strokeWidth={2}
-                        fill="url(#areaDesktopGrad)"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="mobile"
-                        name="Mobile Cohort"
-                        stroke="#a78bfa"
-                        strokeWidth={2}
-                        fill="url(#areaMobileGrad)"
+                        fill="url(#areaForeperiodGrad)"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -659,13 +660,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 </span>
                 <div className="flex items-center gap-3 text-xs font-mono">
                   <span className="flex items-center gap-1.5 text-[#00f0ff]">
-                    <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Desktop
-                  </span>
-                  <span className="flex items-center gap-1.5 text-[#a78bfa]">
-                    <span className="w-2 h-2 rounded-full bg-[#a78bfa]" /> Mobile
-                  </span>
-                  <span className="flex items-center gap-1.5 text-[#38bdf8]">
-                    <span className="w-2 h-2 rounded-full bg-[#38bdf8]" /> Overall
+                    <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Overall RT
                   </span>
                 </div>
               </div>
@@ -702,31 +697,12 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     />
                     <Line
                       type="monotone"
-                      dataKey="desktop"
-                      name="Desktop RT"
-                      stroke="#00f0ff"
-                      strokeWidth={2}
-                      dot={{ r: 3.5, fill: '#00f0ff', strokeWidth: 0 }}
-                      activeDot={{ r: 5.5 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="mobile"
-                      name="Mobile RT"
-                      stroke="#a78bfa"
-                      strokeWidth={2}
-                      dot={{ r: 3.5, fill: '#a78bfa', strokeWidth: 0 }}
-                      activeDot={{ r: 5.5 }}
-                    />
-                    <Line
-                      type="monotone"
                       dataKey="overall"
                       name="Overall RT"
-                      stroke="#38bdf8"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      dot={{ r: 3.5, fill: '#38bdf8', strokeWidth: 0 }}
-                      activeDot={{ r: 5.5 }}
+                      stroke="#00f0ff"
+                      strokeWidth={2.5}
+                      dot={{ r: 4, fill: '#00f0ff', strokeWidth: 0 }}
+                      activeDot={{ r: 6 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -812,9 +788,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
                     Trial Validity
-                  </span>
-                  <span className="text-[11px] font-mono text-emerald-400 font-semibold tracking-wider">
-                    {validPercent}% VALID
                   </span>
                 </div>
                 <div className="w-full h-[180px] sm:h-[190px] relative flex items-center justify-center my-auto min-w-0">
