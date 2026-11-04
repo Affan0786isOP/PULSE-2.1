@@ -114,4 +114,23 @@ describe('desktop and mobile leaderboard components', () => {
       expect(tab.className).toContain('min-h-[44px]');
     }
   });
+
+  it('does not show a successful refresh toast when the mobile leaderboard request fails', async () => {
+    vi.mocked(getMobileLeaderboardResults)
+      .mockResolvedValueOnce(makeEntries('visual-reaction'))
+      .mockRejectedValueOnce(new Error('Network error'));
+
+    render(
+      <MemoryRouter initialEntries={['/leaderboard']}>
+        <MobileLeaderboard onNavigate={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Speed Winner')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh Leaderboard' }));
+
+    expect(await screen.findByText('Unable to Load Leaderboard')).toBeTruthy();
+    expect(screen.queryByText(/Leaderboard updated/i)).toBeNull();
+  });
+
 });
