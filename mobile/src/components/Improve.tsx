@@ -12,7 +12,7 @@ import {
   EvidenceType,
 } from "../data/facts";
 import { SEO } from "./SEO";
-import { isReducedMotionActive, playAudioCue } from "../lib/settingsStore";
+import { isReducedMotionActive, playAudioCue, useReducedMotionPreference } from "../lib/settingsStore";
 import {
   Moon,
   Droplet,
@@ -85,6 +85,7 @@ export function Improve({
   onNavigate: (view: string) => void;
 }) {
   const [checkedItems, setCheckedItems] = useState<Set<number>>(() => loadPersistedChecklist());
+  const shouldReduceMotion = useReducedMotionPreference();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [researchEntries] = useState<ResearchEntry[]>(() => getRandomizedResearchEntries());
   const [isLedgerPaused, setIsLedgerPaused] = useState(false);
@@ -115,12 +116,12 @@ export function Improve({
   );
 
   useEffect(() => {
-    if (isLedgerPaused || isReducedMotionActive()) return;
+    if (isLedgerPaused || shouldReduceMotion) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % researchEntries.length);
     }, 7000);
     return () => clearInterval(timer);
-  }, [researchEntries.length, isLedgerPaused, ledgerTimerReset]);
+  }, [researchEntries.length, isLedgerPaused, ledgerTimerReset, shouldReduceMotion]);
 
   const handlePrevSlide = () => {
     playAudioCue("click");
