@@ -216,6 +216,22 @@ export function Dataset({ onNavigate }: DatasetProps) {
     }));
   }, [trials]);
 
+  // Clean, evenly-spaced 25ms or 50ms ticks for Reaction Time vs Foreperiod
+  const foreperiodTicks = useMemo(() => {
+    const validRTs = foreperiodData.map((d) => d.medianRT).filter((v) => v > 0);
+    if (!validRTs.length) return [200, 250, 300, 350, 400];
+    const min = Math.min(...validRTs);
+    const max = Math.max(...validRTs);
+    const step = max - min > 160 ? 50 : 25;
+    const yMin = Math.floor((min - 15) / step) * step;
+    const yMax = Math.ceil((max + 15) / step) * step;
+    const ticks: number[] = [];
+    for (let t = yMin; t <= yMax; t += step) {
+      ticks.push(t);
+    }
+    return ticks;
+  }, [foreperiodData]);
+
   // Cohort comparisons use one session-level summary per assessment, not a mixture of session and trial records.
   const ageGroupData = useMemo(() => {
     return VALID_AGE_GROUPS.map((group) => {
@@ -572,7 +588,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         tickLine={false}
                         axisLine={false}
                         unit="ms"
-                        domain={['dataMin - 30', 'dataMax + 30']}
+                        domain={[foreperiodTicks[0], foreperiodTicks[foreperiodTicks.length - 1]]}
+                        ticks={foreperiodTicks}
                       />
                       <Tooltip 
                         content={<DatasetTooltip />} 
