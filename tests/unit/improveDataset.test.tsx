@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { cleanup, render, screen, fireEvent } from '@testing-library/react';
+import { act, cleanup, render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { DatasetComingSoon } from '../../src/components/DatasetComingSoon';
 import { Improve } from '../../src/components/Improve';
+import { resetSettingsToDefaults, updateSettings } from '../../src/lib/settingsStore';
 
 describe('Dataset and Improve Light System Migration', () => {
   beforeEach(() => {
@@ -51,6 +52,33 @@ describe('Dataset and Improve Light System Migration', () => {
       const mainLandmarks = screen.getAllByRole('main');
       expect(mainLandmarks).toHaveLength(1);
       expect(mainLandmarks[0].id).toBe('main-content');
+    });
+
+    it('stops carousel autoplay when reduced motion is enabled while mounted', () => {
+      vi.useFakeTimers();
+      resetSettingsToDefaults();
+      updateSettings({ reducedMotionEnabled: false });
+      const intervalSpy = vi.spyOn(window, 'setInterval');
+      const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
+
+      const { unmount } = render(
+        <MemoryRouter initialEntries={['/improve']}>
+          <Improve onNavigate={vi.fn()} />
+        </MemoryRouter>
+      );
+
+      const autoplayCall = intervalSpy.mock.calls.find((call) => call[1] === 7000);
+      expect(autoplayCall).toBeDefined();
+      const autoplayId = intervalSpy.mock.results[intervalSpy.mock.calls.indexOf(autoplayCall!)].value;
+
+      act(() => {
+        updateSettings({ reducedMotionEnabled: true });
+      });
+
+      expect(clearIntervalSpy).toHaveBeenCalledWith(autoplayId);
+      unmount();
+      vi.useRealTimers();
+      resetSettingsToDefaults();
     });
 
     it('toggles preparation checklist items and supports reset', () => {
