@@ -572,6 +572,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         tickLine={false}
                         axisLine={false}
                         unit="ms"
+                        domain={['dataMin - 30', 'dataMax + 30']}
                       />
                       <Tooltip 
                         content={<DatasetTooltip />} 
