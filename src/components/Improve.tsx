@@ -148,25 +148,24 @@ export function Improve({
   };
 
   useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const idx = improveSections.findIndex((s) => s.id === entry.target.id);
-            if (idx !== -1) setActiveIndex(idx);
-          }
-        });
-      },
-      { root: scrollContainerRef.current, rootMargin: "-15% 0px -45% 0px", threshold: 0.1 }
-    );
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 160;
+      let currentIdx = 0;
 
-    improveSections.forEach((sec) => {
-      const el = document.getElementById(sec.id);
-      if (el) observer.observe(el);
-    });
+      for (let i = 0; i < improveSections.length; i++) {
+        const el = document.getElementById(improveSections[i].id);
+        if (el && el.offsetTop <= scrollPosition) {
+          currentIdx = i;
+        }
+      }
 
-    return () => observer.disconnect();
+      setActiveIndex((prev) => (prev !== currentIdx ? currentIdx : prev));
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const selectImproveSection = (index: number) => {
@@ -192,7 +191,6 @@ export function Improve({
       onNavigate={onNavigate}
       decorativeWaves="none"
       maxWidth="full"
-      disableScaling={true}
       contentClassName="pt-6 pb-24"
     >
       <div ref={scrollContainerRef} className="w-full">
@@ -207,7 +205,7 @@ export function Improve({
 
         <div className="w-full max-w-[1600px] mx-auto flex flex-col lg:flex-row gap-8 xl:gap-14 px-4 sm:px-6 lg:px-8 xl:px-12">
           <aside className="w-full lg:w-56 xl:w-64 shrink-0 lg:sticky lg:top-24 self-start z-20 px-0 order-1 lg:order-1 flex justify-center lg:justify-start">
-            <div className="w-full max-w-full sm:max-w-sm lg:max-w-none bg-white/80 dark:bg-[#12161B]/80 backdrop-blur-sm lg:bg-transparent p-3 sm:p-4 lg:p-0 rounded-xl border border-slate-200/80 dark:border-slate-800 lg:border-none mb-4 lg:mb-0 shadow-xs lg:shadow-none">
+            <div className="w-full max-w-full sm:max-w-sm lg:max-w-none bg-transparent dark:bg-transparent p-0 rounded-xl border-none mb-4 lg:mb-0 shadow-none">
               <HookSidebar
                 items={improveSections}
                 value={activeIndex}
@@ -264,30 +262,18 @@ export function Improve({
                   return (
                     <div
                       key={`factor-${factor.id}`}
-                      className={`backdrop-blur-sm border rounded-xl p-4.5 flex flex-col justify-between transition-all hover:shadow-xs ${
+                      className={`bg-white/95 dark:bg-[#12161B] backdrop-blur-sm border-2 rounded-xl p-4.5 flex flex-col justify-between transition-all hover:shadow-sm ${
                         isHigherLatency
-                          ? "bg-rose-50/50 dark:bg-[#1f1316]/50 border-rose-200/60 dark:border-rose-900/40 hover:border-rose-300 dark:hover:border-rose-800/60"
-                          : "bg-emerald-50/50 dark:bg-[#0f1d19]/50 border-emerald-200/60 dark:border-emerald-900/40 hover:border-emerald-300 dark:hover:border-emerald-800/60"
+                          ? "border-rose-400/80 dark:border-rose-500/70 hover:border-rose-500 dark:hover:border-rose-400"
+                          : "border-emerald-400/80 dark:border-emerald-500/70 hover:border-emerald-500 dark:hover:border-emerald-400"
                       }`}
                     >
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <div
-                            className={`w-8 h-8 rounded-md border flex items-center justify-center ${
-                              isHigherLatency
-                                ? "bg-rose-100/70 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/50 text-rose-600 dark:text-rose-400"
-                                : "bg-emerald-100/70 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50 text-emerald-600 dark:text-emerald-400"
-                            }`}
-                          >
+                          <div className="w-8 h-8 rounded-md bg-[#F0F7FF] dark:bg-[#181D23] border border-[#BFDBFE] dark:border-slate-700 flex items-center justify-center text-[#0066FF] dark:text-[#22C7D6]">
                             <IconComp size={16} />
                           </div>
-                          <span
-                            className={`text-[11px] font-sans font-medium tracking-tight ${
-                              isHigherLatency
-                                ? "text-rose-600/80 dark:text-rose-400/80"
-                                : "text-emerald-700/80 dark:text-emerald-400/80"
-                            }`}
-                          >
+                          <span className="text-[11px] font-sans font-medium text-slate-500 dark:text-slate-400 tracking-tight">
                             {evidence.label}
                           </span>
                         </div>
@@ -298,27 +284,9 @@ export function Improve({
                           {factor.desc}
                         </p>
                       </div>
-                      <div
-                        className={`flex items-center gap-2 pt-2 border-t mt-auto ${
-                          isHigherLatency
-                            ? "border-rose-200/50 dark:border-rose-900/40"
-                            : "border-emerald-200/50 dark:border-emerald-900/40"
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                            isHigherLatency
-                              ? "bg-rose-500 dark:bg-rose-400"
-                              : "bg-emerald-500 dark:bg-emerald-400"
-                          }`}
-                        />
-                        <span
-                          className={`text-[11px] font-sans font-medium ${
-                            isHigherLatency
-                              ? "text-rose-700 dark:text-rose-300"
-                              : "text-emerald-700 dark:text-emerald-300"
-                          }`}
-                        >
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60 mt-auto">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isHigherLatency ? 'bg-rose-500/80 dark:bg-rose-400' : 'bg-emerald-500/80 dark:bg-emerald-400'}`} />
+                        <span className="text-[11px] font-sans font-medium text-slate-600 dark:text-slate-300">
                           {isHigherLatency ? "Associated with higher latency" : "Supports response consistency"}
                         </span>
                       </div>
