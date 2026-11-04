@@ -39,7 +39,8 @@ async function checkAnyClientHasActiveSession() {
         };
         client.postMessage({ type: 'QUERY_PULSE_SESSION_ACTIVE' }, [channel.port2]);
       } catch {
-        resolve(false);
+        // Unknown client state must never permit an unsafe worker takeover.
+        resolve(true);
       }
     });
   });
