@@ -26,6 +26,9 @@ export interface PageShellProps {
   showFooter?: boolean;
   theme?: 'light' | 'dark-apparatus' | 'dark';
   contentClassName?: string;
+  /** Apply canonical 1280×720 scaling to fixed-viewport stages only. */
+  enableScaling?: boolean;
+  /** @deprecated Prefer enableScaling={false}; retained for call-site compatibility. */
   disableScaling?: boolean;
   style?: React.CSSProperties;
 }
@@ -58,12 +61,16 @@ export const PageShell: React.FC<PageShellProps> = ({
   showNavbar = true,
   theme,
   contentClassName = '',
+  enableScaling = false,
   disableScaling = false,
   style,
 }) => {
   const location = useLocation();
   const { style: scaleStyle } = useBaselineScale();
-  const effectiveStyle = disableScaling ? style : (scaleStyle ? { ...scaleStyle, ...style } : style);
+  const shouldScale = enableScaling || isAssessmentActive === true;
+  const effectiveStyle = shouldScale && !disableScaling && scaleStyle
+    ? { ...scaleStyle, ...style }
+    : style;
 
   // Register shell as authoritative SEO owner before any useEffect runs
   useLayoutEffect(() => {
