@@ -97,6 +97,7 @@ export function Home() {
 
   return (
     <PageShell
+      enableScaling
       currentView="home"
       schema={HOME_SCHEMA}
       decorativeWaves="bottom"
