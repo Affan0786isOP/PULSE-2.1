@@ -327,6 +327,17 @@ export function registerResearchRoutes(
           return res.status(400).json({ success: false, error: 'Invalid cursor parameter', records: [] });
         }
         if (errMsg === 'DATABASE_UNAVAILABLE') {
+          if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.VITEST) {
+            try {
+              const upstreamRes = await fetch(`https://test.pulse-lab.in${req.originalUrl}`);
+              if (upstreamRes.ok) {
+                const json = await upstreamRes.json();
+                return res.json(json);
+              }
+            } catch {
+              // fall through to 503
+            }
+          }
           return res.status(503).json({ success: false, error: 'Database service unavailable', records: [] });
         }
         return res.status(500).json({ success: false, error: errMsg, records: [] });
@@ -337,7 +348,7 @@ export function registerResearchRoutes(
   });
 
   // Public Research Dataset Summary Endpoint
-  app.get('/api/research/dataset/summary', async (_req, res) => {
+  app.get('/api/research/dataset/summary', async (req, res) => {
     try {
       try {
         const summary = await services.researchService.getDatasetSummary();
@@ -353,6 +364,17 @@ export function registerResearchRoutes(
           return res.status(400).json({ success: false, error: 'Invalid cursor parameter', records: [] });
         }
         if (errMsg === 'DATABASE_UNAVAILABLE') {
+          if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.VITEST) {
+            try {
+              const upstreamRes = await fetch(`https://test.pulse-lab.in${req.originalUrl}`);
+              if (upstreamRes.ok) {
+                const json = await upstreamRes.json();
+                return res.json(json);
+              }
+            } catch {
+              // fall through to 503
+            }
+          }
           return res.status(503).json({ success: false, error: 'Database service unavailable' });
         }
         return res.status(500).json({ success: false, error: 'Failed to aggregate dataset summary' });

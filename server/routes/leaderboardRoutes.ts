@@ -321,6 +321,17 @@ export function registerLeaderboardRoutes(
     } catch (err: unknown) {
       setNoStore();
       const errMsg = err instanceof Error ? err.message : String(err);
+      if ((errMsg === 'DATABASE_UNAVAILABLE' || errMsg === 'LEADERBOARD_UNAVAILABLE') && process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.VITEST) {
+        try {
+          const upstreamRes = await fetch('https://test.pulse-lab.in' + req.originalUrl);
+          if (upstreamRes.ok) {
+            const json = await upstreamRes.json();
+            return res.json(json);
+          }
+        } catch {
+          // fall through to 503
+        }
+      }
       const status = err instanceof AppError ? err.status : (errMsg === 'DATABASE_UNAVAILABLE' ? 503 : 500);
       const error = status === 400 ? errMsg :
         status === 503 ? 'Leaderboard service unavailable. Please retry.' :
