@@ -121,4 +121,49 @@ describe('useAuthoritativeStats 60s Cache (Tier 5)', () => {
     const updated = JSON.parse(localStorage.getItem('pulse_authoritative_stats') || '{}');
     expect(updated.count).toBe(98);
   });
+
+  it('does not let a pre-reset in-flight read recreate the cleared cache', async () => {
+    let resolveOldRead: (value: any) => void;
+    vi.mocked(firestore.getCountFromServer).mockReturnValueOnce(
+      new Promise((resolve) => { resolveOldRead = resolve; }) as any
+    );
+
+    const { result } = renderHook(() => useAuthoritativeStats());
+    await waitFor(() => expect(firestore.getCountFromServer).toHaveBeenCalledTimes(1));
+
+    clearAuthoritativeStatsCache();
+    expect(localStorage.getItem('pulse_authoritative_stats')).toBeNull();
+
+    resolveOldRead!({ data: () => ({ count: 321 }) });
+    await waitFor(() => expect(result.current.isLoadingResults).toBe(false));
+
+    expect(result.current.resultsCount).toBe(321);
+    expect(localStorage.getItem('pulse_authoritative_stats')).toBeNull();
+    expect(document.cookie).not.toContain('pulse_authoritative_stats=');
+  });
+
+  it('keeps a post-reset in-flight read registered when an older request settles', async () => {
+    let resolveOldRead: (value: any) => void;
+    let resolveNewRead: (value: any) => void;
+    vi.mocked(firestore.getCountFromServer)
+      .mockReturnValueOnce(new Promise((resolve) => { resolveOldRead = resolve; }) as any)
+      .mockReturnValueOnce(new Promise((resolve) => { resolveNewRead = resolve; }) as any);
+
+    const { result: oldResult } = renderHook(() => useAuthoritativeStats());
+    await waitFor(() => expect(firestore.getCountFromServer).toHaveBeenCalledTimes(1));
+
+    clearAuthoritativeStatsCache();
+    const { result: newResult } = renderHook(() => useAuthoritativeStats());
+    await waitFor(() => expect(firestore.getCountFromServer).toHaveBeenCalledTimes(2));
+
+    resolveOldRead!({ data: () => ({ count: 111 }) });
+    await waitFor(() => expect(oldResult.current.isLoadingResults).toBe(false));
+
+    resolveNewRead!({ data: () => ({ count: 222 }) });
+    await waitFor(() => expect(newResult.current.isLoadingResults).toBe(false));
+
+    expect(newResult.current.resultsCount).toBe(222);
+    expect(JSON.parse(localStorage.getItem('pulse_authoritative_stats') || '{}').count).toBe(222);
+  });
+
 });
