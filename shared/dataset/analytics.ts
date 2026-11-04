@@ -453,3 +453,323 @@ export function calculateTrialProgression<T extends DatasetAnalyticsTrial>(
     overallN: group.allSessions.size,
   }));
 }
+
+// ==========================================
+// Direction Choice Reaction Time Analytics
+// ==========================================
+
+export interface DirectionTrialRecord {
+  trialNumber?: number;
+  reactionTime?: number;
+  rawLatencyMs?: number;
+  accuracy?: number;
+  correct?: boolean;
+  valid?: boolean;
+  falseStart?: boolean;
+  timedOut?: boolean;
+  validity?: string;
+  targetDirection?: string;
+  condition?: string;
+  userResponse?: string;
+}
+
+export interface DirectionSessionRecord {
+  id?: string;
+  device?: string;
+  deviceCategory?: string;
+  ageGroup?: string;
+  medianReactionTime?: number;
+  averageReactionTime?: number;
+  accuracy?: number;
+  overallAccuracy?: number;
+  totalCorrect?: number;
+  totalIncorrect?: number;
+  totalTrials?: number;
+  progressionTrials?: DirectionTrialRecord[];
+}
+
+export interface DirectionalProfileEntry {
+  direction: 'UP' | 'RIGHT' | 'DOWN' | 'LEFT';
+  accuracy: number;
+  medianRT: number;
+  totalAttempts: number;
+  correctAttempts: number;
+}
+
+export function calculateDirectionalProfile(
+  sessions: readonly DirectionSessionRecord[],
+  trialsFallback?: readonly DirectionTrialRecord[]
+): DirectionalProfileEntry[] {
+  const directions: ('UP' | 'RIGHT' | 'DOWN' | 'LEFT')[] = ['UP', 'RIGHT', 'DOWN', 'LEFT'];
+  const agg: Record<'UP' | 'RIGHT' | 'DOWN' | 'LEFT', { total: number; correct: number; rts: number[] }> = {
+    UP: { total: 0, correct: 0, rts: [] },
+    RIGHT: { total: 0, correct: 0, rts: [] },
+    DOWN: { total: 0, correct: 0, rts: [] },
+    LEFT: { total: 0, correct: 0, rts: [] },
+  };
+
+  const processTrial = (t: DirectionTrialRecord) => {
+    const rawTarget = t.targetDirection || t.condition?.replace('arrow-', '');
+    const dir = rawTarget?.toUpperCase() as 'UP' | 'RIGHT' | 'DOWN' | 'LEFT' | undefined;
+    if (!dir || !directions.includes(dir)) return;
+
+    agg[dir].total++;
+    const isCorrect = t.accuracy === 1 || t.correct === true || t.validity === 'VALID';
+    if (isCorrect) {
+      agg[dir].correct++;
+      const rt = t.reactionTime ?? t.rawLatencyMs;
+      if (rt !== undefined && rt >= 80 && rt < 3000 && !t.falseStart && !t.timedOut && t.valid !== false) {
+        agg[dir].rts.push(rt);
+      }
+    }
+  };
+
+  let hasTrialData = false;
+  sessions.forEach((s) => {
+    if (s.progressionTrials && s.progressionTrials.length > 0) {
+      hasTrialData = true;
+      s.progressionTrials.forEach(processTrial);
+    }
+  });
+
+  if (!hasTrialData && trialsFallback && trialsFallback.length > 0) {
+    trialsFallback.forEach(processTrial);
+  }
+
+  return directions.map((dir) => {
+    const d = agg[dir];
+    const accuracy = d.total > 0 ? Math.round((d.correct / d.total) * 100) : 0;
+    const medianRT = Math.round(medianValue(d.rts));
+    return {
+      direction: dir,
+      accuracy,
+      medianRT,
+      totalAttempts: d.total,
+      correctAttempts: d.correct,
+    };
+  });
+}
+
+export interface DirectionHeatmapCell {
+  accuracyBand: '<70%' | '70–80%' | '80–90%' | '90–100%';
+  rtBand: '<300ms' | '300–500ms' | '500–700ms' | '700–900ms' | '≥900ms';
+  count: number;
+}
+
+export function calculateDirectionHeatmap(
+  sessions: readonly DirectionSessionRecord[]
+): {
+  cells: DirectionHeatmapCell[];
+  maxCount: number;
+  totalSessions: number;
+} {
+  const accBands: ('<70%' | '70–80%' | '80–90%' | '90–100%')[] = [
+    '90–100%',
+    '80–90%',
+    '70–80%',
+    '<70%',
+  ];
+  const rtBands: ('<300ms' | '300–500ms' | '500–700ms' | '700–900ms' | '≥900ms')[] = [
+    '<300ms',
+    '300–500ms',
+    '500–700ms',
+    '700–900ms',
+    '≥900ms',
+  ];
+
+  const map = new Map<string, number>();
+  accBands.forEach((a) => rtBands.forEach((rt) => map.set(`${a}|${rt}`, 0)));
+
+  let validCount = 0;
+  sessions.forEach((s) => {
+    const acc = typeof s.accuracy === 'number' ? s.accuracy : (s.overallAccuracy ?? null);
+    const rt = typeof s.medianReactionTime === 'number' ? s.medianReactionTime : (s.averageReactionTime ?? null);
+    if (acc === null || rt === null || !Number.isFinite(acc) || !Number.isFinite(rt)) return;
+
+    validCount++;
+    let accKey: '<70%' | '70–80%' | '80–90%' | '90–100%' = '<70%';
+    if (acc >= 90) accKey = '90–100%';
+    else if (acc >= 80) accKey = '80–90%';
+    else if (acc >= 70) accKey = '70–80%';
+
+    let rtKey: '<300ms' | '300–500ms' | '500–700ms' | '700–900ms' | '≥900ms' = '≥900ms';
+    if (rt < 300) rtKey = '<300ms';
+    else if (rt < 500) rtKey = '300–500ms';
+    else if (rt < 700) rtKey = '500–700ms';
+    else if (rt < 900) rtKey = '700–900ms';
+
+    const key = `${accKey}|${rtKey}`;
+    map.set(key, (map.get(key) || 0) + 1);
+  });
+
+  const cells: DirectionHeatmapCell[] = [];
+  let maxCount = 0;
+  accBands.forEach((a) => {
+    rtBands.forEach((rt) => {
+      const count = map.get(`${a}|${rt}`) || 0;
+      if (count > maxCount) maxCount = count;
+      cells.push({ accuracyBand: a, rtBand: rt, count });
+    });
+  });
+
+  return { cells, maxCount, totalSessions: validCount };
+}
+
+export interface DirectionOutcomeBreakdown {
+  correct: number;
+  incorrect: number;
+  premature: number;
+  timeout: number;
+  totalAttempts: number;
+  correctPercent: number;
+  incorrectPercent: number;
+  prematurePercent: number;
+  timeoutPercent: number;
+}
+
+export function calculateDirectionAttemptOutcomes(
+  sessions: readonly DirectionSessionRecord[],
+  trialsFallback?: readonly DirectionTrialRecord[]
+): DirectionOutcomeBreakdown {
+  let correct = 0;
+  let incorrect = 0;
+  let premature = 0;
+  let timeout = 0;
+  let totalAttempts = 0;
+
+  const processTrial = (t: DirectionTrialRecord) => {
+    totalAttempts++;
+    const rt = t.reactionTime ?? t.rawLatencyMs;
+    if (t.falseStart || (rt !== undefined && rt > 0 && rt < 80)) {
+      premature++;
+    } else if (t.timedOut || (rt !== undefined && rt >= 3000)) {
+      timeout++;
+    } else if (t.accuracy === 0 || t.correct === false || t.validity === 'INCORRECT') {
+      incorrect++;
+    } else if (t.accuracy === 1 || t.correct === true || t.validity === 'VALID') {
+      correct++;
+    } else {
+      // Default fallback based on RT validity
+      if (rt !== undefined && rt >= 80 && rt < 3000) correct++;
+      else incorrect++;
+    }
+  };
+
+  let hasTrialData = false;
+  sessions.forEach((s) => {
+    if (s.progressionTrials && s.progressionTrials.length > 0) {
+      hasTrialData = true;
+      s.progressionTrials.forEach(processTrial);
+    }
+  });
+
+  if (!hasTrialData) {
+    if (trialsFallback && trialsFallback.length > 0) {
+      trialsFallback.forEach(processTrial);
+    } else {
+      // Fallback from session aggregate summaries if trial arrays are completely absent
+      sessions.forEach((s) => {
+        const c = s.totalCorrect ?? 0;
+        const inc = s.totalIncorrect ?? 0;
+        const tot = s.totalTrials ?? (c + inc);
+        correct += c;
+        incorrect += inc;
+        totalAttempts += tot;
+      });
+    }
+  }
+
+  const correctPercent = totalAttempts > 0 ? Math.round((correct / totalAttempts) * 100) : 0;
+  const incorrectPercent = totalAttempts > 0 ? Math.round((incorrect / totalAttempts) * 100) : 0;
+  const prematurePercent = totalAttempts > 0 ? Math.round((premature / totalAttempts) * 100) : 0;
+  const timeoutPercent = totalAttempts > 0 ? Math.round((timeout / totalAttempts) * 100) : 0;
+
+  return {
+    correct,
+    incorrect,
+    premature,
+    timeout,
+    totalAttempts,
+    correctPercent,
+    incorrectPercent,
+    prematurePercent,
+    timeoutPercent,
+  };
+}
+
+export function calculateDirectionDerivedConsistency(
+  sessions: readonly DirectionSessionRecord[]
+): { consistency: number; device: string }[] {
+  const results: { consistency: number; device: string }[] = [];
+
+  sessions.forEach((s) => {
+    const trials = s.progressionTrials || [];
+    const validRTs = trials
+      .filter((t) => !t.falseStart && !t.timedOut && t.valid !== false && (t.accuracy === 1 || t.correct === true) && (t.reactionTime ?? t.rawLatencyMs ?? 0) >= 80 && (t.reactionTime ?? t.rawLatencyMs ?? 0) < 3000)
+      .map((t) => (t.reactionTime ?? t.rawLatencyMs) as number);
+
+    let consistencyVal: number | null = null;
+    if (validRTs.length >= 2) {
+      const mean = validRTs.reduce((a, b) => a + b, 0) / validRTs.length;
+      const variance = validRTs.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (validRTs.length - 1);
+      const sd = Math.sqrt(variance);
+      const cv = mean > 0 ? sd / mean : 0;
+      consistencyVal = Math.max(0, Math.min(100, Math.round((1 - cv) * 100)));
+    } else if (typeof s.medianReactionTime === 'number' && typeof s.averageReactionTime === 'number') {
+      // Fallback proxy: ratio of median to average
+      const ratio = Math.min(s.medianReactionTime, s.averageReactionTime) / Math.max(s.medianReactionTime, s.averageReactionTime);
+      consistencyVal = Math.round(ratio * 100);
+    }
+
+    if (consistencyVal !== null) {
+      const device = s.deviceCategory || s.device || 'desktop';
+      results.push({ consistency: consistencyVal, device });
+    }
+  });
+
+  return results;
+}
+
+export function calculateDirectionTrialProgression(
+  sessions: readonly DirectionSessionRecord[],
+  maxTrials: number = 10
+): { trialLabel: string; trialNumber: number; overall: number; n: number }[] {
+  // Key: sessionKey + '_' + logicalTrialNumber -> latest valid attempt
+  const trialMap = new Map<string, { sessionKey: string; trialNum: number; rt: number }>();
+
+  sessions.forEach((s, sIdx) => {
+    const sessionKey = s.id || `sess_${sIdx}`;
+    const trials = s.progressionTrials || [];
+    trials.forEach((t, tIdx) => {
+      const trialNum = t.trialNumber ?? (tIdx + 1);
+      if (trialNum < 1 || trialNum > maxTrials) return;
+      const isCorrect = t.accuracy === 1 || t.correct === true || t.validity === 'VALID';
+      const rt = t.reactionTime ?? t.rawLatencyMs;
+      const isValid = !t.falseStart && !t.timedOut && t.valid !== false && isCorrect && rt !== undefined && rt >= 80 && rt < 3000;
+      if (!isValid) return;
+
+      const key = `${sessionKey}_${trialNum}`;
+      // Latest attempt per logical trial wins
+      trialMap.set(key, { sessionKey, trialNum, rt });
+    });
+  });
+
+  const points: { trialLabel: string; trialNumber: number; overall: number; n: number }[] = [];
+  for (let t = 1; t <= maxTrials; t++) {
+    const rts: number[] = [];
+    trialMap.forEach((entry) => {
+      if (entry.trialNum === t) rts.push(entry.rt);
+    });
+
+    const median = Math.round(medianValue(rts));
+    points.push({
+      trialLabel: `Trial ${t}`,
+      trialNumber: t,
+      overall: median,
+      n: rts.length,
+    });
+  }
+
+  return points;
+}
+

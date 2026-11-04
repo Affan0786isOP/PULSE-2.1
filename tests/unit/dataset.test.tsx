@@ -45,14 +45,14 @@ describe('Interactive Dataset Component', () => {
     expect(screen.getByLabelText(/Select NUMBER MEMORY/i)).not.toBeNull();
   });
 
-  it('renders clean empty state with NO DATA when direction dataset is empty', () => {
+  it('renders clean state when direction dataset is empty', () => {
     render(
       <DirectionDataset trials={[]} datasetDocs={[]} />
     );
 
     expect(screen.getByText(/Directional Profile/i)).not.toBeNull();
-    const noDataElements = screen.getAllByText('NO DATA');
-    expect(noDataElements.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/Speed vs Accuracy Heatmap/i)).not.toBeNull();
+    expect(screen.getByText(/0 TOTAL ATTEMPTS/i)).not.toBeNull();
     expect(screen.queryByText('96%')).toBeNull();
   });
 });
