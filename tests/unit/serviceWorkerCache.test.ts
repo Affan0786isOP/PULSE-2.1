@@ -50,6 +50,15 @@ describe('Service Worker Tier 2 Caching', () => {
     expect(mobileSw).toContain('checkAnyClientHasActiveSession');
   });
 
+  it('fails closed when a client does not answer the active-session check', () => {
+    // If the main thread is busy during an assessment, a delayed MessageChannel
+    // response must not be mistaken for an idle client and trigger skipWaiting.
+    const safeTimeout = "const timer = setTimeout(() => resolve(true), 1500);";
+    expect(desktopSw).toContain(safeTimeout);
+    expect(mobileSw).toContain(safeTimeout);
+    expect(mobileSw).not.toContain("setTimeout(() => resolve(false), 200)");
+  });
+
   it('strictly bypasses cross-origin requests to prevent caching external resources', () => {
     for (const sw of [desktopSw, mobileSw]) {
       expect(sw).toContain('url.origin !== self.location.origin');
