@@ -14,6 +14,7 @@ describe('Mobile Improve Guide Laboratory Light', () => {
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    vi.restoreAllMocks();
     resetSettingsToDefaults();
   });
 
