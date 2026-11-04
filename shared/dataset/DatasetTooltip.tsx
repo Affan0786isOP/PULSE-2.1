@@ -25,6 +25,7 @@ export function DatasetTooltip({ active, payload, label, variant = 'standard' }:
             ? entry.value === 1 ? 'Accurate (100%)' : 'Error (0%)'
             : `${entry.value} ms`
           : `${entry.value} ${entry.unit || ''}`;
+        const iqrText = entry.payload?.iqr !== undefined ? ` • IQR: ${entry.payload.iqr}ms` : '';
         return (
           <div key={`tooltip-item-${index}`} className="flex items-center justify-between gap-4 py-0.5" style={{ color }}>
             <div className="flex items-center gap-1.5">
@@ -34,7 +35,7 @@ export function DatasetTooltip({ active, payload, label, variant = 'standard' }:
             <span className="font-bold">
               {value}
               {variant === 'standard' && count !== undefined ? (
-                <span className="text-[var(--text-muted)] ml-1 font-normal">(n={String(count)})</span>
+                <span className="text-[var(--text-muted)] ml-1 font-normal">(n={String(count)}{iqrText})</span>
               ) : null}
             </span>
           </div>

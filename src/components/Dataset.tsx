@@ -8,8 +8,6 @@ import {
   Bar,
   LineChart,
   Line,
-  ScatterChart,
-  Scatter,
   PieChart,
   Pie,
   Cell,
@@ -25,6 +23,11 @@ import { ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Monitor, 
 import { DirectionDataset } from './DirectionDataset';
 import {
   calculateTrialProgression,
+  calculateConsistencyDistribution,
+  calculateForeperiodAggregation,
+  calculatePopulationTrialProgression,
+  calculateTrialValidityBreakdown,
+  calculateIqr,
   getAgeGroupShortLabel, medianValue,
 } from '@shared/dataset/analytics';
 import { DatasetTooltip } from '@shared/dataset/DatasetTooltip';
@@ -161,60 +164,19 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   const totalSessions = totalDatasetCount ?? datasetDocs.length;
 
-  // Fastest per-session average, derived from trial observations only.
-  const fastestAvgRT = useMemo(() => {
-    const sessionAvgs: number[] = [];
-    const sessionMap = new Map<string, number[]>();
-    trials.forEach((t) => {
-      if (t.falseStart || t.valid === false || t.timedOut || t.reactionTime <= 80 || t.reactionTime >= 2000) return;
-      const key = t.experimentId || t.participantId || t.id || 'unknown-session';
-      const list = sessionMap.get(key) || [];
-      list.push(t.reactionTime);
-      sessionMap.set(key, list);
-    });
-    sessionMap.forEach((rts) => {
-      if (rts.length > 0) {
-        const avg = rts.reduce((sum, value) => sum + value, 0) / rts.length;
-        if (avg >= 80 && avg < 2000) sessionAvgs.push(avg);
-      }
-    });
-    return sessionAvgs.length ? Math.round(Math.min(...sessionAvgs)) : 0;
-  }, [trials]);
+  // 1. Reaction Time IQR across completed session medians, weighting every session equally
+  const { sessionIqr, sessionQ1, sessionQ3 } = useMemo(() => {
+    const sessionMedians = datasetDocs
+      .map((d) => Number(d.medianReactionTime ?? d.averageReactionTime))
+      .filter((v) => Number.isFinite(v) && v > 80 && v < 2000);
+    const { q1, q3, iqr } = calculateIqr(sessionMedians);
+    return { sessionIqr: iqr, sessionQ1: q1, sessionQ3: q3 };
+  }, [datasetDocs]);
 
-  // 2. Reaction Time vs Foreperiod (Delay intervals)
+  // 2. Reaction Time vs Foreperiod (Standardized 6 non-overlapping intervals, latest valid attempt, session-median first, min n=10)
   const foreperiodData = useMemo(() => {
-    const bins = [
-      { label: '100–500ms', min: 100, max: 500, rts: [] as number[] },
-      { label: '500–1000ms', min: 500, max: 1000, rts: [] as number[] },
-      { label: '1000–1500ms', min: 1000, max: 1500, rts: [] as number[] },
-      { label: '1500–2000ms', min: 1500, max: 2000, rts: [] as number[] },
-      { label: '2000–2500ms', min: 2000, max: 2500, rts: [] as number[] },
-      { label: '2500–3000ms', min: 2500, max: 3000, rts: [] as number[] },
-    ];
-
-    trials.forEach((t) => {
-      if (
-        typeof t.foreperiodMs === 'number' &&
-        t.foreperiodMs >= 100 &&
-        t.foreperiodMs <= 3000 &&
-        !t.falseStart &&
-        !t.timedOut &&
-        t.reactionTime > 80 &&
-        t.reactionTime < 2000
-      ) {
-        const bin = bins.find(
-          (b) => t.foreperiodMs! >= b.min && (b.max === 3000 ? t.foreperiodMs! <= b.max : t.foreperiodMs! < b.max)
-        );
-        if (bin) bin.rts.push(t.reactionTime);
-      }
-    });
-
-    return bins.map((bin) => ({
-      foreperiod: bin.label,
-      medianRT: Math.round(medianValue(bin.rts)),
-      n: bin.rts.length,
-    }));
-  }, [trials]);
+    return calculateForeperiodAggregation(datasetDocs, 10).filter((res) => !res.suppressed);
+  }, [datasetDocs]);
 
   // Clean, evenly-spaced 25ms or 50ms ticks for Reaction Time vs Foreperiod
   const foreperiodTicks = useMemo(() => {
@@ -232,7 +194,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
     return ticks;
   }, [foreperiodData]);
 
-  // Cohort comparisons use one session-level summary per assessment, not a mixture of session and trial records.
+  // 3. Cohort comparisons: minimum 10 sessions per displayed cohort, with session counts (n) and IQR
   const ageGroupData = useMemo(() => {
     return VALID_AGE_GROUPS.map((group) => {
       const short = getAgeGroupShortLabel(group);
@@ -240,79 +202,43 @@ export function Dataset({ onNavigate }: DatasetProps) {
         .filter((doc) => doc.ageGroup === group)
         .map((doc) => Number(doc.medianReactionTime ?? doc.averageReactionTime))
         .filter((value) => Number.isFinite(value) && value > 80 && value < 2000);
+      const { q1, q3, iqr } = calculateIqr(sessionRTs);
       return {
         day: short,
         value: Math.round(medianValue(sessionRTs)),
-        n: sessionRTs.length
+        n: sessionRTs.length,
+        q1,
+        q3,
+        iqr,
       };
-    }).filter((entry) => entry.n > 0);
+    }).filter((entry) => entry.n >= 10);
   }, [datasetDocs]);
 
-  // 4. Reaction Time Across Trials 1–5 (Line Chart)
-
-  // 4. Reaction Time Across Trials 1–5 (Line Chart)
+  // 4. Trial Progression (Trials 1–10) using latest valid attempt per logical trial per session
   const trialProgressionData = useMemo(
-    () => calculateTrialProgression(
-      trials,
-      (trial) => trial.experimentId || trial.sessionId || trial.id,
-    ),
-    [trials],
+    () => calculatePopulationTrialProgression(datasetDocs, 10),
+    [datasetDocs],
   );
 
-  // 5. Scatter Chart — Median RT vs Consistency (SD)
-  const { scatterDesktop, scatterMobile } = useMemo(() => {
-    const sessionsMap = new Map<string, { rts: number[]; isMobile: boolean }>();
+  // 5. Consistency Distribution (Aggregated count in score intervals, desktop/mobile breakdown, min 10 per bin)
+  const consistencyData = useMemo(() => {
+    return calculateConsistencyDistribution(datasetDocs, 10);
+  }, [datasetDocs]);
 
-    trials.forEach((t) => {
-      if (t.falseStart || t.reactionTime <= 80) return;
-      const key = t.experimentId || t.participantId || t.id;
-      const isMobile = Boolean(t.device && t.device.toLowerCase().includes('mobile'));
-      const entry = sessionsMap.get(key) || { rts: [], isMobile };
-      entry.rts.push(t.reactionTime);
-      sessionsMap.set(key, entry);
-    });
+  // 6. Trial Validity 4-category breakdown (Valid, Premature, Anticipatory, Timeout)
+  const validityBreakdown = useMemo(() => {
+    return calculateTrialValidityBreakdown(datasetDocs);
+  }, [datasetDocs]);
 
-    const sDesktop: Array<{ medianRT: number; sd: number }> = [];
-    const sMobile: Array<{ medianRT: number; sd: number }> = [];
-
-    sessionsMap.forEach(({ rts, isMobile }) => {
-      if (rts.length < 2) return;
-      rts.sort((a, b) => a - b);
-      const sessionMedian = medianValue(rts);
-      const mean = rts.reduce((acc, v) => acc + v, 0) / rts.length;
-      const variance = rts.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / rts.length;
-      const sd = Math.round(Math.sqrt(variance));
-
-      if (sessionMedian > 120 && sessionMedian < 600 && sd >= 0 && sd < 200) {
-        if (isMobile) {
-          sMobile.push({ medianRT: sessionMedian, sd });
-        } else {
-          sDesktop.push({ medianRT: sessionMedian, sd });
-        }
-      }
-    });
-
-    return { scatterDesktop: sDesktop, scatterMobile: sMobile };
-  }, [trials]);
-
-  // Ring values are trial-level only. Each session is represented once in session counts.
-  const { ringData, validPercent, totalTrialsCount, totalGamesCount } = useMemo(() => {
-    const validCount = trials.filter((t) => !t.falseStart && t.valid !== false && !t.timedOut).length;
-    const falseStartCount = trials.filter((t) => t.falseStart).length;
-    const total = validCount + falseStartCount;
-    const uniqueTrialGames = new Set(trials.map((t) => t.experimentId || t.sessionId || t.id)).size;
-    const totalGames = Math.max(uniqueTrialGames, datasetDocs.length);
-
-    return {
-      ringData: total > 0 ? [
-        { name: 'Valid Trials', value: validCount, color: '#00f0ff' },
-        { name: 'False Starts', value: falseStartCount, color: '#ef4444' }
-      ] : [],
-      validPercent: total > 0 ? Math.round((validCount / total) * 100) : 0,
-      totalTrialsCount: total,
-      totalGamesCount: totalGames
-    };
-  }, [trials, datasetDocs]);
+  const ringData = useMemo(() => {
+    const list = [
+      { name: 'Valid', value: validityBreakdown.valid, color: '#00f0ff', percent: validityBreakdown.validPercent },
+      { name: 'Premature', value: validityBreakdown.premature, color: '#ef4444', percent: validityBreakdown.prematurePercent },
+      { name: 'Anticipatory', value: validityBreakdown.anticipatory, color: '#f59e0b', percent: validityBreakdown.anticipatoryPercent },
+      { name: 'Timeout', value: validityBreakdown.timeout, color: '#a78bfa', percent: validityBreakdown.timeoutPercent },
+    ].filter((item) => item.value > 0);
+    return list;
+  }, [validityBreakdown]);
 
   // 7. Desktop vs Mobile Reaction Time (Bar Chart)
 
@@ -519,21 +445,22 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 </div>
               </div>
 
-              {/* Card 4: Fastest Recorded Session */}
+              {/* Card 4: Reaction Time IQR */}
               <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
                   <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-                    Fastest Session
+                    Reaction Time IQR
                   </span>
                 </div>
                 <div className="my-auto py-2 flex items-baseline gap-1.5">
                   <span className="text-3xl sm:text-4xl font-mono text-emerald-400 font-bold">
-                    {fastestAvgRT > 0 ? fastestAvgRT : '—'}
+                    {sessionIqr > 0 ? sessionIqr : '—'}
                   </span>
                   <span className="text-sm font-mono text-[var(--text-muted)]">ms</span>
                 </div>
                 <div className="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] flex items-center justify-between">
-                  <span>Lowest session median</span>
+                  <span>Q3 − Q1 session spread</span>
+                  <span>{sessionQ1 > 0 && sessionQ3 > 0 ? `${sessionQ1}–${sessionQ3}ms` : '—'}</span>
                 </div>
               </div>
             </div>
@@ -619,7 +546,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     Median RT by Age Group
                   </span>
                   <span className="text-[10px] font-mono text-[var(--text-muted)] tracking-wider uppercase">
-                    AGE COHORTS
+                    MIN 10 SESSIONS
                   </span>
                 </div>
                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
@@ -727,16 +654,16 @@ export function Dataset({ onNavigate }: DatasetProps) {
               </div>
             </div>
 
-            {/* 4. SCATTER & RING */}
+            {/* 4. CONSISTENCY DISTRIBUTION & TRIAL VALIDITY */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
-              {/* Scatter */}
+              {/* Consistency Distribution */}
               <div
-                id="chart-card-scatter"
+                id="chart-card-consistency"
                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-xs relative overflow-hidden min-w-0"
               >
                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                    Speed × Consistency
+                    Consistency Distribution
                   </span>
                   <div className="flex items-center gap-3 text-xs font-mono">
                     <span className="flex items-center gap-1.5 text-[#00f0ff]">
@@ -749,51 +676,37 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 </div>
                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart margin={{ top: 10, right: 15, left: -5, bottom: 5 }}>
+                    <BarChart
+                      data={consistencyData}
+                      margin={{ top: 10, right: 15, left: -20, bottom: 5 }}
+                    >
                       <CartesianGrid
                         stroke="var(--chart-grid)"
                         strokeDasharray="3 3"
+                        vertical={false}
                       />
                       <XAxis
-                        dataKey="medianRT"
-                        name="Median RT"
+                        dataKey="label"
                         stroke="var(--chart-text)"
                         fontSize={10}
                         fontFamily="monospace"
                         tickLine={false}
-                        tickFormatter={(val: number) => `${Math.round(val)}ms`}
-                        domain={['auto', 'auto']}
                       />
                       <YAxis
-                        dataKey="sd"
-                        name="SD"
                         stroke="var(--chart-text)"
                         fontSize={10}
                         fontFamily="monospace"
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(val: number) => `${Math.round(val)}ms`}
-                        domain={['auto', 'auto']}
                       />
                       <Tooltip
-                        cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.2)' }}
                         content={<DatasetTooltip />}
                         allowEscapeViewBox={{ x: false, y: true }}
                         wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
                       />
-                      <Scatter
-                        name="Desktop Sessions"
-                        data={scatterDesktop}
-                        fill="#00f0ff"
-                        opacity={0.8}
-                      />
-                      <Scatter
-                        name="Mobile Sessions"
-                        data={scatterMobile}
-                        fill="#a78bfa"
-                        opacity={0.8}
-                      />
-                    </ScatterChart>
+                      <Bar dataKey="desktop" name="Desktop" stackId="consistencyStack" fill="#00f0ff" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="mobile" name="Mobile" stackId="consistencyStack" fill="#a78bfa" radius={[6, 6, 0, 0]} />
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
@@ -807,6 +720,9 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
                     Trial Validity
                   </span>
+                  <span className="text-[10px] font-mono text-[var(--text-muted)] tracking-wider">
+                    {validityBreakdown.totalAttempts.toLocaleString()} TOTAL ATTEMPTS
+                  </span>
                 </div>
                 <div className="w-full h-[180px] sm:h-[190px] relative flex items-center justify-center my-auto min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
@@ -817,7 +733,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         cy="50%"
                         innerRadius={55}
                         outerRadius={75}
-                        paddingAngle={4}
+                        paddingAngle={3}
                         dataKey="value"
                       >
                         {ringData.map((entry, index) => (
@@ -834,22 +750,34 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   {/* Central Metric */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="font-mono text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-tight">
-                      {validPercent}%
+                      {validityBreakdown.validPercent}%
                     </span>
                     <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-muted)]">
-                      {totalTrialsCount.toLocaleString()} TRIALS
+                      VALID RATE
                     </span>
                   </div>
                 </div>
-                <div className="w-full flex items-center justify-center gap-6 pt-2 border-t border-[var(--border-subtle)] text-xs font-mono">
+                <div className="w-full flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 pt-2 border-t border-[var(--border-subtle)] text-[11px] font-mono">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#00f0ff]" />
-                    <span className="text-[var(--text-secondary)]">Valid</span>
+                    <span className="w-2 h-2 rounded-full bg-[#00f0ff]" />
+                    <span className="text-[var(--text-secondary)]">Valid ({validityBreakdown.valid.toLocaleString()})</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
-                    <span className="text-[var(--text-secondary)]">False Start</span>
+                    <span className="w-2 h-2 rounded-full bg-[#ef4444]" />
+                    <span className="text-[var(--text-secondary)]">Premature ({validityBreakdown.premature.toLocaleString()})</span>
                   </div>
+                  {validityBreakdown.anticipatory > 0 && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+                      <span className="text-[var(--text-secondary)]">Anticipatory ({validityBreakdown.anticipatory.toLocaleString()})</span>
+                    </div>
+                  )}
+                  {validityBreakdown.timeout > 0 && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#a78bfa]" />
+                      <span className="text-[var(--text-secondary)]">Timeout ({validityBreakdown.timeout.toLocaleString()})</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
