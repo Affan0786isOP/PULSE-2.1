@@ -10,7 +10,8 @@ vi.mock('../../mobile/src/components/Navbar', () => ({
 }));
 vi.mock('../../mobile/src/components/SEO', () => ({ SEO: () => null }));
 
-describe('Mobile Improve Guide Laboratory Light', () => {\n  afterEach(() => {
+describe('Mobile Improve Guide Laboratory Light', () => {
+  afterEach(() => {
     cleanup();
     vi.useRealTimers();
     resetSettingsToDefaults();
