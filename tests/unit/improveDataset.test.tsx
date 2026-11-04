@@ -17,6 +17,7 @@ describe('Dataset and Improve Light System Migration', () => {
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    vi.restoreAllMocks();
     resetSettingsToDefaults();
   });
 
