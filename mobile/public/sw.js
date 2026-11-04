@@ -32,7 +32,7 @@ async function checkAnyClientHasActiveSession() {
     return new Promise((resolve) => {
       try {
         const channel = new MessageChannel();
-        const timer = setTimeout(() => resolve(false), 200);
+        const timer = setTimeout(() => resolve(true), 1500);
         channel.port1.onmessage = (event) => {
           clearTimeout(timer);
           resolve(Boolean(event.data && event.data.isSessionActive));
