@@ -164,13 +164,27 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   const totalSessions = totalDatasetCount ?? datasetDocs.length;
 
-  // 1. Reaction Time IQR across completed session medians, weighting every session equally
-  const { sessionIqr, sessionQ1, sessionQ3 } = useMemo(() => {
-    const sessionMedians = datasetDocs
-      .map((d) => Number(d.medianReactionTime ?? d.averageReactionTime))
+  // Total recorded VRT attempts across all completed sessions (including false starts, anticipations, timeouts and retries)
+  const totalAttemptsCount = useMemo(() => {
+    let sum = 0;
+    datasetDocs.forEach((doc) => {
+      if (Array.isArray(doc.progressionTrials)) {
+        sum += doc.progressionTrials.length;
+      } else if (typeof doc.totalTrials === 'number' && Number.isFinite(doc.totalTrials) && doc.totalTrials > 0) {
+        sum += doc.totalTrials;
+      }
+    });
+    return sum > 0 ? sum : trials.length;
+  }, [datasetDocs, trials]);
+
+  // 1. Average Reaction Time: average of completed session-level average reaction times (equal session weight)
+  const averageRT = useMemo(() => {
+    const sessionAvgs = datasetDocs
+      .map((d) => Number(d.averageReactionTime ?? d.medianReactionTime))
       .filter((v) => Number.isFinite(v) && v > 80 && v < 2000);
-    const { q1, q3, iqr } = calculateIqr(sessionMedians);
-    return { sessionIqr: iqr, sessionQ1: q1, sessionQ3: q3 };
+    if (!sessionAvgs.length) return 0;
+    const sum = sessionAvgs.reduce((acc, v) => acc + v, 0);
+    return Math.round(sum / sessionAvgs.length);
   }, [datasetDocs]);
 
   // 2. Reaction Time vs Foreperiod (Standardized 6 non-overlapping intervals, latest valid attempt, session-median first, min n=10)
@@ -428,39 +442,40 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 </div>
               </div>
 
-              {/* Card 3: Sessions in Dataset */}
+              {/* Card 3: Total Trials */}
               <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
                   <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-                    Sessions in Dataset
+                    Total Trials
                   </span>
                 </div>
                 <div className="my-auto py-2">
                   <span className="text-3xl sm:text-4xl font-mono text-[var(--text-primary)] font-bold">
-                    {totalSessions.toLocaleString()}
+                    {totalAttemptsCount.toLocaleString()}
                   </span>
                 </div>
                 <div className="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] flex items-center justify-between">
-                  <span>Aggregated research protocol</span>
+                  <span>All recorded attempts</span>
+                  <span>Includes retries</span>
                 </div>
               </div>
 
-              {/* Card 4: Reaction Time IQR */}
+              {/* Card 4: Average Reaction Time */}
               <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
                   <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-                    Reaction Time IQR
+                    Average Reaction Time
                   </span>
                 </div>
                 <div className="my-auto py-2 flex items-baseline gap-1.5">
                   <span className="text-3xl sm:text-4xl font-mono text-emerald-400 font-bold">
-                    {sessionIqr > 0 ? sessionIqr : '—'}
+                    {averageRT > 0 ? averageRT : '—'}
                   </span>
                   <span className="text-sm font-mono text-[var(--text-muted)]">ms</span>
                 </div>
                 <div className="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] flex items-center justify-between">
-                  <span>Q3 − Q1 session spread</span>
-                  <span>{sessionQ1 > 0 && sessionQ3 > 0 ? `${sessionQ1}–${sessionQ3}ms` : '—'}</span>
+                  <span>Equal session weight</span>
+                  <span>Mean of session averages</span>
                 </div>
               </div>
             </div>
