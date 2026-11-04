@@ -25,7 +25,8 @@ interface CachedStats {
 
 const STATS_STORAGE_KEY = 'pulse_authoritative_stats';
 let statsCache: CachedStats | null = null;
-let inFlightStatsPromise: Promise<number> | null = null;
+let statsCacheGeneration = 0;
+let inFlightStatsRequest: { generation: number; promise: Promise<number> } | null = null;
 const STATS_TTL_MS = 60_000;
 
 function readPersistedStats(): CachedStats | null {
@@ -93,8 +94,11 @@ function persistStats(stats: CachedStats): void {
 }
 
 export function clearAuthoritativeStatsCache(): void {
+  // Invalidate pending reads as well as stored values. A pre-reset request must
+  // never repopulate the cache after the user explicitly clears local app data.
+  statsCacheGeneration += 1;
   statsCache = null;
-  inFlightStatsPromise = null;
+  inFlightStatsRequest = null;
   if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
     try {
       localStorage.removeItem(STATS_STORAGE_KEY);
@@ -161,12 +165,17 @@ export function useAuthoritativeStats(): AuthoritativeHeroStats {
       };
     }
 
-    if (!inFlightStatsPromise) {
-      inFlightStatsPromise = loadAuthoritativeCount()
+    if (!inFlightStatsRequest || inFlightStatsRequest.generation !== statsCacheGeneration) {
+      const requestGeneration = statsCacheGeneration;
+      const requestPromise = loadAuthoritativeCount()
         .then((count) => {
-          const fresh = { count, storedAt: Date.now() };
-          statsCache = fresh;
-          persistStats(fresh);
+          // A clear operation may have happened while Firestore was in flight.
+          // Only the generation that initiated this request may write the cache.
+          if (statsCacheGeneration === requestGeneration) {
+            const fresh = { count, storedAt: Date.now() };
+            statsCache = fresh;
+            persistStats(fresh);
+          }
           return count;
         })
         .catch((err) => {
@@ -174,11 +183,15 @@ export function useAuthoritativeStats(): AuthoritativeHeroStats {
           throw err;
         })
         .finally(() => {
-          inFlightStatsPromise = null;
+          // An older request must not clear a newer post-reset in-flight read.
+          if (inFlightStatsRequest?.generation === requestGeneration) {
+            inFlightStatsRequest = null;
+          }
         });
+      inFlightStatsRequest = { generation: requestGeneration, promise: requestPromise };
     }
 
-    inFlightStatsPromise
+    inFlightStatsRequest.promise
       .then((count) => {
         if (active) {
           setResultsCount(count);
