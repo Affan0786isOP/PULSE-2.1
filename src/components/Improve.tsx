@@ -13,7 +13,7 @@ import {
 } from "../data/facts";
 import { HookSidebar } from "./ui/hook-sidebar";
 import { ScrollProgress } from "./ui/scroll-progress";
-import { isReducedMotionActive, playAudioCue } from "../lib/settingsStore";
+import { isReducedMotionActive, playAudioCue, useReducedMotionPreference } from "../lib/settingsStore";
 import { PageShell } from "./layout/PageShell";
 import {
   Moon,
@@ -96,6 +96,7 @@ export function Improve({
   onNavigate: (view: string) => void;
 }) {
   const [checkedItems, setCheckedItems] = useState<Set<number>>(() => loadPersistedChecklist());
+  const shouldReduceMotion = useReducedMotionPreference();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [researchEntries] = useState<ResearchEntry[]>(() => getRandomizedResearchEntries());
   const [activeIndex, setActiveIndex] = useState(0);
@@ -128,12 +129,12 @@ export function Improve({
   );
 
   useEffect(() => {
-    if (isLedgerPaused || isReducedMotionActive()) return;
+    if (isLedgerPaused || shouldReduceMotion) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % researchEntries.length);
     }, 7000);
     return () => clearInterval(timer);
-  }, [researchEntries.length, isLedgerPaused, ledgerTimerReset]);
+  }, [researchEntries.length, isLedgerPaused, ledgerTimerReset, shouldReduceMotion]);
 
   const handlePrevSlide = () => {
     playAudioCue("click");
