@@ -43,103 +43,52 @@ interface DatasetProps {
   onNavigate: (view: string) => void;
 }
 
-// 1. Semi-Circular SVG Speedometer Gauge for Median Reaction Time
-interface RadialGaugeProps {
+// 1. Hero Latency Metric with Population Benchmark Reference Scale
+interface HeroLatencyMetricProps {
   value: number; // median RT in ms
-  label?: string;
 }
 
-
-function RadialGauge({ value, label = 'Median RT' }: RadialGaugeProps) {
-  // Map value (e.g. 150ms-450ms) into an angle on a 180° arc (from 180° to 360°)
-  // 150ms -> 100% (fastest), 450ms -> 0% (slowest)
-  const clamped = Math.max(150, Math.min(450, value));
-  const scoreRatio = Math.max(0, Math.min(1, 1 - (clamped - 150) / 300));
-  const strokePercent = Math.round(scoreRatio * 100);
-
-  const radius = 80;
-  const strokeWidth = 14;
-  const circumference = Math.PI * radius; // Half-circle perimeter
-  const strokeDashoffset = circumference - circumference * scoreRatio;
+function HeroLatencyMetric({ value }: HeroLatencyMetricProps) {
+  // Clamped between 150ms and 450ms for position indicator
+  const clamped = Math.max(150, Math.min(450, value || 280));
+  const percentage = Math.round(((clamped - 150) / 300) * 100);
 
   return (
-    <div className="flex flex-col items-center justify-center relative w-full">
-      <svg viewBox="0 0 220 135" className="w-full max-w-[240px] overflow-visible">
-        <defs>
-          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#ef4444" />
-            <stop offset="40%" stopColor="#f59e0b" />
-            <stop offset="70%" stopColor="#38bdf8" />
-            <stop offset="100%" stopColor="#00f0ff" />
-          </linearGradient>
-          <filter id="gaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
+    <div className="flex flex-col justify-between h-full">
+      <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+        <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+          Median Reaction Time
+        </span>
+        <span className="text-[10px] font-mono text-cyan-400 font-semibold tracking-wider uppercase">
+          POPULATION
+        </span>
+      </div>
 
-        {/* Background track */}
-        <path
-          d="M 25 115 A 80 80 0 0 1 195 115"
-          fill="none"
-          stroke="var(--border-subtle)"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-        />
+      <div className="my-auto py-2">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-3xl sm:text-4xl font-mono font-bold tracking-tight text-[var(--text-primary)]">
+            {value > 0 ? value : '—'}
+          </span>
+          <span className="text-sm font-mono text-[var(--text-muted)]">ms</span>
+        </div>
 
-        {/* Dynamic active arc */}
-        <path
-          d="M 25 115 A 80 80 0 0 1 195 115"
-          fill="none"
-          stroke="url(#gaugeGradient)"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          filter="url(#gaugeGlow)"
-          className="transition-all duration-700 ease-out"
-        />
-
-        {/* Tick marks */}
-        {[0, 0.25, 0.5, 0.75, 1].map((tick, i) => {
-          const angle = Math.PI * (1 - tick);
-          const x1 = 110 - Math.cos(angle) * (radius - 12);
-          const y1 = 115 - Math.sin(angle) * (radius - 12);
-          const x2 = 110 - Math.cos(angle) * (radius - 18);
-          const y2 = 115 - Math.sin(angle) * (radius - 18);
-          return (
-            <line
-              key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="var(--border-strong)"
-              strokeWidth="1.5"
+        {/* Reference scale bar */}
+        <div className="mt-2.5 w-full">
+          <div className="relative h-2 w-full rounded-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-purple-400 transition-all duration-700"
+              style={{
+                width: `${value > 0 ? Math.min(100, Math.max(8, percentage)) : 0}%`,
+              }}
             />
-          );
-        })}
-
-        {/* Center Text */}
-        <text
-          x="110"
-          y="95"
-          textAnchor="middle"
-          fill="var(--cyan-primary)"
-          className="font-mono text-3xl font-bold tracking-tight"
-        >
-          {value > 0 ? `${value}` : '—'}
-        </text>
-        <text
-          x="110"
-          y="112"
-          textAnchor="middle"
-          fill="var(--text-muted)"
-          className="font-mono text-[10px] uppercase tracking-widest font-semibold"
-        >
-          ms
-        </text>
-      </svg>
+          </div>
+          <div className="flex justify-between items-center text-[10px] font-mono text-[var(--text-muted)] mt-1">
+            <span>150ms</span>
+            <span className="text-cyan-400/80 font-medium">Cohort Window</span>
+            <span>450ms</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -465,233 +414,268 @@ export function Dataset({ onNavigate }: DatasetProps) {
         ) : selectedGameId === 'direction' ? (
           <DirectionDataset trials={trials} datasetDocs={datasetDocs} />
         ) : selectedGameId !== 'visual-reaction' ? (
-          <div className="flex flex-col items-center justify-center min-h-[420px] sm:min-h-[520px] w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-8 my-auto text-center">
+          <div className="flex flex-col items-center justify-center min-h-[420px] sm:min-h-[500px] w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-8 my-auto text-center">
             <span className="text-5xl sm:text-7xl font-heading font-black tracking-widest text-[var(--cyan-primary)] uppercase select-none">
               SOON
             </span>
+            <p className="mt-3 font-mono text-xs sm:text-sm text-[var(--text-muted)] uppercase tracking-wider">
+              Telemetry collection for this protocol begins in an upcoming release
+            </p>
           </div>
         ) : (
-          
           <div className="flex flex-col gap-4 sm:gap-6 w-full min-w-0">
-            {/* 1. GAUGE & SUMMARY CONTEXT */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
-               {/* Context Stats */}
-               <div className="order-2 lg:order-1 lg:col-span-1 flex flex-col justify-center gap-3 sm:gap-4">
-                 <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center shadow-sm">
-                   <span className="text-[10px] text-[var(--text-muted)] font-mono mb-1 tracking-widest uppercase">Sessions in Dataset</span>
-                   <span className="text-2xl font-mono text-[var(--text-main)] font-bold">{totalSessions.toLocaleString()}</span>
-                 </div>
-                 <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-4 flex flex-col justify-between shadow-sm">
-                   <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-[var(--border-subtle)]">
-                     <span className="text-[10px] text-[var(--text-muted)] font-mono tracking-widest uppercase">Device Comparison</span>
-                     <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                       MEDIAN RT
-                     </span>
-                   </div>
-                   <div className="grid grid-cols-2 gap-2 text-center divide-x divide-[var(--border-subtle)]">
-                     <div className="flex flex-col items-center justify-center">
-                       <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)] mb-0.5">
-                         <Monitor className="w-3.5 h-3.5 text-[#00f0ff]" />
-                         <span>Desktop</span>
-                       </div>
-                       <span className="text-xl font-mono text-[#00f0ff] font-bold">
-                         {deviceComparisonData[0]?.value ? `${deviceComparisonData[0].value} ms` : '—'}
-                       </span>
-                     </div>
-                     <div className="flex flex-col items-center justify-center pl-2">
-                       <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)] mb-0.5">
-                         <Smartphone className="w-3.5 h-3.5 text-[#a78bfa]" />
-                         <span>Mobile</span>
-                       </div>
-                       <span className="text-xl font-mono text-[#a78bfa] font-bold">
-                         {deviceComparisonData[1]?.value ? `${deviceComparisonData[1].value} ms` : '—'}
-                       </span>
-                     </div>
-                   </div>
-                 </div>
-                 <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center shadow-sm">
-                   <span className="text-[10px] text-[var(--text-muted)] font-mono mb-1 tracking-widest uppercase">Fastest Avg RT</span>
-                   <span className="text-2xl font-mono text-emerald-400 font-bold">{fastestAvgRT > 0 ? `${fastestAvgRT} ms` : '—'}</span>
-                 </div>
-               </div>
+            {/* 1. UNIFIED TECHNICAL TOP GRID */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 min-w-0">
+              {/* Card 1: Hero Median Reaction Time with Benchmark Range */}
+              <div
+                id="chart-card-gauge"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs relative overflow-hidden min-w-0"
+              >
+                <HeroLatencyMetric value={medianRT} />
+              </div>
 
-               {/* Gauge */}
-               <div
-                 id="chart-card-gauge"
-                 className="order-1 lg:order-2 lg:col-span-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col items-center justify-between min-h-[280px] sm:min-h-[320px] shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Median Reaction Time
-                   </span>
-                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                     BENCHMARK
-                   </span>
-                 </div>
-                 <div className="w-full flex items-center justify-center my-auto py-3 sm:py-4">
-                   {medianRT > 0 ? <RadialGauge value={medianRT} /> : <span className="font-mono text-sm text-[var(--text-muted)]">NO DATA</span>}
-                 </div>
-               </div>
+              {/* Card 2: Platform Comparison (Desktop vs Mobile) */}
+              <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                  <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+                    Platform Latency
+                  </span>
+                  <span className="text-[10px] font-mono text-purple-400 font-semibold tracking-wider uppercase">
+                    MEDIAN RT
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 my-auto py-2 divide-x divide-[var(--border-subtle)] text-center">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)] mb-1">
+                      <Monitor className="w-3.5 h-3.5 text-[#00f0ff]" />
+                      <span>Desktop</span>
+                    </div>
+                    <span className="text-2xl font-mono text-[#00f0ff] font-bold">
+                      {deviceComparisonData[0]?.value ? `${deviceComparisonData[0].value} ms` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center pl-2">
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)] mb-1">
+                      <Smartphone className="w-3.5 h-3.5 text-[#a78bfa]" />
+                      <span>Mobile</span>
+                    </div>
+                    <span className="text-2xl font-mono text-[#a78bfa] font-bold">
+                      {deviceComparisonData[1]?.value ? `${deviceComparisonData[1].value} ms` : '—'}
+                    </span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)]">
+                  <span>Delta</span>
+                  <span className="text-purple-400 font-medium">
+                    {deviceComparisonData[0]?.value && deviceComparisonData[1]?.value
+                      ? `+${Math.abs(deviceComparisonData[1].value - deviceComparisonData[0].value)} ms Mobile`
+                      : 'Equally distributed'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Card 3: Sessions in Dataset */}
+              <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                  <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+                    Sessions in Dataset
+                  </span>
+                  <span className="flex items-center gap-1 text-[10px] font-mono text-cyan-400 font-semibold tracking-wider uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> LIVE
+                  </span>
+                </div>
+                <div className="my-auto py-2">
+                  <span className="text-3xl sm:text-4xl font-mono text-[var(--text-primary)] font-bold">
+                    {totalSessions.toLocaleString()}
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] flex items-center justify-between">
+                  <span>Sample</span>
+                  <span>Opt-in anonymous research</span>
+                </div>
+              </div>
+
+              {/* Card 4: Fastest Recorded Session */}
+              <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                  <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+                    Fastest Session
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-400 font-semibold tracking-wider uppercase">
+                    PEAK SPEED
+                  </span>
+                </div>
+                <div className="my-auto py-2 flex items-baseline gap-1.5">
+                  <span className="text-3xl sm:text-4xl font-mono text-emerald-400 font-bold">
+                    {fastestAvgRT > 0 ? fastestAvgRT : '—'}
+                  </span>
+                  <span className="text-sm font-mono text-[var(--text-muted)]">ms</span>
+                </div>
+                <div className="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] flex items-center justify-between">
+                  <span>Record</span>
+                  <span>Fastest per-session mean</span>
+                </div>
+              </div>
             </div>
 
             {/* 2. AREA & BAR */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
-               {/* Area */}
-               <div
-                 id="chart-card-area"
-                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Reaction Time Distribution
-                   </span>
-                   <div className="flex items-center gap-3 text-xs font-mono">
-                     <span className="flex items-center gap-1 text-[#00f0ff]">
-                       <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Desktop
-                     </span>
-                     <span className="flex items-center gap-1 text-[#a78bfa]">
-                       <span className="w-2 h-2 rounded-full bg-[#a78bfa]" /> Mobile
-                     </span>
-                   </div>
-                 </div>
-                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                   <ResponsiveContainer width="100%" height="100%">
-                     <AreaChart
-                       data={distributionData}
-                       margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
-                     >
-                       <defs>
-                         <linearGradient id="areaDesktopGrad" x1="0" y1="0" x2="0" y2="1">
-                           <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.4} />
-                           <stop offset="95%" stopColor="#00f0ff" stopOpacity={0.0} />
-                         </linearGradient>
-                         <linearGradient id="areaMobileGrad" x1="0" y1="0" x2="0" y2="1">
-                           <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.4} />
-                           <stop offset="95%" stopColor="#a78bfa" stopOpacity={0.0} />
-                         </linearGradient>
-                       </defs>
-                       <CartesianGrid
-                         stroke="var(--chart-grid)"
-                         strokeDasharray="3 3"
-                         vertical={false}
-                       />
-                       <XAxis
-                         dataKey="label"
-                         stroke="var(--chart-text)"
-                         fontSize={9}
-                         fontFamily="monospace"
-                         tickLine={false}
-                         angle={-25}
-                         textAnchor="end"
-                       />
-                       <YAxis
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="monospace"
-                         tickLine={false}
-                         axisLine={false}
-                       />
-                       <Tooltip 
-                         content={<DatasetTooltip />} 
-                         allowEscapeViewBox={{ x: false, y: true }}
-                         wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                       />
-                       <Area
-                         type="monotone"
-                         dataKey="desktop"
-                         name="Desktop Cohort"
-                         stroke="#00f0ff"
-                         strokeWidth={2}
-                         fill="url(#areaDesktopGrad)"
-                       />
-                       <Area
-                         type="monotone"
-                         dataKey="mobile"
-                         name="Mobile Cohort"
-                         stroke="#a78bfa"
-                         strokeWidth={2}
-                         fill="url(#areaMobileGrad)"
-                       />
-                     </AreaChart>
-                   </ResponsiveContainer>
-                 </div>
-               </div>
+              {/* Area */}
+              <div
+                id="chart-card-area"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-xs relative overflow-hidden min-w-0"
+              >
+                <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
+                  <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+                    Reaction Time Distribution
+                  </span>
+                  <div className="flex items-center gap-3 text-xs font-mono">
+                    <span className="flex items-center gap-1.5 text-[#00f0ff]">
+                      <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Desktop
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[#a78bfa]">
+                      <span className="w-2 h-2 rounded-full bg-[#a78bfa]" /> Mobile
+                    </span>
+                  </div>
+                </div>
+                <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={distributionData}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+                    >
+                      <defs>
+                        <linearGradient id="areaDesktopGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#00f0ff" stopOpacity={0.0} />
+                        </linearGradient>
+                        <linearGradient id="areaMobileGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#a78bfa" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        stroke="var(--chart-grid)"
+                        strokeDasharray="3 3"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="label"
+                        stroke="var(--chart-text)"
+                        fontSize={9}
+                        fontFamily="monospace"
+                        tickLine={false}
+                        angle={-25}
+                        textAnchor="end"
+                      />
+                      <YAxis
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="monospace"
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip 
+                        content={<DatasetTooltip />} 
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="desktop"
+                        name="Desktop Cohort"
+                        stroke="#00f0ff"
+                        strokeWidth={2}
+                        fill="url(#areaDesktopGrad)"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="mobile"
+                        name="Mobile Cohort"
+                        stroke="#a78bfa"
+                        strokeWidth={2}
+                        fill="url(#areaMobileGrad)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-               {/* Age Group */}
-               <div
-                 id="chart-card-age-group"
-                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Median RT by Age Group
-                   </span>
-                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                     AGE COHORTS
-                   </span>
-                 </div>
-                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                   <ResponsiveContainer width="100%" height="100%">
-                     <BarChart
-                       data={ageGroupData}
-                       margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
-                     >
-                       <CartesianGrid
-                         stroke="var(--chart-grid)"
-                         strokeDasharray="3 3"
-                         vertical={false}
-                       />
-                       <XAxis
-                         dataKey="day"
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="monospace"
-                         tickLine={false}
-                       />
-                       <YAxis
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="monospace"
-                         tickLine={false}
-                         axisLine={false}
-                         unit="ms"
-                       />
-                       <Tooltip 
-                         content={<DatasetTooltip />} 
-                         allowEscapeViewBox={{ x: false, y: true }}
-                         wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                       />
-                       <Bar dataKey="value" name="Median RT" radius={[4, 4, 0, 0]}>
-                         {ageGroupData.map((_, index) => (
-                           <Cell
-                             key={`cell-age-${index}`}
-                             fill={index === 2 ? '#00f0ff' : '#0284c7'}
-                           />
-                         ))}
-                       </Bar>
-                     </BarChart>
-                   </ResponsiveContainer>
-                 </div>
-               </div>
+              {/* Age Group */}
+              <div
+                id="chart-card-age-group"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-xs relative overflow-hidden min-w-0"
+              >
+                <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
+                  <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+                    Median RT by Age Group
+                  </span>
+                  <span className="text-[10px] font-mono text-[var(--text-muted)] tracking-wider uppercase">
+                    AGE COHORTS
+                  </span>
+                </div>
+                <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={ageGroupData}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
+                    >
+                      <CartesianGrid
+                        stroke="var(--chart-grid)"
+                        strokeDasharray="3 3"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="day"
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="monospace"
+                        tickLine={false}
+                      />
+                      <YAxis
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="monospace"
+                        tickLine={false}
+                        axisLine={false}
+                        unit="ms"
+                      />
+                      <Tooltip 
+                        content={<DatasetTooltip />} 
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      />
+                      <Bar dataKey="value" name="Median RT" radius={[6, 6, 0, 0]}>
+                        {ageGroupData.map((_, index) => (
+                          <Cell
+                            key={`cell-age-${index}`}
+                            fill={index === 2 ? '#00f0ff' : '#0284c7'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
 
             {/* 3. LINE */}
             <div
               id="chart-card-line-trials"
-              className="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-sm relative overflow-hidden min-w-0"
+              className="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-xs relative overflow-hidden min-w-0"
             >
               <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
                 <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
                   Trial Progression (Trials 1–5)
                 </span>
                 <div className="flex items-center gap-3 text-xs font-mono">
-                  <span className="flex items-center gap-1 text-[#00f0ff]">
+                  <span className="flex items-center gap-1.5 text-[#00f0ff]">
                     <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Desktop
                   </span>
-                  <span className="flex items-center gap-1 text-[#a78bfa]">
+                  <span className="flex items-center gap-1.5 text-[#a78bfa]">
                     <span className="w-2 h-2 rounded-full bg-[#a78bfa]" /> Mobile
                   </span>
-                  <span className="flex items-center gap-1 text-[#38bdf8]">
+                  <span className="flex items-center gap-1.5 text-[#38bdf8]">
                     <span className="w-2 h-2 rounded-full bg-[#38bdf8]" /> Overall
                   </span>
                 </div>
@@ -700,7 +684,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={trialProgressionData}
-                    margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
+                    margin={{ top: 10, right: 25, left: -10, bottom: 5 }}
                   >
                     <CartesianGrid
                       stroke="var(--chart-grid)"
@@ -733,8 +717,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
                       name="Desktop RT"
                       stroke="#00f0ff"
                       strokeWidth={2}
-                      dot={{ r: 3, fill: '#00f0ff', strokeWidth: 0 }}
-                      activeDot={{ r: 5 }}
+                      dot={{ r: 3.5, fill: '#00f0ff', strokeWidth: 0 }}
+                      activeDot={{ r: 5.5 }}
                     />
                     <Line
                       type="monotone"
@@ -742,8 +726,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
                       name="Mobile RT"
                       stroke="#a78bfa"
                       strokeWidth={2}
-                      dot={{ r: 3, fill: '#a78bfa', strokeWidth: 0 }}
-                      activeDot={{ r: 5 }}
+                      dot={{ r: 3.5, fill: '#a78bfa', strokeWidth: 0 }}
+                      activeDot={{ r: 5.5 }}
                     />
                     <Line
                       type="monotone"
@@ -752,8 +736,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
                       stroke="#38bdf8"
                       strokeWidth={2}
                       strokeDasharray="5 5"
-                      dot={{ r: 3, fill: '#38bdf8', strokeWidth: 0 }}
-                      activeDot={{ r: 5 }}
+                      dot={{ r: 3.5, fill: '#38bdf8', strokeWidth: 0 }}
+                      activeDot={{ r: 5.5 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -762,127 +746,132 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
             {/* 4. SCATTER & RING */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
-               {/* Scatter */}
-               <div
-                 id="chart-card-scatter"
-                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Speed × Consistency
-                   </span>
-                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                     ALL SESSIONS
-                   </span>
-                 </div>
-                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                   <ResponsiveContainer width="100%" height="100%">
-                     <ScatterChart margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                       <CartesianGrid
-                         stroke="var(--chart-grid)"
-                         strokeDasharray="3 3"
-                       />
-                       <XAxis
-                         dataKey="medianRT"
-                         name="Median RT"
-                         unit="ms"
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="monospace"
-                         tickLine={false}
-                         domain={['auto', 'auto']}
-                       />
-                       <YAxis
-                         dataKey="sd"
-                         name="SD"
-                         unit="ms"
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="monospace"
-                         tickLine={false}
-                         axisLine={false}
-                         domain={['auto', 'auto']}
-                       />
-                       <Tooltip
-                         cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.2)' }}
-                         content={<DatasetTooltip />}
-                         allowEscapeViewBox={{ x: false, y: true }}
-                         wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                       />
-                       <Scatter
-                         name="Desktop Sessions"
-                         data={scatterDesktop}
-                         fill="#00f0ff"
-                         opacity={0.8}
-                       />
-                       <Scatter
-                         name="Mobile Sessions"
-                         data={scatterMobile}
-                         fill="#a78bfa"
-                         opacity={0.8}
-                       />
-                     </ScatterChart>
-                   </ResponsiveContainer>
-                 </div>
-               </div>
+              {/* Scatter */}
+              <div
+                id="chart-card-scatter"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-xs relative overflow-hidden min-w-0"
+              >
+                <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
+                  <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+                    Speed × Consistency
+                  </span>
+                  <div className="flex items-center gap-3 text-xs font-mono">
+                    <span className="flex items-center gap-1.5 text-[#00f0ff]">
+                      <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Desktop
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[#a78bfa]">
+                      <span className="w-2 h-2 rounded-full bg-[#a78bfa]" /> Mobile
+                    </span>
+                  </div>
+                </div>
+                <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart margin={{ top: 10, right: 15, left: -5, bottom: 5 }}>
+                      <CartesianGrid
+                        stroke="var(--chart-grid)"
+                        strokeDasharray="3 3"
+                      />
+                      <XAxis
+                        dataKey="medianRT"
+                        name="Median RT"
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="monospace"
+                        tickLine={false}
+                        tickFormatter={(val: number) => `${Math.round(val)}ms`}
+                        domain={['auto', 'auto']}
+                      />
+                      <YAxis
+                        dataKey="sd"
+                        name="SD"
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="monospace"
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(val: number) => `${Math.round(val)}ms`}
+                        domain={['auto', 'auto']}
+                      />
+                      <Tooltip
+                        cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.2)' }}
+                        content={<DatasetTooltip />}
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      />
+                      <Scatter
+                        name="Desktop Sessions"
+                        data={scatterDesktop}
+                        fill="#00f0ff"
+                        opacity={0.8}
+                      />
+                      <Scatter
+                        name="Mobile Sessions"
+                        data={scatterMobile}
+                        fill="#a78bfa"
+                        opacity={0.8}
+                      />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-               {/* Ring */}
-               <div
-                 id="chart-card-ring"
-                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col items-center justify-between min-h-[280px] sm:min-h-[320px] shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Trial Validity
-                   </span>
-                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                     {validPercent}% VALID
-                   </span>
-                 </div>
-                 <div className="w-full h-[180px] sm:h-[190px] relative flex items-center justify-center my-auto min-w-0">
-                   <ResponsiveContainer width="100%" height="100%">
-                     <PieChart>
-                       <Pie
-                         data={ringData}
-                         cx="50%"
-                         cy="50%"
-                         innerRadius={50}
-                         outerRadius={70}
-                         paddingAngle={5}
-                         dataKey="value"
-                       >
-                         {ringData.map((entry, index) => (
-                           <Cell key={`ring-pie-cell-${entry.name}-${index}`} fill={entry.color} />
-                         ))}
-                       </Pie>
-                       <Tooltip 
-                         content={<DatasetTooltip />} 
-                         allowEscapeViewBox={{ x: false, y: true }}
-                         wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                       />
-                     </PieChart>
-                   </ResponsiveContainer>
-                   {/* Central Metric */}
-                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                     <span className="font-mono text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-                       {totalGamesCount.toLocaleString()}
-                     </span>
-                     <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-muted)]">
-                       GAMES PLAYED
-                     </span>
-                   </div>
-                 </div>
-                 <div className="w-full flex items-center justify-center gap-4 pt-2 border-t border-[var(--border-subtle)] text-xs font-mono">
-                   <div className="flex items-center gap-1.5">
-                     <span className="w-2.5 h-2.5 rounded-full bg-[#00f0ff]" />
-                     <span className="text-[var(--text-secondary)]">Valid</span>
-                   </div>
-                   <div className="flex items-center gap-1.5">
-                     <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
-                     <span className="text-[var(--text-secondary)]">False Start</span>
-                   </div>
-                 </div>
-               </div>
+              {/* Ring / Trial Validity */}
+              <div
+                id="chart-card-ring"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col items-center justify-between min-h-[280px] sm:min-h-[320px] shadow-xs relative overflow-hidden min-w-0"
+              >
+                <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                  <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+                    Trial Validity
+                  </span>
+                  <span className="text-[11px] font-mono text-emerald-400 font-semibold tracking-wider">
+                    {validPercent}% VALID
+                  </span>
+                </div>
+                <div className="w-full h-[180px] sm:h-[190px] relative flex items-center justify-center my-auto min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={ringData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={75}
+                        paddingAngle={4}
+                        dataKey="value"
+                      >
+                        {ringData.map((entry, index) => (
+                          <Cell key={`ring-pie-cell-${entry.name}-${index}`} fill={entry.color} stroke="none" />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        content={<DatasetTooltip />} 
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  {/* Central Metric */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="font-mono text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-tight">
+                      {validPercent}%
+                    </span>
+                    <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-muted)]">
+                      {totalTrialsCount.toLocaleString()} TRIALS
+                    </span>
+                  </div>
+                </div>
+                <div className="w-full flex items-center justify-center gap-6 pt-2 border-t border-[var(--border-subtle)] text-xs font-mono">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#00f0ff]" />
+                    <span className="text-[var(--text-secondary)]">Valid</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
+                    <span className="text-[var(--text-secondary)]">False Start</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -182,12 +182,12 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
         
         {/* Median RT (Gauge) */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col items-center justify-between shadow-sm relative overflow-hidden min-w-0">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col items-center justify-between shadow-xs relative overflow-hidden min-w-0">
           <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-4">
             <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
               Median Reaction Time
             </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-[var(--cyan-primary)] border border-cyan-500/20">
+            <span className="text-[10px] font-mono text-[var(--cyan-primary)] font-semibold tracking-wider uppercase">
               DIRECTION
             </span>
           </div>
@@ -206,12 +206,12 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
         </div>
 
         {/* Directional Profile (Radar) */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col min-w-0 shadow-sm relative overflow-hidden">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col min-w-0 shadow-xs relative overflow-hidden">
           <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-4">
             <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
               Directional Profile
             </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-[var(--color-success)] border border-emerald-500/20">
+            <span className="text-[10px] font-mono text-[var(--color-success)] font-semibold tracking-wider uppercase">
               ACCURACY %
             </span>
           </div>
@@ -232,12 +232,12 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
         </div>
 
         {/* Response Outcomes (Ring) */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col min-w-0 shadow-sm relative overflow-hidden">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col min-w-0 shadow-xs relative overflow-hidden">
           <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-4">
             <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
               Response Outcomes
             </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <span className="text-[10px] font-mono text-purple-400 font-semibold tracking-wider uppercase">
               DISTRIBUTION
             </span>
           </div>
@@ -279,7 +279,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
                 <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} />
                 <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} axisLine={false} unit="ms" />
-                <Bar dataKey="medianRT" name="Median RT" fill="var(--cyan-primary)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="medianRT" name="Median RT" fill="var(--cyan-primary)" radius={[6, 6, 0, 0]} />
               </RechartsBarChart>
             </ResponsiveContainer>
           </div>
