@@ -208,7 +208,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
     return ticks;
   }, [foreperiodData]);
 
-  // 3. Cohort comparisons: minimum 10 sessions per displayed cohort, with session counts (n) and IQR
+  // 3. Cohort comparisons: all cohorts with session counts (n) and IQR
   const ageGroupData = useMemo(() => {
     return VALID_AGE_GROUPS.map((group) => {
       const short = getAgeGroupShortLabel(group);
@@ -225,7 +225,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
         q3,
         iqr,
       };
-    }).filter((entry) => entry.n >= 10);
+    }).filter((entry) => entry.n > 0);
   }, [datasetDocs]);
 
   // 4. Trial Progression (Trials 1–10) using latest valid attempt per logical trial per session
@@ -559,9 +559,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
                     Median RT by Age Group
-                  </span>
-                  <span className="text-[10px] font-mono text-[var(--text-muted)] tracking-wider uppercase">
-                    MIN 10 SESSIONS
                   </span>
                 </div>
                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
