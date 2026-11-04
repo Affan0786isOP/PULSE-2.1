@@ -276,7 +276,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             <div className="py-2" role="status" aria-live="polite" aria-label="Loading leaderboard">
               <SkeletonTable rows={6} cols={3} />
             </div>
-          ) : error ? (
+          ) : error && displayedEntries.length === 0 ? (
             <div role="alert" className="py-12 flex flex-col items-center justify-center text-center px-4">
               <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-center justify-center text-rose-500 mb-3 shadow-2xs">
                 <AlertCircle size={20} />
@@ -316,6 +316,12 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
             </div>
           ) : (
             <div className="w-full flex flex-col">
+              {error && (
+                <div role="alert" className="mb-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                  <AlertCircle size={14} className="shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
               {/* Header labels */}
               <div className="grid grid-cols-12 items-center text-[10.5px] font-mono font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider pb-2.5 px-2 border-b border-slate-100 dark:border-slate-800">
                 <span className="col-span-2">Rank</span>
