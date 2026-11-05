@@ -842,6 +842,70 @@ describe('Firestore Repositories Unit Tests', () => {
     });
   });
 
+  it('does not increment Dataset summary aggregates when a consumed session is submitted twice', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreResearchSubmissionRepository(() => mockDb);
+    const sessionId = 'summary-idempotency-session';
+    const docId = 'summary-idempotency-result';
+    const completedAtTimestamp = Date.now();
+
+    await mockDb.collection('experimentSessions').doc(sessionId).set({
+      sessionId,
+      uid: 'summary-test-user',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      createdAt: completedAtTimestamp - 1000,
+      expiresAt: completedAtTimestamp + 15 * 60 * 1000,
+      consumed: false
+    });
+    await mockDb.collection('publicDatasetMeta').doc('summary').set({
+      schemaVersion: 1,
+      totalRecords: 0,
+      totalTrials: 0,
+      lastUpdatedAt: completedAtTimestamp - 1,
+      counts: {
+        'visual-reaction': 0,
+        direction: 0,
+        'color-recognition': 0,
+        'block-memory': 0,
+        'number-memory': 0
+      }
+    });
+
+    const input = {
+      docId,
+      sessionId,
+      userId: 'summary-test-user',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      derivedMetrics: {},
+      currentScore: 210,
+      isNewPersonalBest: true,
+      previousPersonalBest: null,
+      personalBest: 210,
+      completedAtTimestamp,
+      completedAtMonth: new Date(completedAtTimestamp).toISOString().slice(0, 7),
+      provenanceToken: 'summary-test-provenance',
+      trialsDigest: 'summary-test-digest',
+      publicDatasetDoc: {
+        assessmentType: 'visual-reaction',
+        totalTrials: 2,
+        progressionTrials: [{}, {}]
+      },
+      trialPayloads: []
+    };
+
+    await repo.executeSubmissionTransaction(input);
+    await expect(repo.executeSubmissionTransaction(input)).rejects.toThrow();
+
+    const summary = await mockDb.collection('publicDatasetMeta').doc('summary').get();
+    expect(summary.data()).toMatchObject({
+      totalRecords: 1,
+      totalTrials: 2,
+      counts: { 'visual-reaction': 1 }
+    });
+  });
+
   it('rejects non-string cursor values without throwing a property access error', async () => {
     const mockDb = createMockDb();
     const repo = new FirestoreResearchDatasetRepository(() => mockDb);
