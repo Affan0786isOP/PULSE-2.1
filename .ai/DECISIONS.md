@@ -125,3 +125,16 @@ This file records verified architectural and engineering decisions established i
 - **Decision:** Keep package metadata as the source of truth for Node/npm/tool versions; document the production desktop + mobile + SEO generation build sequence; remove obsolete refresh-rate calibration QA expectations; distinguish route presence from authorization and backend access; and record documentation verification as a source-backed task rather than asserting unverified behavior.
 - **Consequences:** Future documentation updates should inspect `package.json`, both application routers, the relevant admin component and server route registrations before making claims about runtime requirements, feature availability, or administrative access.
 - **Evidence:** [package.json](../package.json), [src/App.tsx](../src/App.tsx), [mobile/src/App.tsx](../mobile/src/App.tsx), [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md), [docs/TESTING.md](../docs/TESTING.md).
+
+
+### Decision: Controlled Dataset Summary Maintenance (2026-11-05)
+- **Status:** Accepted
+- **Context:** Public Dataset summary reads previously fell back to scanning the entire `publicDataset` collection when the aggregate document was missing. Repeated public requests could therefore cause avoidable Firestore reads. The public Dataset also needed an explicit way to fetch fresh chart records without recalculating summary aggregates.
+- **Decision:**
+  1. Public summary requests read only `publicDatasetMeta/summary`; if it is absent or invalid, the API returns a reconciliation-required response and never scans the source collection.
+  2. Successful research submissions keep the aggregate updated transactionally once the metadata document is initialized.
+  3. The existing authenticated desktop `/admin` console exposes a protected status, dry-run, and explicitly confirmed rebuild action. Rebuild scans `publicDataset` under a migration lock and writes only `publicDatasetMeta/summary`.
+  4. Public manual refresh refreshes detailed Dataset records and their aggregate metadata read; it never triggers reconciliation. The server enforces a two-minute refresh limit.
+  5. The CLI remains available as an operator recovery path.
+- **Consequences:** Normal public Dataset loads never recalculate aggregate statistics. Full-collection reconciliation is intentional, operator-controlled maintenance; research submissions are briefly paused during an apply run.
+- **Evidence:** [`server/services/datasetSummaryReconciliation.ts`](../server/services/datasetSummaryReconciliation.ts), [`server/repositories/firestore/firestoreResearchDatasetRepository.ts`](../server/repositories/firestore/firestoreResearchDatasetRepository.ts), [`server/routes/adminRoutes.ts`](../server/routes/adminRoutes.ts), [`src/components/admin/DatasetSummaryMaintenancePanel.tsx`](../src/components/admin/DatasetSummaryMaintenancePanel.tsx), [`src/lib/dataset.ts`](../src/lib/dataset.ts).
