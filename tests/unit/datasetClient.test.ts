@@ -122,6 +122,57 @@ describe('Dataset API client', () => {
     expect(networkAborted).toBe(true);
   });
 
+
+  it('starts a fresh request when StrictMode cleanup aborts the previous consumer', async () => {
+    let dataRequestCount = 0;
+    let firstNetworkAborted = false;
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes('/api/research/dataset/summary')) {
+        return Promise.resolve(jsonResponse({
+          success: true, totalRecords: 1, counts: { 'visual-reaction': 1 }
+        }));
+      }
+
+      dataRequestCount += 1;
+      if (dataRequestCount === 1) {
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            firstNetworkAborted = true;
+            const error = new Error('aborted');
+            error.name = 'AbortError';
+            reject(error);
+          }, { once: true });
+        });
+      }
+
+      return Promise.resolve(jsonResponse({
+        success: true, records: datasetPage(0, 1), hasMore: false, nextCursor: null
+      }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    // Mirrors StrictMode's development sequence: first effect setup, cleanup,
+    // then an immediate second setup before the first promise's finally runs.
+    const firstEffectController = new AbortController();
+    const firstEffectRequest = fetchDatasetObservations(
+      { assessmentType: 'visual-reaction' }, 1000, firstEffectController.signal
+    );
+    firstEffectController.abort();
+
+    const secondEffectController = new AbortController();
+    const secondEffectRequest = fetchDatasetObservations(
+      { assessmentType: 'visual-reaction' }, 1000, secondEffectController.signal
+    );
+
+    await expect(firstEffectRequest).rejects.toMatchObject({ name: 'AbortError' });
+    const secondResult = await secondEffectRequest;
+
+    expect(firstNetworkAborted).toBe(true);
+    expect(dataRequestCount).toBe(2);
+    expect(secondResult.error).toBeUndefined();
+    expect(secondResult.observations).toHaveLength(1);
+  });
+
   it('follows cursors and reports the filtered total', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(jsonResponse({
