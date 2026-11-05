@@ -23,6 +23,7 @@ import { LeaderboardAppService } from './services/leaderboardAppService';
 import { AdminService } from './services/adminService';
 import { FirestoreLeaderboardAccuracyBackfillRepository } from './repositories/firestore/firestoreLeaderboardAccuracyBackfillRepository';
 import { LeaderboardAccuracyBackfillService } from './services/leaderboardAccuracyBackfill';
+import { DatasetSummaryReconciliationService } from './services/datasetSummaryReconciliation';
 
 export interface ServerContainer {
   sessionService: ISessionService;
@@ -31,6 +32,7 @@ export interface ServerContainer {
   leaderboardService: ILeaderboardService;
   adminService: IAdminService;
   leaderboardAccuracyBackfillService: LeaderboardAccuracyBackfillService;
+  datasetSummaryReconciliationService: DatasetSummaryReconciliationService;
   telegramNotifierService: ITelegramNotifierService;
 }
 
@@ -61,6 +63,7 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
   const adminService = new AdminService(leaderboardRepository);
   const leaderboardAccuracyBackfillRepository = new FirestoreLeaderboardAccuracyBackfillRepository(getDb);
   const leaderboardAccuracyBackfillService = new LeaderboardAccuracyBackfillService(leaderboardAccuracyBackfillRepository);
+  const datasetSummaryReconciliationService = new DatasetSummaryReconciliationService(getDb);
   const telegramNotifierService = new TelegramNotifierService();
 
   return {
@@ -70,6 +73,7 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
     leaderboardService,
     adminService,
     leaderboardAccuracyBackfillService,
+    datasetSummaryReconciliationService,
     telegramNotifierService
   };
 }
