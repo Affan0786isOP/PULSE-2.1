@@ -24,9 +24,11 @@
   --pulse-slate-disabled: #4B5563;
 
   /* Font Families */
-  --pulse-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --pulse-font-display: 'Space Grotesk', -apple-system, sans-serif;
-  --pulse-font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  --pulse-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --pulse-font-display: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --pulse-font-mono: 'JetBrains Mono', monospace;
+  --pulse-font-body: var(--pulse-font-sans);
+  --pulse-font-heading: var(--pulse-font-display);
 }
 
 /* Tabular Numerics for Latency Measurements */
