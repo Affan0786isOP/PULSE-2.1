@@ -66,7 +66,8 @@ async function startServer() {
   registerAdminRoutes(app, {
     adminService: container.adminService,
     invalidateLeaderboardCache: container.leaderboardService.invalidateCache?.bind(container.leaderboardService),
-    runAccuracyBackfillBatch: input => container.leaderboardAccuracyBackfillService.runBatch(input)
+    runAccuracyBackfillBatch: input => container.leaderboardAccuracyBackfillService.runBatch(input),
+    datasetSummaryReconciliationService: container.datasetSummaryReconciliationService
   });
 applyDeviceRoutingMiddleware(app);
   await registerStaticRoutes(app);
