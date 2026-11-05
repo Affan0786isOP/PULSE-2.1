@@ -7,7 +7,7 @@ function createReconciliationDb(seed: Record<string, Record<string, unknown>[]> 
   for (const [collectionName, records] of Object.entries(seed)) {
     collections.set(collectionName, new Map(records.map(record => {
       const { id, ...data } = record;
-      return [String(id), structuredClone(data)];
+      return [String(id), structuredClone(data)] as const;
     })));
   }
 
@@ -140,6 +140,23 @@ describe('DatasetSummaryReconciliationService', () => {
     expect(status.migrationInProgress).toBe(false);
     expect(status.summary?.totalRecords).toBe(2);
     expect(status.lastReconciledAt).not.toBeNull();
+  });
+
+  it('paginates through collections larger than one Firestore page', async () => {
+    const records = Array.from({ length: 501 }, (_, index) => ({
+      id: `session-${String(index).padStart(4, '0')}`,
+      assessmentType: 'visual-reaction',
+      totalTrials: 2
+    }));
+    const { db } = createReconciliationDb({ publicDataset: records });
+    const service = new DatasetSummaryReconciliationService(() => db);
+
+    const report = await service.reconcile('dry-run');
+
+    expect(report.scannedRecords).toBe(501);
+    expect(report.summary.totalRecords).toBe(501);
+    expect(report.summary.totalTrials).toBe(1002);
+    expect(report.summary.counts['visual-reaction']).toBe(501);
   });
 
   it('refuses to overwrite an active reconciliation lock', async () => {
