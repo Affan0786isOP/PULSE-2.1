@@ -119,7 +119,7 @@ export const datasetManualRefreshLimiter = rateLimit({
   store: createSharedStore(),
   skip: (req) => {
     if (req.method !== 'GET') return true;
-    const pathname = (req.originalUrl || req.url || '').split('?')[0].replace(/\\/+$/, '');
+    const pathname = (req.originalUrl || req.url || '').split('?')[0].replace(/\/+$/, '');
     // Count one explicit refresh operation at its first page. Cursor pages
     // belong to the same client-side refresh and must not consume extra slots.
     return pathname !== '/api/research/dataset' ||
