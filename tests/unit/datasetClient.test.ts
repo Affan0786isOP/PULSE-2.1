@@ -83,6 +83,25 @@ describe('Dataset API client', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('aborts an in-flight snapshot when the cache is invalidated', async () => {
+    let networkAborted = false;
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => {
+        networkAborted = true;
+        const error = new Error('aborted');
+        error.name = 'AbortError';
+        reject(error);
+      }, { once: true });
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const pending = fetchDatasetObservations({ assessmentType: 'visual-reaction' }, 1000);
+    clearDatasetObservationsCache();
+
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    expect(networkAborted).toBe(true);
+  });
+
   it('cancels the shared network request when its only consumer aborts', async () => {
     let networkAborted = false;
     const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
