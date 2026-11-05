@@ -584,7 +584,7 @@ export function Leaderboard({ onNavigate }: { onNavigate: (view: string) => void
                               const pct = Number(rawAcc.toFixed(2));
                               return (
                                 <td key={col.key} className="py-3.5 px-4 text-right">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
+                                  <span className="text-xs font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                                     {pct}%
                                   </span>
                                 </td>
