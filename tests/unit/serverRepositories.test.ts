@@ -671,6 +671,19 @@ describe('Firestore Repositories Unit Tests', () => {
       const completedAtTimestamp = Date.now();
       const ageGroup = 'Young adults (18–25)';
       const versionMetadata = getAssessmentVersionMetadata(assessmentType);
+      await mockDb.collection('publicDatasetMeta').doc('summary').set({
+        schemaVersion: 1,
+        totalRecords: 0,
+        totalTrials: 0,
+        lastUpdatedAt: completedAtTimestamp - 1,
+        counts: {
+          'visual-reaction': 0,
+          direction: 0,
+          'color-recognition': 0,
+          'block-memory': 0,
+          'number-memory': 0
+        }
+      });
 
       await mockDb.collection('experimentSessions').doc(sessionId).set({
         sessionId,
@@ -713,6 +726,12 @@ describe('Firestore Repositories Unit Tests', () => {
         protocolVersion: publicRecord.data()?.protocolVersion,
         datasetSchemaVersion: publicRecord.data()?.datasetSchemaVersion,
         metricsVersion: publicRecord.data()?.metricsVersion,
+      });
+      const summary = await mockDb.collection('publicDatasetMeta').doc('summary').get();
+      expect(summary.data()).toMatchObject({
+        totalRecords: 1,
+        totalTrials: 0,
+        counts: { [assessmentType]: 1 }
       });
     }
   });
@@ -786,6 +805,39 @@ describe('Firestore Repositories Unit Tests', () => {
         'color-recognition': 2,
         'block-memory': 0,
         'number-memory': 0
+      }
+    });
+  });
+
+
+  it('serves a precomputed Dataset summary without scanning publicDataset', async () => {
+    const mockDb = createDatasetMockDb({
+      publicDatasetMeta: [{
+        id: 'summary',
+        schemaVersion: 1,
+        totalRecords: 42,
+        totalTrials: 840,
+        lastUpdatedAt: 1700000000000,
+        counts: {
+          'visual-reaction': 20,
+          direction: 8,
+          'color-recognition': 6,
+          'block-memory': 4,
+          'number-memory': 4
+        }
+      }]
+    });
+    const repo = new FirestoreResearchDatasetRepository(() => mockDb);
+
+    await expect(repo.getDatasetSummary()).resolves.toEqual({
+      totalRecords: 42,
+      totalTrials: 840,
+      counts: {
+        'visual-reaction': 20,
+        direction: 8,
+        'color-recognition': 6,
+        'block-memory': 4,
+        'number-memory': 4
       }
     });
   });
