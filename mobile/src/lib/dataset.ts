@@ -14,26 +14,20 @@ export function unrollTrialsFromDatasetDocs(
   return unrollSharedTrialsFromDatasetDocs(datasetDocs, selectedGameId);
 }
 
-export const fetchDatasetObservations = async (
+const fetchDatasetObservationsUncached = async (
   filters: { assessmentType?: string; ageGroup?: string },
-  observationLimit: number = 1000,
-): Promise<{ observations: DatasetObservation[]; totalCount: number | null; error?: string; isSampleLimited: boolean }> => {
-  const requestedLimit = Number(observationLimit);
-  const safeLimit = Number.isFinite(requestedLimit)
-    ? Math.min(5000, Math.max(1, Math.floor(requestedLimit)))
-    : 1000;
+  observationLimit: number,
+  signal: AbortSignal
+): Promise<DatasetFetchResult> => {
+  const safeLimit = getSafeObservationLimit(observationLimit);
   const pageSize = 250;
   const observations: DatasetObservation[] = [];
   const seenCursors = new Set<string>();
   let cursor: string | null = null;
   let hasMore = true;
 
-  const assessmentType = filters.assessmentType && filters.assessmentType !== 'All' && filters.assessmentType !== 'all'
-    ? filters.assessmentType
-    : null;
-  const ageGroup = filters.ageGroup && filters.ageGroup !== 'All' && filters.ageGroup !== 'all'
-    ? filters.ageGroup
-    : null;
+  const assessmentType = normalizeDatasetFilter(filters.assessmentType);
+  const ageGroup = normalizeDatasetFilter(filters.ageGroup);
 
   try {
     while (observations.length < safeLimit && hasMore) {
@@ -47,7 +41,7 @@ export const fetchDatasetObservations = async (
       const response = await fetch(`/api/research/dataset?${params.toString()}`, {
         method: 'GET',
         headers: { Accept: 'application/json' },
-        cache: 'no-store',
+        signal,
       });
       const payload = await response.json() as {
         success?: boolean;
@@ -95,7 +89,7 @@ export const fetchDatasetObservations = async (
         const summaryResponse = await fetch('/api/research/dataset/summary', {
           method: 'GET',
           headers: { Accept: 'application/json' },
-          cache: 'no-store',
+          signal,
         });
         if (summaryResponse.ok) {
           const summary = await summaryResponse.json() as {
@@ -131,6 +125,9 @@ export const fetchDatasetObservations = async (
 
     return { observations, totalCount, isSampleLimited };
   } catch (error: unknown) {
+    if (signal.aborted || (error instanceof Error && error.name === 'AbortError')) {
+      throw createAbortError();
+    }
     console.warn('Dataset API fetch failed:', error instanceof Error ? error.message : error);
     return {
       observations: [],
@@ -139,4 +136,60 @@ export const fetchDatasetObservations = async (
       isSampleLimited: false,
     };
   }
+};
+
+/**
+ * Session-scoped cache + in-flight deduplication. Independent callers share
+ * the same network operation, but one caller cancelling does not abort it for
+ * other active consumers. The underlying request is cancelled when everyone
+ * has left the request.
+ */
+export const fetchDatasetObservations = (
+  filters: { assessmentType?: string; ageGroup?: string },
+  observationLimit: number = 1000,
+  signal?: AbortSignal
+): Promise<DatasetFetchResult> => {
+  if (signal?.aborted) return Promise.reject(createAbortError());
+
+  const safeLimit = getSafeObservationLimit(observationLimit);
+  const assessmentType = normalizeDatasetFilter(filters.assessmentType);
+  const ageGroup = normalizeDatasetFilter(filters.ageGroup);
+  const key = JSON.stringify([assessmentType, ageGroup, safeLimit]);
+  const now = Date.now();
+  const cached = completedDatasetCache.get(key);
+
+  if (cached && cached.expiresAt > now) {
+    return Promise.resolve(cached.value);
+  }
+  if (cached) completedDatasetCache.delete(key);
+
+  let pending = pendingDatasetRequests.get(key);
+  if (!pending) {
+    const controller = new AbortController();
+    let entry: PendingDatasetRequest;
+    const promise = fetchDatasetObservationsUncached(
+      { assessmentType: assessmentType ?? undefined, ageGroup: ageGroup ?? undefined },
+      safeLimit,
+      controller.signal
+    ).then(value => {
+      if (!value.error && !controller.signal.aborted) {
+        completedDatasetCache.set(key, {
+          expiresAt: Date.now() + DATASET_CACHE_TTL_MS,
+          value
+        });
+      }
+      return value;
+    }).finally(() => {
+      entry.settled = true;
+      if (pendingDatasetRequests.get(key) === entry) {
+        pendingDatasetRequests.delete(key);
+      }
+    });
+
+    entry = { controller, promise, consumers: 0, settled: false };
+    pendingDatasetRequests.set(key, entry);
+    pending = entry;
+  }
+
+  return subscribeToDatasetRequest(pending, signal);
 };
