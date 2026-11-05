@@ -420,6 +420,31 @@ export function Dataset({ onNavigate }: DatasetProps) {
           </button>
         </div>
 
+        {(selectedGameId === 'visual-reaction' || selectedGameId === 'direction') && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] text-[var(--text-muted)]" aria-live="polite">
+              {lastRefreshedAt ? `Last refreshed at ${new Date(lastRefreshedAt).toLocaleTimeString()}` : 'Research data loads automatically'}
+            </p>
+            <button
+              type="button"
+              id="dataset-refresh-btn"
+              data-testid="dataset-refresh-btn"
+              onClick={handleRefresh}
+              disabled={isLoading || isRefreshing || refreshCooldownUntil > Date.now()}
+              aria-label="Refresh research data"
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] transition hover:border-[var(--cyan-primary)] hover:text-[var(--cyan-primary)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+              {isRefreshing ? 'Refreshing…' : refreshCooldownUntil > Date.now() ? 'Refresh cooldown' : 'Refresh data'}
+            </button>
+          </div>
+        )}
+        {refreshError && (
+          <div role="alert" className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-[var(--text-secondary)]">
+            {refreshError} Previous data, when available, remains visible.
+          </div>
+        )}
+
         {/* Dashboard Content */}
         {!isLoading && !loadError && isSampleLimited && (
           <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-[var(--text-secondary)]">
