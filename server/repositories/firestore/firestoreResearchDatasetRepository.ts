@@ -84,6 +84,45 @@ export class FirestoreResearchDatasetRepository implements IResearchDatasetRepos
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
+    const summarySnap = await db.collection('publicDatasetMeta').doc('summary').get();
+    if (summarySnap.exists) {
+      const summary = summarySnap.data() as Record<string, unknown>;
+      if (summary.migrationInProgress === true) {
+        throw new Error('DATASET_SUMMARY_MIGRATION_IN_PROGRESS');
+      }
+
+      const totalRecords = finiteNonNegative(summary.totalRecords);
+      const totalTrials = finiteNonNegative(summary.totalTrials);
+      const rawCounts = summary.counts && typeof summary.counts === 'object'
+        ? summary.counts as Record<string, unknown>
+        : null;
+      const canonicalTypes = [
+        'visual-reaction',
+        'direction',
+        'color-recognition',
+        'block-memory',
+        'number-memory'
+      ] as const;
+      const normalizedCounts: Record<string, number> = {};
+      for (const type of canonicalTypes) {
+        const count = rawCounts ? finiteNonNegative(rawCounts[type]) : null;
+        if (count === null) throw new Error('DATASET_SUMMARY_RECONCILIATION_REQUIRED');
+        normalizedCounts[type] = count;
+      }
+
+      if (
+        summary.schemaVersion !== 1 ||
+        totalRecords === null ||
+        totalTrials === null
+      ) {
+        throw new Error('DATASET_SUMMARY_RECONCILIATION_REQUIRED');
+      }
+
+      return { totalRecords, totalTrials, counts: normalizedCounts };
+    }
+
+    // Compatibility path during rollout: before the one-time backfill creates
+    // publicDatasetMeta/summary, preserve exact legacy summary semantics.
     const counts: Record<string, number> = {
       'visual-reaction': 0,
       direction: 0,
