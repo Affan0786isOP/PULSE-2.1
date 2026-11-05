@@ -113,6 +113,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
     }
 
     let isMounted = true;
+    const abortController = new AbortController();
 
     async function loadData() {
       setIsLoading(true);
@@ -120,7 +121,11 @@ export function Dataset({ onNavigate }: DatasetProps) {
       setIsSampleLimited(false);
       setTotalDatasetCount(null);
       try {
-        const publicData = await fetchDatasetObservations({ assessmentType: selectedGameId }, 1000);
+        const publicData = await fetchDatasetObservations(
+          { assessmentType: selectedGameId },
+          1000,
+          abortController.signal
+        );
         if (!isMounted) return;
 
         if (publicData.error) {
@@ -149,6 +154,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
     void loadData();
     return () => {
       isMounted = false;
+      abortController.abort();
     };
   }, [selectedGameId]);
 
