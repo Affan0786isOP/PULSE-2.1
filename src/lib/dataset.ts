@@ -29,6 +29,7 @@ type PendingDatasetRequest = {
 };
 
 const DATASET_CACHE_TTL_MS = 60_000;
+const DATASET_CACHE_MAX_ENTRIES = 10;
 const completedDatasetCache = new Map<string, { expiresAt: number; value: DatasetFetchResult }>();
 const pendingDatasetRequests = new Map<string, PendingDatasetRequest>();
 
@@ -241,6 +242,9 @@ export const fetchDatasetObservations = (
   const cached = completedDatasetCache.get(key);
 
   if (cached && cached.expiresAt > now) {
+    // Refresh insertion order so this entry behaves as the most-recently-used.
+    completedDatasetCache.delete(key);
+    completedDatasetCache.set(key, cached);
     return Promise.resolve(cached.value);
   }
   if (cached) completedDatasetCache.delete(key);
@@ -255,6 +259,10 @@ export const fetchDatasetObservations = (
       controller.signal
     ).then(value => {
       if (!value.error && !controller.signal.aborted) {
+        if (!completedDatasetCache.has(key) && completedDatasetCache.size >= DATASET_CACHE_MAX_ENTRIES) {
+          const oldestKey = completedDatasetCache.keys().next().value;
+          if (oldestKey !== undefined) completedDatasetCache.delete(oldestKey);
+        }
         completedDatasetCache.set(key, {
           expiresAt: Date.now() + DATASET_CACHE_TTL_MS,
           value
