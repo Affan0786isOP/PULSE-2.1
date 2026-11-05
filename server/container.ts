@@ -24,6 +24,7 @@ import { AdminService } from './services/adminService';
 import { FirestoreLeaderboardAccuracyBackfillRepository } from './repositories/firestore/firestoreLeaderboardAccuracyBackfillRepository';
 import { LeaderboardAccuracyBackfillService } from './services/leaderboardAccuracyBackfill';
 import { DatasetSummaryReconciliationService } from './services/datasetSummaryReconciliation';
+import { FirestoreDatasetSummaryMaintenanceRepository } from './repositories/firestore/firestoreDatasetSummaryMaintenanceRepository';
 
 export interface ServerContainer {
   sessionService: ISessionService;
@@ -63,7 +64,8 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
   const adminService = new AdminService(leaderboardRepository);
   const leaderboardAccuracyBackfillRepository = new FirestoreLeaderboardAccuracyBackfillRepository(getDb);
   const leaderboardAccuracyBackfillService = new LeaderboardAccuracyBackfillService(leaderboardAccuracyBackfillRepository);
-  const datasetSummaryReconciliationService = new DatasetSummaryReconciliationService(getDb);
+  const datasetSummaryMaintenanceRepository = new FirestoreDatasetSummaryMaintenanceRepository(getDb);
+  const datasetSummaryReconciliationService = new DatasetSummaryReconciliationService(datasetSummaryMaintenanceRepository);
   const telegramNotifierService = new TelegramNotifierService();
 
   return {
