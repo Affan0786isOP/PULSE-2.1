@@ -5,6 +5,11 @@ import type { ExperimentSessionRecord } from '../../models/sessionModels';
 import { normalizeAssessmentType } from '../../engines/assessmentTypes';
 import { SessionAlreadyConsumedError } from '../../models/replayContracts';
 import { getAssessmentVersionMetadata } from '../../../shared/contracts/common';
+import { normalizeLeaderboardAssessmentType } from '../../../shared/domain/leaderboardEligibility';
+
+function isSafeNonNegativeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
 
 export class FirestoreResearchSubmissionRepository implements IResearchSubmissionRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
@@ -18,10 +23,20 @@ export class FirestoreResearchSubmissionRepository implements IResearchSubmissio
     const sessionDocRef = db.collection('experimentSessions').doc(input.sessionId);
     const publicDatasetDocRef = db.collection('publicDataset').doc(input.docId);
     const assessmentResultDocRef = db.collection('assessmentResults').doc(input.docId);
+    const summaryDocRef = db.collection('publicDatasetMeta').doc('summary');
     const versionMetadata = getAssessmentVersionMetadata(input.assessmentType);
+    const canonicalAssessmentType = normalizeLeaderboardAssessmentType(input.assessmentType);
+    if (!canonicalAssessmentType) throw new Error('INVALID_ASSESSMENT_TYPE');
+
+    const rawProgressionTrials = input.publicDatasetDoc.progressionTrials;
+    const summaryTrialCount = Array.isArray(rawProgressionTrials)
+      ? rawProgressionTrials.length
+      : (isSafeNonNegativeInteger(input.publicDatasetDoc.totalTrials) ? input.publicDatasetDoc.totalTrials : 0);
 
     await db.runTransaction(async (tx) => {
+      // Read every document before the first transaction write.
       const sessionSnap = await tx.get(sessionDocRef);
+      const summarySnap = await tx.get(summaryDocRef);
       if (!sessionSnap.exists) {
         throw new Error('SESSION_NOT_FOUND');
       }
@@ -37,6 +52,51 @@ export class FirestoreResearchSubmissionRepository implements IResearchSubmissio
       }
       if (sData.consumed) {
         throw new SessionAlreadyConsumedError(sData);
+      }
+
+      // A backfill locks this document before scanning publicDataset. Firestore
+      // retries a concurrent transaction that read the old lock state, ensuring
+      // the backfill either includes the committed record or blocks the submit.
+      if (summarySnap.exists) {
+        const summary = summarySnap.data() as Record<string, unknown>;
+        if (summary.migrationInProgress === true) {
+          throw new Error('DATASET_SUMMARY_MIGRATION_IN_PROGRESS');
+        }
+
+        const counts = summary.counts && typeof summary.counts === 'object'
+          ? summary.counts as Record<string, unknown>
+          : null;
+        const totalRecords = summary.totalRecords;
+        const totalTrials = summary.totalTrials;
+        const currentCount = counts?.[canonicalAssessmentType];
+        const canonicalTypes = [
+          'visual-reaction',
+          'direction',
+          'color-recognition',
+          'block-memory',
+          'number-memory'
+        ];
+        if (
+          summary.schemaVersion !== 1 ||
+          !isSafeNonNegativeInteger(totalRecords) ||
+          !isSafeNonNegativeInteger(totalTrials) ||
+          !counts ||
+          canonicalTypes.some(type => !isSafeNonNegativeInteger(counts[type])) ||
+          !isSafeNonNegativeInteger(currentCount)
+        ) {
+          throw new Error('DATASET_SUMMARY_RECONCILIATION_REQUIRED');
+        }
+
+        tx.set(summaryDocRef, {
+          schemaVersion: 1,
+          totalRecords: totalRecords + 1,
+          totalTrials: totalTrials + summaryTrialCount,
+          counts: {
+            ...counts,
+            [canonicalAssessmentType]: currentCount + 1
+          },
+          lastUpdatedAt: input.completedAtTimestamp
+        }, { merge: true });
       }
 
       // Write canonical publicDataset document with shared docId
