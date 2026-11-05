@@ -113,7 +113,8 @@ if (typeof window !== 'undefined') {
 const fetchDatasetObservationsUncached = async (
   filters: { assessmentType?: string; ageGroup?: string },
   observationLimit: number,
-  signal: AbortSignal
+  signal: AbortSignal,
+  forceRefresh: boolean
 ): Promise<DatasetFetchResult> => {
   const safeLimit = getSafeObservationLimit(observationLimit);
   const pageSize = 250;
@@ -290,7 +291,8 @@ export const fetchDatasetObservations = (
     const promise = fetchDatasetObservationsUncached(
       { assessmentType: assessmentType ?? undefined, ageGroup: ageGroup ?? undefined },
       safeLimit,
-      controller.signal
+      controller.signal,
+      forceRefresh
     ).then(value => {
       if (!value.error && !controller.signal.aborted) {
         if (!completedDatasetCache.has(key) && completedDatasetCache.size >= DATASET_CACHE_MAX_ENTRIES) {
