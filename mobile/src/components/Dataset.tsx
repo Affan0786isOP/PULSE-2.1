@@ -507,7 +507,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
         {(selectedGameId === 'visual-reaction' || selectedGameId === 'direction') && (
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-[11px] text-[var(--text-muted)]" aria-live="polite">
-              {lastRefreshedAt ? `Last refreshed at ${new Date(lastRefreshedAt).toLocaleTimeString()}` : 'Research data loads automatically'}
+              {lastRefreshedAt ? `Last loaded at ${new Date(lastRefreshedAt).toLocaleTimeString()}` : 'Research data loads automatically'}
             </p>
             <button
               type="button"
