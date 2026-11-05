@@ -19,6 +19,15 @@ function createMockDb(): Firestore {
   };
 
   const db = {
+    async getAll(...refs: Array<{
+      get: () => Promise<{
+        id: string;
+        exists: boolean;
+        data: () => Record<string, unknown> | undefined;
+      }>;
+    }>) {
+      return Promise.all(refs.map(ref => ref.get()));
+    },
     collection(name: string) {
       const col = getCol(name);
       return {
