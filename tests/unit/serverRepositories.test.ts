@@ -795,18 +795,7 @@ describe('Firestore Repositories Unit Tests', () => {
     expect(secondPage.hasMore).toBe(false);
     expect(secondPage.results[0].participantId).toBeUndefined();
 
-    const summary = await repo.getDatasetSummary();
-    expect(summary).toEqual({
-      totalRecords: 3,
-      totalTrials: 6,
-      counts: {
-        'visual-reaction': 1,
-        direction: 0,
-        'color-recognition': 2,
-        'block-memory': 0,
-        'number-memory': 0
-      }
-    });
+    await expect(repo.getDatasetSummary()).rejects.toThrow('DATASET_SUMMARY_RECONCILIATION_REQUIRED');
   });
 
 
