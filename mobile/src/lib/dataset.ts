@@ -91,6 +91,12 @@ function subscribeToDatasetRequest(
 /** Clears only ephemeral in-memory data; Firestore remains authoritative. */
 export function clearDatasetObservationsCache(): void {
   completedDatasetCache.clear();
+  // Abort older in-flight snapshots too; otherwise they could repopulate the
+  // cache with a pre-submission dataset response after this invalidation.
+  for (const request of pendingDatasetRequests.values()) {
+    request.controller.abort();
+  }
+  pendingDatasetRequests.clear();
 }
 
 if (typeof window !== 'undefined') {
