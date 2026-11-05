@@ -11,6 +11,7 @@ import {
 import { AppError } from '../models/replayContracts';
 import { DEFAULT_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE, MAX_LEADERBOARD_ACCURACY_BACKFILL_BATCH_SIZE } from '../services/leaderboardAccuracyBackfill';
 import type { LeaderboardAccuracyBackfillBatchInput, LeaderboardAccuracyBackfillBatchReport } from '../models/leaderboardAccuracyBackfill';
+import type { DatasetSummaryReconciliationService } from '../services/datasetSummaryReconciliation';
 
 export interface AdminRoutesDependencies {
   adminService: IAdminService;
@@ -20,6 +21,7 @@ export interface AdminRoutesDependencies {
   validatePass?: (passcode: string) => boolean;
   createToken?: () => string;
   runAccuracyBackfillBatch?: (input: LeaderboardAccuracyBackfillBatchInput) => Promise<LeaderboardAccuracyBackfillBatchReport>;
+  datasetSummaryReconciliationService?: Pick<DatasetSummaryReconciliationService, 'getStatus' | 'reconcile'>;
 }
 
 export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies): void {
@@ -342,6 +344,63 @@ export function registerAdminRoutes(app: Express, deps: AdminRoutesDependencies)
 
   // Unsupported methods must never invoke the migration.
   app.all(accuracyBackfillPath, applyNoStoreHeaders, (_req, res) => {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
+  });
+
+  // Dataset summary status and reconciliation are strictly admin-only.
+  const datasetSummaryPath = '/api/admin/maintenance/dataset-summary';
+  app.get(datasetSummaryPath, applyNoStoreHeaders, requireAdminAuth, async (_req, res) => {
+    if (!deps.datasetSummaryReconciliationService) {
+      return res.status(503).json({ success: false, error: 'Dataset summary maintenance is unavailable.' });
+    }
+    try {
+      const status = await deps.datasetSummaryReconciliationService.getStatus();
+      return res.json({ success: true, status });
+    } catch {
+      return res.status(503).json({ success: false, error: 'Unable to retrieve Dataset summary status.' });
+    }
+  });
+
+  app.post(`${datasetSummaryPath}/reconcile`, applyNoStoreHeaders, requireAdminAuth, async (req, res) => {
+    if (!deps.datasetSummaryReconciliationService) {
+      return res.status(503).json({ success: false, error: 'Dataset summary maintenance is unavailable.' });
+    }
+    const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
+    const mode = body.mode === undefined ? 'dry-run' : body.mode;
+    if (mode !== 'dry-run' && mode !== 'apply') {
+      return res.status(400).json({ success: false, error: 'mode must be dry-run or apply' });
+    }
+    if (mode === 'apply' && body.confirmApply !== true) {
+      return res.status(400).json({ success: false, error: 'Apply mode requires confirmApply: true' });
+    }
+    if (mode === 'dry-run' && body.confirmApply !== undefined) {
+      return res.status(400).json({ success: false, error: 'confirmApply is valid only for apply mode' });
+    }
+
+    try {
+      const report = await deps.datasetSummaryReconciliationService.reconcile(mode, { source: 'admin-ui' });
+      return res.status(200).json({ success: true, report });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message === 'DATASET_SUMMARY_MIGRATION_IN_PROGRESS') {
+        return res.status(409).json({ success: false, error: 'A Dataset summary reconciliation is already running.' });
+      }
+      if (message === 'DATABASE_UNAVAILABLE') {
+        return res.status(503).json({ success: false, error: 'Firestore is unavailable for Dataset reconciliation.' });
+      }
+      if (message.startsWith('DATASET_SUMMARY_INVALID_TRIAL_COUNT:')) {
+        return res.status(409).json({ success: false, error: 'A source record has an invalid trial count. No summary changes were applied.' });
+      }
+      return res.status(503).json({ success: false, error: 'Dataset summary reconciliation failed. The existing summary was preserved.' });
+    }
+  });
+
+  app.all(datasetSummaryPath, applyNoStoreHeaders, (_req, res) => {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ success: false, error: 'Method not allowed. Use GET.' });
+  });
+  app.all(`${datasetSummaryPath}/reconcile`, applyNoStoreHeaders, (_req, res) => {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
   });
