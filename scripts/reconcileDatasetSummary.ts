@@ -14,13 +14,15 @@
  */
 import { initializeAdminApp, getAdminDb } from '../server/config/firebaseAdmin';
 import { DatasetSummaryReconciliationService } from '../server/services/datasetSummaryReconciliation';
+import { FirestoreDatasetSummaryMaintenanceRepository } from '../server/repositories/firestore/firestoreDatasetSummaryMaintenanceRepository';
 
 const APPLY = process.argv.includes('--apply');
 const RESUME = process.argv.includes('--resume');
 
 async function main(): Promise<void> {
   initializeAdminApp();
-  const service = new DatasetSummaryReconciliationService(getAdminDb);
+  const repository = new FirestoreDatasetSummaryMaintenanceRepository(getAdminDb);
+  const service = new DatasetSummaryReconciliationService(repository);
   const report = await service.reconcile(APPLY ? 'apply' : 'dry-run', {
     source: 'cli',
     resume: RESUME
