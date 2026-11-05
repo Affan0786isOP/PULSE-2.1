@@ -12,129 +12,98 @@ function ownerIndexDocumentId(ownerUid: string, assessmentType: string): string 
 export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
 
-  async getEntriesByAlias(alias: string, direction: 'asc' | 'desc', limitCount: number): Promise<LeaderboardEntryRecord[]> {
-    const db = this.getDb();
-    if (!db) {
-      throw new Error('DATABASE_UNAVAILABLE');
-    }
+  /**
+   * Page with the always-present document ID, then sort in memory. Sorting by
+   * schema fields such as scoreMetric or createdAt would silently omit legacy
+   * documents that predate those fields.
+   */
+  private async getAllLeaderboardResultDocs(db: Firestore, alias?: string): Promise<QueryDocumentSnapshot[]> {
+    const pageSize = 250;
+    const orderedQuery = alias
+      ? db.collection('leaderboardResults').where('assessmentType', '==', alias).orderBy('__name__')
+      : db.collection('leaderboardResults').orderBy('__name__');
+    const docs: QueryDocumentSnapshot[] = [];
+    let cursor: QueryDocumentSnapshot | undefined;
 
-    const safeLimit = Number.isInteger(limitCount) ? Math.max(1, Math.min(limitCount, 500)) : 100;
-    const pageSize = Math.min(Math.max(safeLimit, 100), 250);
-    const records: LeaderboardEntryRecord[] = [];
-    let cursor: QueryDocumentSnapshot | undefined = undefined;
-
-    // Continue past invalid names/scores until the requested number of eligible
-    // entries is collected or the alias query is exhausted.
-    while (records.length < safeLimit) {
-      let query = db.collection('leaderboardResults')
-        .where('assessmentType', '==', alias)
-        .orderBy('scoreMetric', direction)
-        .limit(pageSize);
-
-      if (cursor) query = query.startAfter(cursor);
-      const snap = await query.get();
+    while (true) {
+      let pageQuery = orderedQuery.limit(pageSize);
+      if (cursor) pageQuery = pageQuery.startAfter(cursor);
+      const snap = await pageQuery.get();
       if (snap.empty) break;
+
+      docs.push(...snap.docs);
       cursor = snap.docs[snap.docs.length - 1];
-
-      for (const docSnap of snap.docs) {
-        const data = docSnap.data();
-        const displayName = String(data?.displayName || '').trim();
-        const safeDisplayName = safeLeaderboardDisplayNameForRead(displayName);
-        const docType = normalizeAssessmentType(String(data?.assessmentType || alias));
-        const scoreMetric = data && typeof data.scoreMetric === 'number' ? data.scoreMetric : Number.NaN;
-
-        if (
-          data &&
-          data.hidden !== true &&
-          safeDisplayName !== null &&
-          isValidLeaderboardScoreMetric(docType, scoreMetric)
-        ) {
-          records.push({
-            id: docSnap.id,
-            displayName: safeDisplayName,
-            assessmentType: docType,
-            scoreMetric,
-            accuracy: normalizeLeaderboardAccuracy({ accuracy: data.accuracy }),
-            ageGroup: String(data.ageGroup || ''),
-            // A deterministic fallback prevents ties from moving between reads.
-            createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0),
-            provenanceToken: String(data.provenanceToken || ''),
-            hidden: false
-          });
-          if (records.length >= safeLimit) break;
-        }
-      }
-
       if (snap.size < pageSize) break;
     }
 
-    return records;
+    return docs;
+  }
+
+  async getEntriesByAlias(alias: string, direction: 'asc' | 'desc', limitCount: number): Promise<LeaderboardEntryRecord[]> {
+    const safeLimit = Number.isInteger(limitCount) ? Math.max(1, Math.min(limitCount, 500)) : 100;
+    return (await this.getAllEntriesByAlias(alias, direction)).slice(0, safeLimit);
   }
 
   async getAllEntriesByAlias(alias: string, direction: 'asc' | 'desc'): Promise<LeaderboardEntryRecord[]> {
     const db = this.getDb();
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
-    const pageSize = 250;
+    const docs = await this.getAllLeaderboardResultDocs(db, alias);
     const records: LeaderboardEntryRecord[] = [];
-    let cursor: QueryDocumentSnapshot | undefined = undefined;
 
-    // Used only for explicit rank lookups, not the public top-100 endpoint.
-    // Continue until Firestore is exhausted so a participant outside the top 100
-    // can still receive their real rank.
-    while (true) {
-      let query = db.collection('leaderboardResults')
-        .where('assessmentType', '==', alias)
-        .orderBy('scoreMetric', direction)
-        .limit(pageSize);
-      if (cursor) query = query.startAfter(cursor);
+    for (const docSnap of docs) {
+      const data = docSnap.data();
+      const safeName = safeLeaderboardDisplayNameForRead(data?.displayName);
+      const docType = normalizeAssessmentType(String(data?.assessmentType || alias));
+      const scoreMetric = typeof data?.scoreMetric === 'number' ? data.scoreMetric : Number.NaN;
+      if (safeName === null || data?.hidden === true || !isValidLeaderboardScoreMetric(docType, scoreMetric)) continue;
 
-      const snap = await query.get();
-      if (snap.empty) break;
-      cursor = snap.docs[snap.docs.length - 1];
-
-      for (const docSnap of snap.docs) {
-        const data = docSnap.data();
-        const safeName = safeLeaderboardDisplayNameForRead(data?.displayName);
-        const docType = normalizeAssessmentType(String(data?.assessmentType || alias));
-        const scoreMetric = typeof data?.scoreMetric === 'number' ? data.scoreMetric : Number.NaN;
-        if (safeName === null || data?.hidden === true || !isValidLeaderboardScoreMetric(docType, scoreMetric)) continue;
-        records.push({
-          id: docSnap.id,
-          displayName: safeName,
-          assessmentType: docType,
-          scoreMetric,
-          accuracy: normalizeLeaderboardAccuracy({ accuracy: data.accuracy }),
-          ageGroup: String(data.ageGroup || ''),
-          createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0),
-          provenanceToken: String(data.provenanceToken || ''),
-          hidden: false
-        });
-      }
-      if (snap.size < pageSize) break;
+      records.push({
+        id: docSnap.id,
+        displayName: safeName,
+        assessmentType: docType,
+        scoreMetric,
+        accuracy: normalizeLeaderboardAccuracy({ accuracy: data.accuracy }),
+        ageGroup: String(data.ageGroup || ''),
+        createdAt: timestampToMillis(data.createdAt),
+        provenanceToken: String(data.provenanceToken || ''),
+        hidden: false
+      });
     }
+
+    // Preserve leaderboard ranking and deterministic tie-breaking without
+    // relying on optional score/timestamp fields in Firestore orderBy clauses.
+    records.sort((a, b) => {
+      if (a.scoreMetric !== b.scoreMetric) {
+        return direction === 'asc' ? a.scoreMetric - b.scoreMetric : b.scoreMetric - a.scoreMetric;
+      }
+      return a.createdAt - b.createdAt || a.id.localeCompare(b.id);
+    });
+
     return records;
   }
 
   async getAllEntriesForAdmin(limitCount: number): Promise<AdminLeaderboardEntryRecord[]> {
     const db = this.getDb();
-    if (!db) {
-      throw new Error('DATABASE_UNAVAILABLE');
-    }
+    if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
-    const snap = await db.collection('leaderboardResults').orderBy('createdAt', 'desc').limit(limitCount).get();
-    if (snap.docs.length === 0) return [];
-    const metaSnapshots = await db.getAll(...snap.docs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
-    return snap.docs.map((doc, index) => {
+    const docs = await this.getAllLeaderboardResultDocs(db);
+    if (docs.length === 0) return [];
+    const metaSnapshots = await db.getAll(...docs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
+    const entries = docs.map((doc, index) => {
       const data = doc.data();
       const meta = metaSnapshots[index].exists ? metaSnapshots[index].data() || {} : {};
       return {
         ...meta,
         ...data,
         id: doc.id,
-        createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
+        createdAt: timestampToMillis(data.createdAt)
       } as AdminLeaderboardEntryRecord;
     });
+
+    // Legacy rows without createdAt remain visible at the end of the admin list.
+    entries.sort((a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id));
+    return entries.slice(0, limitCount);
   }
 
   async getAllEntriesForAdminPage(limitCount: number, cursor?: string | null): Promise<{
@@ -146,42 +115,39 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     if (!db) throw new Error('DATABASE_UNAVAILABLE');
 
     const safeLimit = Number.isInteger(limitCount) ? Math.max(1, Math.min(limitCount, 250)) : 100;
-    const collection = db.collection('leaderboardResults');
-    let query = collection.orderBy('createdAt', 'desc');
-
-    if (cursor) {
-      if (cursor.includes('/') || cursor.length > 1500) throw new Error('INVALID_CURSOR');
-      const cursorSnap = await collection.doc(cursor).get();
-      if (!cursorSnap.exists || cursorSnap.get('createdAt') === undefined) throw new Error('INVALID_CURSOR');
-      query = query.startAfter(cursorSnap);
+    const docs = await this.getAllLeaderboardResultDocs(db);
+    if (docs.length === 0) {
+      return { entries: [], nextCursor: null, hasMore: false };
     }
 
-    const snap = await query.limit(safeLimit + 1).get();
-    const hasMore = snap.docs.length > safeLimit;
-    const pageDocs = snap.docs.slice(0, safeLimit);
-    if (pageDocs.length === 0) {
-      return {
-        entries: [],
-        nextCursor: null,
-        hasMore: false
-      };
-    }
-    const metaSnapshots = await db.getAll(...pageDocs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
-    const entries = pageDocs.map((doc, index) => {
+    const metaSnapshots = await db.getAll(...docs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
+    const entries = docs.map((doc, index) => {
       const data = doc.data();
       const meta = metaSnapshots[index].exists ? metaSnapshots[index].data() || {} : {};
       return {
         ...meta,
         ...data,
         id: doc.id,
-        createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
+        createdAt: timestampToMillis(data.createdAt)
       } as AdminLeaderboardEntryRecord;
     });
+    entries.sort((a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id));
+
+    let startIndex = 0;
+    if (cursor) {
+      const cursorIndex = entries.findIndex(entry => entry.id === cursor);
+      if (cursorIndex < 0) throw new Error('INVALID_CURSOR');
+      startIndex = cursorIndex + 1;
+    }
+
+    const rows = entries.slice(startIndex, startIndex + safeLimit + 1);
+    const hasMore = rows.length > safeLimit;
+    const pageEntries = rows.slice(0, safeLimit);
 
     return {
-      entries,
-      hasMore,
-      nextCursor: hasMore && pageDocs.length ? pageDocs[pageDocs.length - 1].id : null
+      entries: pageEntries,
+      nextCursor: hasMore && pageEntries.length > 0 ? pageEntries[pageEntries.length - 1].id : null,
+      hasMore
     };
   }
 
@@ -201,15 +167,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
       ...data,
       id: snap.id,
       publicEntry: snap.exists,
-      createdAt: typeof data.createdAt?.toMillis === 'function'
-        ? data.createdAt.toMillis()
-        : (typeof data.createdAt?.toDate === 'function'
-            ? data.createdAt.toDate().getTime()
-            : (typeof meta.createdAt?.toMillis === 'function'
-                ? meta.createdAt.toMillis()
-                : (typeof meta.createdAt?.toDate === 'function'
-                    ? meta.createdAt.toDate().getTime()
-                    : (Number(data.createdAt ?? meta.createdAt) || 0))))
+      createdAt: timestampToMillis(data.createdAt ?? meta.createdAt)
     } as AdminLeaderboardEntryRecord;
   }
 
@@ -234,7 +192,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
         ...meta,
         ...data,
         id: publicSnap.id,
-        createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : (Number(data.createdAt) || 0)
+        createdAt: timestampToMillis(data.createdAt)
       } as AdminLeaderboardEntryRecord);
     });
     return results;
@@ -768,7 +726,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
         displayName: newDisplayName,
         attestedDisplayName,
         publicEntry: true,
-        createdAt: typeof row.createdAt?.toMillis === 'function' ? row.createdAt.toMillis() : (Number(row.createdAt) || 0)
+        createdAt: timestampToMillis(row.createdAt)
       };
 
       return {
