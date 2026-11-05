@@ -382,8 +382,8 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ageCohortData} margin={{ top: 8, right: 12, left: -18, bottom: 4 }}>
                 <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} />
-                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} axisLine={false} unit="ms" />
+                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
+                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} unit="ms" />
                 <Tooltip
                   cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                   content={<DatasetTooltip variant="direction" />}
@@ -408,8 +408,8 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ageCohortData} margin={{ top: 8, right: 12, left: -18, bottom: 4 }}>
                 <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} />
-                <YAxis domain={[0, 100]} stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} axisLine={false} unit="%" />
+                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
+                <YAxis domain={[0, 100]} stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} unit="%" />
                 <Tooltip
                   cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                   content={<DatasetTooltip variant="direction" />}
@@ -642,8 +642,8 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={consistencyDistributionData} margin={{ top: 8, right: 12, left: -22, bottom: 4 }}>
                 <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} />
-                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} axisLine={false} />
+                <XAxis dataKey="label" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
+                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} />
                 <Tooltip
                   cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                   content={<DatasetTooltip variant="standard" />}
@@ -753,13 +753,13 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
                 dataKey="trialLabel"
                 stroke="var(--chart-text)"
                 fontSize={10}
-                fontFamily="monospace"
+                fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                 tickLine={false}
               />
               <YAxis
                 stroke="var(--chart-text)"
                 fontSize={10}
-                fontFamily="monospace"
+                fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                 tickLine={false}
                 axisLine={false}
                 unit="ms"
