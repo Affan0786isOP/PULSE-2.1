@@ -9,6 +9,16 @@ function ownerIndexDocumentId(ownerUid: string, assessmentType: string): string 
   return crypto.createHash('sha256').update(`${ownerUid}:${assessmentType}`).digest('hex');
 }
 
+function timestampToMillis(value: unknown): number {
+  if (typeof value === 'object' && value !== null) {
+    const timestamp = value as { toMillis?: () => number; toDate?: () => Date };
+    if (typeof timestamp.toMillis === 'function') return timestamp.toMillis();
+    if (typeof timestamp.toDate === 'function') return timestamp.toDate().getTime();
+  }
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
 export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
 
@@ -37,6 +47,17 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
     }
 
     return docs;
+  }
+
+  private async getLeaderboardPrivateMetaDocs(db: Firestore, publicDocs: QueryDocumentSnapshot[]) {
+    const metaDocs = [];
+    const batchSize = 200;
+    for (let offset = 0; offset < publicDocs.length; offset += batchSize) {
+      const refs = publicDocs.slice(offset, offset + batchSize)
+        .map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id));
+      metaDocs.push(...await db.getAll(...refs));
+    }
+    return metaDocs;
   }
 
   async getEntriesByAlias(alias: string, direction: 'asc' | 'desc', limitCount: number): Promise<LeaderboardEntryRecord[]> {
@@ -89,7 +110,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
 
     const docs = await this.getAllLeaderboardResultDocs(db);
     if (docs.length === 0) return [];
-    const metaSnapshots = await db.getAll(...docs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
+    const metaSnapshots = await this.getLeaderboardPrivateMetaDocs(db, docs);
     const entries = docs.map((doc, index) => {
       const data = doc.data();
       const meta = metaSnapshots[index].exists ? metaSnapshots[index].data() || {} : {};
