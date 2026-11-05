@@ -34,6 +34,10 @@ function finiteNonNegative(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
 }
 
+function safeNonNegativeInteger(value: unknown): number | null {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
+}
+
 export class FirestoreResearchDatasetRepository implements IResearchDatasetRepository {
   constructor(private readonly getDb: () => Firestore | null) {}
 
@@ -91,8 +95,8 @@ export class FirestoreResearchDatasetRepository implements IResearchDatasetRepos
         throw new Error('DATASET_SUMMARY_MIGRATION_IN_PROGRESS');
       }
 
-      const totalRecords = finiteNonNegative(summary.totalRecords);
-      const totalTrials = finiteNonNegative(summary.totalTrials);
+      const totalRecords = safeNonNegativeInteger(summary.totalRecords);
+      const totalTrials = safeNonNegativeInteger(summary.totalTrials);
       const rawCounts = summary.counts && typeof summary.counts === 'object'
         ? summary.counts as Record<string, unknown>
         : null;
@@ -105,7 +109,7 @@ export class FirestoreResearchDatasetRepository implements IResearchDatasetRepos
       ] as const;
       const normalizedCounts: Record<string, number> = {};
       for (const type of canonicalTypes) {
-        const count = rawCounts ? finiteNonNegative(rawCounts[type]) : null;
+        const count = rawCounts ? safeNonNegativeInteger(rawCounts[type]) : null;
         if (count === null) throw new Error('DATASET_SUMMARY_RECONCILIATION_REQUIRED');
         normalizedCounts[type] = count;
       }
