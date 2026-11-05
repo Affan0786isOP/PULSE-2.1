@@ -141,7 +141,7 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
       return { entries: [], nextCursor: null, hasMore: false };
     }
 
-    const metaSnapshots = await db.getAll(...docs.map(doc => db.collection('leaderboardPrivateMeta').doc(doc.id)));
+    const metaSnapshots = await this.getLeaderboardPrivateMetaDocs(db, docs);
     const entries = docs.map((doc, index) => {
       const data = doc.data();
       const meta = metaSnapshots[index].exists ? metaSnapshots[index].data() || {} : {};
