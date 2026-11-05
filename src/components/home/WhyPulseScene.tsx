@@ -44,7 +44,7 @@ export function WhyPulseScene() {
         {/* Section Header */}
         <div className="mb-12">
           <motion.div 
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-[#12161B] border border-sky-200 dark:border-[#22C7D6]/40 text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-4 shadow-sm"
+            className="inline-flex items-center text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-4"
             initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -87,7 +87,7 @@ export function WhyPulseScene() {
                   <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-[#12161B] border border-sky-100 dark:border-slate-800 flex items-center justify-center text-[#0066FF] dark:text-[#22C7D6]">
                     <Icon size={20} />
                   </div>
-                  <span className="text-[10px] font-mono tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase">
+                  <span className="text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase">
                     {principle.badge}
                   </span>
                 </div>
