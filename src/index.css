@@ -245,7 +245,7 @@
 }
 
 .font-sans {
-  font-family: var(--pulse-font-sans, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-family: var(--pulse-font-body, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
 }
 
 .font-mono {
