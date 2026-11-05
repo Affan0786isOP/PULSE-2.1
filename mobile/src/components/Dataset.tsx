@@ -208,8 +208,13 @@ export function Dataset({ onNavigate }: DatasetProps) {
         setIsRefreshing(false);
         setLoadError(null);
       }
-      setIsSampleLimited(false);
-      setTotalDatasetCount(null);
+      if (!forceRefresh) {
+        setLoadError(null);
+        setIsSampleLimited(false);
+        setTotalDatasetCount(null);
+      } else {
+        setLoadError(null);
+      }
       try {
         const publicData = await fetchDatasetObservations(
           { assessmentType: selectedGameId },
