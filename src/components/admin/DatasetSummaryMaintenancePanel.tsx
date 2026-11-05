@@ -54,6 +54,7 @@ export function DatasetSummaryMaintenancePanel() {
     }
 
     setBusyMode(mode);
+    if (mode === 'dry-run') setHasPreview(false);
     setError(null);
     try {
       const nextReport = await runDatasetSummaryReconciliation(mode, mode === 'apply');

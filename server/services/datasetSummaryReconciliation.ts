@@ -40,7 +40,7 @@ function safeNonNegativeInteger(value: unknown): number | null {
 }
 
 function readStoredSummary(data: Record<string, unknown> | undefined): DatasetSummaryValues | null {
-  if (!data) return null;
+  if (!data || data.schemaVersion !== 1) return null;
   const totalRecords = safeNonNegativeInteger(data.totalRecords);
   const totalTrials = safeNonNegativeInteger(data.totalTrials);
   const rawCounts = data.counts && typeof data.counts === 'object'
