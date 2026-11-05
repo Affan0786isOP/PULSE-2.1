@@ -75,7 +75,7 @@ export function ProofScene({ onExploreAssessments }: ProofSceneProps) {
       <div className="max-w-5xl mx-auto">
         {/* Section Header */}
         <div className="mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-[#12161B] border border-sky-200 dark:border-[#22C7D6]/40 text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-4 shadow-sm">
+          <div className="inline-flex items-center text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-4">
             <span>[ PROTOCOL // MEASUREMENT PIPELINE ]</span>
           </div>
           
@@ -106,7 +106,7 @@ export function ProofScene({ onExploreAssessments }: ProofSceneProps) {
                     <span className="font-mono text-xs font-bold text-[#0066FF] dark:text-[#22C7D6] tracking-wider">
                       STAGE {stage.step}
                     </span>
-                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
                       {stage.badge}
                     </span>
                   </div>
