@@ -1,8 +1,15 @@
 import { randomUUID } from 'node:crypto';
-import type { Firestore } from 'firebase-admin/firestore';
 import { normalizeLeaderboardAssessmentType } from '../../shared/domain/leaderboardEligibility';
+import type { IDatasetSummaryMaintenanceRepository } from '../repositories/interfaces/IDatasetSummaryMaintenanceRepository';
+import type {
+  DatasetSummaryAssessmentType,
+  DatasetSummaryCounts,
+  DatasetSummaryReconciliationReport,
+  DatasetSummarySource,
+  DatasetSummaryStatus,
+  DatasetSummaryValues
+} from '../models/datasetSummaryMaintenance';
 
-const SUMMARY_DOCUMENT_ID = 'summary';
 const PAGE_SIZE = 500;
 const ASSESSMENT_TYPES = [
   'visual-reaction',
@@ -10,51 +17,10 @@ const ASSESSMENT_TYPES = [
   'color-recognition',
   'block-memory',
   'number-memory'
-] as const;
-
-export type DatasetSummaryCounts = Record<(typeof ASSESSMENT_TYPES)[number], number>;
-export interface DatasetSummaryValues {
-  totalRecords: number;
-  totalTrials: number;
-  counts: DatasetSummaryCounts;
-}
-export interface DatasetSummaryStatus {
-  exists: boolean;
-  migrationInProgress: boolean;
-  summary: DatasetSummaryValues | null;
-  lastReconciledAt: number | null;
-  migrationStartedAt: number | null;
-}
-export interface DatasetSummaryReconciliationReport {
-  mode: 'dry-run' | 'apply';
-  scannedRecords: number;
-  summary: DatasetSummaryValues;
-  matchesStoredSummary: boolean | null;
-  completedAt: number;
-  durationMs: number;
-  source: 'admin-ui' | 'cli';
-}
+] as const satisfies readonly DatasetSummaryAssessmentType[];
 
 function safeNonNegativeInteger(value: unknown): number | null {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
-}
-
-function readStoredSummary(data: Record<string, unknown> | undefined): DatasetSummaryValues | null {
-  if (!data || data.schemaVersion !== 1) return null;
-  const totalRecords = safeNonNegativeInteger(data.totalRecords);
-  const totalTrials = safeNonNegativeInteger(data.totalTrials);
-  const rawCounts = data.counts && typeof data.counts === 'object'
-    ? data.counts as Record<string, unknown>
-    : null;
-  if (totalRecords === null || totalTrials === null || !rawCounts) return null;
-
-  const counts = {} as DatasetSummaryCounts;
-  for (const type of ASSESSMENT_TYPES) {
-    const value = safeNonNegativeInteger(rawCounts[type]);
-    if (value === null) return null;
-    counts[type] = value;
-  }
-  return { totalRecords, totalTrials, counts };
 }
 
 function summariesEqual(left: DatasetSummaryValues, right: DatasetSummaryValues): boolean {
@@ -64,52 +30,23 @@ function summariesEqual(left: DatasetSummaryValues, right: DatasetSummaryValues)
 }
 
 export class DatasetSummaryReconciliationService {
-  constructor(private readonly getDb: () => Firestore | null) {}
+  constructor(private readonly repository: IDatasetSummaryMaintenanceRepository) {}
 
-  private getDatabase(): Firestore {
-    const db = this.getDb();
-    if (!db) throw new Error('DATABASE_UNAVAILABLE');
-    return db;
-  }
-
-  async getStatus(): Promise<DatasetSummaryStatus> {
-    const db = this.getDatabase();
-    const snapshot = await db.collection('publicDatasetMeta').doc(SUMMARY_DOCUMENT_ID).get();
-    const data = snapshot.data() as Record<string, unknown> | undefined;
-    return {
-      exists: snapshot.exists,
-      migrationInProgress: data?.migrationInProgress === true,
-      summary: readStoredSummary(data),
-      lastReconciledAt: safeNonNegativeInteger(data?.lastReconciledAt),
-      migrationStartedAt: safeNonNegativeInteger(data?.migrationStartedAt)
-    };
+  getStatus(): Promise<DatasetSummaryStatus> {
+    return this.repository.getStatus();
   }
 
   async reconcile(
     mode: 'dry-run' | 'apply',
-    options: { source?: 'admin-ui' | 'cli'; resume?: boolean } = {}
+    options: { source?: DatasetSummarySource; resume?: boolean } = {}
   ): Promise<DatasetSummaryReconciliationReport> {
-    const db = this.getDatabase();
     const source = options.source ?? 'admin-ui';
     const startedAt = Date.now();
-    const summaryRef = db.collection('publicDatasetMeta').doc(SUMMARY_DOCUMENT_ID);
     const runId = mode === 'apply' ? randomUUID() : null;
     let lockAcquired = false;
 
-    if (mode === 'apply') {
-      await db.runTransaction(async tx => {
-        const current = await tx.get(summaryRef);
-        const data = current.data() as Record<string, unknown> | undefined;
-        if (data?.migrationInProgress === true && options.resume !== true) {
-          throw new Error('DATASET_SUMMARY_MIGRATION_IN_PROGRESS');
-        }
-        tx.set(summaryRef, {
-          schemaVersion: 1,
-          migrationInProgress: true,
-          migrationStartedAt: startedAt,
-          migrationRunId: runId
-        }, { merge: true });
-      });
+    if (mode === 'apply' && runId) {
+      await this.repository.acquireReconciliationLock(runId, startedAt, options.resume === true);
       lockAcquired = true;
     }
 
@@ -120,30 +57,29 @@ export class DatasetSummaryReconciliationService {
       let cursor: string | null = null;
 
       while (true) {
-        let query = db.collection('publicDataset').orderBy('__name__').limit(PAGE_SIZE);
-        if (cursor) query = query.startAfter(cursor);
-        const page = await query.get();
-        if (page.empty) break;
+        const page = await this.repository.getPublicDatasetPage(cursor, PAGE_SIZE);
+        if (page.length === 0) break;
 
-        for (const snapshot of page.docs) {
-          const data = snapshot.data() as Record<string, unknown>;
+        for (const record of page) {
           totalRecords += 1;
           if (!Number.isSafeInteger(totalRecords)) {
             throw new Error('DATASET_SUMMARY_COUNTER_OVERFLOW');
           }
-          const canonicalType = normalizeLeaderboardAssessmentType(data.assessmentType);
+          const canonicalType = normalizeLeaderboardAssessmentType(
+            typeof record.assessmentType === 'string' ? record.assessmentType : ''
+          );
           if (canonicalType && Object.prototype.hasOwnProperty.call(counts, canonicalType)) {
             counts[canonicalType] += 1;
           }
 
-          if (Array.isArray(data.progressionTrials)) {
-            totalTrials += data.progressionTrials.length;
+          if (Array.isArray(record.progressionTrials)) {
+            totalTrials += record.progressionTrials.length;
           } else {
-            const legacyCount = data.totalTrials === undefined || data.totalTrials === null
+            const legacyCount = record.totalTrials === undefined || record.totalTrials === null
               ? 0
-              : safeNonNegativeInteger(data.totalTrials);
+              : safeNonNegativeInteger(record.totalTrials);
             if (legacyCount === null) {
-              throw new Error(`DATASET_SUMMARY_INVALID_TRIAL_COUNT:${snapshot.id}`);
+              throw new Error(`DATASET_SUMMARY_INVALID_TRIAL_COUNT:${record.id}`);
             }
             totalTrials += legacyCount;
           }
@@ -152,31 +88,15 @@ export class DatasetSummaryReconciliationService {
           }
         }
 
-        if (page.size < PAGE_SIZE) break;
-        cursor = page.docs[page.docs.length - 1].id;
+        if (page.length < PAGE_SIZE) break;
+        cursor = page[page.length - 1].id;
       }
 
       const summary: DatasetSummaryValues = { totalRecords, totalTrials, counts };
       const completedAt = Date.now();
 
-      if (mode === 'apply') {
-        await db.runTransaction(async tx => {
-          const current = await tx.get(summaryRef);
-          const data = current.data() as Record<string, unknown> | undefined;
-          if (data?.migrationRunId !== runId || data?.migrationInProgress !== true) {
-            throw new Error('DATASET_SUMMARY_MIGRATION_LOCK_LOST');
-          }
-          tx.set(summaryRef, {
-            ...summary,
-            schemaVersion: 1,
-            lastUpdatedAt: completedAt,
-            lastReconciledAt: completedAt,
-            reconciliationSource: source,
-            migrationInProgress: false,
-            migrationStartedAt: null,
-            migrationRunId: null
-          }, { merge: true });
-        });
+      if (mode === 'apply' && runId) {
+        await this.repository.completeReconciliation(runId, summary, completedAt, source);
         lockAcquired = false;
         return {
           mode,
@@ -189,17 +109,15 @@ export class DatasetSummaryReconciliationService {
         };
       }
 
-      const storedSnapshot = await summaryRef.get();
-      const storedData = storedSnapshot.data() as Record<string, unknown> | undefined;
-      if (storedData?.migrationInProgress === true) {
+      const status = await this.repository.getStatus();
+      if (status.migrationInProgress) {
         throw new Error('DATASET_SUMMARY_MIGRATION_IN_PROGRESS');
       }
-      const storedSummary = readStoredSummary(storedData);
       return {
         mode,
         scannedRecords: totalRecords,
         summary,
-        matchesStoredSummary: storedSummary ? summariesEqual(storedSummary, summary) : null,
+        matchesStoredSummary: status.summary ? summariesEqual(status.summary, summary) : null,
         completedAt,
         durationMs: completedAt - startedAt,
         source
@@ -207,17 +125,7 @@ export class DatasetSummaryReconciliationService {
     } catch (error) {
       if (lockAcquired && runId) {
         try {
-          await db.runTransaction(async tx => {
-            const current = await tx.get(summaryRef);
-            const data = current.data() as Record<string, unknown> | undefined;
-            if (data?.migrationRunId === runId && data?.migrationInProgress === true) {
-              tx.set(summaryRef, {
-                migrationInProgress: false,
-                migrationStartedAt: null,
-                migrationRunId: null
-              }, { merge: true });
-            }
-          });
+          await this.repository.releaseReconciliationLock(runId);
         } catch (unlockError) {
           console.warn('[dataset-summary] Failed to release reconciliation lock:', unlockError instanceof Error ? unlockError.message : String(unlockError));
         }
@@ -226,3 +134,10 @@ export class DatasetSummaryReconciliationService {
     }
   }
 }
+
+export type {
+  DatasetSummaryCounts,
+  DatasetSummaryReconciliationReport,
+  DatasetSummaryStatus,
+  DatasetSummaryValues
+} from '../models/datasetSummaryMaintenance';
