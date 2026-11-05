@@ -14,6 +14,88 @@ export function unrollTrialsFromDatasetDocs(
   return unrollSharedTrialsFromDatasetDocs(datasetDocs, selectedGameId);
 }
 
+type DatasetFetchResult = {
+  observations: DatasetObservation[];
+  totalCount: number | null;
+  error?: string;
+  isSampleLimited: boolean;
+};
+
+type PendingDatasetRequest = {
+  controller: AbortController;
+  promise: Promise<DatasetFetchResult>;
+  consumers: number;
+  settled: boolean;
+};
+
+const DATASET_CACHE_TTL_MS = 60_000;
+const completedDatasetCache = new Map<string, { expiresAt: number; value: DatasetFetchResult }>();
+const pendingDatasetRequests = new Map<string, PendingDatasetRequest>();
+
+function createAbortError(): Error {
+  const error = new Error('Dataset request was cancelled.');
+  error.name = 'AbortError';
+  return error;
+}
+
+function getSafeObservationLimit(observationLimit: number): number {
+  const requestedLimit = Number(observationLimit);
+  return Number.isFinite(requestedLimit)
+    ? Math.min(5000, Math.max(1, Math.floor(requestedLimit)))
+    : 1000;
+}
+
+function normalizeDatasetFilter(value?: string): string | null {
+  const normalized = value?.trim();
+  return normalized && normalized.toLowerCase() !== 'all' ? normalized : null;
+}
+
+function subscribeToDatasetRequest(
+  entry: PendingDatasetRequest,
+  signal?: AbortSignal
+): Promise<DatasetFetchResult> {
+  if (signal?.aborted) return Promise.reject(createAbortError());
+
+  entry.consumers += 1;
+  return new Promise((resolve, reject) => {
+    let released = false;
+    const release = (abortWhenUnused: boolean) => {
+      if (released) return;
+      released = true;
+      signal?.removeEventListener('abort', onAbort);
+      entry.consumers = Math.max(0, entry.consumers - 1);
+      if (abortWhenUnused && entry.consumers === 0 && !entry.settled) {
+        entry.controller.abort();
+      }
+    };
+    const onAbort = () => {
+      release(true);
+      reject(createAbortError());
+    };
+
+    signal?.addEventListener('abort', onAbort, { once: true });
+    entry.promise.then(
+      value => {
+        release(false);
+        resolve(value);
+      },
+      error => {
+        release(false);
+        reject(error);
+      }
+    );
+  });
+}
+
+/** Clears only ephemeral in-memory data; Firestore remains authoritative. */
+export function clearDatasetObservationsCache(): void {
+  completedDatasetCache.clear();
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pulse:research-submitted', clearDatasetObservationsCache);
+}
+
 const fetchDatasetObservationsUncached = async (
   filters: { assessmentType?: string; ageGroup?: string },
   observationLimit: number,
