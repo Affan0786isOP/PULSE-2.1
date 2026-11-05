@@ -52,30 +52,15 @@ const FACTOR_ICONS: Record<string, React.ElementType> = {
 function getEvidenceBadge(type: EvidenceType) {
   switch (type) {
     case "established":
-      return {
-        label: "Established Evidence",
-        className: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-      };
+      return { label: "Established Evidence" };
     case "association":
-      return {
-        label: "Statistical Association",
-        className: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-      };
+      return { label: "Statistical Association" };
     case "interpretation":
-      return {
-        label: "Theoretical Model",
-        className: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-      };
+      return { label: "Theoretical Model" };
     case "practical_protocol":
-      return {
-        label: "Practical Protocol",
-        className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-      };
+      return { label: "Practical Protocol" };
     default:
-      return {
-        label: "Scientific Finding",
-        className: "bg-slate-500/10 text-slate-400 border-slate-500/20",
-      };
+      return { label: "Scientific Finding" };
   }
 }
 
