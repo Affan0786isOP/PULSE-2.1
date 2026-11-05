@@ -26,7 +26,7 @@ export const GuidesHub: React.FC<GuidesHubProps> = ({ surface = 'desktop' }) => 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 md:py-12 text-[var(--text-primary)]">
       <header className="mb-10 text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] text-xs font-mono tracking-wider uppercase">
+        <div className="inline-flex items-center gap-2 text-[var(--accent-primary)] text-xs font-mono tracking-wider uppercase">
           <BookOpen className="w-3.5 h-3.5" />
           <span>Research Publications</span>
         </div>
