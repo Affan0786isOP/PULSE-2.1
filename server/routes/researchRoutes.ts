@@ -251,8 +251,11 @@ export function registerResearchRoutes(
     return res.json({ verified: safeCompareHex(expected, provenanceToken) });
   });
 
-  // Public Research Dataset Retrieval Endpoint with complete cursor-based pagination
+  // Public, anonymized Dataset reads may be cached briefly at the CDN.
+  // Start no-store so validation/5xx responses never become publicly cacheable.
   app.get('/api/research/dataset', async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Surrogate-Control', 'no-store');
     try {
       if (req.query.assessmentType !== undefined && typeof req.query.assessmentType !== 'string') {
         return res.status(400).json({ success: false, error: 'assessmentType must be a single string value', records: [] });
@@ -314,6 +317,8 @@ export function registerResearchRoutes(
           cursor
         });
 
+        res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
+        res.setHeader('Surrogate-Control', 'max-age=60, stale-while-revalidate=60');
         return res.json({
           success: true,
           count: result.count,
@@ -347,11 +352,15 @@ export function registerResearchRoutes(
     }
   });
 
-  // Public Research Dataset Summary Endpoint
+  // Public aggregate metadata is safe to cache briefly; errors remain no-store.
   app.get('/api/research/dataset/summary', async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Surrogate-Control', 'no-store');
     try {
       try {
         const summary = await services.researchService.getDatasetSummary();
+        res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
+        res.setHeader('Surrogate-Control', 'max-age=60, stale-while-revalidate=60');
         return res.json({
           success: true,
           totalRecords: summary.totalRecords,
@@ -360,6 +369,12 @@ export function registerResearchRoutes(
         });
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : String(err);
+        if (errMsg === 'DATASET_SUMMARY_MIGRATION_IN_PROGRESS') {
+          return res.status(503).json({ success: false, error: 'Dataset summary is being reconciled. Please retry shortly.' });
+        }
+        if (errMsg === 'DATASET_SUMMARY_RECONCILIATION_REQUIRED') {
+          return res.status(503).json({ success: false, error: 'Dataset summary requires reconciliation. Please retry shortly.' });
+        }
         if (errMsg === 'INVALID_CURSOR') {
           return res.status(400).json({ success: false, error: 'Invalid cursor parameter', records: [] });
         }
