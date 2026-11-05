@@ -193,7 +193,10 @@ const fetchDatasetObservationsUncached = async (
             }
           }
         }
-      } catch {
+      } catch (summaryError: unknown) {
+        if (signal.aborted || (summaryError instanceof Error && summaryError.name === 'AbortError')) {
+          throw createAbortError();
+        }
         // A summary failure must not hide successfully fetched dataset records.
       }
     }
