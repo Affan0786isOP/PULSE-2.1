@@ -330,8 +330,10 @@ export function registerResearchRoutes(
           cursor
         });
 
-        res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
-        res.setHeader('Surrogate-Control', 'max-age=60, stale-while-revalidate=60');
+        if (req.query.fresh !== '1') {
+          res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
+          res.setHeader('Surrogate-Control', 'max-age=60, stale-while-revalidate=60');
+        }
         return res.json({
           success: true,
           count: result.count,
@@ -372,8 +374,10 @@ export function registerResearchRoutes(
     try {
       try {
         const summary = await services.researchService.getDatasetSummary();
-        res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
-        res.setHeader('Surrogate-Control', 'max-age=60, stale-while-revalidate=60');
+        if (req.query.fresh !== '1') {
+          res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
+          res.setHeader('Surrogate-Control', 'max-age=60, stale-while-revalidate=60');
+        }
         return res.json({
           success: true,
           totalRecords: summary.totalRecords,
