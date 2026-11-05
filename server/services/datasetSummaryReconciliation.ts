@@ -128,6 +128,9 @@ export class DatasetSummaryReconciliationService {
         for (const snapshot of page.docs) {
           const data = snapshot.data() as Record<string, unknown>;
           totalRecords += 1;
+          if (!Number.isSafeInteger(totalRecords)) {
+            throw new Error('DATASET_SUMMARY_COUNTER_OVERFLOW');
+          }
           const canonicalType = normalizeLeaderboardAssessmentType(data.assessmentType);
           if (canonicalType && Object.prototype.hasOwnProperty.call(counts, canonicalType)) {
             counts[canonicalType] += 1;
