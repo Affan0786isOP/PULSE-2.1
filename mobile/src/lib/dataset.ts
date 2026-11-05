@@ -132,11 +132,13 @@ const fetchDatasetObservationsUncached = async (
       if (assessmentType) params.set('assessmentType', assessmentType);
       if (ageGroup) params.set('ageGroup', ageGroup);
       params.set('limit', String(requestedPageSize));
+      if (forceRefresh) params.set('fresh', '1');
       if (cursor) params.set('cursor', cursor);
 
       const response = await fetch(`/api/research/dataset?${params.toString()}`, {
         method: 'GET',
         headers: { Accept: 'application/json' },
+        ...(forceRefresh ? { cache: 'no-store' as RequestCache } : {}),
         signal,
       });
       const payload = await response.json() as {
@@ -182,11 +184,15 @@ const fetchDatasetObservationsUncached = async (
     let totalCount: number | null = null;
     if (!ageGroup) {
       try {
-        const summaryResponse = await fetch('/api/research/dataset/summary', {
-          method: 'GET',
-          headers: { Accept: 'application/json' },
-          signal,
-        });
+        const summaryResponse = await fetch(
+          forceRefresh ? '/api/research/dataset/summary?fresh=1' : '/api/research/dataset/summary',
+          {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            ...(forceRefresh ? { cache: 'no-store' as RequestCache } : {}),
+            signal,
+          }
+        );
         if (summaryResponse.ok) {
           const summary = await summaryResponse.json() as {
             success?: boolean;
@@ -231,7 +237,9 @@ const fetchDatasetObservationsUncached = async (
     return {
       observations: [],
       totalCount: null,
-      error: 'Research data could not be loaded. Refresh the page to try again.',
+      error: error instanceof Error && error.message.includes('Dataset was refreshed recently')
+        ? error.message
+        : 'Research data could not be loaded. Refresh the page to try again.',
       isSampleLimited: false,
     };
   }
@@ -246,9 +254,13 @@ const fetchDatasetObservationsUncached = async (
 export const fetchDatasetObservations = (
   filters: { assessmentType?: string; ageGroup?: string },
   observationLimit: number = 1000,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  options: { forceRefresh?: boolean } = {}
 ): Promise<DatasetFetchResult> => {
   if (signal?.aborted) return Promise.reject(createAbortError());
+
+  const forceRefresh = options.forceRefresh === true;
+  if (forceRefresh) clearDatasetObservationsCache();
 
   const safeLimit = getSafeObservationLimit(observationLimit);
   const assessmentType = normalizeDatasetFilter(filters.assessmentType);
