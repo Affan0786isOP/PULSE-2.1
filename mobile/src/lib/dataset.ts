@@ -22,6 +22,7 @@ type DatasetFetchResult = {
 };
 
 type PendingDatasetRequest = {
+  key: string;
   controller: AbortController;
   promise: Promise<DatasetFetchResult>;
   consumers: number;
@@ -66,6 +67,12 @@ function subscribeToDatasetRequest(
       signal?.removeEventListener('abort', onAbort);
       entry.consumers = Math.max(0, entry.consumers - 1);
       if (abortWhenUnused && entry.consumers === 0 && !entry.settled) {
+        // Remove the abandoned entry before aborting. React StrictMode can run
+        // the next effect setup immediately after cleanup, before this promise
+        // settles; that setup must create a fresh network request.
+        if (pendingDatasetRequests.get(entry.key) === entry) {
+          pendingDatasetRequests.delete(entry.key);
+        }
         entry.controller.abort();
       }
     };
@@ -259,6 +266,12 @@ export const fetchDatasetObservations = (
   if (cached) completedDatasetCache.delete(key);
 
   let pending = pendingDatasetRequests.get(key);
+  if (pending && (pending.settled || pending.controller.signal.aborted)) {
+    if (pendingDatasetRequests.get(key) === pending) {
+      pendingDatasetRequests.delete(key);
+    }
+    pending = undefined;
+  }
   if (!pending) {
     const controller = new AbortController();
     let entry: PendingDatasetRequest;
@@ -285,7 +298,7 @@ export const fetchDatasetObservations = (
       }
     });
 
-    entry = { controller, promise, consumers: 0, settled: false };
+    entry = { key, controller, promise, consumers: 0, settled: false };
     pendingDatasetRequests.set(key, entry);
     pending = entry;
   }
