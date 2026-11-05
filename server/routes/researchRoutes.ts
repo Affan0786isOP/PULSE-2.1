@@ -205,6 +205,19 @@ export function registerResearchRoutes(
         const errMsg = submitErr instanceof Error ? submitErr.message : String(submitErr);
         const errStatus = submitErr instanceof AppError ? submitErr.status : undefined;
 
+        if (errMsg === 'DATASET_SUMMARY_MIGRATION_IN_PROGRESS') {
+          return res.status(503).json({
+            success: false,
+            error: 'Research submissions are temporarily paused while the Dataset summary is reconciled. Please retry shortly.'
+          });
+        }
+        if (errMsg === 'DATASET_SUMMARY_RECONCILIATION_REQUIRED') {
+          return res.status(503).json({
+            success: false,
+            error: 'Research submissions are temporarily unavailable until Dataset summary reconciliation is complete.'
+          });
+        }
+
         if (errMsg === 'SESSION_NOT_FOUND') {
           return res.status(404).json({ success: false, error: 'Experiment session not found or invalid' });
         }
