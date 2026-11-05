@@ -32,6 +32,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from 'recharts';
 import { Monitor, Smartphone } from 'lucide-react';
 
@@ -166,7 +167,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     return calculateDirectionalProfile(directionDocs, trials as unknown as DirectionSessionRecord['progressionTrials']);
   }, [directionDocs, trials]);
 
-  // Separate radar data structures
+  // Radar data structures
   const radarAccuracyData = useMemo(() => {
     return directionalProfile.map((d) => ({
       direction: d.direction,
@@ -185,6 +186,17 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     const vals = directionalProfile.map((d) => d.medianRT).filter((v) => v > 0);
     return vals.length > 0 ? Math.ceil(Math.max(...vals) / 100) * 100 + 100 : 1000;
   }, [directionalProfile]);
+
+  // Combined radar data with normalized RT (0-100 scale) for single overlayed radar view
+  const radarOverlayData = useMemo(() => {
+    return directionalProfile.map((d) => ({
+      direction: d.direction,
+      accuracy: d.accuracy,
+      // Normalize RT to 0-100% of maxDirectionalRT so both overlay symmetrically
+      rtNormalized: maxDirectionalRT > 0 ? Math.round((d.medianRT / maxDirectionalRT) * 100) : 0,
+      rtMs: d.medianRT,
+    }));
+  }, [directionalProfile, maxDirectionalRT]);
 
   // Speed vs Accuracy 4x5 Density Heatmap
   const heatmapData = useMemo(() => {
@@ -388,8 +400,8 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ageCohortData} margin={{ top: 8, right: 12, left: -18, bottom: 4 }}>
                 <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} />
-                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} axisLine={false} unit="ms" />
+                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
+                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} unit="ms" />
                 <Tooltip
                   cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                   content={<DatasetTooltip variant="direction" />}
@@ -415,8 +427,8 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ageCohortData} margin={{ top: 8, right: 12, left: -18, bottom: 4 }}>
                 <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} />
-                <YAxis domain={[0, 100]} stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} axisLine={false} unit="%" />
+                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
+                <YAxis domain={[0, 100]} stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} unit="%" />
                 <Tooltip
                   cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                   content={<DatasetTooltip variant="direction" />}
@@ -478,36 +490,70 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
 
           <div className="flex-1 min-h-[260px] sm:min-h-[290px] w-full flex items-center justify-center">
             {radarMode === 'both' ? (
-              <div className="grid grid-cols-2 w-full h-full gap-2">
-                {/* Accuracy Radar */}
-                <div className="flex flex-col items-center h-full">
-                  <span className="text-[10px] font-mono text-[var(--cyan-primary)] font-semibold mb-1">ACCURACY (0–100%)</span>
-                  <div className="flex-1 w-full min-h-[220px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart data={radarAccuracyData} outerRadius="68%">
-                        <PolarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
-                        <PolarAngleAxis dataKey="direction" tick={{ fill: 'var(--chart-text)', fontSize: 10, fontFamily: 'monospace' }} />
-                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                        <Radar name="Accuracy" dataKey="value" stroke="var(--cyan-primary)" strokeWidth={2} fill="var(--cyan-primary)" fillOpacity={0.25} />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-                {/* RT Radar */}
-                <div className="flex flex-col items-center h-full">
-                  <span className="text-[10px] font-mono text-[#a78bfa] font-semibold mb-1">REACTION TIME (MS)</span>
-                  <div className="flex-1 w-full min-h-[220px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart data={radarRTData} outerRadius="68%">
-                        <PolarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
-                        <PolarAngleAxis dataKey="direction" tick={{ fill: 'var(--chart-text)', fontSize: 10, fontFamily: 'monospace' }} />
-                        <PolarRadiusAxis angle={30} domain={[0, maxDirectionalRT]} tick={false} axisLine={false} />
-                        <Radar name="Reaction Time" dataKey="value" stroke="#a78bfa" strokeWidth={2} fill="#a78bfa" fillOpacity={0.25} />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarOverlayData} outerRadius="72%">
+                  <PolarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
+                  <PolarAngleAxis dataKey="direction" tick={{ fill: 'var(--chart-text)', fontSize: 11, fontFamily: 'monospace' }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (!active || !payload?.length) return null;
+                      const d = payload[0]?.payload as { direction: string; accuracy: number; rtMs: number } | undefined;
+                      if (!d) return null;
+                      return (
+                        <div className="bg-[var(--bg-surface-solid)] backdrop-blur-md border border-[var(--border-subtle)] rounded-lg p-3 shadow-xl font-mono text-xs z-50 text-[var(--text-primary)]">
+                          <div className="text-[var(--text-muted)] font-semibold mb-1.5 border-b border-[var(--border-subtle)] pb-1">
+                            {label}
+                          </div>
+                          <div className="flex items-center justify-between gap-4 py-0.5 text-[var(--cyan-primary)]">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-[var(--cyan-primary)]" />
+                              <span className="text-[var(--text-secondary)]">Accuracy:</span>
+                            </div>
+                            <span className="font-bold">{d.accuracy}%</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-4 py-0.5 text-[#a78bfa]">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-[#a78bfa]" />
+                              <span className="text-[var(--text-secondary)]">Reaction Time:</span>
+                            </div>
+                            <span className="font-bold">{d.rtMs} ms</span>
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={28}
+                    formatter={(value) => (
+                      <span className="text-[10px] font-mono font-medium text-[var(--text-secondary)]">
+                        {value === 'Accuracy' ? 'Accuracy (0–100%)' : `Reaction Time (0–${maxDirectionalRT}ms)`}
+                      </span>
+                    )}
+                  />
+                  <Radar
+                    name="Accuracy"
+                    dataKey="accuracy"
+                    stroke="var(--cyan-primary)"
+                    strokeWidth={2}
+                    fill="var(--cyan-primary)"
+                    fillOpacity={0.25}
+                    dot={{ r: 3, fill: 'var(--cyan-primary)' }}
+                    activeDot={{ r: 5 }}
+                  />
+                  <Radar
+                    name="Reaction Time"
+                    dataKey="rtNormalized"
+                    stroke="#a78bfa"
+                    strokeWidth={2}
+                    fill="#a78bfa"
+                    fillOpacity={0.25}
+                    dot={{ r: 3, fill: '#a78bfa' }}
+                    activeDot={{ r: 5 }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
             ) : radarMode === 'accuracy' ? (
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarAccuracyData} outerRadius="72%">
@@ -629,8 +675,8 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={consistencyDistributionData} margin={{ top: 8, right: 12, left: -22, bottom: 4 }}>
                 <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} />
-                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="monospace" tickLine={false} axisLine={false} />
+                <XAxis dataKey="label" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
+                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} />
                 <Tooltip
                   cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                   content={<DatasetTooltip variant="standard" />}
@@ -744,13 +790,13 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
                 dataKey="trialLabel"
                 stroke="var(--chart-text)"
                 fontSize={10}
-                fontFamily="monospace"
+                fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                 tickLine={false}
               />
               <YAxis
                 stroke="var(--chart-text)"
                 fontSize={10}
-                fontFamily="monospace"
+                fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                 tickLine={false}
                 axisLine={false}
                 unit="ms"

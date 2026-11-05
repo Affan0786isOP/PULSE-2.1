@@ -22,7 +22,11 @@ export function DatasetTooltip({ active, payload, label, variant = 'standard' }:
         const count = sampleCount !== undefined ? sampleCount : entry.payload?.n;
         const value = variant === 'direction'
           ? entry.name === 'Accuracy'
-            ? entry.value === 1 ? 'Accurate (100%)' : 'Error (0%)'
+            ? typeof entry.value === 'number'
+              ? entry.value <= 1 && entry.value >= 0 && entry.value % 1 !== 0
+                ? `${Math.round(entry.value * 100)}%`
+                : `${entry.value}%`
+              : `${entry.value}%`
             : `${entry.value} ms`
           : `${entry.value} ${entry.unit || ''}`;
         const iqrText = entry.payload?.iqr !== undefined ? ` • IQR: ${entry.payload.iqr}ms` : '';

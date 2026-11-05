@@ -100,6 +100,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSampleLimited, setIsSampleLimited] = useState(false);
   const [totalDatasetCount, setTotalDatasetCount] = useState<number | null>(null);
+
   const [refreshRevision, setRefreshRevision] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
@@ -214,6 +215,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
       abortController.abort();
     };
   }, [selectedGameId, refreshRevision]);
+
 
   // --- STATS CALCULATIONS ---
 
@@ -606,7 +608,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         dataKey="interval"
                         stroke="var(--chart-text)"
                         fontSize={9}
-                        fontFamily="monospace"
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                         tickLine={false}
                         angle={-25}
                         textAnchor="end"
@@ -614,7 +616,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                       <YAxis
                         stroke="var(--chart-text)"
                         fontSize={10}
-                        fontFamily="monospace"
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                         tickLine={false}
                         axisLine={false}
                         unit="ms"
@@ -664,13 +666,13 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         dataKey="day"
                         stroke="var(--chart-text)"
                         fontSize={10}
-                        fontFamily="monospace"
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                         tickLine={false}
                       />
                       <YAxis
                         stroke="var(--chart-text)"
                         fontSize={10}
-                        fontFamily="monospace"
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                         tickLine={false}
                         axisLine={false}
                         unit="ms"
@@ -724,13 +726,13 @@ export function Dataset({ onNavigate }: DatasetProps) {
                       dataKey="trialLabel"
                       stroke="var(--chart-text)"
                       fontSize={10}
-                      fontFamily="monospace"
+                      fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                       tickLine={false}
                     />
                     <YAxis
                       stroke="var(--chart-text)"
                       fontSize={10}
-                      fontFamily="monospace"
+                      fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                       tickLine={false}
                       axisLine={false}
                       unit="ms"
@@ -789,13 +791,13 @@ export function Dataset({ onNavigate }: DatasetProps) {
                         dataKey="label"
                         stroke="var(--chart-text)"
                         fontSize={10}
-                        fontFamily="monospace"
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                         tickLine={false}
                       />
                       <YAxis
                         stroke="var(--chart-text)"
                         fontSize={10}
-                        fontFamily="monospace"
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
                         tickLine={false}
                         axisLine={false}
                       />
