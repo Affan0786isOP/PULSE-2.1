@@ -23,6 +23,13 @@ export interface RawDatasetSummaryCounts {
   counts: Record<string, number>;
 }
 
+export interface PublicDatasetSummaryDocument extends RawDatasetSummaryCounts {
+  schemaVersion: 1;
+  lastUpdatedAt: number;
+  migrationInProgress?: boolean;
+  migrationStartedAt?: number | null;
+}
+
 export interface PublicDatasetRecord {
   id: string;
   assessmentType: string;

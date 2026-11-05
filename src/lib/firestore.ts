@@ -367,6 +367,9 @@ export const submitAssessmentResult = async (payload: BasePayload): Promise<{
       throw new Error(errData.error || `Server rejected submission (${res.status})`);
     }
     const resData = await res.json().catch(() => ({}));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('pulse:research-submitted'));
+    }
     return { 
       success: true, 
       derivedMetrics: resData.derivedMetrics,

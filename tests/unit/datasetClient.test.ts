@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fetchDatasetObservations, unrollTrialsFromDatasetDocs } from '../../src/lib/dataset';
+import {
+  clearDatasetObservationsCache,
+  fetchDatasetObservations,
+  unrollTrialsFromDatasetDocs
+} from '../../src/lib/dataset';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return {
@@ -21,6 +25,7 @@ function datasetPage(start: number, count: number) {
 
 describe('Dataset API client', () => {
   afterEach(() => {
+    clearDatasetObservationsCache();
     vi.unstubAllGlobals();
   });
 
@@ -39,6 +44,164 @@ describe('Dataset API client', () => {
 
     expect(result.observations).toHaveLength(1);
     expect(String(fetchMock.mock.calls[0][0])).toContain('limit=1');
+  });
+
+
+  it('reuses completed results from the in-memory cache without another API request', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, records: datasetPage(0, 1), count: 1, hasMore: false, nextCursor: null
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, totalRecords: 1, counts: { 'visual-reaction': 1 }
+      }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const first = await fetchDatasetObservations({ assessmentType: 'visual-reaction' }, 1000);
+    const second = await fetchDatasetObservations({ assessmentType: 'visual-reaction' }, 1000);
+
+    expect(second).toBe(first);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('shares one in-flight request between callers with the same filters', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, records: datasetPage(0, 1), count: 1, hasMore: false, nextCursor: null
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, totalRecords: 1, counts: { 'visual-reaction': 1 }
+      }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const [first, second] = await Promise.all([
+      fetchDatasetObservations({ assessmentType: 'visual-reaction' }, 1000),
+      fetchDatasetObservations({ assessmentType: 'visual-reaction' }, 1000)
+    ]);
+
+    expect(first).toBe(second);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('aborts an in-flight snapshot when the cache is invalidated', async () => {
+    let networkAborted = false;
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => {
+        networkAborted = true;
+        const error = new Error('aborted');
+        error.name = 'AbortError';
+        reject(error);
+      }, { once: true });
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const pending = fetchDatasetObservations({ assessmentType: 'visual-reaction' }, 1000);
+    clearDatasetObservationsCache();
+
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    expect(networkAborted).toBe(true);
+  });
+
+  it('cancels the shared network request when its only consumer aborts', async () => {
+    let networkAborted = false;
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => {
+        networkAborted = true;
+        const error = new Error('aborted');
+        error.name = 'AbortError';
+        reject(error);
+      }, { once: true });
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const controller = new AbortController();
+    const pending = fetchDatasetObservations({ assessmentType: 'visual-reaction' }, 1000, controller.signal);
+    controller.abort();
+
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    expect(networkAborted).toBe(true);
+  });
+
+
+  it('starts a fresh request when StrictMode cleanup aborts the previous consumer', async () => {
+    let dataRequestCount = 0;
+    let firstNetworkAborted = false;
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes('/api/research/dataset/summary')) {
+        return Promise.resolve(jsonResponse({
+          success: true, totalRecords: 1, counts: { 'visual-reaction': 1 }
+        }));
+      }
+
+      dataRequestCount += 1;
+      if (dataRequestCount === 1) {
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            firstNetworkAborted = true;
+            const error = new Error('aborted');
+            error.name = 'AbortError';
+            reject(error);
+          }, { once: true });
+        });
+      }
+
+      return Promise.resolve(jsonResponse({
+        success: true, records: datasetPage(0, 1), hasMore: false, nextCursor: null
+      }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    // Mirrors StrictMode's development sequence: first effect setup, cleanup,
+    // then an immediate second setup before the first promise's finally runs.
+    const firstEffectController = new AbortController();
+    const firstEffectRequest = fetchDatasetObservations(
+      { assessmentType: 'visual-reaction' }, 1000, firstEffectController.signal
+    );
+    firstEffectController.abort();
+
+    const secondEffectController = new AbortController();
+    const secondEffectRequest = fetchDatasetObservations(
+      { assessmentType: 'visual-reaction' }, 1000, secondEffectController.signal
+    );
+
+    await expect(firstEffectRequest).rejects.toMatchObject({ name: 'AbortError' });
+    const secondResult = await secondEffectRequest;
+
+    expect(firstNetworkAborted).toBe(true);
+    expect(dataRequestCount).toBe(2);
+    expect(secondResult.error).toBeUndefined();
+    expect(secondResult.observations).toHaveLength(1);
+  });
+
+  it('bypasses the local and CDN caches for an explicit manual refresh', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, records: datasetPage(0, 1), hasMore: false, nextCursor: null
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, totalRecords: 1, counts: { 'visual-reaction': 1 }
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, records: datasetPage(1, 1), hasMore: false, nextCursor: null
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        success: true, totalRecords: 2, counts: { 'visual-reaction': 2 }
+      }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchDatasetObservations({ assessmentType: 'visual-reaction' }, 1000);
+    const refreshed = await fetchDatasetObservations(
+      { assessmentType: 'visual-reaction' },
+      1000,
+      undefined,
+      { forceRefresh: true }
+    );
+
+    expect(refreshed.observations[0].id).toBe('session-1');
+    expect(String(fetchMock.mock.calls[2][0])).toContain('fresh=1');
+    expect(fetchMock.mock.calls[2][1]).toMatchObject({ cache: 'no-store' });
+    expect(String(fetchMock.mock.calls[3][0])).toContain('/api/research/dataset/summary?fresh=1');
+    expect(fetchMock.mock.calls[3][1]).toMatchObject({ cache: 'no-store' });
   });
 
   it('follows cursors and reports the filtered total', async () => {

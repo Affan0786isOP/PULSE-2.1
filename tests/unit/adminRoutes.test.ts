@@ -126,13 +126,52 @@ describe('Admin Express Routes Unit Tests', () => {
     mockRevokeToken = vi.fn(async () => true);
     mockValidatePass = vi.fn((code: string) => code === '180611');
     mockCreateToken = vi.fn(() => 'generated-admin-token-123');
+    const datasetSummaryService = {
+      getStatus: vi.fn(async () => ({
+        exists: true,
+        migrationInProgress: false,
+        summary: {
+          totalRecords: 3,
+          totalTrials: 12,
+          counts: {
+            'visual-reaction': 2,
+            direction: 1,
+            'color-recognition': 0,
+            'block-memory': 0,
+            'number-memory': 0
+          }
+        },
+        lastReconciledAt: 1700000000000,
+        migrationStartedAt: null
+      })),
+      reconcile: vi.fn(async (mode: 'dry-run' | 'apply') => ({
+        mode,
+        scannedRecords: 3,
+        summary: {
+          totalRecords: 3,
+          totalTrials: 12,
+          counts: {
+            'visual-reaction': 2,
+            direction: 1,
+            'color-recognition': 0,
+            'block-memory': 0,
+            'number-memory': 0
+          }
+        },
+        matchesStoredSummary: mode === 'apply' ? true : false,
+        completedAt: 1700000001000,
+        durationMs: 100,
+        source: 'admin-ui' as const
+      }))
+    };
 
     registerAdminRoutes(app, {
       adminService: mockAdminService as any,
       verifySession: mockVerifySession as any,
       revokeToken: mockRevokeToken as any,
       validatePass: mockValidatePass as any,
-      createToken: mockCreateToken as any
+      createToken: mockCreateToken as any,
+      datasetSummaryReconciliationService: datasetSummaryService as any
     });
 
     server = await new Promise(resolve => {
@@ -328,5 +367,61 @@ describe('Admin Express Routes Unit Tests', () => {
       );
       expect(res.status).toBe(409);
     });
+
+  describe('Dataset summary maintenance endpoints', () => {
+    it('requires admin authentication to read summary maintenance status', async () => {
+      const denied = await makeRequest(server, 'GET', '/api/admin/maintenance/dataset-summary');
+      expect(denied.status).toBe(401);
+    });
+
+    it('returns the aggregate status only to an authenticated admin', async () => {
+      const res = await makeRequest(
+        server,
+        'GET',
+        '/api/admin/maintenance/dataset-summary',
+        { 'x-admin-token': 'valid-admin-token' }
+      );
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect((res.body.status as Record<string, unknown>).exists).toBe(true);
+      expect(res.headers['cache-control']).toContain('no-store');
+    });
+
+    it('requires explicit confirmation before applying a reconciliation', async () => {
+      const res = await makeRequest(
+        server,
+        'POST',
+        '/api/admin/maintenance/dataset-summary/reconcile',
+        { 'x-admin-token': 'valid-admin-token' },
+        { mode: 'apply' }
+      );
+      expect(res.status).toBe(400);
+    });
+
+    it('allows an authenticated admin to run a dry-run without writing', async () => {
+      const res = await makeRequest(
+        server,
+        'POST',
+        '/api/admin/maintenance/dataset-summary/reconcile',
+        { 'x-admin-token': 'valid-admin-token' },
+        { mode: 'dry-run' }
+      );
+      expect(res.status).toBe(200);
+      expect((res.body.report as Record<string, unknown>).mode).toBe('dry-run');
+    });
+
+    it('applies a summary rebuild only after explicit confirmation', async () => {
+      const res = await makeRequest(
+        server,
+        'POST',
+        '/api/admin/maintenance/dataset-summary/reconcile',
+        { 'x-admin-token': 'valid-admin-token' },
+        { mode: 'apply', confirmApply: true }
+      );
+      expect(res.status).toBe(200);
+      expect((res.body.report as Record<string, unknown>).mode).toBe('apply');
+    });
+  });
+
   });
 });

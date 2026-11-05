@@ -671,6 +671,19 @@ describe('Firestore Repositories Unit Tests', () => {
       const completedAtTimestamp = Date.now();
       const ageGroup = 'Young adults (18–25)';
       const versionMetadata = getAssessmentVersionMetadata(assessmentType);
+      await mockDb.collection('publicDatasetMeta').doc('summary').set({
+        schemaVersion: 1,
+        totalRecords: 0,
+        totalTrials: 0,
+        lastUpdatedAt: completedAtTimestamp - 1,
+        counts: {
+          'visual-reaction': 0,
+          direction: 0,
+          'color-recognition': 0,
+          'block-memory': 0,
+          'number-memory': 0
+        }
+      });
 
       await mockDb.collection('experimentSessions').doc(sessionId).set({
         sessionId,
@@ -713,6 +726,12 @@ describe('Firestore Repositories Unit Tests', () => {
         protocolVersion: publicRecord.data()?.protocolVersion,
         datasetSchemaVersion: publicRecord.data()?.datasetSchemaVersion,
         metricsVersion: publicRecord.data()?.metricsVersion,
+      });
+      const summary = await mockDb.collection('publicDatasetMeta').doc('summary').get();
+      expect(summary.data()).toMatchObject({
+        totalRecords: 1,
+        totalTrials: 0,
+        counts: { [assessmentType]: 1 }
       });
     }
   });
@@ -776,17 +795,103 @@ describe('Firestore Repositories Unit Tests', () => {
     expect(secondPage.hasMore).toBe(false);
     expect(secondPage.results[0].participantId).toBeUndefined();
 
-    const summary = await repo.getDatasetSummary();
-    expect(summary).toEqual({
-      totalRecords: 3,
-      totalTrials: 6,
+    await expect(repo.getDatasetSummary()).rejects.toThrow('DATASET_SUMMARY_RECONCILIATION_REQUIRED');
+  });
+
+
+  it('serves a precomputed Dataset summary without scanning publicDataset', async () => {
+    const mockDb = createDatasetMockDb({
+      publicDatasetMeta: [{
+        id: 'summary',
+        schemaVersion: 1,
+        totalRecords: 42,
+        totalTrials: 840,
+        lastUpdatedAt: 1700000000000,
+        counts: {
+          'visual-reaction': 20,
+          direction: 8,
+          'color-recognition': 6,
+          'block-memory': 4,
+          'number-memory': 4
+        }
+      }]
+    });
+    const repo = new FirestoreResearchDatasetRepository(() => mockDb);
+
+    await expect(repo.getDatasetSummary()).resolves.toEqual({
+      totalRecords: 42,
+      totalTrials: 840,
       counts: {
-        'visual-reaction': 1,
+        'visual-reaction': 20,
+        direction: 8,
+        'color-recognition': 6,
+        'block-memory': 4,
+        'number-memory': 4
+      }
+    });
+  });
+
+  it('does not increment Dataset summary aggregates when a consumed session is submitted twice', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreResearchSubmissionRepository(() => mockDb);
+    const sessionId = 'summary-idempotency-session';
+    const docId = 'summary-idempotency-result';
+    const completedAtTimestamp = Date.now();
+
+    await mockDb.collection('experimentSessions').doc(sessionId).set({
+      sessionId,
+      uid: 'summary-test-user',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      createdAt: completedAtTimestamp - 1000,
+      expiresAt: completedAtTimestamp + 15 * 60 * 1000,
+      consumed: false
+    });
+    await mockDb.collection('publicDatasetMeta').doc('summary').set({
+      schemaVersion: 1,
+      totalRecords: 0,
+      totalTrials: 0,
+      lastUpdatedAt: completedAtTimestamp - 1,
+      counts: {
+        'visual-reaction': 0,
         direction: 0,
-        'color-recognition': 2,
+        'color-recognition': 0,
         'block-memory': 0,
         'number-memory': 0
       }
+    });
+
+    const input = {
+      docId,
+      sessionId,
+      userId: 'summary-test-user',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      derivedMetrics: {},
+      currentScore: 210,
+      isNewPersonalBest: true,
+      previousPersonalBest: null,
+      personalBest: 210,
+      completedAtTimestamp,
+      completedAtMonth: new Date(completedAtTimestamp).toISOString().slice(0, 7),
+      provenanceToken: 'summary-test-provenance',
+      trialsDigest: 'summary-test-digest',
+      publicDatasetDoc: {
+        assessmentType: 'visual-reaction',
+        totalTrials: 2,
+        progressionTrials: [{}, {}]
+      },
+      trialPayloads: []
+    };
+
+    await repo.executeSubmissionTransaction(input);
+    await expect(repo.executeSubmissionTransaction(input)).rejects.toThrow();
+
+    const summary = await mockDb.collection('publicDatasetMeta').doc('summary').get();
+    expect(summary.data()).toMatchObject({
+      totalRecords: 1,
+      totalTrials: 2,
+      counts: { 'visual-reaction': 1 }
     });
   });
 

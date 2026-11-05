@@ -112,6 +112,32 @@ export const leaderboardFreshReadLimiter = rateLimit({
   }
 });
 
+export const datasetManualRefreshLimiter = rateLimit({
+  windowMs: 2 * 60 * 1000,
+  max: 1,
+  keyGenerator: createLimiterKey('dataset-manual-refresh', false),
+  store: createSharedStore(),
+  skip: (req) => {
+    if (req.method !== 'GET') return true;
+    const pathname = (req.originalUrl || req.url || '').split('?')[0].replace(/\/+$/, '');
+    // Count one explicit refresh operation at its first page. Cursor pages
+    // belong to the same client-side refresh and must not consume extra slots.
+    return pathname !== '/api/research/dataset' ||
+      req.query.fresh !== '1' ||
+      (typeof req.query.cursor === 'string' && req.query.cursor.length > 0);
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Surrogate-Control', 'no-store');
+    res.status(429).json({
+      success: false,
+      error: 'Dataset was refreshed recently. Please wait two minutes before refreshing again.'
+    });
+  }
+});
+
 export const leaderboardReadLimiter = rateLimit({
   windowMs,
   max: 600,
@@ -185,6 +211,7 @@ export function applyRateLimits(app: Express): void {
   app.use('/api/admin/leaderboard/delete', adminMutationLimiter);
   app.use('/api/leaderboard', leaderboardFreshReadLimiter);
   app.use('/api/leaderboard', leaderboardReadLimiter);
+  app.use('/api/research/dataset', datasetManualRefreshLimiter);
   app.use('/api/research/session', sessionStartLimiter);
   app.use('/api/sessions', generalSessionsLimiter);
   app.use('/api/research/submit', sessionSubmitLimiter);

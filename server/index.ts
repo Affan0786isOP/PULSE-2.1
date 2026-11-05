@@ -30,9 +30,12 @@ async function startServer() {
 
   // Prevent downstream caching of API responses (including 4xx/5xx error responses)
   app.use('/api', (req, res, next) => {
-    // The public leaderboard GET route applies its own status-aware cache policy.
-    // Every other API endpoint, including private leaderboard routes, stays no-store.
-    if (req.method === 'GET' && req.path === '/leaderboard') return next();
+    // These public GET routes apply their own status-aware cache policies.
+    // All private APIs and every mutation remain no-store.
+    if (
+      req.method === 'GET' &&
+      ['/leaderboard', '/research/dataset', '/research/dataset/summary'].includes(req.path)
+    ) return next();
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.setHeader('Surrogate-Control', 'no-store');
     next();
@@ -63,7 +66,8 @@ async function startServer() {
   registerAdminRoutes(app, {
     adminService: container.adminService,
     invalidateLeaderboardCache: container.leaderboardService.invalidateCache?.bind(container.leaderboardService),
-    runAccuracyBackfillBatch: input => container.leaderboardAccuracyBackfillService.runBatch(input)
+    runAccuracyBackfillBatch: input => container.leaderboardAccuracyBackfillService.runBatch(input),
+    datasetSummaryReconciliationService: container.datasetSummaryReconciliationService
   });
 applyDeviceRoutingMiddleware(app);
   await registerStaticRoutes(app);

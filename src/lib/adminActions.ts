@@ -198,3 +198,52 @@ export async function runLeaderboardAccuracyBackfill(input: {
     { method: 'POST', body: JSON.stringify(input) }
   );
 }
+
+
+export interface DatasetSummaryAdminStatus {
+  exists: boolean;
+  migrationInProgress: boolean;
+  summary: {
+    totalRecords: number;
+    totalTrials: number;
+    counts: Record<string, number>;
+  } | null;
+  lastReconciledAt: number | null;
+  migrationStartedAt: number | null;
+}
+
+export interface DatasetSummaryReconciliationReport {
+  mode: 'dry-run' | 'apply';
+  scannedRecords: number;
+  summary: {
+    totalRecords: number;
+    totalTrials: number;
+    counts: Record<string, number>;
+  };
+  matchesStoredSummary: boolean | null;
+  completedAt: number;
+  durationMs: number;
+  source: 'admin-ui' | 'cli';
+}
+
+export async function fetchDatasetSummaryAdminStatus(): Promise<DatasetSummaryAdminStatus> {
+  const response = await request<{ success: boolean; status: DatasetSummaryAdminStatus }>(
+    '/api/admin/maintenance/dataset-summary',
+    { method: 'GET' }
+  );
+  return response.status;
+}
+
+export async function runDatasetSummaryReconciliation(
+  mode: 'dry-run' | 'apply',
+  confirmApply = false
+): Promise<DatasetSummaryReconciliationReport> {
+  const response = await request<{ success: boolean; report: DatasetSummaryReconciliationReport }>(
+    '/api/admin/maintenance/dataset-summary/reconcile',
+    {
+      method: 'POST',
+      body: JSON.stringify({ mode, ...(mode === 'apply' ? { confirmApply } : {}) })
+    }
+  );
+  return response.report;
+}

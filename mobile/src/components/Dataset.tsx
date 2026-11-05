@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Navbar } from './Navbar';
 import {
   ResponsiveContainer,
@@ -21,7 +21,7 @@ import {
 import type { RawTrialObservation } from '../lib/trialStore';
 import { fetchDatasetObservations, unrollTrialsFromDatasetDocs, DatasetObservation } from '../lib/dataset';
 import { VALID_AGE_GROUPS, AssessmentType } from '../lib/firestore';
-import { ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Monitor, Smartphone } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Monitor, Smartphone, RefreshCw } from 'lucide-react';
 import { triggerHaptic } from '../lib/settingsStore';
 import { DirectionDataset } from './DirectionDataset';
 import {
@@ -154,10 +154,40 @@ export function Dataset({ onNavigate }: DatasetProps) {
   const [isSampleLimited, setIsSampleLimited] = useState(false);
   const [totalDatasetCount, setTotalDatasetCount] = useState<number | null>(null);
 
+  const [refreshRevision, setRefreshRevision] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
+  const [refreshCooldownUntil, setRefreshCooldownUntil] = useState(0);
+  const forceRefreshNextLoad = useRef(false);
+
+  useEffect(() => {
+    const remaining = refreshCooldownUntil - Date.now();
+    if (remaining <= 0) return;
+    const timeout = window.setTimeout(() => setRefreshCooldownUntil(0), remaining);
+    return () => window.clearTimeout(timeout);
+  }, [refreshCooldownUntil]);
+
+  const handleRefresh = () => {
+    if (
+      isLoading ||
+      isRefreshing ||
+      Date.now() < refreshCooldownUntil ||
+      (selectedGameId !== 'visual-reaction' && selectedGameId !== 'direction')
+    ) return;
+    forceRefreshNextLoad.current = true;
+    setRefreshError(null);
+    // Client feedback mirrors the server-enforced two-minute cooldown.
+    setRefreshCooldownUntil(Date.now() + 2 * 60 * 1000);
+    setRefreshRevision(value => value + 1);
+  };
+
   useEffect(() => {
     if (selectedGameId !== 'visual-reaction' && selectedGameId !== 'direction') {
       setIsLoading(false);
+      setIsRefreshing(false);
       setLoadError(null);
+      setRefreshError(null);
       setIsSampleLimited(false);
       setTotalDatasetCount(null);
       setTrials([]);
@@ -166,44 +196,79 @@ export function Dataset({ onNavigate }: DatasetProps) {
     }
 
     let isMounted = true;
+    const forceRefresh = forceRefreshNextLoad.current;
+    forceRefreshNextLoad.current = false;
+    const abortController = new AbortController();
 
     async function loadData() {
-      setIsLoading(true);
-      setLoadError(null);
-      setIsSampleLimited(false);
-      setTotalDatasetCount(null);
+      if (forceRefresh) {
+        setIsRefreshing(true);
+        setRefreshError(null);
+      } else {
+        setIsLoading(true);
+        setIsRefreshing(false);
+        setLoadError(null);
+      }
+      if (!forceRefresh) {
+        setLoadError(null);
+        setIsSampleLimited(false);
+        setTotalDatasetCount(null);
+      } else {
+        setLoadError(null);
+      }
       try {
-        const publicData = await fetchDatasetObservations({ assessmentType: selectedGameId }, 1000);
+        const publicData = await fetchDatasetObservations(
+          { assessmentType: selectedGameId },
+          1000,
+          abortController.signal,
+          { forceRefresh }
+        );
         if (!isMounted) return;
 
         if (publicData.error) {
-          setDatasetDocs([]);
-          setTrials([]);
-          setLoadError(publicData.error);
+          if (forceRefresh) {
+            setRefreshError(publicData.error);
+          } else {
+            setDatasetDocs([]);
+            setTrials([]);
+            setLoadError(publicData.error);
+          }
           return;
         }
 
+        setLoadError(null);
+        setRefreshError(null);
         setDatasetDocs(publicData.observations);
         setTrials(unrollTrialsFromDatasetDocs(publicData.observations, selectedGameId));
         setIsSampleLimited(publicData.isSampleLimited);
         setTotalDatasetCount(publicData.totalCount);
+        setLastRefreshedAt(Date.now());
       } catch (error: unknown) {
         console.warn('Error loading dataset from API:', error);
         if (isMounted) {
-          setDatasetDocs([]);
-          setTrials([]);
-          setLoadError('Research data could not be loaded. Refresh the page to try again.');
+          if (forceRefresh) {
+            setRefreshError('Could not refresh research data. The previously loaded data is still shown.');
+          } else {
+            setDatasetDocs([]);
+            setTrials([]);
+            setLoadError('Research data could not be loaded. Refresh the page to try again.');
+          }
         }
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted) {
+          if (forceRefresh) setIsRefreshing(false);
+          else setIsLoading(false);
+        }
       }
     }
 
     void loadData();
     return () => {
       isMounted = false;
+      abortController.abort();
     };
-  }, [selectedGameId]);
+  }, [selectedGameId, refreshRevision]);
+
 
   // --- STATS CALCULATIONS ---
 
@@ -440,6 +505,31 @@ export function Dataset({ onNavigate }: DatasetProps) {
             <ChevronRight size={18} />
           </button>
         </div>
+
+        {(selectedGameId === 'visual-reaction' || selectedGameId === 'direction') && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] text-[var(--text-muted)]" aria-live="polite">
+              {lastRefreshedAt ? `Last loaded at ${new Date(lastRefreshedAt).toLocaleTimeString()}` : 'Research data loads automatically'}
+            </p>
+            <button
+              type="button"
+              id="dataset-refresh-btn"
+              data-testid="dataset-refresh-btn"
+              onClick={handleRefresh}
+              disabled={isLoading || isRefreshing || refreshCooldownUntil > Date.now()}
+              aria-label="Refresh research data"
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] transition hover:border-[var(--cyan-primary)] hover:text-[var(--cyan-primary)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+              {isRefreshing ? 'Refreshing…' : refreshCooldownUntil > Date.now() ? 'Refresh cooldown' : 'Refresh data'}
+            </button>
+          </div>
+        )}
+        {refreshError && (
+          <div role="alert" className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-[var(--text-secondary)]">
+            {refreshError} Previous data, when available, remains visible.
+          </div>
+        )}
 
         {/* Dashboard Content */}
         {!isLoading && !loadError && isSampleLimited && (

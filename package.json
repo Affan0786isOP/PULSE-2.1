@@ -24,7 +24,8 @@
     "build:mobile": "vite build --config mobile/vite.config.ts && node scripts/generate-seo-pages.mjs",
     "generate-icons": "node scripts/generate-icons.js",
     "seo:audit": "node scripts/audit-seo-crawl.mjs",
-    "audit:typography": "node scripts/audit-typography.mjs"
+    "audit:typography": "node scripts/audit-typography.mjs",
+    "dataset:reconcile-summary": "tsx scripts/reconcileDatasetSummary.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
