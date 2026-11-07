@@ -1,0 +1,497 @@
+import { useState, useEffect, useCallback } from 'react';
+
+export type ThemeMode = 'light' | 'dark' | 'system';
+
+export interface UserSettings {
+  soundEnabled: boolean;
+  hapticsEnabled: boolean;
+  themeMode: ThemeMode;
+  exhibitionModeEnabled: boolean;
+  reducedMotionEnabled: boolean;
+  fontScale: number;
+}
+
+const SETTINGS_STORAGE_KEY = 'pulse_user_settings';
+
+export function getDefaultReducedMotion(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+const DEFAULT_SETTINGS: UserSettings = {
+  soundEnabled: true,
+  hapticsEnabled: true,
+  themeMode: 'system',
+  exhibitionModeEnabled: false,
+  reducedMotionEnabled: getDefaultReducedMotion(),
+  fontScale: 1.0,
+};
+
+let cachedSettings: UserSettings | null = null;
+
+function sanitizeSettings(raw: unknown, fallback: UserSettings = DEFAULT_SETTINGS): UserSettings {
+  const result: UserSettings = {
+    ...fallback,
+    reducedMotionEnabled: fallback.reducedMotionEnabled ?? getDefaultReducedMotion(),
+  };
+
+  if (!raw || typeof raw !== 'object') {
+    return result;
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  if (typeof obj.soundEnabled === 'boolean') {
+    result.soundEnabled = obj.soundEnabled;
+  }
+  if (typeof obj.hapticsEnabled === 'boolean') {
+    result.hapticsEnabled = obj.hapticsEnabled;
+  }
+  if (obj.themeMode === 'light' || obj.themeMode === 'dark' || obj.themeMode === 'system') {
+    result.themeMode = obj.themeMode;
+  } else {
+    result.themeMode = fallback.themeMode ?? 'system';
+  }
+
+  if (typeof obj.exhibitionModeEnabled === 'boolean') {
+    result.exhibitionModeEnabled = obj.exhibitionModeEnabled;
+  }
+  if (typeof obj.reducedMotionEnabled === 'boolean') {
+    result.reducedMotionEnabled = obj.reducedMotionEnabled;
+  }
+  if (typeof obj.fontScale === 'number' && Number.isFinite(obj.fontScale)) {
+    result.fontScale = Math.max(0.7, Math.min(1.5, Math.round(obj.fontScale * 100) / 100));
+  }
+
+  return result;
+}
+
+export function readSettingsCookie(): unknown | null {
+  if (typeof document === 'undefined') return null;
+  try {
+    const rawCookies = document.cookie ? document.cookie.split(';') : [];
+    for (let i = 0; i < rawCookies.length; i++) {
+      const cookie = rawCookies[i].trim();
+      if (cookie.startsWith(SETTINGS_STORAGE_KEY + '=')) {
+        const val = cookie.substring(SETTINGS_STORAGE_KEY.length + 1);
+        if (!val) return null;
+        return JSON.parse(decodeURIComponent(val));
+      }
+    }
+  } catch {
+    // Malformed cookie string or URI decoding issue
+  }
+  return null;
+}
+
+export function writeSettingsCookie(settings: UserSettings): void {
+  if (typeof document === 'undefined') return;
+  try {
+    const serialized = encodeURIComponent(JSON.stringify(settings));
+    document.cookie = SETTINGS_STORAGE_KEY + '=' + serialized + '; path=/; max-age=31536000; SameSite=Lax';
+  } catch {
+    // Quota / document.cookie restricted context fallback
+  }
+}
+
+export function clearSettingsCookie(): void {
+  if (typeof document === 'undefined') return;
+  try {
+    document.cookie = SETTINGS_STORAGE_KEY + '=; path=/; max-age=0; SameSite=Lax';
+  } catch {
+    // Ignore clearing error
+  }
+}
+
+export function loadSettings(): UserSettings {
+  if (typeof window === 'undefined') {
+    return { ...DEFAULT_SETTINGS };
+  }
+
+  let localRaw: unknown = null;
+  let hasLocalStorage = false;
+  try {
+    const serialized = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (serialized) {
+      localRaw = JSON.parse(serialized);
+      hasLocalStorage = true;
+    }
+  } catch {
+    // Malformed localStorage or private-mode storage restrictions
+  }
+
+  const cookieRaw = readSettingsCookie();
+  const hasCookie = cookieRaw !== null;
+
+  const candidateRaw = localRaw ?? cookieRaw;
+
+  if (candidateRaw) {
+    const sanitized = sanitizeSettings(candidateRaw, {
+      ...DEFAULT_SETTINGS,
+      reducedMotionEnabled: getDefaultReducedMotion(),
+    });
+
+    // Dual-storage self-healing: re-synchronize if one store was cleared or out-of-sync
+    if (hasLocalStorage && !hasCookie) {
+      writeSettingsCookie(sanitized);
+    } else if (!hasLocalStorage && hasCookie) {
+      try {
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(sanitized));
+      } catch {
+        // Ignore localStorage write errors in private mode
+      }
+    }
+
+    return sanitized;
+  }
+
+  return { ...DEFAULT_SETTINGS, reducedMotionEnabled: getDefaultReducedMotion() };
+}
+
+export function getSettings(): UserSettings {
+  if (!cachedSettings) {
+    cachedSettings = loadSettings();
+  }
+  return { ...cachedSettings };
+}
+
+export function isReducedMotionActive(): boolean {
+  return getSettings().reducedMotionEnabled;
+}
+
+export function isHapticsSupported(): boolean {
+  return typeof navigator !== 'undefined' && 'vibrate' in navigator && typeof navigator.vibrate === 'function';
+}
+
+export function applyDOMSettings(settings: UserSettings = getSettings()) {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  // 1. Authoritative Reduced Motion
+  if (settings.reducedMotionEnabled) {
+    document.documentElement.setAttribute('data-reduced-motion', 'true');
+    document.documentElement.classList.add('reduced-motion');
+  } else {
+    document.documentElement.removeAttribute('data-reduced-motion');
+    document.documentElement.classList.remove('reduced-motion');
+  }
+
+  // 3. Exhibition Mode
+  if (settings.exhibitionModeEnabled) {
+    document.documentElement.setAttribute('data-exhibition-mode', 'true');
+    document.documentElement.classList.add('exhibition-mode');
+  } else {
+    document.documentElement.removeAttribute('data-exhibition-mode');
+    document.documentElement.classList.remove('exhibition-mode');
+  }
+
+  // 4. Font Scale
+  const scale = settings.fontScale ?? 1.0;
+  const fontSizePercent = `${Math.round(scale * 100)}%`;
+  document.documentElement.style.setProperty('--font-size', fontSizePercent);
+  document.documentElement.style.setProperty('--font-scale', `${scale}`);
+  document.documentElement.setAttribute('data-font-scale', `${scale}`);
+}
+
+export function updateSettings(partial: Partial<UserSettings>): UserSettings {
+  const current = getSettings();
+  const next = sanitizeSettings(partial, current);
+
+  // Skip rewrite if nothing changed
+  if (
+    current.soundEnabled === next.soundEnabled &&
+    current.hapticsEnabled === next.hapticsEnabled &&
+    current.themeMode === next.themeMode &&
+    current.exhibitionModeEnabled === next.exhibitionModeEnabled &&
+    current.reducedMotionEnabled === next.reducedMotionEnabled &&
+    current.fontScale === next.fontScale
+  ) {
+    return current;
+  }
+
+  cachedSettings = next;
+  applyDOMSettings(next);
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // Ignore quota/private mode write issues
+    }
+    writeSettingsCookie(next);
+    window.dispatchEvent(new CustomEvent('pulse_settings_changed', { detail: next }));
+  }
+
+  return next;
+}
+
+export function resetSettingsToDefaults(): UserSettings {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(SETTINGS_STORAGE_KEY);
+    } catch {}
+    clearSettingsCookie();
+  }
+  cachedSettings = { ...DEFAULT_SETTINGS, reducedMotionEnabled: getDefaultReducedMotion() };
+  applyDOMSettings(cachedSettings);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('pulse_settings_changed', { detail: cachedSettings }));
+  }
+  return cachedSettings;
+}
+
+// Immediately apply settings on initial import
+if (typeof window !== 'undefined') {
+  applyDOMSettings(getSettings());
+
+  // Keep in-memory settings synchronized across browser tabs
+  window.addEventListener('storage', (e: StorageEvent) => {
+    if (e.key === SETTINGS_STORAGE_KEY) {
+      const reloaded = loadSettings();
+      cachedSettings = reloaded;
+      applyDOMSettings(reloaded);
+      window.dispatchEvent(new CustomEvent('pulse_settings_changed', { detail: reloaded }));
+    }
+  });
+}
+
+export function useSettings(): [UserSettings, (partial: Partial<UserSettings>) => UserSettings] {
+  const [settings, setSettingsState] = useState<UserSettings>(getSettings);
+
+  useEffect(() => {
+    const handleSettingsChange = (e: Event) => {
+      const customEvent = e as CustomEvent<UserSettings>;
+      if (customEvent.detail) {
+        setSettingsState(customEvent.detail);
+      } else {
+        setSettingsState(getSettings());
+      }
+    };
+
+    window.addEventListener('pulse_settings_changed', handleSettingsChange);
+    return () => {
+      window.removeEventListener('pulse_settings_changed', handleSettingsChange);
+    };
+  }, []);
+
+  const update = useCallback((partial: Partial<UserSettings>) => {
+    const updated = updateSettings(partial);
+    setSettingsState(updated);
+    return updated;
+  }, []);
+
+  return [settings, update];
+}
+
+export function hasExplicitStoredReducedMotionPreference(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (raw) {
+      const settings = JSON.parse(raw);
+      if (settings && typeof settings.reducedMotionEnabled === 'boolean') {
+        return true;
+      }
+    }
+  } catch {}
+
+  try {
+    const cookieSettings = readSettingsCookie() as any;
+    if (cookieSettings && typeof cookieSettings.reducedMotionEnabled === 'boolean') {
+      return true;
+    }
+  } catch {}
+
+  return false;
+}
+
+export function useReducedMotionPreference(): boolean {
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
+    if (hasExplicitStoredReducedMotionPreference()) {
+      return isReducedMotionActive();
+    }
+    return getDefaultReducedMotion();
+  });
+
+  useEffect(() => {
+    const handleSettingsChange = (e: Event) => {
+      const customEvent = e as CustomEvent<UserSettings>;
+      const nextVal = customEvent.detail ? customEvent.detail.reducedMotionEnabled : isReducedMotionActive();
+      setReducedMotion((prev) => (prev !== nextVal ? nextVal : prev));
+    };
+
+    window.addEventListener('pulse_settings_changed', handleSettingsChange);
+
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return () => {
+        window.removeEventListener('pulse_settings_changed', handleSettingsChange);
+      };
+    }
+
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const handleMediaChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      if (hasExplicitStoredReducedMotionPreference()) {
+        return;
+      }
+      const nextVal = 'matches' in event ? event.matches : mql.matches;
+      setReducedMotion((prev) => (prev !== nextVal ? nextVal : prev));
+    };
+
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', handleMediaChange);
+    } else if (typeof (mql as any).addListener === 'function') {
+      (mql as any).addListener(handleMediaChange);
+    }
+
+    return () => {
+      window.removeEventListener('pulse_settings_changed', handleSettingsChange);
+      if (typeof mql.removeEventListener === 'function') {
+        mql.removeEventListener('change', handleMediaChange);
+      } else if (typeof (mql as any).removeListener === 'function') {
+        (mql as any).removeListener(handleMediaChange);
+      }
+    };
+  }, []);
+
+  return reducedMotion;
+}
+
+// Single shared Web Audio tone synthesizer for audio cues
+
+let sharedAudioCtx: AudioContext | null = null;
+let isAudioLifecycleRegistered = false;
+
+export function cleanupAudioContext(): void {
+  if (sharedAudioCtx) {
+    try {
+      if (sharedAudioCtx.state !== 'closed') {
+        sharedAudioCtx.close().catch(() => {});
+      }
+    } catch {}
+    sharedAudioCtx = null;
+  }
+}
+
+function getAudioContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextClass) return null;
+
+  try {
+    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+      sharedAudioCtx = new AudioContextClass();
+    }
+    if (sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume().catch(() => {
+        // Safe catch for browser autoplay gesture restrictions
+      });
+    }
+
+    if (!isAudioLifecycleRegistered && typeof window !== 'undefined') {
+      isAudioLifecycleRegistered = true;
+      window.addEventListener('pagehide', cleanupAudioContext);
+    }
+
+    return sharedAudioCtx;
+  } catch {
+    return null;
+  }
+}
+
+export function playAudioCue(type: 'click' | 'stimulus' | 'success' | 'error' | 'milestone') {
+  const settings = getSettings();
+  if (!settings.soundEnabled) return;
+
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    if (type === 'milestone') {
+      // Arpeggio chime sequence: C5 -> E5 -> G5 -> C6
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, idx) => {
+        const noteOsc = ctx.createOscillator();
+        const noteGain = ctx.createGain();
+        noteOsc.connect(noteGain);
+        noteGain.connect(ctx.destination);
+        noteOsc.type = 'sine';
+        const startTime = now + idx * 0.07;
+        noteOsc.frequency.setValueAtTime(freq, startTime);
+        noteGain.gain.setValueAtTime(0.12, startTime);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+        noteOsc.start(startTime);
+        noteOsc.stop(startTime + 0.25);
+      });
+      return;
+    }
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'click') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      osc.start(now);
+      osc.stop(now + 0.04);
+    } else if (type === 'stimulus') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.setValueAtTime(659.25, now + 0.06); // E5
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    } else if (type === 'error') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.setValueAtTime(160, now + 0.08);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+      osc.start(now);
+      osc.stop(now + 0.18);
+    }
+  } catch {
+    // AudioContext autoplay restrictions or disabled in browser
+  }
+}
+
+export type HapticPattern = 'tap' | 'stimulus' | 'success' | 'error' | 'milestone' | number | number[];
+
+export function triggerHaptic(type: HapticPattern = 'tap') {
+  const settings = getSettings();
+  if (!settings.hapticsEnabled) return;
+  if (!isHapticsSupported()) return;
+
+  try {
+    if (typeof type === 'number' || Array.isArray(type)) {
+      navigator.vibrate(type);
+    } else if (type === 'tap') {
+      navigator.vibrate(15);
+    } else if (type === 'stimulus') {
+      navigator.vibrate([25, 30, 25]);
+    } else if (type === 'success') {
+      navigator.vibrate([15, 25, 35]);
+    } else if (type === 'error') {
+      navigator.vibrate([40, 30, 40, 30, 40]);
+    } else if (type === 'milestone') {
+      navigator.vibrate([20, 30, 40, 50, 60]);
+    }
+  } catch {
+    // Silently ignore vibration restrictions
+  }
+}
