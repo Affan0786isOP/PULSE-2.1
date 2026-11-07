@@ -563,6 +563,11 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       // If a test is running, abort it to prevent timers from firing behind the modal
       if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
         if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
+        if (activeRunIdRef.current) {
+          assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+          activeRunIdRef.current = null;
+        }
+        setServiceWorkerActiveSession(false);
         setStatusMessage('TEST INTERRUPTED');
         setInputPrompt('Settings opened. Click to restart.');
         setEngineState('READY');

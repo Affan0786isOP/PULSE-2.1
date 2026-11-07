@@ -687,6 +687,10 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
         if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
         if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+        if (activeRunIdRef.current) {
+          assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+          activeRunIdRef.current = null;
+        }
         setServiceWorkerActiveSession(false);
         setStatusMessage('TEST INTERRUPTED');
         setEngineState('READY');

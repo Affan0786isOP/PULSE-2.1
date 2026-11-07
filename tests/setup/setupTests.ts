@@ -1,5 +1,10 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, afterEach } from 'vitest';
+import { assessmentLockStore } from '../../shared/assessment/assessmentLockStore';
+
+afterEach(() => {
+  assessmentLockStore.resetForTesting();
+});
 
 // Mock performance.now for tests that might need it (or keep it if tests rely on actual)
 // Usually better to leave performance.now unmocked unless time travel is needed, 

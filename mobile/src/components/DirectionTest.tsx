@@ -727,6 +727,10 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
         if (countdownInterval.current) clearInterval(countdownInterval.current);
         if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
         if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+        if (activeRunIdRef.current) {
+          assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+          activeRunIdRef.current = null;
+        }
         setStatusMessage('TEST INTERRUPTED');
         setInputPrompt('Assessment exited. Click to restart.');
         setEngineState('READY');
@@ -741,6 +745,11 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
         if (countdownInterval.current) clearInterval(countdownInterval.current);
         if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
         if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+        if (activeRunIdRef.current) {
+          assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+          activeRunIdRef.current = null;
+        }
+        setServiceWorkerActiveSession(false);
         setStatusMessage('TEST INTERRUPTED');
         setInputPrompt('Settings opened. Click to restart.');
         setEngineState('READY');

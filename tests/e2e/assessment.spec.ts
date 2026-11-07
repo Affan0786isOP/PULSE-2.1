@@ -15,7 +15,7 @@ test.describe('Assessment Navigation', () => {
   test('Home -> Assessments -> Visual Reaction', async ({ page, isMobile }) => {
     await page.goto('/');
     if (!isMobile) {
-      const exploreBtn = page.locator('button', { hasText: 'EXPLORE ALL PROTOCOLS' });
+      const exploreBtn = page.locator('text=Start Testing').or(page.locator('a[href="/assessments"]')).first();
       await expect(exploreBtn).toBeVisible({ timeout: 15000 });
       await exploreBtn.click();
       
@@ -27,8 +27,8 @@ test.describe('Assessment Navigation', () => {
       await expect(page).toHaveURL(/.*\/reaction-test/, { timeout: 15000 });
       await expect(page.locator('text=Select Your Age Cohort').or(page.locator('text=Demographic Baseline')).or(page.locator('text=Age Group')).first()).toBeVisible({ timeout: 15000 });
     } else {
-      await page.waitForURL(/\/mobile\/?/, { timeout: 15000 });
-      const visualCard = page.locator('text=Visual Reaction Test').or(page.locator('text=PROTOCOL 01')).first();
+      const visualCard = page.locator('[data-testid="launch-btn-visual-reaction"]');
+      await visualCard.scrollIntoViewIfNeeded();
       await expect(visualCard).toBeVisible({ timeout: 15000 });
       await visualCard.click();
       
@@ -59,7 +59,6 @@ test.describe('Assessment Navigation', () => {
       const title = page.locator('text=PULSE').or(page.locator('text=Page Not Found')).or(page.locator('text=404')); 
       await expect(title.first()).toBeVisible();
     } else {
-      await page.waitForURL(/\/mobile\/?/);
       const mobileTitle = page.locator('text=PULSE').or(page.locator('text=Pulse')).or(page.locator('text=404')).or(page.locator('text=Not Found')).or(page.locator('text=SYSTEM BENCHMARK')).or(page.locator('text=Precision telemetry'));
       await expect(mobileTitle.first()).toBeVisible();
     }

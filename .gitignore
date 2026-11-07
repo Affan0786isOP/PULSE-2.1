@@ -22,6 +22,10 @@ vite-cache/
 pulse-leaderboard-audit.zip
 pulse-leaderboard-audit/
 
+# Test output
+test-results/
+playwright-report/
+
 # Scratch & temporary scripts
 scratch/
 .worktrees/

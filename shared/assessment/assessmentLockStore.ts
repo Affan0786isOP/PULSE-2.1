@@ -254,6 +254,32 @@ class AssessmentLockStore {
     return queued;
   }
 
+  public resetForTesting() {
+    this.isHeartbeatStopped = true;
+    if (this.leaseTimeout) {
+      clearTimeout(this.leaseTimeout);
+      this.leaseTimeout = null;
+    }
+    this.activeHeartbeatPromise = null;
+    this.isHeartbeatInFlight = false;
+    this.isAcquiringMutex = false;
+    this.activeAcquisitionPromise = null;
+    this.activeAcquisitionAbortController = null;
+    this.activeAcquisitionTx = null;
+    this.activeTargetRunId = null;
+    this.queuedSurface = null;
+    this.state = {
+      isLocked: false,
+      isAcquiring: false,
+      runId: null,
+      assessmentId: null,
+      submissionStage: 'IDLE',
+      timestamp: 0,
+    };
+    this.syncGlobal(false);
+    this.notify();
+  }
+
   public subscribe(listener: (state: Readonly<LockState>) => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
