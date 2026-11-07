@@ -61,7 +61,7 @@ const RouteFallback = ({ isDark }: { isDark?: boolean }) => (
   </div>
 );
 
-function App() {
+export function MobileApp() {
   const navigate = useGuardedNavigate();
   const location = useLocation();
   const { effectiveLocation } = useNavigationLocation();
@@ -194,4 +194,5 @@ function App() {
   );
 }
 
-export default App;
+export const App = MobileApp;
+export default MobileApp;

@@ -1,0 +1,227 @@
+import React from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
+import { GuardedNavigate } from '@shared/navigation/GuardedNavigate';
+import { useNavigationLocation } from '@shared/navigation/NavigationGuard';
+import { AnimatePresence, motion, MotionConfig } from 'motion/react';
+import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
+import { useSettings } from './lib/settingsStore';
+import { useSystemTheme } from './lib/useSystemTheme';
+import { Home } from './components/Home';
+import { RouteSEO } from './components/RouteSEO';
+import { PageViewTracker } from './components/PageViewTracker';
+import { RouteShellBoundary } from './components/RouteShellBoundary';
+
+import { resolveDeviceRedirect } from './lib/deviceRouting';
+
+function RedirectIndexHtml() {
+  const location = useLocation();
+  const search = location.search || '';
+  const hash = location.hash || '';
+  return <GuardedNavigate to={`/${search}${hash}`} replace />;
+}
+
+function RedirectToMobile() {
+  const location = useLocation();
+  React.useEffect(() => {
+    const pathname = location.pathname || window.location.pathname || '';
+    const search = location.search || window.location.search || '';
+    const hash = location.hash || window.location.hash || '';
+
+    const redirect = resolveDeviceRedirect(pathname, search, hash);
+    if (redirect.shouldRedirect && redirect.targetUrl) {
+      window.location.replace(redirect.targetUrl);
+    } else if (pathname === '/mobile') {
+      // Normalize /mobile to /mobile/
+      window.location.replace(`/mobile/${search}${hash}`);
+    }
+  }, [location.pathname, location.search, location.hash]);
+
+  return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center font-sans">
+      <div className="w-8 h-8 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin mb-3" />
+      <div className="text-xs text-[var(--text-muted)] font-mono uppercase tracking-widest">Loading Mobile Experience...</div>
+    </div>
+  );
+}
+
+// Code-split routes for optimal Home startup performance
+const About = React.lazy(() => import('./components/About').then(m => ({ default: m.About })));
+const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
+const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
+
+const DeferredAnalytics = React.memo(function DeferredAnalytics() {
+  const [shouldLoad, setShouldLoad] = React.useState(false);
+
+  React.useEffect(() => {
+    let idleId: number | null = null;
+    let timerId: ReturnType<typeof setTimeout> | null = null;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = (window as any).requestIdleCallback(() => {
+        setShouldLoad(true);
+      }, { timeout: 2000 });
+    } else {
+      timerId = setTimeout(() => {
+        setShouldLoad(true);
+      }, 500);
+    }
+
+    return () => {
+      if (idleId !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      if (timerId !== null) {
+        clearTimeout(timerId);
+      }
+    };
+  }, []);
+
+  if (!shouldLoad) return null;
+  return <VercelAnalytics />;
+});
+const Leaderboard = React.lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));
+const ReactionTest = React.lazy(() => import('./components/ReactionTest').then(m => ({ default: m.ReactionTest })));
+const DirectionTest = React.lazy(() => import('./components/DirectionTest').then(m => ({ default: m.DirectionTest })));
+const BlockMemoryTest = React.lazy(() => import('./components/BlockMemoryTest').then(m => ({ default: m.BlockMemoryTest })));
+const NumberMemoryTest = React.lazy(() => import('./components/NumberMemoryTest').then(m => ({ default: m.NumberMemoryTest })));
+const ColorTest = React.lazy(() => import('./components/ColorTest').then(m => ({ default: m.ColorTest })));
+const NotFound = React.lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
+const Improve = React.lazy(() => import('./components/Improve').then(m => ({ default: m.Improve })));
+const ResearchPrivacyPolicy = React.lazy(() => import('./components/ResearchPrivacyPolicy').then(m => ({ default: m.ResearchPrivacyPolicy })));
+const GuidesHub = React.lazy(() => import('./components/guides/GuidesHub').then(m => ({ default: m.GuidesHub })));
+const GuidePage = React.lazy(() => import('./components/guides/GuidePage').then(m => ({ default: m.GuidePage })));
+const AdminPage = React.lazy(() => import('./components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
+
+import { isDarkApparatusRoute } from './lib/routeTheme';
+
+const RouteFallback = ({ isDark }: { isDark?: boolean }) => null;
+
+export function DesktopApp() {
+  const navigate = useGuardedNavigate();
+  const location = useLocation();
+  const { effectiveLocation } = useNavigationLocation();
+  const [settings] = useSettings();
+  const { activeTheme, isDarkApparatus } = useSystemTheme(location.pathname);
+  const isDark = isDarkApparatus || activeTheme === 'dark';
+
+  const handleNavigate = (view: string) => {
+    if (view.startsWith('/')) {
+      navigate(view);
+      return;
+    }
+
+    switch (view) {
+      case 'home': navigate('/'); break;
+      case 'mobile': window.location.href = '/mobile/?force_mobile=1'; break;
+      case 'about': navigate('/about'); break;
+      case 'assessments': navigate('/assessments'); break;
+      case 'leaderboard': navigate('/leaderboard'); break;
+      case 'admin': navigate('/admin'); break;
+      case 'dataset':
+      case 'analytics':
+        navigate('/dataset');
+        break;
+      case 'improve': navigate('/improve'); break;
+      case 'visual-reaction':
+      case 'reaction-test':
+        navigate('/reaction-test');
+        break;
+      case 'direction':
+      case 'direction-test':
+        navigate('/direction-test');
+        break;
+      case 'color-recognition':
+      case 'colour-recognition':
+      case 'color-test':
+        navigate('/colour-recognition');
+        break;
+      case 'block-memory':
+      case 'block-memory-test':
+        navigate('/block-memory');
+        break;
+      case 'number-memory':
+      case 'number-memory-test':
+        navigate('/number-memory');
+        break;
+      case 'privacy':
+      case 'research-privacy':
+      case 'privacy-policy':
+        navigate('/privacy');
+        break;
+      default: navigate('/');
+    }
+  };
+
+  return (
+    <MotionConfig reducedMotion={settings.reducedMotionEnabled ? 'always' : 'user'}>
+      <div
+        className={`min-h-[100dvh] ${
+          isDark
+            ? (isDarkApparatus ? 'bg-[#12161B] text-[var(--text-main)]' : 'bg-[#0B0D10] text-[var(--text-main)]')
+            : 'bg-gradient-to-b from-[#FFFFFF] via-[#F4F9FF] to-[#EAF3FD] text-[#090D1A]'
+        } relative font-sans selection:bg-cyan-500/30`}
+      >
+        <DeferredAnalytics />
+
+        {/* App Content */}
+        <div className="relative z-10 min-h-[100dvh] flex flex-col">
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="w-full flex-1 flex flex-col"
+            >
+              <React.Suspense fallback={<RouteFallback isDark={isDark} />}>
+              <RouteShellBoundary>
+              <RouteSEO />
+              <PageViewTracker surface="desktop" />
+              <Routes location={effectiveLocation}>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About onNavigate={handleNavigate} />} />
+                <Route path="/index.html" element={<RedirectIndexHtml />} />
+                <Route path="/assessments" element={<Assessments onNavigate={handleNavigate} />} />
+                <Route path="/leaderboard" element={<Leaderboard onNavigate={handleNavigate} />} />
+                <Route path="/admin" element={<AdminPage />} />
+
+                <Route path="/guides" element={<GuidesHub surface="desktop" />} />
+                <Route path="/guides/*" element={<GuidePage surface="desktop" />} />
+                <Route path="/benchmarks/*" element={<GuidePage surface="desktop" />} />
+
+                <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
+                <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
+                <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
+                <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
+                <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />
+                <Route path="/direction-test" element={<DirectionTest onNavigate={handleNavigate} />} />
+                <Route path="/direction" element={<DirectionTest onNavigate={handleNavigate} />} />
+                <Route path="/block-memory" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
+                <Route path="/block-memory-test" element={<BlockMemoryTest onNavigate={handleNavigate} />} />
+                <Route path="/number-memory" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
+                <Route path="/number-memory-test" element={<NumberMemoryTest onNavigate={handleNavigate} />} />
+                <Route path="/colour-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
+                <Route path="/color-recognition" element={<ColorTest onNavigate={handleNavigate} />} />
+                <Route path="/color-test" element={<ColorTest onNavigate={handleNavigate} />} />
+                <Route path="/privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
+                <Route path="/research-privacy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
+                <Route path="/privacy-policy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
+
+                {/* Legacy Mobile PWA compatibility route - preserved for PWA scope */}
+                <Route path="/mobile" element={<RedirectToMobile />} />
+                <Route path="/mobile/*" element={<RedirectToMobile />} />
+
+                <Route path="*" element={<NotFound onNavigate={handleNavigate} />} />
+              </Routes>
+              </RouteShellBoundary>
+              </React.Suspense>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </MotionConfig>
+  );
+}
+
+export default DesktopApp;
