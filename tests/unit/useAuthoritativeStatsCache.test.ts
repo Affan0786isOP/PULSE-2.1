@@ -121,4 +121,41 @@ describe('useAuthoritativeStats 60s Cache (Tier 5)', () => {
     const updated = JSON.parse(localStorage.getItem('pulse_authoritative_stats') || '{}');
     expect(updated.count).toBe(98);
   });
+
+  it('keeps a newer in-flight request registered when a pre-clear request finishes', async () => {
+    let resolveFirst: (value: any) => void;
+    let resolveSecond: (value: any) => void;
+    const firstRequest = new Promise((resolve) => { resolveFirst = resolve; });
+    const secondRequest = new Promise((resolve) => { resolveSecond = resolve; });
+    vi.mocked(firestore.getCountFromServer)
+      .mockReturnValueOnce(firstRequest as any)
+      .mockReturnValueOnce(secondRequest as any);
+
+    const firstHook = renderHook(() => useAuthoritativeStats());
+    await waitFor(() => expect(firestore.getCountFromServer).toHaveBeenCalledTimes(1));
+    firstHook.unmount();
+
+    clearAuthoritativeStatsCache();
+
+    const secondHook = renderHook(() => useAuthoritativeStats());
+    await waitFor(() => expect(firestore.getCountFromServer).toHaveBeenCalledTimes(2));
+
+    resolveFirst!({ data: () => ({ count: 111 }) });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const thirdHook = renderHook(() => useAuthoritativeStats());
+    await Promise.resolve();
+    expect(firestore.getCountFromServer).toHaveBeenCalledTimes(2);
+
+    resolveSecond!({ data: () => ({ count: 222 }) });
+    await waitFor(() => {
+      expect(secondHook.result.current.isLoadingResults).toBe(false);
+      expect(thirdHook.result.current.isLoadingResults).toBe(false);
+    });
+    expect(secondHook.result.current.resultsCount).toBe(222);
+    expect(thirdHook.result.current.resultsCount).toBe(222);
+    expect(JSON.parse(localStorage.getItem('pulse_authoritative_stats') || '{}').count).toBe(222);
+  });
+
 });
