@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { Legend, LegendItem, LegendLabel, LegendMarker } from "./legend/index";
 import {
   PROFIT_LOSS_NEGATIVE_COLOR,
