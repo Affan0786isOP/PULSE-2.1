@@ -61,6 +61,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   const previousStimulusPresentedAtRef = useRef<number | null>(null);
   const hasSubmittedRef = useRef(false);
   const activeRunIdRef = useRef<string | null>(null);
+  const isStartingRef = useRef(false);
    
 
   const [engineState, setEngineState] = useState<EngineState>('READY');
@@ -224,12 +225,18 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   };
 
   const startCountdown = async () => {
+    isStartingRef.current = true;
     if (activeRunIdRef.current) {
       await assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
       activeRunIdRef.current = null;
     }
     const runId = await assessmentLockStore.acquireLock('visual-reaction');
-    if (!runId) return;
+    if (!runId || !isStartingRef.current) {
+      if (runId) {
+        await assessmentLockStore.forceAbortLock(runId).catch(() => {});
+      }
+      return;
+    }
     activeRunIdRef.current = runId;
 
     setServiceWorkerActiveSession(true);
@@ -770,7 +777,8 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   useEffect(() => {
     const handleSettingsOpen = () => {
       // If a test is running, abort it to prevent timers from firing behind the modal
-      if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
+      if ((engineStateRef.current !== 'READY' || isStartingRef.current) && engineStateRef.current !== 'REPORT') {
+        isStartingRef.current = false;
         if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
         if (countdownInterval.current) clearInterval(countdownInterval.current);
         if (finalizeTimeout.current) clearTimeout(finalizeTimeout.current);
@@ -778,6 +786,8 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         if (activeRunIdRef.current) {
           assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
           activeRunIdRef.current = null;
+        } else if (assessmentLockStore.isAcquiring()) {
+          assessmentLockStore.cancelPendingAcquisition().catch(() => {});
         }
         setServiceWorkerActiveSession(false);
         setStatusMessage('TEST INTERRUPTED');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
+import { assessmentLockStore } from '@shared/assessment/assessmentLockStore';
 import { Activity, ArrowLeft, LogOut, Settings, Info, WifiOff, Sun, Moon } from 'lucide-react';
 import { PulseLogo } from './brand';
 import { triggerHaptic } from '../lib/settingsStore';
@@ -60,9 +61,17 @@ export function Navbar({
 
   const activeId = resolveActiveNavId(currentView, location.pathname);
 
-  const performExit = () => {
+  const performExit = async () => {
     triggerHaptic('tap');
     setShowExitConfirm(false);
+    if (assessmentLockStore.isProtected()) {
+      const runId = assessmentLockStore.getActiveRunId();
+      if (runId) {
+        await assessmentLockStore.forceAbortLock(runId).catch(() => {});
+      } else if (assessmentLockStore.isAcquiring()) {
+        await assessmentLockStore.cancelPendingAcquisition().catch(() => {});
+      }
+    }
     if (onBack) {
       onBack();
       return;

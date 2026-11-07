@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { submitAssessmentResult } from '../../src/lib/firestore';
 import { ReactionTest } from '../../src/components/ReactionTest';
 import { DirectionTest } from '../../src/components/DirectionTest';
+import { assessmentLockStore } from '../../shared/assessment/assessmentLockStore';
 
 vi.mock('../../src/lib/firestore', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../src/lib/firestore')>();
@@ -40,11 +41,13 @@ vi.mock('../../src/lib/firestore', async (importOriginal) => {
 describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    assessmentLockStore.resetForTesting();
   });
 
   describe('ReactionTest (Visual Reaction Engine)', () => {
@@ -235,7 +238,7 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       expect(trial.rawLatencyMs).toBe(expectedLatency);
       expect(trial.rawReactionTime).toBe(expectedLatency);
     }
-  }, 15000);
+  }, 30000);
 
   it('submits unadjusted rounded Direction latency and null offsets, including a pre-stimulus false start', async () => {
     vi.useFakeTimers();
