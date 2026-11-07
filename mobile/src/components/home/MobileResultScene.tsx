@@ -31,7 +31,7 @@ export function MobileResultScene() {
               Visual Reaction Task
             </h3>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-[var(--surface-2)] text-[10px] font-mono font-semibold text-[var(--text-secondary)] border border-[var(--border-subtle)]">
+          <span className="text-[10px] font-mono font-semibold text-[var(--text-secondary)]">
             5 Trials
           </span>
         </div>

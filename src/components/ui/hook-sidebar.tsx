@@ -43,7 +43,7 @@ export function HookSidebar({
                 }}
                 className={`w-full text-left px-3 py-1.5 rounded-r-md text-xs font-mono transition-colors duration-150 border-l-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] dark:focus-visible:ring-[#22C7D6] ${
                   isActive
-                    ? 'bg-sky-50 dark:bg-[#181D23] font-semibold text-[#0066FF] dark:text-[#22C7D6]'
+                    ? 'font-semibold text-[#0066FF] dark:text-[#22C7D6]'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#12161B] hover:text-[#090D1A] dark:hover:text-white'
                 }`}
               >

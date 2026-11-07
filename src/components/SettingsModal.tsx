@@ -589,7 +589,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             <div className="text-xs sm:text-[13.5px] font-bold text-[#090D1A] dark:text-white flex items-center gap-1.5">
                               <span>Mobile Web App</span>
                               {pwa.isInstalled && (
-                                <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-mono text-[9.5px] font-bold">
+                                <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-mono text-[9.5px] font-bold">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
                                   Active
                                 </span>
                               )}

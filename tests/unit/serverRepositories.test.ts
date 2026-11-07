@@ -19,6 +19,15 @@ function createMockDb(): Firestore {
   };
 
   const db = {
+    async getAll(...refs: Array<{
+      get: () => Promise<{
+        id: string;
+        exists: boolean;
+        data: () => Record<string, unknown> | undefined;
+      }>;
+    }>) {
+      return Promise.all(refs.map(ref => ref.get()));
+    },
     collection(name: string) {
       const col = getCol(name);
       return {
@@ -104,9 +113,12 @@ function createMockDb(): Firestore {
 
               if (orderField) {
                 const fieldToSort = orderField;
+                if (fieldToSort !== '__name__') {
+                  matchingRows = matchingRows.filter(([, data]) => data[fieldToSort] !== undefined && data[fieldToSort] !== null);
+                }
                 matchingRows.sort((left, right) => {
-                  const leftValue = left[1][fieldToSort];
-                  const rightValue = right[1][fieldToSort];
+                  const leftValue = fieldToSort === '__name__' ? left[0] : left[1][fieldToSort];
+                  const rightValue = fieldToSort === '__name__' ? right[0] : right[1][fieldToSort];
                   let comparison = 0;
 
                   if (typeof leftValue === 'number' && typeof rightValue === 'number') {
@@ -135,31 +147,47 @@ function createMockDb(): Firestore {
           return query;
         },
         orderBy(field: string, dir = 'asc') {
-          return {
+          let maxResults = Number.POSITIVE_INFINITY;
+          let cursorId: string | undefined;
+          const query = {
             limit(n: number) {
-              return {
-                async get() {
-                  const arr = Array.from(col.entries()).map(([id, data]) => ({
-                    id,
-                    data: () => JSON.parse(JSON.stringify(data)) as Record<string, unknown>
-                  }));
-                  arr.sort((a, b) => {
-                    const valA = (a.data() as Record<string, unknown>)[field];
-                    const valB = (b.data() as Record<string, unknown>)[field];
-                    let comparison = 0;
-                    if (typeof valA === 'number' && typeof valB === 'number') {
-                      comparison = valA - valB;
-                    } else {
-                      comparison = String(valA ?? '').localeCompare(String(valB ?? ''));
-                    }
-                    return dir === 'desc' ? -comparison : comparison;
-                  });
-                  const docs = arr.slice(0, n);
-                  return { docs, size: docs.length, empty: docs.length === 0 };
+              maxResults = Math.max(0, Math.floor(n));
+              return query;
+            },
+            startAfter(cursor: unknown) {
+              const maybeSnapshot = cursor as { id?: unknown } | null;
+              cursorId = typeof maybeSnapshot?.id === 'string' ? maybeSnapshot.id : undefined;
+              return query;
+            },
+            async get() {
+              let arr = Array.from(col.entries()).map(([id, data]) => ({ id, data }));
+              if (field !== '__name__') {
+                arr = arr.filter(row => row.data[field] !== undefined && row.data[field] !== null);
+              }
+              arr.sort((a, b) => {
+                const valA = field === '__name__' ? a.id : a.data[field];
+                const valB = field === '__name__' ? b.id : b.data[field];
+                let comparison = 0;
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                  comparison = valA - valB;
+                } else {
+                  comparison = String(valA ?? '').localeCompare(String(valB ?? ''));
                 }
-              };
+                return dir === 'desc' ? -comparison : comparison;
+              });
+              if (cursorId) {
+                const cursorIndex = arr.findIndex(row => row.id === cursorId);
+                if (cursorIndex >= 0) arr = arr.slice(cursorIndex + 1);
+              }
+              const docs = arr.slice(0, maxResults).map(row => ({
+                id: row.id,
+                ref: db.collection(name).doc(row.id),
+                data: () => JSON.parse(JSON.stringify(row.data)) as Record<string, unknown>
+              }));
+              return { docs, size: docs.length, empty: docs.length === 0 };
             }
           };
+          return query;
         },
         async add(data: Record<string, unknown>) {
           const id = `auto-${Date.now()}`;
@@ -344,6 +372,44 @@ describe('Firestore Repositories Unit Tests', () => {
 
     const privateMeta = await mockDb.collection('leaderboardPrivateMeta').doc('lb-1').get();
     expect(privateMeta.data().hideReason).toBe('Rule violation');
+  });
+
+  it('keeps legacy admin rows without createdAt when paging by creation time', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreLeaderboardRepository(() => mockDb);
+    const col = mockDb.collection('leaderboardResults');
+
+    await col.doc('admin-newest').set({
+      displayName: 'Newest Player',
+      assessmentType: 'visual-reaction',
+      scoreMetric: 150,
+      hidden: false,
+      createdAt: 300
+    });
+    await col.doc('admin-older').set({
+      displayName: 'Older Player',
+      assessmentType: 'visual-reaction',
+      scoreMetric: 180,
+      hidden: false,
+      createdAt: 200
+    });
+    await col.doc('admin-legacy-no-created-at').set({
+      displayName: 'Legacy Player',
+      assessmentType: 'visual-reaction',
+      scoreMetric: 220,
+      hidden: false
+    });
+
+    const firstPage = await repo.getAllEntriesForAdminPage(2);
+    expect(firstPage.entries.map(entry => entry.id)).toEqual(['admin-newest', 'admin-older']);
+    expect(firstPage.hasMore).toBe(true);
+    expect(firstPage.nextCursor).toBe('admin-older');
+
+    const secondPage = await repo.getAllEntriesForAdminPage(2, firstPage.nextCursor);
+    expect(secondPage.entries.map(entry => entry.id)).toEqual(['admin-legacy-no-created-at']);
+    expect(secondPage.entries[0].createdAt).toBe(0);
+    expect(secondPage.hasMore).toBe(false);
+    expect(secondPage.nextCursor).toBeNull();
   });
 
   it('normalizes legacy assessment aliases and rejects corrupt leaderboard metrics', async () => {

@@ -52,30 +52,15 @@ const FACTOR_ICONS: Record<string, React.ElementType> = {
 function getEvidenceBadge(type: EvidenceType) {
   switch (type) {
     case "established":
-      return {
-        label: "Established Evidence",
-        className: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-      };
+      return { label: "Established Evidence" };
     case "association":
-      return {
-        label: "Statistical Association",
-        className: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-      };
+      return { label: "Statistical Association" };
     case "interpretation":
-      return {
-        label: "Theoretical Model",
-        className: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-      };
+      return { label: "Theoretical Model" };
     case "practical_protocol":
-      return {
-        label: "Practical Protocol",
-        className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-      };
+      return { label: "Practical Protocol" };
     default:
-      return {
-        label: "Scientific Finding",
-        className: "bg-slate-500/10 text-slate-400 border-slate-500/20",
-      };
+      return { label: "Scientific Finding" };
   }
 }
 
@@ -159,7 +144,7 @@ export function Improve({
         >
           {/* Header Banner */}
           <div className="text-center pt-2 pb-3 border-b border-slate-200/80 dark:border-slate-800">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-sky-100 dark:border-slate-700 bg-sky-50 dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] text-[11px] font-mono font-bold mb-2 shadow-2xs">
+            <div className="inline-flex items-center gap-1.5 text-[#0066FF] dark:text-[#22C7D6] text-[11px] font-mono font-bold mb-2 uppercase tracking-wider">
               <BookOpen size={12} strokeWidth={2.4} />
               <span>PERFORMANCE GUIDE</span>
             </div>
@@ -184,7 +169,7 @@ export function Improve({
 
             <div className="flex flex-col gap-2.5">
               {/* Hinders */}
-              <div className="bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200/90 dark:border-rose-900/40 rounded-2xl p-3.5 shadow-2xs">
+              <div className="bg-white/95 dark:bg-[#12161B] border-2 border-rose-400/80 dark:border-rose-500/70 rounded-2xl p-3.5">
                 <div className="flex items-center gap-1.5 text-rose-700 dark:text-rose-400 font-mono text-[10.5px] font-bold uppercase tracking-wider mb-2">
                   <span className="w-2 h-2 rounded-full bg-rose-500" />
                   <span>Associated with Higher Latency</span>
@@ -193,8 +178,9 @@ export function Improve({
                   {PHYSIOLOGICAL_FACTORS.filter(f => f.impact === 'associated_increase' || (f.impact === undefined && f.reduces)).map((factor) => (
                     <span
                       key={factor.id}
-                      className="bg-white dark:bg-[#181D23] text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 text-[11.5px] px-2.5 py-1 rounded-lg font-medium shadow-2xs"
+                      className="inline-flex items-center gap-1.5 text-rose-800 dark:text-rose-300 text-[11.5px] font-medium"
                     >
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" aria-hidden="true" />
                       {factor.title}
                     </span>
                   ))}
@@ -202,7 +188,7 @@ export function Improve({
               </div>
 
               {/* Supports */}
-              <div className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/90 dark:border-emerald-900/40 rounded-2xl p-3.5 shadow-2xs">
+              <div className="bg-white/95 dark:bg-[#12161B] border-2 border-emerald-400/80 dark:border-emerald-500/70 rounded-2xl p-3.5">
                 <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-mono text-[10.5px] font-bold uppercase tracking-wider mb-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span>Supports Response Consistency</span>
@@ -211,8 +197,9 @@ export function Improve({
                   {PHYSIOLOGICAL_FACTORS.filter(f => f.impact === 'supports_consistency' || (f.impact === undefined && !f.reduces)).map((factor) => (
                     <span
                       key={factor.id}
-                      className="bg-white dark:bg-[#181D23] text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 text-[11.5px] px-2.5 py-1 rounded-lg font-medium shadow-2xs"
+                      className="inline-flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 text-[11.5px] font-medium"
                     >
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
                       {factor.title}
                     </span>
                   ))}
@@ -279,7 +266,7 @@ export function Improve({
                       <div className="flex flex-col gap-0.5 pr-2">
                         <span className="text-[13px] font-bold text-[#090D1A] dark:text-[#F5F7FA] flex items-center gap-1.5">
                           <span>{item.title}</span>
-                          <span className="text-[9.5px] font-mono text-[#0066FF] dark:text-[#22C7D6] font-semibold uppercase px-1.5 py-0.5 rounded-md bg-sky-50 dark:bg-[#12161B] border border-sky-100 dark:border-slate-700">
+                          <span className="text-[9.5px] font-mono text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">
                             {item.category}
                           </span>
                         </span>
@@ -342,7 +329,7 @@ export function Improve({
                 </span>
               </div>
 
-              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-sky-200 dark:border-slate-700 bg-sky-50 dark:bg-[#181D23] text-[#0066FF] dark:text-[#22C7D6] font-bold w-fit">
+              <span className="font-mono text-[9.5px] uppercase tracking-wider text-[#0066FF] dark:text-[#22C7D6] font-bold w-fit">
                 {activeEvidence.label}
               </span>
 
