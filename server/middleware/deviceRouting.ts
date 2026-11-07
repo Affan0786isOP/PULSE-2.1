@@ -126,32 +126,15 @@ export function applyDeviceRoutingMiddleware(app: Express): void {
       ]);
     }
 
-    // Only explicit routing flags should trigger a server redirect. User-Agent-only
-    // redirects disagree with client viewport detection (especially landscape tablets/phones).
-    // The SPA applies the same client-side policy after it can inspect the actual viewport.
-    const isExplicitForceMobile = hasForceMobileParam;
-    const isExplicitForceDesktop = !isExplicitForceMobile && (hasForceDesktopParam || cookieDesktop);
-
-    function sanitizeRedirectPath(p: string): string {
-      if (!p || typeof p !== 'string') return '/';
-      const cleaned = p.replace(/^[\/\\]+/, '/');
-      return cleaned.startsWith('/') ? cleaned : '/' + cleaned;
-    }
-
-    if (isExplicitForceDesktop) {
-      if (hasRoutingParams) {
-        return res.redirect(302, sanitizeRedirectPath(pathname) + cleanQueryString);
+    // In unified routing, all public traffic stays on the canonical URL namespace.
+    // Sync routing preference cookies if explicit params are present, but never redirect to /mobile/*.
+    if (hasRoutingParams) {
+      function sanitizeRedirectPath(p: string): string {
+        if (!p || typeof p !== 'string') return '/';
+        const cleaned = p.replace(/^[\/\\]+/, '/');
+        return cleaned.startsWith('/') ? cleaned : '/' + cleaned;
       }
-      return next();
-    }
-
-    if (isExplicitForceMobile) {
-      const cleanPath = (pathname === '/' || pathname === '' || pathname === '/index.html') 
-        ? '/' 
-        : pathname;
-      const targetPath = cleanPath === '/' ? '/mobile/' : `/mobile${cleanPath}`;
-      res.setHeader('Vary', 'User-Agent, Sec-CH-UA-Mobile');
-      return res.redirect(302, sanitizeRedirectPath(targetPath) + cleanQueryString);
+      return res.redirect(302, sanitizeRedirectPath(pathname) + cleanQueryString);
     }
 
     next();
