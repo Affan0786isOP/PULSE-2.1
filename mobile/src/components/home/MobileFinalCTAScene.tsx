@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { triggerHaptic } from '../../lib/settingsStore';
 
@@ -8,7 +8,7 @@ interface MobileFinalCTASceneProps {
 }
 
 export function MobileFinalCTAScene({ onNavigate }: MobileFinalCTASceneProps) {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
 
   const handleStart = () => {
     triggerHaptic('tap');

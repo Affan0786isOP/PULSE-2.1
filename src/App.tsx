@@ -1,5 +1,8 @@
 import React from 'react';
-import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
+import { GuardedNavigate } from '@shared/navigation/GuardedNavigate';
+import { useNavigationLocation } from '@shared/navigation/NavigationGuard';
 import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
 import { useSettings } from './lib/settingsStore';
@@ -15,7 +18,7 @@ function RedirectIndexHtml() {
   const location = useLocation();
   const search = location.search || '';
   const hash = location.hash || '';
-  return <Navigate to={`/${search}${hash}`} replace />;
+  return <GuardedNavigate to={`/${search}${hash}`} replace />;
 }
 
 function RedirectToMobile() {
@@ -96,8 +99,9 @@ import { isDarkApparatusRoute } from './lib/routeTheme';
 const RouteFallback = ({ isDark }: { isDark?: boolean }) => null;
 
 function App() {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const location = useLocation();
+  const { effectiveLocation } = useNavigationLocation();
   const [settings] = useSettings();
   const { activeTheme, isDarkApparatus } = useSystemTheme(location.pathname);
   const isDark = isDarkApparatus || activeTheme === 'dark';
@@ -178,7 +182,7 @@ function App() {
               <RouteShellBoundary>
               <RouteSEO />
               <PageViewTracker surface="desktop" />
-              <Routes location={location}>
+              <Routes location={effectiveLocation}>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About onNavigate={handleNavigate} />} />
                 <Route path="/index.html" element={<RedirectIndexHtml />} />

@@ -11,6 +11,7 @@ import { AssessmentResultReward } from './AssessmentResultReward';
 import { AssessmentInfoPanel } from './AssessmentInfoPanel';
 import { playAudioCue, triggerHaptic } from '../lib/settingsStore';
 import { CountdownOverlay } from './CountdownOverlay';
+import { assessmentLockStore } from '@shared/assessment/assessmentLockStore';
 
 function seedPRNG(seedStr: string): () => number {
   let h = 1779033703 ^ seedStr.length;
@@ -77,6 +78,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
   const assessmentStartWallTimestampRef = useRef<number | null>(null);
   const stimulusWallTimestamp = useRef<number>(0);
   const totalTimeMsRef = useRef<number | null>(null);
+  const activeRunIdRef = useRef<string | null>(null);
 
   const clearAllTimers = useCallback(() => {
     if (sequenceTimeout.current) {
@@ -144,6 +146,10 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
   useEffect(() => {
     return () => {
       setServiceWorkerActiveSession(false);
+      if (activeRunIdRef.current) {
+        assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+        activeRunIdRef.current = null;
+      }
     };
   }, []);
 
@@ -204,8 +210,16 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
     setInputPrompt('Repeat the pattern');
   };
 
-  const startCountdown = () => {
+  const startCountdown = async () => {
     if (!sessionId) return;
+    if (activeRunIdRef.current) {
+      await assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+      activeRunIdRef.current = null;
+    }
+    const runId = await assessmentLockStore.acquireLock('block-memory');
+    if (!runId) return;
+    activeRunIdRef.current = runId;
+
     setServiceWorkerActiveSession(true);
     hasSubmittedRef.current = false; 
     clearAllTimers();
@@ -500,6 +514,10 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     setSubmissionError(null);
+    const runId = activeRunIdRef.current;
+    if (runId) {
+      assessmentLockStore.markSubmissionPending(runId);
+    }
     
     submitAssessmentResult({
         idempotencyKey: sessionId,
@@ -514,6 +532,10 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
          
         trials: rawObservationsRef.current
       }).then(res => {
+      const success = Boolean(res && res.success);
+      if (runId) {
+        assessmentLockStore.markSubmissionSettled(runId, success);
+      }
       if (!res || !res.success) {
         setSubmissionError(res?.error || 'Could not save score. Please try again.');
       } else {
@@ -524,8 +546,19 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
       }
     }).catch(err => {
       console.error("Failed to submit result:", err);
+      if (runId) {
+        assessmentLockStore.markSubmissionSettled(runId, false);
+      }
       setSubmissionError(err.message || 'Could not save score. Please try again.');
-    }).finally(() => {
+    }).finally(async () => {
+      if (runId) {
+        try {
+          await assessmentLockStore.completeSubmissionAndRelease(runId);
+        } catch (releaseErr) {
+          console.error('[BlockMemoryTest] Lock release error:', releaseErr);
+        }
+        activeRunIdRef.current = null;
+      }
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     });

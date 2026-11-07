@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { CANONICAL_ASSESSMENT_IDS, AssessmentId } from '@shared/contracts/common';
 import { ASSESSMENT_DEFINITIONS } from '@shared/registries/assessmentRegistry';
@@ -33,7 +33,7 @@ const DESKTOP_ASSESSMENTS: DesktopAssessmentCard[] = CANONICAL_ASSESSMENT_IDS.ma
 });
 
 export function DesktopAssessmentCarousel() {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const shouldReduceMotion = useReducedMotionPreference();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);

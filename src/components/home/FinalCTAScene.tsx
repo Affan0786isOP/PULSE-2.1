@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { Play, ArrowRight, Compass } from 'lucide-react';
 import { getAssessmentLaunchRoute } from '@shared/registries/routeRegistry';
 import { useReducedMotionPreference } from '../../lib/settingsStore';
 
 export function FinalCTAScene() {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const shouldReduceMotion = useReducedMotionPreference();
   const primaryLaunchRoute = getAssessmentLaunchRoute('visual-reaction');
 

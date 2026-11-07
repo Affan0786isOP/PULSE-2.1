@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Menu, X, Settings, Info, RefreshCw, Download, ArrowLeft, LogOut, WifiOff, Sun, Moon } from 'lucide-react';
 import { useSystemTheme } from '../lib/useSystemTheme';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { motion, AnimatePresence } from 'motion/react';
 import { PulseLogo } from './brand';
 import { usePwaInstall } from '../lib/usePwaInstall';
@@ -54,7 +55,7 @@ export function Navbar({
   const backdropRef = useRef<HTMLDivElement>(null);
   const wasMobileMenuOpen = useRef(false);
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const pwa = usePwaInstall();
   const isHome = currentView === 'home' || location.pathname === '/' || location.pathname === '/index.html';
 

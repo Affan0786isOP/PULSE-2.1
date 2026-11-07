@@ -27,6 +27,7 @@ import { createFramePacer } from '@shared/timing/framePacer';
 import { safeUUID } from '../lib/utils';
 import { VRT_MIN_FOREPERIOD_MS, VRT_MAX_FOREPERIOD_MS, VRT_TIMEOUT_MS, VRT_MIN_VALID_RT_MS, generateVrtForeperiod, ForeperiodCategory } from '../lib/protocolValidators';
 import { CountdownOverlay } from './CountdownOverlay';
+import { assessmentLockStore } from '@shared/assessment/assessmentLockStore';
 
 type EngineState = 'READY' | 'STARTING' | 'AWAITING_STIMULUS' | 'STIMULUS_ACTIVE' | 'TRIAL_COMPLETE' | 'REPORT' | 'UNMOUNTED';
 
@@ -59,6 +60,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
   const previousTrialEndedAtRef = useRef<number | null>(null);
   const previousStimulusPresentedAtRef = useRef<number | null>(null);
   const hasSubmittedRef = useRef(false);
+  const activeRunIdRef = useRef<string | null>(null);
    
 
   const [engineState, setEngineState] = useState<EngineState>('READY');
@@ -130,6 +132,10 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
       setServiceWorkerActiveSession(false);
       if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
       if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
+      if (activeRunIdRef.current) {
+        assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+        activeRunIdRef.current = null;
+      }
     };
   }, []);
 
@@ -217,7 +223,15 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     }, 3000);
   };
 
-  const startCountdown = () => {
+  const startCountdown = async () => {
+    if (activeRunIdRef.current) {
+      await assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+      activeRunIdRef.current = null;
+    }
+    const runId = await assessmentLockStore.acquireLock('visual-reaction');
+    if (!runId) return;
+    activeRunIdRef.current = runId;
+
     setServiceWorkerActiveSession(true);
     playAudioCue('click');
     triggerHaptic('tap');
@@ -687,6 +701,10 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     }
 
     setSubmissionError(null);
+    const runId = activeRunIdRef.current;
+    if (runId) {
+      assessmentLockStore.markSubmissionPending(runId);
+    }
     
     submitAssessmentResult({
         idempotencyKey: sessionId,
@@ -700,6 +718,10 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         totalFalseStarts: reportStats.totalFalseStarts,
         trials: rawObservationsRef.current
       }).then(res => {
+      const success = Boolean(res && res.success);
+      if (runId) {
+        assessmentLockStore.markSubmissionSettled(runId, success);
+      }
       if (!res || !res.success) {
         setSubmissionError(res?.error || 'Sync failed. Please try again.');
       } else {
@@ -721,8 +743,19 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
       }
     }).catch(err => {
       console.error("Failed to submit result:", err);
+      if (runId) {
+        assessmentLockStore.markSubmissionSettled(runId, false);
+      }
       setSubmissionError(err.message || 'Sync failed. Please try again.');
-    }).finally(() => {
+    }).finally(async () => {
+      if (runId) {
+        try {
+          await assessmentLockStore.completeSubmissionAndRelease(runId);
+        } catch (releaseErr) {
+          console.error('[ReactionTest] Lock release error:', releaseErr);
+        }
+        activeRunIdRef.current = null;
+      }
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     });

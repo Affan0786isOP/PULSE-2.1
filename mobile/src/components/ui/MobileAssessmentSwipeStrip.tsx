@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { ArrowRight, Play } from 'lucide-react';
 import { HOMEPAGE_ASSESSMENT_PRESENTATION } from '../../../../shared/homepage/assessmentPresentation';
 import { getAssessmentLaunchRoute } from '../../../../shared/registries/routeRegistry';
@@ -19,7 +19,7 @@ interface MobileAssessmentSwipeStripProps {
 }
 
 export function MobileAssessmentSwipeStrip({ onNavigate }: MobileAssessmentSwipeStripProps) {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
