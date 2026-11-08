@@ -19,10 +19,6 @@ export function AssessmentsScene() {
         viewport={{ once: true, amount: 0.25 }}
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="inline-flex items-center text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-4">
-          <span>[ 5 QUICK TESTS ]</span>
-        </div>
-
         <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#090D1A] dark:text-white mb-4 text-balance">
           Explore the five tests
         </h2>

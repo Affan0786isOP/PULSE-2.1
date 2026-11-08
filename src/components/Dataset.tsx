@@ -31,6 +31,17 @@ import {
   getAgeGroupShortLabel, medianValue,
 } from '@shared/dataset/analytics';
 import { DatasetTooltip } from '@shared/dataset/DatasetTooltip';
+import {
+  type BreakUiDatasetMode,
+  BREAK_UI_EMPTY_DOCS,
+  BREAK_UI_EMPTY_TRIALS,
+  BREAK_UI_ONE_DOCS,
+  BREAK_UI_ONE_TRIALS,
+  BREAK_UI_WORST_DOCS,
+  BREAK_UI_WORST_TRIALS,
+  generateHugeDataset,
+} from '@shared/dataset/breakUiFixtures';
+import { BreakUiToggle } from './ui/BreakUiToggle';
 
 export const MIN_COHORT_N = 5;
 
@@ -93,6 +104,15 @@ function HeroLatencyMetric({ value }: HeroLatencyMetricProps) {
 }
 
 export function Dataset({ onNavigate }: DatasetProps) {
+  const [breakUiMode, setBreakUiMode] = useState<BreakUiDatasetMode>(() => {
+    if (typeof window === 'undefined') return 'demo';
+    const param = new URLSearchParams(window.location.search).get('data');
+    if (param && ['demo', 'worst', 'empty', 'one', 'huge'].includes(param)) {
+      return param as BreakUiDatasetMode;
+    }
+    return 'demo';
+  });
+
   const [selectedGameId, setSelectedGameId] = useState<AssessmentType>('visual-reaction');
   const [trials, setTrials] = useState<RawTrialObservation[]>([]);
   const [datasetDocs, setDatasetDocs] = useState<DatasetObservation[]>([]);
@@ -107,6 +127,19 @@ export function Dataset({ onNavigate }: DatasetProps) {
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
   const [refreshCooldownUntil, setRefreshCooldownUntil] = useState(0);
   const forceRefreshNextLoad = useRef(false);
+
+  const handleBreakUiModeChange = (mode: BreakUiDatasetMode) => {
+    setBreakUiMode(mode);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (mode === 'demo') {
+        url.searchParams.delete('data');
+      } else {
+        url.searchParams.set('data', mode);
+      }
+      window.history.replaceState(null, '', url.toString());
+    }
+  };
 
   useEffect(() => {
     const remaining = refreshCooldownUntil - Date.now();
@@ -148,6 +181,31 @@ export function Dataset({ onNavigate }: DatasetProps) {
     const abortController = new AbortController();
 
     async function loadData() {
+      if (breakUiMode !== 'demo') {
+        setIsLoading(false);
+        setIsRefreshing(false);
+        setLoadError(null);
+        if (breakUiMode === 'empty') {
+          setDatasetDocs(BREAK_UI_EMPTY_DOCS);
+          setTrials(BREAK_UI_EMPTY_TRIALS);
+          setTotalDatasetCount(0);
+        } else if (breakUiMode === 'one') {
+          setDatasetDocs(BREAK_UI_ONE_DOCS);
+          setTrials(BREAK_UI_ONE_TRIALS);
+          setTotalDatasetCount(1);
+        } else if (breakUiMode === 'worst') {
+          setDatasetDocs(BREAK_UI_WORST_DOCS);
+          setTrials(BREAK_UI_WORST_TRIALS);
+          setTotalDatasetCount(9999999);
+        } else if (breakUiMode === 'huge') {
+          const { docs, trials: hugeTrials } = generateHugeDataset();
+          setDatasetDocs(docs);
+          setTrials(hugeTrials);
+          setTotalDatasetCount(docs.length);
+        }
+        return;
+      }
+
       if (forceRefresh) {
         setIsRefreshing(true);
         setRefreshError(null);
@@ -214,7 +272,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
       isMounted = false;
       abortController.abort();
     };
-  }, [selectedGameId, refreshRevision]);
+  }, [selectedGameId, refreshRevision, breakUiMode]);
 
 
   // --- STATS CALCULATIONS ---
@@ -885,6 +943,10 @@ export function Dataset({ onNavigate }: DatasetProps) {
             </div>
           </div>
         )}
+
+      {(import.meta.env.DEV || breakUiMode !== 'demo' || (typeof window !== 'undefined' && window.location.search.includes('data='))) && (
+        <BreakUiToggle currentMode={breakUiMode} onSelectMode={handleBreakUiModeChange} />
+      )}
     </PageShell>
   );
 }

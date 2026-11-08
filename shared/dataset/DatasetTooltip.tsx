@@ -30,18 +30,30 @@ export function DatasetTooltip({ active, payload, label, variant = 'standard' }:
             : `${entry.value} ms`
           : `${entry.value} ${entry.unit || ''}`;
         const iqrText = entry.payload?.iqr !== undefined ? ` • IQR: ${entry.payload.iqr}ms` : '';
+        const isTrialPoint = entry.payload?.trialNumber !== undefined || entry.payload?.trialLabel !== undefined;
+        const countLabel = isTrialPoint ? 'Trials:' : 'Sample (n):';
+
         return (
-          <div key={`tooltip-item-${index}`} className="flex items-center justify-between gap-4 py-0.5" style={{ color }}>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-              <span className="text-[var(--text-secondary)]">{entry.name || 'Value'}:</span>
+          <div key={`tooltip-item-${index}`} className="py-0.5">
+            <div className="flex items-center justify-between gap-4" style={{ color }}>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                <span className="text-[var(--text-secondary)]">{entry.name || 'Value'}:</span>
+              </div>
+              <span className="font-bold">{value}</span>
             </div>
-            <span className="font-bold">
-              {value}
-              {variant === 'standard' && count !== undefined ? (
-                <span className="text-[var(--text-muted)] ml-1 font-normal">(n={String(count)}{iqrText})</span>
-              ) : null}
-            </span>
+            {count !== undefined && (
+              <div className="flex items-center justify-between gap-4 text-[11px] text-[var(--text-muted)] pl-3.5 mt-0.5">
+                <span>{countLabel}</span>
+                <span className="font-medium text-[var(--text-primary)]">{Number(count).toLocaleString()}</span>
+              </div>
+            )}
+            {entry.payload?.iqr !== undefined && (
+              <div className="flex items-center justify-between gap-4 text-[11px] text-[var(--text-muted)] pl-3.5 mt-0.5">
+                <span>IQR:</span>
+                <span>{String(entry.payload.iqr)} ms</span>
+              </div>
+            )}
           </div>
         );
       })}

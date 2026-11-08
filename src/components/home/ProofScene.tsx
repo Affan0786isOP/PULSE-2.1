@@ -10,44 +10,34 @@ export interface ProofSceneProps {
 interface PipelineStage {
   step: string;
   name: string;
-  badge: string;
   icon: React.ElementType;
   description: string;
-  technicalMechanism: string;
 }
 
 const PIPELINE_STAGES: PipelineStage[] = [
   {
     step: '01',
     name: 'Stimulus Presentation',
-    badge: 'FRAME_CADENCE',
     icon: Activity,
     description: 'Visual stimulus timing is scheduled in the client; requestAnimationFrame sampling estimates display refresh cadence and timing offset.',
-    technicalMechanism: 'requestAnimationFrame frame-delta sampling with theoretical display-delay midpoint estimation.',
   },
   {
     step: '02',
     name: 'Human Response Capture',
-    badge: 'MONOTONIC_TIMING',
     icon: Clock,
     description: 'Pointer and keyboard responses are captured at the native DOM boundary with high-resolution timestamps.',
-    technicalMechanism: 'performance.now() or event.timeStamp recorded directly on incoming PointerEvent / KeyboardEvent.',
   },
   {
     step: '03',
     name: 'Trial Validation & Correction',
-    badge: 'TRIAL_VALIDATION',
     icon: Cpu,
     description: 'Trials are filtered for anticipatory false starts and timeouts, adjusted by estimated display offset.',
-    technicalMechanism: '80ms physiological reaction floor check, timeout rejection, and display delay offset adjustment.',
   },
   {
     step: '04',
     name: 'Session Metrics & Summary',
-    badge: 'STATISTICAL_METRICS',
     icon: BarChart2,
     description: 'Valid trial latencies are aggregated into mean, median, standard deviation, and consistency metrics.',
-    technicalMechanism: 'Unbiased sample variance (Bessel correction N-1) and coefficient-of-variation consistency calculation.',
   },
 ];
 
@@ -75,10 +65,6 @@ export function ProofScene({ onExploreAssessments }: ProofSceneProps) {
       <div className="max-w-5xl mx-auto">
         {/* Section Header */}
         <div className="mb-12">
-          <div className="inline-flex items-center text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-4">
-            <span>[ PROTOCOL // MEASUREMENT PIPELINE ]</span>
-          </div>
-          
           <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#090D1A] dark:text-white mb-4">
             How PULSE Measures Client-Side Reaction Latency
           </h2>
@@ -96,18 +82,15 @@ export function ProofScene({ onExploreAssessments }: ProofSceneProps) {
             return (
               <motion.article 
                 key={stage.step}
-                className="relative flex flex-col justify-between p-5 rounded-2xl bg-white dark:bg-[#181D23] border border-slate-200 dark:border-slate-800 hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 shadow-sm transition-all"
+                className="relative flex flex-col p-5 rounded-2xl bg-white dark:bg-[#181D23] border border-slate-200 dark:border-slate-800 hover:border-[#0066FF]/40 dark:hover:border-[#22C7D6]/40 shadow-sm transition-all"
                 initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : idx * 0.08 }}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="mb-4">
                     <span className="font-mono text-xs font-bold text-[#0066FF] dark:text-[#22C7D6] tracking-wider">
                       STAGE {stage.step}
-                    </span>
-                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
-                      {stage.badge}
                     </span>
                   </div>
 
@@ -119,18 +102,9 @@ export function ProofScene({ onExploreAssessments }: ProofSceneProps) {
                     {stage.name}
                   </h3>
 
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     {stage.description}
                   </p>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                  <div className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 mb-1">
-                    Mechanism
-                  </div>
-                  <div className="text-[11px] font-mono text-slate-700 dark:text-slate-300">
-                    {stage.technicalMechanism}
-                  </div>
                 </div>
               </motion.article>
             );

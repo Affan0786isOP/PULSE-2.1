@@ -54,15 +54,6 @@ export function HowItWorksScene() {
       <div className="max-w-5xl mx-auto">
         {/* Section Header */}
         <div className="mb-12">
-          <motion.div 
-            className="inline-flex items-center text-[11px] font-mono text-[#0066FF] dark:text-[#22C7D6] uppercase tracking-wider mb-4"
-            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <span>[ PROTOCOL EXECUTION // 4-STEP WORKFLOW ]</span>
-          </motion.div>
-
           <motion.h2 
             className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#090D1A] dark:text-white mb-4 text-balance"
             initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}

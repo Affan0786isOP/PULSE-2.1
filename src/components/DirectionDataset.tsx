@@ -42,9 +42,6 @@ interface DirectionDatasetProps {
 }
 
 export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps) {
-  // Radar view toggle state: 'accuracy' | 'rt' | 'both'
-  const [radarMode, setRadarMode] = useState<'accuracy' | 'rt' | 'both'>('accuracy');
-
   // Filter valid Direction sessions from datasetDocs
   const directionDocs = useMemo<DirectionSessionRecord[]>(() => {
     return datasetDocs.filter(
@@ -167,21 +164,6 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     return calculateDirectionalProfile(directionDocs, trials as unknown as DirectionSessionRecord['progressionTrials']);
   }, [directionDocs, trials]);
 
-  // Radar data structures
-  const radarAccuracyData = useMemo(() => {
-    return directionalProfile.map((d) => ({
-      direction: d.direction,
-      value: d.accuracy,
-    }));
-  }, [directionalProfile]);
-
-  const radarRTData = useMemo(() => {
-    return directionalProfile.map((d) => ({
-      direction: d.direction,
-      value: d.medianRT,
-    }));
-  }, [directionalProfile]);
-
   const maxDirectionalRT = useMemo(() => {
     const vals = directionalProfile.map((d) => d.medianRT).filter((v) => v > 0);
     return vals.length > 0 ? Math.ceil(Math.max(...vals) / 100) * 100 + 100 : 1000;
@@ -231,6 +213,10 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     return calculateDirectionTrialProgression(directionDocs, 10);
   }, [directionDocs]);
 
+  const totalProgressionTrials = useMemo(() => {
+    return trialProgressionData.reduce((acc, point) => acc + (point.n || 0), 0);
+  }, [trialProgressionData]);
+
   const trialTicks = useMemo(() => {
     const validRTs = trialProgressionData.map((d) => d.overall).filter((v) => v > 0);
     if (validRTs.length === 0) return [400, 600, 800, 1000];
@@ -252,9 +238,9 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full min-w-0">
       {/* ======================================================== */}
-      {/* ROW 1: UNIFIED 4-CARD OVERVIEW                           */}
+      {/* ROW 1: UNIFIED 5-CARD OVERVIEW                           */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 min-w-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5 min-w-0">
         {/* Card 1: Median RT + Median Accuracy */}
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs relative overflow-hidden min-w-0">
           <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
@@ -356,11 +342,11 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
           </div>
         </div>
 
-        {/* Card 4: Average RT + Average Accuracy */}
+        {/* Card 4: Average Speed */}
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs min-w-0">
           <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
             <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-              Average Performance
+              Average Speed
             </span>
             <span className="text-[10px] font-mono text-[var(--color-success)] font-semibold tracking-wider uppercase">
               POPULATION
@@ -376,8 +362,33 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             <span className="text-xs font-mono text-[var(--text-muted)] uppercase mt-1">Mean Reaction Time</span>
           </div>
           <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
-            <span>Average Accuracy</span>
-            <span className="font-bold text-[var(--color-success)]">{averageAccuracy > 0 ? `${averageAccuracy}%` : '—'}</span>
+            <span>Session Mean</span>
+            <span>Equal session weight</span>
+          </div>
+        </div>
+
+        {/* Card 5: Average Accuracy */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs min-w-0">
+          <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+            <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+              Average Accuracy
+            </span>
+            <span className="text-[10px] font-mono text-[var(--color-success)] font-semibold tracking-wider uppercase">
+              POPULATION
+            </span>
+          </div>
+          <div className="my-auto py-2 flex flex-col items-center justify-center text-center">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl sm:text-4xl font-mono text-[var(--color-success)] font-bold tracking-tight">
+                {averageAccuracy > 0 ? averageAccuracy : '—'}
+              </span>
+              <span className="text-xs font-mono text-[var(--text-muted)] uppercase">%</span>
+            </div>
+            <span className="text-xs font-mono text-[var(--text-muted)] uppercase mt-1">Mean Accuracy Rate</span>
+          </div>
+          <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
+            <span>Session Mean</span>
+            <span>Equal session weight</span>
           </div>
         </div>
       </div>
@@ -445,136 +456,82 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
       {/* ROW 3: DIRECTIONAL PROFILE (RADAR) & SPEED VS ACCURACY   */}
       {/* ======================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
-        {/* Directional Profile (Radar) with Accuracy % | Reaction Time | Both */}
+        {/* Directional Profile (Radar) */}
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col min-w-0 shadow-xs relative overflow-hidden">
-          <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-4">
-            <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+          <div className="w-full flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-subtle)]">
+            <h3 className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
               Directional Profile
+            </h3>
+            <span className="text-[10px] font-mono text-[var(--cyan-primary)] font-semibold tracking-wider uppercase">
+              ACCURACY & RT
             </span>
-            <div className="flex items-center gap-1 bg-[var(--border-subtle)]/40 p-0.5 rounded-lg text-[10px] font-mono">
-              <button
-                type="button"
-                onClick={() => setRadarMode('accuracy')}
-                className={`px-2 py-1 rounded transition-colors ${
-                  radarMode === 'accuracy'
-                    ? 'bg-[var(--cyan-primary)] text-black font-bold'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Accuracy %
-              </button>
-              <button
-                type="button"
-                onClick={() => setRadarMode('rt')}
-                className={`px-2 py-1 rounded transition-colors ${
-                  radarMode === 'rt'
-                    ? 'bg-[#a78bfa] text-black font-bold'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Reaction Time
-              </button>
-              <button
-                type="button"
-                onClick={() => setRadarMode('both')}
-                className={`px-2 py-1 rounded transition-colors ${
-                  radarMode === 'both'
-                    ? 'bg-[var(--text-primary)] text-[var(--bg-canvas)] font-bold'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Both
-              </button>
-            </div>
           </div>
 
           <div className="flex-1 min-h-[260px] sm:min-h-[290px] w-full flex items-center justify-center">
-            {radarMode === 'both' ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarOverlayData} outerRadius="72%">
-                  <PolarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
-                  <PolarAngleAxis dataKey="direction" tick={{ fill: 'var(--chart-text)', fontSize: 11, fontFamily: 'monospace' }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Tooltip
-                    content={({ active, payload, label }) => {
-                      if (!active || !payload?.length) return null;
-                      const d = payload[0]?.payload as { direction: string; accuracy: number; rtMs: number } | undefined;
-                      if (!d) return null;
-                      return (
-                        <div className="bg-[var(--bg-surface-solid)] backdrop-blur-md border border-[var(--border-subtle)] rounded-lg p-3 shadow-xl font-mono text-xs z-50 text-[var(--text-primary)]">
-                          <div className="text-[var(--text-muted)] font-semibold mb-1.5 border-b border-[var(--border-subtle)] pb-1">
-                            {label}
-                          </div>
-                          <div className="flex items-center justify-between gap-4 py-0.5 text-[var(--cyan-primary)]">
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-[var(--cyan-primary)]" />
-                              <span className="text-[var(--text-secondary)]">Accuracy:</span>
-                            </div>
-                            <span className="font-bold">{d.accuracy}%</span>
-                          </div>
-                          <div className="flex items-center justify-between gap-4 py-0.5 text-[#a78bfa]">
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-[#a78bfa]" />
-                              <span className="text-[var(--text-secondary)]">Reaction Time:</span>
-                            </div>
-                            <span className="font-bold">{d.rtMs} ms</span>
-                          </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={radarOverlayData} outerRadius="72%">
+                <PolarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
+                <PolarAngleAxis dataKey="direction" tick={{ fill: 'var(--chart-text)', fontSize: 11, fontFamily: 'monospace' }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0]?.payload as { direction: string; accuracy: number; rtMs: number } | undefined;
+                    if (!d) return null;
+                    return (
+                      <div className="bg-[var(--bg-surface-solid)] backdrop-blur-md border border-[var(--border-subtle)] rounded-lg p-3 shadow-xl font-mono text-xs z-50 text-[var(--text-primary)]">
+                        <div className="text-[var(--text-muted)] font-semibold mb-1.5 border-b border-[var(--border-subtle)] pb-1">
+                          {label}
                         </div>
-                      );
-                    }}
-                  />
-                  <Legend
-                    verticalAlign="bottom"
-                    height={28}
-                    formatter={(value) => (
-                      <span className="text-[10px] font-mono font-medium text-[var(--text-secondary)]">
-                        {value === 'Accuracy' ? 'Accuracy (0–100%)' : `Reaction Time (0–${maxDirectionalRT}ms)`}
-                      </span>
-                    )}
-                  />
-                  <Radar
-                    name="Accuracy"
-                    dataKey="accuracy"
-                    stroke="var(--cyan-primary)"
-                    strokeWidth={2}
-                    fill="var(--cyan-primary)"
-                    fillOpacity={0.25}
-                    dot={{ r: 3, fill: 'var(--cyan-primary)' }}
-                    activeDot={{ r: 5 }}
-                  />
-                  <Radar
-                    name="Reaction Time"
-                    dataKey="rtNormalized"
-                    stroke="#a78bfa"
-                    strokeWidth={2}
-                    fill="#a78bfa"
-                    fillOpacity={0.25}
-                    dot={{ r: 3, fill: '#a78bfa' }}
-                    activeDot={{ r: 5 }}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            ) : radarMode === 'accuracy' ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarAccuracyData} outerRadius="72%">
-                  <PolarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
-                  <PolarAngleAxis dataKey="direction" tick={{ fill: 'var(--chart-text)', fontSize: 11, fontFamily: 'monospace' }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: 'var(--chart-text)', fontSize: 9 }} axisLine={false} />
-                  <Tooltip content={<DatasetTooltip variant="direction" />} />
-                  <Radar name="Accuracy" dataKey="value" stroke="var(--cyan-primary)" strokeWidth={2} fill="var(--cyan-primary)" fillOpacity={0.28} dot={{ r: 3, fill: 'var(--cyan-primary)' }} activeDot={{ r: 5 }} />
-                </RadarChart>
-              </ResponsiveContainer>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarRTData} outerRadius="72%">
-                  <PolarGrid stroke="var(--border-strong)" strokeOpacity={0.4} />
-                  <PolarAngleAxis dataKey="direction" tick={{ fill: 'var(--chart-text)', fontSize: 11, fontFamily: 'monospace' }} />
-                  <PolarRadiusAxis angle={30} domain={[0, maxDirectionalRT]} tick={{ fill: 'var(--chart-text)', fontSize: 9 }} axisLine={false} />
-                  <Tooltip content={<DatasetTooltip variant="direction" />} />
-                  <Radar name="Median RT" dataKey="value" stroke="#a78bfa" strokeWidth={2} fill="#a78bfa" fillOpacity={0.28} dot={{ r: 3, fill: '#a78bfa' }} activeDot={{ r: 5 }} />
-                </RadarChart>
-              </ResponsiveContainer>
-            )}
+                        <div className="flex items-center justify-between gap-4 py-0.5 text-[var(--cyan-primary)]">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-[var(--cyan-primary)]" />
+                            <span className="text-[var(--text-secondary)]">Accuracy:</span>
+                          </div>
+                          <span className="font-bold">{d.accuracy}%</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-4 py-0.5 text-[#a78bfa]">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-[#a78bfa]" />
+                            <span className="text-[var(--text-secondary)]">Reaction Time:</span>
+                          </div>
+                          <span className="font-bold">{d.rtMs} ms</span>
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+                <Legend
+                  verticalAlign="bottom"
+                  height={28}
+                  formatter={(value) => (
+                    <span className="text-[10px] font-mono font-medium text-[var(--text-secondary)]">
+                      {value === 'Accuracy' ? 'Accuracy (0–100%)' : `Reaction Time (0–${maxDirectionalRT}ms)`}
+                    </span>
+                  )}
+                />
+                <Radar
+                  name="Accuracy"
+                  dataKey="accuracy"
+                  stroke="var(--cyan-primary)"
+                  strokeWidth={2}
+                  fill="var(--cyan-primary)"
+                  fillOpacity={0.25}
+                  dot={{ r: 3, fill: 'var(--cyan-primary)' }}
+                  activeDot={{ r: 5 }}
+                />
+                <Radar
+                  name="Reaction Time"
+                  dataKey="rtNormalized"
+                  stroke="#a78bfa"
+                  strokeWidth={2}
+                  fill="#a78bfa"
+                  fillOpacity={0.25}
+                  dot={{ r: 3, fill: '#a78bfa' }}
+                  activeDot={{ r: 5 }}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -777,9 +734,16 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
           <h3 className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
             Trial Sequence Progression (Trials 1–10)
           </h3>
-          <div className="flex items-center gap-2 text-[10px] font-mono">
-            <span className="w-2 h-2 rounded-full bg-[#00f0ff]" />
-            <span className="text-[var(--cyan-primary)] font-semibold">Overall RT</span>
+          <div className="flex items-center gap-3 text-[10px] font-mono">
+            {totalProgressionTrials > 0 && (
+              <span className="text-[var(--text-muted)] uppercase">
+                {totalProgressionTrials.toLocaleString()} {totalProgressionTrials === 1 ? 'TRIAL' : 'TRIALS'}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#00f0ff]" />
+              <span className="text-[var(--cyan-primary)] font-semibold">Overall RT</span>
+            </div>
           </div>
         </div>
         <div className="h-64 sm:h-72 w-full min-w-0">
