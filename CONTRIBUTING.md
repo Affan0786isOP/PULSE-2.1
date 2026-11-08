@@ -5,7 +5,7 @@ Thank you for contributing to the PULSE cognitive assessment and benchmark platf
 ---
 
 ## 1. Development Prerequisites
-- **Node.js:** v22.12+ (v22 LTS recommended)
+- **Node.js:** v24.12.0 or newer (v24 LTS recommended; authoritative floor is `package.json` `engines.node`).
 - **Package Manager:** `npm` (v10+). Pinned via `"packageManager"` in `package.json`; do not use `bun` or `yarn`.
 - **Git:** Git 2.30+
 
@@ -38,7 +38,7 @@ These conventions are actively established in the codebase:
 ### 3.2 Security & Data Mutations
 - **Server-Authoritative Writes:** Direct client mutations to Firestore collections are disabled. All data mutations must route through Express API endpoints in `server.ts`.
 - **Zero PII:** Never introduce user identity fields (email, real name, phone number, IP address) into `publicDataset` or assessment trial collections.
-- **Never expose secrets:** Server secrets (`PULSE_PROVENANCE_SECRET`, `FIREBASE_SERVICE_ACCOUNT`) must never be prefixed with `VITE_` or referenced in client-side code. Web administration endpoints and passcodes have been removed; moderation is handled via server CLI scripts.
+- **Never expose secrets:** Server secrets (`PULSE_PROVENANCE_SECRET`, `FIREBASE_SERVICE_ACCOUNT`, `ADMIN_PASSCODE`, and `PULSE_ADMIN_SESSION_SECRET`) must never be prefixed with `VITE_` or referenced in client-side code. The desktop `/admin` console and protected `/api/admin/*` endpoints are active; authentication and authorization are enforced server-side. CLI operator scripts remain available for maintenance/recovery.
 
 ### 3.3 Dual-Surface Parity
 - PULSE maintains a desktop web client (`src/`) and a mobile PWA subproject (`mobile/src/`).
@@ -47,6 +47,10 @@ These conventions are actively established in the codebase:
 ### 3.4 Styling & Design Tokens
 - Use the observatory dark palette tokens (`--surface-0` through `--surface-3`, `#00F0FF` Signal Cyan, `#10B981` Provenance Green) documented in [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 - Do not introduce arbitrary saturated purple gradients or heavy drop shadow halos.
+
+### 3.5 Typography compliance
+- Use only **Inter**, **Space Grotesk**, and **JetBrains Mono**, with approved weights 400, 500, 600, and 700.
+- Keep font assignments in the shared brand tokens and run `npm run audit:typography` after changing typography. The audit also runs automatically through `npm test`, `npm run check`, and `npm run build`.
 
 ---
 
