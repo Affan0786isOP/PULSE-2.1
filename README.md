@@ -79,6 +79,8 @@ PULSE operates as a dual-surface application connecting React 19 clients to an E
 | `npm run lint` | Runs desktop TypeScript type check |
 | `npm run check` | Dual-surface type check (Desktop + Mobile) |
 | `npm test` | Runs Vitest unit tests |
+| `npm run audit:typography` | Checks the approved repository-wide typography contract |
+| `npm run dataset:reconcile-summary` | Dry-runs the public Dataset aggregate reconciliation (apply requires explicit `-- --apply`) |
 
 ---
 
