@@ -8,8 +8,6 @@ import {
   Bar,
   LineChart,
   Line,
-  ScatterChart,
-  Scatter,
   PieChart,
   Pie,
   Cell,
@@ -25,7 +23,12 @@ import { ChevronLeft, ChevronRight, Zap, Compass, Palette, Grid, Hash, Monitor, 
 import { triggerHaptic } from '../lib/settingsStore';
 import { DirectionDataset } from './DirectionDataset';
 import {
-  calculateReactionTimeDistribution, calculateTrialProgression,
+  calculateTrialProgression,
+  calculateConsistencyDistribution,
+  calculateForeperiodAggregation,
+  calculatePopulationTrialProgression,
+  calculateTrialValidityBreakdown,
+  calculateIqr,
   getAgeGroupShortLabel, medianValue,
 } from '@shared/dataset/analytics';
 import { DatasetTooltip } from '@shared/dataset/DatasetTooltip';
@@ -44,103 +47,48 @@ interface DatasetProps {
   onNavigate: (view: string) => void;
 }
 
-// 1. Semi-Circular SVG Speedometer Gauge for Median Reaction Time
-interface RadialGaugeProps {
+// Hero Latency Metric with Benchmark Reference Scale
+interface HeroLatencyMetricProps {
   value: number; // median RT in ms
-  label?: string;
 }
 
-
-function RadialGauge({ value, label = 'Median RT' }: RadialGaugeProps) {
-  // Map value (e.g. 150ms-450ms) into an angle on a 180° arc (from 180° to 360°)
-  // 150ms -> 100% (fastest), 450ms -> 0% (slowest)
-  const clamped = Math.max(150, Math.min(450, value));
-  const scoreRatio = Math.max(0, Math.min(1, 1 - (clamped - 150) / 300));
-  const strokePercent = Math.round(scoreRatio * 100);
-
-  const radius = 80;
-  const strokeWidth = 14;
-  const circumference = Math.PI * radius; // Half-circle perimeter
-  const strokeDashoffset = circumference - circumference * scoreRatio;
+function HeroLatencyMetric({ value }: HeroLatencyMetricProps) {
+  // Clamped between 150ms and 450ms for position indicator
+  const clamped = Math.max(150, Math.min(450, value || 280));
+  const percentage = Math.round(((clamped - 150) / 300) * 100);
 
   return (
-    <div className="flex flex-col items-center justify-center relative w-full">
-      <svg viewBox="0 0 220 135" className="w-full max-w-[240px] overflow-visible">
-        <defs>
-          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#ef4444" />
-            <stop offset="40%" stopColor="#f59e0b" />
-            <stop offset="70%" stopColor="#38bdf8" />
-            <stop offset="100%" stopColor="#00f0ff" />
-          </linearGradient>
-          <filter id="gaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
+    <div className="flex flex-col justify-between h-full">
+      <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+        <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+          Median Reaction Time
+        </span>
+      </div>
 
-        {/* Background track */}
-        <path
-          d="M 25 115 A 80 80 0 0 1 195 115"
-          fill="none"
-          stroke="var(--border-subtle)"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-        />
+      <div className="my-auto py-2">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-3xl sm:text-4xl font-mono font-bold tracking-tight text-[var(--text-primary)]">
+            {value > 0 ? value : '—'}
+          </span>
+          <span className="text-sm font-mono text-[var(--text-muted)]">ms</span>
+        </div>
 
-        {/* Dynamic active arc */}
-        <path
-          d="M 25 115 A 80 80 0 0 1 195 115"
-          fill="none"
-          stroke="url(#gaugeGradient)"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          filter="url(#gaugeGlow)"
-          className="transition-all duration-700 ease-out"
-        />
-
-        {/* Tick marks */}
-        {[0, 0.25, 0.5, 0.75, 1].map((tick, i) => {
-          const angle = Math.PI * (1 - tick);
-          const x1 = 110 - Math.cos(angle) * (radius - 12);
-          const y1 = 115 - Math.sin(angle) * (radius - 12);
-          const x2 = 110 - Math.cos(angle) * (radius - 18);
-          const y2 = 115 - Math.sin(angle) * (radius - 18);
-          return (
-            <line
-              key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="var(--border-strong)"
-              strokeWidth="1.5"
+        {/* Reference scale bar */}
+        <div className="mt-2.5 w-full">
+          <div className="relative h-2 w-full rounded-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-purple-400 transition-all duration-700"
+              style={{
+                width: `${value > 0 ? Math.min(100, Math.max(8, percentage)) : 0}%`,
+              }}
             />
-          );
-        })}
-
-        {/* Center Text */}
-        <text
-          x="110"
-          y="95"
-          textAnchor="middle"
-          fill="var(--cyan-primary)"
-          className="font-mono text-3xl font-bold tracking-tight"
-        >
-          {value > 0 ? `${value}` : '—'}
-        </text>
-        <text
-          x="110"
-          y="112"
-          textAnchor="middle"
-          fill="var(--text-muted)"
-          className="font-mono text-[10px] uppercase tracking-widest font-semibold"
-        >
-          ms
-        </text>
-      </svg>
+          </div>
+          <div className="flex justify-between items-center text-[10px] font-mono text-[var(--text-muted)] mt-1">
+            <span>150ms</span>
+            <span>450ms</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -175,9 +123,9 @@ export function Dataset({ onNavigate }: DatasetProps) {
       Date.now() < refreshCooldownUntil ||
       (selectedGameId !== 'visual-reaction' && selectedGameId !== 'direction')
     ) return;
+    triggerHaptic('tap');
     forceRefreshNextLoad.current = true;
     setRefreshError(null);
-    // Client feedback mirrors the server-enforced two-minute cooldown.
     setRefreshCooldownUntil(Date.now() + 2 * 60 * 1000);
     setRefreshRevision(value => value + 1);
   };
@@ -208,13 +156,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
         setIsLoading(true);
         setIsRefreshing(false);
         setLoadError(null);
-      }
-      if (!forceRefresh) {
-        setLoadError(null);
         setIsSampleLimited(false);
         setTotalDatasetCount(null);
-      } else {
-        setLoadError(null);
       }
       try {
         const publicData = await fetchDatasetObservations(
@@ -269,7 +212,6 @@ export function Dataset({ onNavigate }: DatasetProps) {
     };
   }, [selectedGameId, refreshRevision]);
 
-
   // --- STATS CALCULATIONS ---
 
   // Median reaction time from trial-level observations only.
@@ -282,38 +224,51 @@ export function Dataset({ onNavigate }: DatasetProps) {
 
   const totalSessions = totalDatasetCount ?? datasetDocs.length;
 
-  // Fastest per-session average, derived from trial observations only.
-  const fastestAvgRT = useMemo(() => {
-    const sessionAvgs: number[] = [];
-    const sessionMap = new Map<string, number[]>();
-    trials.forEach((t) => {
-      if (t.falseStart || t.valid === false || t.timedOut || t.reactionTime <= 80 || t.reactionTime >= 2000) return;
-      const key = t.experimentId || t.participantId || t.id || 'unknown-session';
-      const list = sessionMap.get(key) || [];
-      list.push(t.reactionTime);
-      sessionMap.set(key, list);
-    });
-    sessionMap.forEach((rts) => {
-      if (rts.length > 0) {
-        const avg = rts.reduce((sum, value) => sum + value, 0) / rts.length;
-        if (avg >= 80 && avg < 2000) sessionAvgs.push(avg);
+  // Total recorded VRT attempts across all completed sessions
+  const totalAttemptsCount = useMemo(() => {
+    let sum = 0;
+    datasetDocs.forEach((doc) => {
+      if (Array.isArray(doc.progressionTrials)) {
+        sum += doc.progressionTrials.length;
+      } else if (typeof doc.totalTrials === 'number' && Number.isFinite(doc.totalTrials) && doc.totalTrials > 0) {
+        sum += doc.totalTrials;
       }
     });
-    return sessionAvgs.length ? Math.round(Math.min(...sessionAvgs)) : 0;
-  }, [trials]);
+    return sum > 0 ? sum : trials.length;
+  }, [datasetDocs, trials]);
 
-  // 2. Reaction Time Distribution Data (Area Chart)
+  // 1. Average Reaction Time: average of completed session-level average reaction times (equal session weight)
+  const averageRT = useMemo(() => {
+    const sessionAvgs = datasetDocs
+      .map((d) => Number(d.averageReactionTime ?? d.medianReactionTime))
+      .filter((v) => Number.isFinite(v) && v > 80 && v < 2000);
+    if (!sessionAvgs.length) return 0;
+    const sum = sessionAvgs.reduce((acc, v) => acc + v, 0);
+    return Math.round(sum / sessionAvgs.length);
+  }, [datasetDocs]);
 
-  // 2. Reaction Time Distribution Data (Area Chart)
-  const distributionData = useMemo(
-    () => calculateReactionTimeDistribution(
-      trials,
-      (trial) => trial.sessionId || trial.experimentId || trial.id,
-    ),
-    [trials],
-  );
+  // 2. Reaction Time vs Foreperiod (Standardized 6 non-overlapping intervals, latest valid attempt, session-median first, min n=10)
+  const foreperiodData = useMemo(() => {
+    return calculateForeperiodAggregation(datasetDocs, 10).filter((res) => !res.suppressed);
+  }, [datasetDocs]);
 
-  // Cohort comparisons use one session-level summary per assessment, not a mixture of session and trial records.
+  // Clean, evenly-spaced 25ms or 50ms ticks for Reaction Time vs Foreperiod
+  const foreperiodTicks = useMemo(() => {
+    const validRTs = foreperiodData.map((d) => d.medianRT).filter((v) => v > 0);
+    if (!validRTs.length) return [200, 250, 300, 350, 400];
+    const min = Math.min(...validRTs);
+    const max = Math.max(...validRTs);
+    const step = max - min > 160 ? 50 : 25;
+    const yMin = Math.floor((min - 15) / step) * step;
+    const yMax = Math.ceil((max + 15) / step) * step;
+    const ticks: number[] = [];
+    for (let t = yMin; t <= yMax; t += step) {
+      ticks.push(t);
+    }
+    return ticks;
+  }, [foreperiodData]);
+
+  // 3. Cohort comparisons: all cohorts with session counts (n) and IQR
   const ageGroupData = useMemo(() => {
     return VALID_AGE_GROUPS.map((group) => {
       const short = getAgeGroupShortLabel(group);
@@ -321,81 +276,43 @@ export function Dataset({ onNavigate }: DatasetProps) {
         .filter((doc) => doc.ageGroup === group)
         .map((doc) => Number(doc.medianReactionTime ?? doc.averageReactionTime))
         .filter((value) => Number.isFinite(value) && value > 80 && value < 2000);
+      const { q1, q3, iqr } = calculateIqr(sessionRTs);
       return {
-        day: `${short} (n=${sessionRTs.length})`,
+        day: short,
         value: Math.round(medianValue(sessionRTs)),
-        n: sessionRTs.length
+        n: sessionRTs.length,
+        q1,
+        q3,
+        iqr,
       };
     }).filter((entry) => entry.n > 0);
   }, [datasetDocs]);
 
-  // 4. Reaction Time Across Trials 1–5 (Line Chart)
-
-  // 4. Reaction Time Across Trials 1–5 (Line Chart)
+  // 4. Trial Progression (Trials 1–10) using latest valid attempt per logical trial per session
   const trialProgressionData = useMemo(
-    () => calculateTrialProgression(
-      trials,
-      (trial) => trial.sessionId || trial.experimentId || trial.id,
-    ),
-    [trials],
+    () => calculatePopulationTrialProgression(datasetDocs, 10),
+    [datasetDocs],
   );
 
-  // 5. Scatter Chart — Median RT vs Consistency (SD)
-  const { scatterDesktop, scatterMobile } = useMemo(() => {
-    const sessionsMap = new Map<string, { rts: number[]; isMobile: boolean }>();
+  // 5. Consistency Distribution (Aggregated count in score intervals, desktop/mobile breakdown, min 10 per bin)
+  const consistencyData = useMemo(() => {
+    return calculateConsistencyDistribution(datasetDocs, 10);
+  }, [datasetDocs]);
 
-    trials.forEach((t) => {
-      if (t.falseStart || t.reactionTime <= 80) return;
-      const key = t.experimentId || t.participantId || t.id;
-      const isMobile = Boolean(t.device && t.device.toLowerCase().includes('mobile'));
-      const entry = sessionsMap.get(key) || { rts: [], isMobile };
-      entry.rts.push(t.reactionTime);
-      sessionsMap.set(key, entry);
-    });
+  // 6. Trial Validity 4-category breakdown (Valid, Premature, Anticipatory, Timeout)
+  const validityBreakdown = useMemo(() => {
+    return calculateTrialValidityBreakdown(datasetDocs);
+  }, [datasetDocs]);
 
-    const sDesktop: Array<{ medianRT: number; sd: number }> = [];
-    const sMobile: Array<{ medianRT: number; sd: number }> = [];
-
-    sessionsMap.forEach(({ rts, isMobile }) => {
-      if (rts.length < 2) return;
-      rts.sort((a, b) => a - b);
-      const sessionMedian = medianValue(rts);
-      const mean = rts.reduce((acc, v) => acc + v, 0) / rts.length;
-      const variance = rts.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / rts.length;
-      const sd = Math.round(Math.sqrt(variance));
-
-      if (sessionMedian > 120 && sessionMedian < 600 && sd >= 0 && sd < 200) {
-        if (isMobile) {
-          sMobile.push({ medianRT: sessionMedian, sd });
-        } else {
-          sDesktop.push({ medianRT: sessionMedian, sd });
-        }
-      }
-    });
-
-    return { scatterDesktop: sDesktop, scatterMobile: sMobile };
-  }, [trials]);
-
-  // Ring values are trial-level only. Each session is represented once in session counts.
-  const { ringData, validPercent, totalTrialsCount, totalGamesCount } = useMemo(() => {
-    const validCount = trials.filter((t) => !t.falseStart && t.valid !== false && !t.timedOut).length;
-    const falseStartCount = trials.filter((t) => t.falseStart).length;
-    const total = validCount + falseStartCount;
-    const uniqueTrialGames = new Set(trials.map((t) => t.experimentId || t.sessionId || t.id)).size;
-    const totalGames = Math.max(uniqueTrialGames, datasetDocs.length);
-
-    return {
-      ringData: total > 0 ? [
-        { name: 'Valid Trials', value: validCount, color: '#00f0ff' },
-        { name: 'False Starts', value: falseStartCount, color: '#ef4444' }
-      ] : [],
-      validPercent: total > 0 ? Math.round((validCount / total) * 100) : 0,
-      totalTrialsCount: total,
-      totalGamesCount: totalGames
-    };
-  }, [trials, datasetDocs]);
-
-  // 7. Desktop vs Mobile Reaction Time (Bar Chart)
+  const ringData = useMemo(() => {
+    const list = [
+      { name: 'Valid', value: validityBreakdown.valid, color: '#00f0ff', percent: validityBreakdown.validPercent },
+      { name: 'Premature', value: validityBreakdown.premature, color: '#ef4444', percent: validityBreakdown.prematurePercent },
+      { name: 'Anticipatory', value: validityBreakdown.anticipatory, color: '#f59e0b', percent: validityBreakdown.anticipatoryPercent },
+      { name: 'Timeout', value: validityBreakdown.timeout, color: '#a78bfa', percent: validityBreakdown.timeoutPercent },
+    ].filter((item) => item.value > 0);
+    return list;
+  }, [validityBreakdown]);
 
   // 7. Desktop vs Mobile Reaction Time (Bar Chart)
   const deviceComparisonData = useMemo(() => {
@@ -417,8 +334,8 @@ export function Dataset({ onNavigate }: DatasetProps) {
     const desktopDocs = datasetDocs.filter((d) => !d.device || !d.device.toLowerCase().includes('mobile'));
     const mobileDocs = datasetDocs.filter((d) => d.device && d.device.toLowerCase().includes('mobile'));
 
-    const desktopGames = new Set(desktopTrials.map((t) => t.sessionId || t.experimentId || t.id)).size + desktopDocs.length;
-    const mobileGames = new Set(mobileTrials.map((t) => t.sessionId || t.experimentId || t.id)).size + mobileDocs.length;
+    const desktopGames = desktopDocs.length;
+    const mobileGames = mobileDocs.length;
 
     const desktopRTs = desktopTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
     const mobileRTs = mobileTrials.map((t) => t.reactionTime).sort((a, b) => a - b);
@@ -455,31 +372,34 @@ export function Dataset({ onNavigate }: DatasetProps) {
   };
 
   return (
-    <div className="bg-transparent text-[var(--text-main)] h-full max-h-[100dvh] w-full max-w-full overflow-hidden flex flex-col font-sans selection:bg-cyan-500/30 relative">
+    <div className="bg-transparent text-[var(--text-main)] min-h-[100dvh] w-full max-w-full overflow-x-hidden flex flex-col font-sans selection:bg-cyan-500/30 relative">
       <Navbar onNavigate={onNavigate} currentView="dataset" />
 
-      <main className="flex-1 w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 min-w-0 overflow-y-auto pb-24 pb-safe">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3 sm:py-5 flex flex-col gap-3.5 sm:gap-5 min-w-0 pb-[calc(5rem+env(safe-area-inset-bottom,0px))]">
         {/* Game Navigation with Left & Right Arrows */}
-        <div className="flex items-center justify-between gap-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-1.5 shadow-sm">
-          <button type="button"
-            id="dataset-prev-btn" data-testid="dataset-prev-btn"
+        <div className="flex items-center justify-between gap-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-1.5 shadow-xs">
+          <button
+            type="button"
+            id="dataset-prev-btn"
+            data-testid="dataset-prev-btn"
             onClick={handlePrevGame}
             aria-label="Previous Game"
-            className="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 transition-all cursor-pointer shrink-0"
+            className="w-10 h-10 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-95 transition-transform transition-colors cursor-pointer shrink-0"
           >
             <ChevronLeft size={18} />
           </button>
 
           <div className="flex flex-col items-center justify-center min-w-0 px-2 select-none text-center">
             <div className="flex items-center gap-2">
-              <CurrentGameIcon size={15} className="text-[var(--cyan-primary)] shrink-0" />
+              <CurrentGameIcon size={16} className="text-[var(--cyan-primary)] shrink-0" />
               <span className="font-heading font-black text-xs sm:text-sm text-[var(--cyan-primary)] uppercase tracking-wider truncate">
                 {currentGame.name}
               </span>
             </div>
-            <div className="flex items-center gap-1 mt-1">
+            <div className="flex items-center gap-1.5 mt-1.5">
               {DATASET_GAMES.map((g) => (
-                <button type="button"
+                <button
+                  type="button"
                   key={g.id}
                   onClick={() => {
                     triggerHaptic('tap');
@@ -488,7 +408,7 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   aria-label={`Select ${g.name}`}
                   className={`h-1.5 rounded-full transition-all cursor-pointer ${
                     g.id === selectedGameId 
-                      ? 'w-4 bg-[var(--cyan-primary)] shadow-[0_0_8px_var(--cyan-glow)]' 
+                      ? 'w-5 bg-[var(--cyan-primary)] shadow-[0_0_8px_var(--cyan-glow)]' 
                       : 'w-1.5 bg-[var(--border-strong)] hover:bg-[var(--text-muted)]'
                   }`}
                 />
@@ -496,20 +416,22 @@ export function Dataset({ onNavigate }: DatasetProps) {
             </div>
           </div>
 
-          <button type="button"
-            id="dataset-next-btn" data-testid="dataset-next-btn"
+          <button
+            type="button"
+            id="dataset-next-btn"
+            data-testid="dataset-next-btn"
             onClick={handleNextGame}
             aria-label="Next Game"
-            className="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-90 transition-all cursor-pointer shrink-0"
+            className="w-10 h-10 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-panel-hover)] text-[var(--text-secondary)] hover:text-[var(--cyan-primary)] border border-[var(--border-subtle)] active:scale-95 transition-transform transition-colors cursor-pointer shrink-0"
           >
             <ChevronRight size={18} />
           </button>
         </div>
 
         {(selectedGameId === 'visual-reaction' || selectedGameId === 'direction') && (
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[11px] text-[var(--text-muted)]" aria-live="polite">
-              {lastRefreshedAt ? `Last loaded at ${new Date(lastRefreshedAt).toLocaleTimeString()}` : 'Research data loads automatically'}
+          <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
+            <p className="text-[10.5px] font-mono text-[var(--text-muted)] truncate" aria-live="polite">
+              {lastRefreshedAt ? `Loaded ${new Date(lastRefreshedAt).toLocaleTimeString()}` : 'Research telemetry live'}
             </p>
             <button
               type="button"
@@ -518,283 +440,285 @@ export function Dataset({ onNavigate }: DatasetProps) {
               onClick={handleRefresh}
               disabled={isLoading || isRefreshing || refreshCooldownUntil > Date.now()}
               aria-label="Refresh research data"
-              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] transition hover:border-[var(--cyan-primary)] hover:text-[var(--cyan-primary)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-xs font-mono font-semibold text-[var(--text-secondary)] transition-colors active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-              {isRefreshing ? 'Refreshing…' : refreshCooldownUntil > Date.now() ? 'Refresh cooldown' : 'Refresh data'}
+              <RefreshCw size={13} className={isRefreshing ? 'animate-spin' : ''} />
+              <span>{isRefreshing ? 'Refreshing…' : refreshCooldownUntil > Date.now() ? 'Cooldown' : 'Refresh'}</span>
             </button>
           </div>
         )}
+
         {refreshError && (
-          <div role="alert" className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-[var(--text-secondary)]">
-            {refreshError} Previous data, when available, remains visible.
+          <div role="alert" className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-3.5 py-2.5 text-xs text-[var(--text-secondary)]">
+            {refreshError} Previous data remains visible.
           </div>
         )}
 
         {/* Dashboard Content */}
         {!isLoading && !loadError && isSampleLimited && (
-          <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-[var(--text-secondary)]">
-            Showing {datasetDocs.length.toLocaleString()} of {totalDatasetCount !== null ? totalDatasetCount.toLocaleString() : 'more than ' + datasetDocs.length.toLocaleString()} matching assessments. Charts use this limited sample and may not represent the full dataset.
+          <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-3.5 py-2.5 text-xs text-[var(--text-secondary)]">
+            Showing {datasetDocs.length.toLocaleString()} of {totalDatasetCount !== null ? totalDatasetCount.toLocaleString() : 'more than ' + datasetDocs.length.toLocaleString()} sessions. Charts reflect this sample.
           </div>
         )}
         {!isLoading && !loadError && (selectedGameId === 'visual-reaction' || selectedGameId === 'direction') && trials.length === 0 && datasetDocs.length > 0 && (
-          <div role="status" className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 py-3 text-sm text-[var(--text-secondary)]">
-            No trial-level observations were returned for these sessions. Trial-level charts will remain empty.
+          <div role="status" className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-xs text-[var(--text-secondary)]">
+            No trial-level observations recorded. Trial charts will remain empty.
           </div>
         )}
         {!isLoading && !loadError && (selectedGameId === 'visual-reaction' || selectedGameId === 'direction') && datasetDocs.length === 0 && (
-          <div role="status" className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 py-6 text-center text-sm text-[var(--text-secondary)]">
-            NO DATA: no research observations are available for this protocol.
+          <div role="status" className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 py-8 text-center text-xs font-mono text-[var(--text-secondary)]">
+            NO DATA: No research observations available for this protocol.
           </div>
         )}
+
         {isLoading ? (
-          <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center justify-center min-h-[360px]">
             <div className="w-8 h-8 border-2 border-[var(--cyan-primary)] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : loadError ? (
-          <div role="alert" className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/5 p-8 text-center">
-            <strong className="font-mono text-sm text-red-400">DATASET UNAVAILABLE</strong>
-            <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary)]">{loadError}</p>
+          <div role="alert" className="flex min-h-[240px] flex-col items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/5 p-6 text-center">
+            <strong className="font-mono text-xs tracking-wider text-red-400 uppercase">DATASET UNAVAILABLE</strong>
+            <p className="mt-1.5 max-w-sm text-xs text-[var(--text-secondary)]">{loadError}</p>
           </div>
         ) : selectedGameId === 'direction' ? (
           <DirectionDataset trials={trials} datasetDocs={datasetDocs} />
         ) : selectedGameId !== 'visual-reaction' ? (
-          <div className="flex flex-col items-center justify-center min-h-[380px] sm:min-h-[460px] w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-8 my-auto text-center">
+          <div className="flex flex-col items-center justify-center min-h-[360px] w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-6 my-auto text-center">
             <span className="text-4xl sm:text-6xl font-heading font-black tracking-widest text-[var(--cyan-primary)] uppercase select-none">
               SOON
             </span>
+            <p className="mt-2.5 font-mono text-xs text-[var(--text-muted)] uppercase tracking-wider">
+              Telemetry collection for this protocol begins in an upcoming release
+            </p>
           </div>
         ) : (
-          
-          <div className="flex flex-col gap-4 sm:gap-6 w-full min-w-0">
-            {/* 1. GAUGE & SUMMARY CONTEXT */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
-               {/* Context Stats */}
-               <div className="order-2 lg:order-1 lg:col-span-1 flex flex-col justify-center gap-3 sm:gap-4">
-                 <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center shadow-sm">
-                   <span className="text-[10px] text-[var(--text-muted)] font-mono mb-1 tracking-widest uppercase">Sessions in Dataset</span>
-                   <span className="text-2xl font-mono text-[var(--text-main)] font-bold">{totalSessions.toLocaleString()}</span>
-                 </div>
-                 <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-4 flex flex-col justify-between shadow-sm">
-                   <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-[var(--border-subtle)]">
-                     <span className="text-[10px] text-[var(--text-muted)] font-mono tracking-widest uppercase">Device Comparison</span>
-                     <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                       MEDIAN RT
-                     </span>
-                   </div>
-                   <div className="grid grid-cols-2 gap-2 text-center divide-x divide-[var(--border-subtle)]">
-                     <div className="flex flex-col items-center justify-center">
-                       <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)] mb-0.5">
-                         <Monitor className="w-3.5 h-3.5 text-[#00f0ff]" />
-                         <span>Desktop</span>
-                       </div>
-                       <span className="text-xl font-mono text-[#00f0ff] font-bold">
-                         {deviceComparisonData[0]?.value ? `${deviceComparisonData[0].value} ms` : '—'}
-                       </span>
-                     </div>
-                     <div className="flex flex-col items-center justify-center pl-2">
-                       <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)] mb-0.5">
-                         <Smartphone className="w-3.5 h-3.5 text-[#a78bfa]" />
-                         <span>Mobile</span>
-                       </div>
-                       <span className="text-xl font-mono text-[#a78bfa] font-bold">
-                         {deviceComparisonData[1]?.value ? `${deviceComparisonData[1].value} ms` : '—'}
-                       </span>
-                     </div>
-                   </div>
-                 </div>
-                 <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center shadow-sm">
-                   <span className="text-[10px] text-[var(--text-muted)] font-mono mb-1 tracking-widest uppercase">Fastest Avg RT</span>
-                   <span className="text-2xl font-mono text-emerald-400 font-bold">{fastestAvgRT > 0 ? `${fastestAvgRT} ms` : '—'}</span>
-                 </div>
-               </div>
+          <div className="flex flex-col gap-3.5 sm:gap-5 w-full min-w-0">
+            {/* 1. UNIFIED 4-CARD OVERVIEW */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 min-w-0">
+              {/* Card 1: Hero Median Reaction Time with Benchmark Range */}
+              <div
+                id="chart-card-gauge"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs relative overflow-hidden min-w-0"
+              >
+                <HeroLatencyMetric value={medianRT} />
+              </div>
 
-               {/* Gauge */}
-               <div
-                 id="chart-card-gauge"
-                 className="order-1 lg:order-2 lg:col-span-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col items-center justify-between min-h-[280px] sm:min-h-[320px] shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Median Reaction Time
-                   </span>
-                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                     BENCHMARK
-                   </span>
-                 </div>
-                 <div className="w-full flex items-center justify-center my-auto py-3 sm:py-4">
-                   {medianRT > 0 ? <RadialGauge value={medianRT} /> : <span className="font-mono text-sm text-[var(--text-muted)]">NO DATA</span>}
-                 </div>
-               </div>
+              {/* Card 2: Platform Comparison (Desktop vs Mobile) */}
+              <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                  <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+                    Device Comparison
+                  </span>
+                  <span className="text-[10px] font-mono text-purple-400 font-semibold tracking-wider uppercase">
+                    MEDIAN RT
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 my-auto py-2 divide-x divide-[var(--border-subtle)] text-center">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)] mb-1">
+                      <Monitor className="w-3.5 h-3.5 text-[#00f0ff]" />
+                      <span>Desktop</span>
+                    </div>
+                    <span className="text-2xl font-mono text-[#00f0ff] font-bold">
+                      {deviceComparisonData[0]?.value ? `${deviceComparisonData[0].value} ms` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center pl-2">
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)] mb-1">
+                      <Smartphone className="w-3.5 h-3.5 text-[#a78bfa]" />
+                      <span>Mobile</span>
+                    </div>
+                    <span className="text-2xl font-mono text-[#a78bfa] font-bold">
+                      {deviceComparisonData[1]?.value ? `${deviceComparisonData[1].value} ms` : '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Total Trials */}
+              <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                  <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+                    Total Trials
+                  </span>
+                </div>
+                <div className="my-auto py-2">
+                  <span className="text-3xl sm:text-4xl font-mono text-[var(--text-primary)] font-bold">
+                    {totalAttemptsCount.toLocaleString()}
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] flex items-center justify-between">
+                  <span>All recorded attempts</span>
+                  <span>Includes retries</span>
+                </div>
+              </div>
+
+              {/* Card 4: Average Reaction Time */}
+              <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                  <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
+                    Average Reaction Time
+                  </span>
+                </div>
+                <div className="my-auto py-2 flex items-baseline gap-1.5">
+                  <span className="text-3xl sm:text-4xl font-mono text-emerald-400 font-bold">
+                    {averageRT > 0 ? averageRT : '—'}
+                  </span>
+                  <span className="text-sm font-mono text-[var(--text-muted)]">ms</span>
+                </div>
+                <div className="pt-2 border-t border-[var(--border-subtle)] text-[10px] font-mono text-[var(--text-muted)] flex items-center justify-between">
+                  <span>Equal session weight</span>
+                  <span>Mean of session averages</span>
+                </div>
+              </div>
             </div>
 
-            {/* 2. AREA & BAR */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
-               {/* Area */}
-               <div
-                 id="chart-card-area"
-                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Reaction Time Distribution
-                   </span>
-                   <div className="flex items-center gap-3 text-xs font-mono">
-                     <span className="flex items-center gap-1 text-[#00f0ff]">
-                       <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Desktop
-                     </span>
-                     <span className="flex items-center gap-1 text-[#a78bfa]">
-                       <span className="w-2 h-2 rounded-full bg-[#a78bfa]" /> Mobile
-                     </span>
-                   </div>
-                 </div>
-                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                   <ResponsiveContainer width="100%" height="100%">
-                     <AreaChart
-                       data={distributionData}
-                       margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
-                     >
-                       <defs>
-                         <linearGradient id="areaDesktopGrad" x1="0" y1="0" x2="0" y2="1">
-                           <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.4} />
-                           <stop offset="95%" stopColor="#00f0ff" stopOpacity={0.0} />
-                         </linearGradient>
-                         <linearGradient id="areaMobileGrad" x1="0" y1="0" x2="0" y2="1">
-                           <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.4} />
-                           <stop offset="95%" stopColor="#a78bfa" stopOpacity={0.0} />
-                         </linearGradient>
-                       </defs>
-                       <CartesianGrid
-                         stroke="var(--chart-grid)"
-                         strokeDasharray="3 3"
-                         vertical={false}
-                       />
-                       <XAxis
-                         dataKey="label"
-                         stroke="var(--chart-text)"
-                         fontSize={9}
-                         fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                         tickLine={false}
-                         angle={-25}
-                         textAnchor="end"
-                       />
-                       <YAxis
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                         tickLine={false}
-                         axisLine={false}
-                       />
-                       <Tooltip 
-                         content={<DatasetTooltip />} 
-                         allowEscapeViewBox={{ x: false, y: true }}
-                         wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                       />
-                       <Area
-                         type="monotone"
-                         dataKey="desktop"
-                         name="Desktop Cohort"
-                         stroke="#00f0ff"
-                         strokeWidth={2}
-                         fill="url(#areaDesktopGrad)"
-                       />
-                       <Area
-                         type="monotone"
-                         dataKey="mobile"
-                         name="Mobile Cohort"
-                         stroke="#a78bfa"
-                         strokeWidth={2}
-                         fill="url(#areaMobileGrad)"
-                       />
-                     </AreaChart>
-                   </ResponsiveContainer>
-                 </div>
-               </div>
+            {/* 2. FOREPERIOD & AGE COHORTS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-5 min-w-0">
+              {/* Reaction Time vs Foreperiod */}
+              <div
+                id="chart-card-foreperiod"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col shadow-xs relative overflow-hidden min-w-0"
+              >
+                <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)] mb-3">
+                  <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+                    Reaction Time vs Foreperiod
+                  </span>
+                  <div className="flex items-center gap-3 text-xs font-mono">
+                    <span className="flex items-center gap-1.5 text-[#00f0ff]">
+                      <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Median RT
+                    </span>
+                  </div>
+                </div>
+                <div className="w-full h-[210px] sm:h-[240px] min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={foreperiodData}
+                      margin={{ top: 10, right: 10, left: -22, bottom: 20 }}
+                    >
+                      <defs>
+                        <linearGradient id="areaForeperiodGradMobile" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#00f0ff" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        stroke="var(--chart-grid)"
+                        strokeDasharray="3 3"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="interval"
+                        stroke="var(--chart-text)"
+                        fontSize={9}
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                        tickLine={false}
+                        angle={-25}
+                        textAnchor="end"
+                      />
+                      <YAxis
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                        tickLine={false}
+                        axisLine={false}
+                        unit="ms"
+                        domain={[foreperiodTicks[0], foreperiodTicks[foreperiodTicks.length - 1]]}
+                        ticks={foreperiodTicks}
+                      />
+                      <Tooltip 
+                        content={<DatasetTooltip />} 
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="medianRT"
+                        name="Median RT"
+                        stroke="#00f0ff"
+                        strokeWidth={2}
+                        fill="url(#areaForeperiodGradMobile)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-               {/* Age Group */}
-               <div
-                 id="chart-card-age-group"
-                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Median RT by Age Group
-                   </span>
-                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                     AGE COHORTS
-                   </span>
-                 </div>
-                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                   <ResponsiveContainer width="100%" height="100%">
-                     <BarChart
-                       data={ageGroupData}
-                       margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
-                     >
-                       <CartesianGrid
-                         stroke="var(--chart-grid)"
-                         strokeDasharray="3 3"
-                         vertical={false}
-                       />
-                       <XAxis
-                         dataKey="day"
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                         tickLine={false}
-                       />
-                       <YAxis
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                         tickLine={false}
-                         axisLine={false}
-                         unit="ms"
-                       />
-                       <Tooltip 
-                         content={<DatasetTooltip />} 
-                         allowEscapeViewBox={{ x: false, y: true }}
-                         wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                       />
-                       <Bar dataKey="value" name="Median RT" radius={[4, 4, 0, 0]}>
-                         {ageGroupData.map((_, index) => (
-                           <Cell
-                             key={`cell-age-${index}`}
-                             fill={index === 2 ? '#00f0ff' : '#0284c7'}
-                           />
-                         ))}
-                       </Bar>
-                     </BarChart>
-                   </ResponsiveContainer>
-                 </div>
-               </div>
+              {/* Age Group */}
+              <div
+                id="chart-card-age-group"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col shadow-xs relative overflow-hidden min-w-0"
+              >
+                <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3">
+                  <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+                    Median RT by Age Group
+                  </span>
+                </div>
+                <div className="w-full h-[210px] sm:h-[240px] min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={ageGroupData}
+                      margin={{ top: 10, right: 10, left: -22, bottom: 5 }}
+                    >
+                      <CartesianGrid
+                        stroke="var(--chart-grid)"
+                        strokeDasharray="3 3"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="day"
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                        tickLine={false}
+                      />
+                      <YAxis
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                        tickLine={false}
+                        axisLine={false}
+                        unit="ms"
+                      />
+                      <Tooltip 
+                        content={<DatasetTooltip />} 
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      />
+                      <Bar dataKey="value" name="Median RT" radius={[6, 6, 0, 0]}>
+                        {ageGroupData.map((_, index) => (
+                          <Cell
+                            key={`cell-age-${index}`}
+                            fill={index === 2 ? '#00f0ff' : '#0284c7'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
 
-            {/* 3. LINE */}
+            {/* 3. TRIAL PROGRESSION (TRIALS 1–10) */}
             <div
               id="chart-card-line-trials"
-              className="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-sm relative overflow-hidden min-w-0"
+              className="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col shadow-xs relative overflow-hidden min-w-0"
             >
-              <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
+              <div className="w-full flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)] mb-3">
                 <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                  Trial Progression (Trials 1–5)
+                  Trial Progression (Trials 1–10)
                 </span>
                 <div className="flex items-center gap-3 text-xs font-mono">
-                  <span className="flex items-center gap-1 text-[#00f0ff]">
-                    <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Desktop
-                  </span>
-                  <span className="flex items-center gap-1 text-[#a78bfa]">
-                    <span className="w-2 h-2 rounded-full bg-[#a78bfa]" /> Mobile
-                  </span>
-                  <span className="flex items-center gap-1 text-[#38bdf8]">
-                    <span className="w-2 h-2 rounded-full bg-[#38bdf8]" /> Overall
+                  <span className="flex items-center gap-1.5 text-[#00f0ff]">
+                    <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Overall RT
                   </span>
                 </div>
               </div>
-              <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
+              <div className="w-full h-[210px] sm:h-[240px] min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={trialProgressionData}
-                    margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
+                    margin={{ top: 10, right: 15, left: -15, bottom: 5 }}
                   >
                     <CartesianGrid
                       stroke="var(--chart-grid)"
@@ -823,160 +747,144 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     />
                     <Line
                       type="monotone"
-                      dataKey="desktop"
-                      name="Desktop RT"
-                      stroke="#00f0ff"
-                      strokeWidth={2}
-                      dot={{ r: 3, fill: '#00f0ff', strokeWidth: 0 }}
-                      activeDot={{ r: 5 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="mobile"
-                      name="Mobile RT"
-                      stroke="#a78bfa"
-                      strokeWidth={2}
-                      dot={{ r: 3, fill: '#a78bfa', strokeWidth: 0 }}
-                      activeDot={{ r: 5 }}
-                    />
-                    <Line
-                      type="monotone"
                       dataKey="overall"
                       name="Overall RT"
-                      stroke="#38bdf8"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      dot={{ r: 3, fill: '#38bdf8', strokeWidth: 0 }}
-                      activeDot={{ r: 5 }}
+                      stroke="#00f0ff"
+                      strokeWidth={2.5}
+                      dot={{ r: 3.5, fill: '#00f0ff', strokeWidth: 0 }}
+                      activeDot={{ r: 5.5 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* 4. SCATTER & RING */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
-               {/* Scatter */}
-               <div
-                 id="chart-card-scatter"
-                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3 sm:mb-4">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Speed × Consistency
-                   </span>
-                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                     ALL SESSIONS
-                   </span>
-                 </div>
-                 <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                   <ResponsiveContainer width="100%" height="100%">
-                     <ScatterChart margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                       <CartesianGrid
-                         stroke="var(--chart-grid)"
-                         strokeDasharray="3 3"
-                       />
-                       <XAxis
-                         dataKey="medianRT"
-                         name="Median RT"
-                         unit="ms"
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                         tickLine={false}
-                         domain={['auto', 'auto']}
-                       />
-                       <YAxis
-                         dataKey="sd"
-                         name="SD"
-                         unit="ms"
-                         stroke="var(--chart-text)"
-                         fontSize={10}
-                         fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                         tickLine={false}
-                         axisLine={false}
-                         domain={['auto', 'auto']}
-                       />
-                       <Tooltip
-                         cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.2)' }}
-                         content={<DatasetTooltip />}
-                         allowEscapeViewBox={{ x: false, y: true }}
-                         wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                       />
-                       <Scatter
-                         name="Desktop Sessions"
-                         data={scatterDesktop}
-                         fill="#00f0ff"
-                         opacity={0.8}
-                       />
-                       <Scatter
-                         name="Mobile Sessions"
-                         data={scatterMobile}
-                         fill="#a78bfa"
-                         opacity={0.8}
-                       />
-                     </ScatterChart>
-                   </ResponsiveContainer>
-                 </div>
-               </div>
+            {/* 4. CONSISTENCY DISTRIBUTION & TRIAL VALIDITY */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-5 min-w-0">
+              {/* Consistency Distribution */}
+              <div
+                id="chart-card-consistency"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col shadow-xs relative overflow-hidden min-w-0"
+              >
+                <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] mb-3">
+                  <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+                    Consistency Distribution
+                  </span>
+                  <div className="flex items-center gap-3 text-xs font-mono">
+                    <span className="flex items-center gap-1.5 text-[#00f0ff]">
+                      <span className="w-2 h-2 rounded-full bg-[#00f0ff]" /> Desktop
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[#a78bfa]">
+                      <span className="w-2 h-2 rounded-full bg-[#a78bfa]" /> Mobile
+                    </span>
+                  </div>
+                </div>
+                <div className="w-full h-[210px] sm:h-[240px] min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={consistencyData}
+                      margin={{ top: 10, right: 10, left: -22, bottom: 5 }}
+                    >
+                      <CartesianGrid
+                        stroke="var(--chart-grid)"
+                        strokeDasharray="3 3"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="label"
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                        tickLine={false}
+                      />
+                      <YAxis
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip
+                        content={<DatasetTooltip />}
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      />
+                      <Bar dataKey="desktop" name="Desktop" stackId="consistencyStack" fill="#00f0ff" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="mobile" name="Mobile" stackId="consistencyStack" fill="#a78bfa" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-               {/* Ring */}
-               <div
-                 id="chart-card-ring"
-                 className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col items-center justify-between min-h-[280px] sm:min-h-[320px] shadow-sm relative overflow-hidden min-w-0"
-               >
-                 <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
-                   <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-                     Trial Validity
-                   </span>
-                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                     {validPercent}% VALID
-                   </span>
-                 </div>
-                 <div className="w-full h-[180px] sm:h-[190px] relative flex items-center justify-center my-auto min-w-0">
-                   <ResponsiveContainer width="100%" height="100%">
-                     <PieChart>
-                       <Pie
-                         data={ringData}
-                         cx="50%"
-                         cy="50%"
-                         innerRadius={50}
-                         outerRadius={70}
-                         paddingAngle={5}
-                         dataKey="value"
-                       >
-                         {ringData.map((entry, index) => (
-                           <Cell key={`ring-pie-cell-${entry.name}-${index}`} fill={entry.color} />
-                         ))}
-                       </Pie>
-                       <Tooltip 
-                         content={<DatasetTooltip />} 
-                         allowEscapeViewBox={{ x: false, y: true }}
-                         wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                       />
-                     </PieChart>
-                   </ResponsiveContainer>
-                   {/* Central Metric */}
-                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                     <span className="font-mono text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-                       {totalTrialsCount.toLocaleString()}
-                     </span>
-                     <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-muted)]">
-                       TRIALS
-                     </span>
-                   </div>
-                 </div>
-                 <div className="w-full flex items-center justify-center gap-4 pt-2 border-t border-[var(--border-subtle)] text-xs font-mono">
-                   <div className="flex items-center gap-1.5">
-                     <span className="w-2.5 h-2.5 rounded-full bg-[#00f0ff]" />
-                     <span className="text-[var(--text-secondary)]">Valid</span>
-                   </div>
-                   <div className="flex items-center gap-1.5">
-                     <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
-                     <span className="text-[var(--text-secondary)]">False Start</span>
-                   </div>
-                 </div>
-               </div>
+              {/* Ring / Trial Validity */}
+              <div
+                id="chart-card-ring"
+                className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-3.5 sm:p-5 flex flex-col items-center justify-between min-h-[280px] shadow-xs relative overflow-hidden min-w-0"
+              >
+                <div className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                  <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+                    Trial Validity
+                  </span>
+                  <span className="text-[10px] font-mono text-[var(--text-muted)] tracking-wider">
+                    {validityBreakdown.totalAttempts.toLocaleString()} TOTAL ATTEMPTS
+                  </span>
+                </div>
+                <div className="w-full h-[180px] relative flex items-center justify-center my-auto min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={ringData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={75}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {ringData.map((entry, index) => (
+                          <Cell key={`ring-pie-cell-${entry.name}-${index}`} fill={entry.color} stroke="none" />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        content={<DatasetTooltip />} 
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  {/* Central Metric */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="font-mono text-2xl font-bold text-[var(--text-primary)] tracking-tight">
+                      {validityBreakdown.validPercent}%
+                    </span>
+                    <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-muted)]">
+                      VALID RATE
+                    </span>
+                  </div>
+                </div>
+                <div className="w-full flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1 pt-2 border-t border-[var(--border-subtle)] text-[10.5px] font-mono">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#00f0ff]" />
+                    <span className="text-[var(--text-secondary)]">Valid ({validityBreakdown.valid.toLocaleString()})</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#ef4444]" />
+                    <span className="text-[var(--text-secondary)]">Premature ({validityBreakdown.premature.toLocaleString()})</span>
+                  </div>
+                  {validityBreakdown.anticipatory > 0 && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+                      <span className="text-[var(--text-secondary)]">Anticipatory ({validityBreakdown.anticipatory.toLocaleString()})</span>
+                    </div>
+                  )}
+                  {validityBreakdown.timeout > 0 && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#a78bfa]" />
+                      <span className="text-[var(--text-secondary)]">Timeout ({validityBreakdown.timeout.toLocaleString()})</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
