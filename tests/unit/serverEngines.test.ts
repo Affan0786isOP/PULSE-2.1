@@ -12,7 +12,6 @@ import {
 } from '../../server/services/provenanceService';
 import { isValidLeaderboardScoreMetric } from '../../shared/domain/leaderboardEligibility';
 import { isOptedInLeaderboardUser } from '../../shared/domain/leaderboardEligibility';
-import { getIdempotency, setIdempotency, isValidIdempotencyKey } from '../../server/services/idempotencyService';
 import { parseCookies, isTruthyRoutingFlag, isMobileUserAgent } from '../../server/middleware/deviceRouting';
 
 beforeAll(() => {
@@ -336,20 +335,6 @@ describe('leaderboard rules', () => {
   it('rejects non-numeric score metrics', () => {
     expect(isValidLeaderboardScoreMetric('visual-reaction', 'fast')).toBe(false);
     expect(isValidLeaderboardScoreMetric('visual-reaction', NaN)).toBe(false);
-  });
-});
-
-describe('idempotency store', () => {
-  it('returns cached results, expires them, and validates keys', async () => {
-    setIdempotency('k1', { ok: true });
-    expect(getIdempotency('k1')).toEqual({ ok: true });
-    setIdempotency('k2', { ok: true }, -1);
-    expect(getIdempotency('k2')).toBeNull();
-    expect(getIdempotency('missing')).toBeNull();
-    expect(isValidIdempotencyKey('abc')).toBe(true);
-    expect(isValidIdempotencyKey('')).toBe(false);
-    expect(isValidIdempotencyKey('x'.repeat(129))).toBe(false);
-    expect(isValidIdempotencyKey(5)).toBe(false);
   });
 });
 

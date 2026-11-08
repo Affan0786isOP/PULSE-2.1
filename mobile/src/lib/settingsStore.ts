@@ -1,1 +1,1 @@
-export * from '@shared/lib/settingsStore';
+export * from '../../../src/lib/settingsStore';

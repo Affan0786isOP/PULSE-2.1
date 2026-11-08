@@ -17,7 +17,7 @@ import { normalizeLeaderboardAssessmentType } from '../../shared/domain/leaderbo
 import { validateAndDeriveAssessmentFromTrials } from '../engines/assessmentEngine';
 import { deriveForeperiodCategory } from '../engines/reactionCalculator';
 import { computeCanonicalTrialsDigest, signProvenancePayload } from './provenanceService';
-import { getIdempotency, setIdempotency } from './idempotencyService';
+
 import { ISessionService } from './interfaces/ISessionService';
 import { AppError, SessionAlreadyConsumedError } from '../models/replayContracts';
 import { getAssessmentVersionMetadata } from '../../shared/contracts/common';
@@ -169,13 +169,6 @@ export class ResearchService implements IResearchService {
 
   async submitResearch(input: SubmitResearchInput): Promise<SubmitResearchResult> {
     const { sessionId, userId, assessmentType, ageGroup, trials, idempotencyKey, serverDeviceCategory } = input;
-
-    if (idempotencyKey) {
-      const cached = getIdempotency<SubmitResearchResult>(`res_sub:${idempotencyKey}`);
-      if (cached) {
-        return cached;
-      }
-    }
 
     if (!assessmentType || !VALID_ASSESSMENT_TYPES.includes(assessmentType)) {
       throw new AppError('Invalid or missing assessmentType', 400);
@@ -541,10 +534,6 @@ export class ResearchService implements IResearchService {
       publicDatasetDoc,
       trialPayloads
     });
-
-    if (idempotencyKey) {
-      setIdempotency(`res_sub:${idempotencyKey}`, result);
-    }
 
     return result;
   }
