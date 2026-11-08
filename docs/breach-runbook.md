@@ -31,7 +31,7 @@ If server credentials or administrative keys are suspected to be leaked:
    - Generate a new JSON key file, base64 encode or format into `FIREBASE_SERVICE_ACCOUNT` environment variable.
 2. **Audit & Rotate Secrets:**
    - Rotate `PULSE_PROVENANCE_SECRET` in server environment variables (e.g., Cloud Run, Vercel). This prevents attackers from signing counterfeit assessment trials or leaderboard records.
-   - Note: The web administration UI/console and `/api/admin/*` endpoints have been removed from the application surface. Administrative and moderation capabilities are strictly scoped to operator CLI/scripts with direct Firebase Admin credentials (`FIREBASE_SERVICE_ACCOUNT`).
+   - The desktop `/admin` console and protected `/api/admin/*` endpoints are active. If admin credentials or sessions are suspected to be compromised, rotate `ADMIN_PASSCODE` to block new logins and rotate `PULSE_ADMIN_SESSION_SECRET` to invalidate existing signed tokens. Confirm that revoked nonces in `adminSessionRevocations` remain inaccessible and review `adminAuditLogs` for suspicious actions. Keep all admin secrets and Firebase service-account credentials server-side; the CLI remains an operator recovery path.
 4. **Redeploy Application:**
    - Trigger deployment to purge in-memory state and reload rotated secrets.
 
