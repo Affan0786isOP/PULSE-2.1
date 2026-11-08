@@ -23,9 +23,11 @@ function handleSessionQuery(event: MessageEvent) {
 }
 
 function handleVisibilityChange() {
-  if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
-    if (!assessmentLockStore.isProtected()) {
-      broadcastToAllWorkers({ type: 'PULSE_CLIENT_IDLE' });
+  if (typeof document !== 'undefined') {
+    if (document.visibilityState === 'hidden' || document.visibilityState === 'visible') {
+      if (!assessmentLockStore.isProtected()) {
+        broadcastToAllWorkers({ type: 'PULSE_CLIENT_IDLE' });
+      }
     }
   }
 }

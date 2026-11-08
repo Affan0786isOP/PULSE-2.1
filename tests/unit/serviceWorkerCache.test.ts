@@ -58,6 +58,16 @@ describe('Service Worker Tier 2 Caching', () => {
     }
   });
 
+  it('distinguishes confirmed active sessions from timeouts and applies bounded retry wait', () => {
+    for (const sw of [desktopSw, mobileSw]) {
+      expect(sw).toContain('confirmedActive');
+      expect(sw).toContain('hasTimeout');
+      expect(sw).toContain('scheduleSkipWaitingRetry');
+      expect(sw).toContain('MAX_SKIP_WAITING_RETRIES');
+      expect(sw).toContain('sessionCheck.hasTimeout && !sessionCheck.confirmedActive');
+    }
+  });
+
   it('strictly bypasses cross-origin requests to prevent caching external resources', () => {
     for (const sw of [desktopSw, mobileSw]) {
       expect(sw).toContain('url.origin !== self.location.origin');

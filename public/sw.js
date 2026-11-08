@@ -26,26 +26,42 @@ const OPTIONAL_ASSETS = [
 // Queries open window clients directly for live session state via MessageChannel
 async function checkAnyClientHasActiveSession() {
   const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-  if (clientsList.length === 0) return false;
+  if (clientsList.length === 0) return { hasActive: false, confirmedActive: false, hasTimeout: false };
+
+  let timedOutCount = 0;
+  let confirmedActiveCount = 0;
 
   const checks = clientsList.map((client) => {
+    let isAnswered = false;
     return new Promise((resolve) => {
       try {
         const channel = new MessageChannel();
         const timer = setTimeout(() => resolve(true), 1500);
         channel.port1.onmessage = (event) => {
+          isAnswered = true;
           clearTimeout(timer);
-          resolve(Boolean(event.data && event.data.isSessionActive));
+          const isActive = Boolean(event.data && event.data.isSessionActive);
+          if (isActive) confirmedActiveCount++;
+          resolve(isActive);
         };
         client.postMessage({ type: 'QUERY_PULSE_SESSION_ACTIVE' }, [channel.port2]);
       } catch {
         resolve(true);
       }
+    }).then((val) => {
+      if (!isAnswered && val === true) {
+        timedOutCount++;
+      }
+      return val;
     });
   });
 
   const results = await Promise.all(checks);
-  return results.some(Boolean);
+  return {
+    hasActive: results.some(Boolean),
+    confirmedActive: confirmedActiveCount > 0,
+    hasTimeout: timedOutCount > 0,
+  };
 }
 
 // Queries IndexedDB for any unexpired durable session lease
@@ -94,12 +110,56 @@ async function hasActiveIndexedDbLease() {
   });
 }
 
-async function trySkipWaiting() {
-  const hasClientSession = await checkAnyClientHasActiveSession();
-  if (hasClientSession) return false;
+let skipWaitingRetryTimer = null;
+let skipWaitingRetryCount = 0;
+const MAX_SKIP_WAITING_RETRIES = 3;
+const RETRY_INTERVAL_MS = 2000;
 
+function scheduleSkipWaitingRetry() {
+  if (skipWaitingRetryTimer) return;
+  if (skipWaitingRetryCount >= MAX_SKIP_WAITING_RETRIES) return;
+
+  skipWaitingRetryTimer = setTimeout(async () => {
+    skipWaitingRetryTimer = null;
+    skipWaitingRetryCount++;
+    await trySkipWaiting();
+  }, RETRY_INTERVAL_MS);
+}
+
+async function trySkipWaiting() {
+  const sessionCheck = await checkAnyClientHasActiveSession();
+
+  // If a client explicitly confirmed an active assessment, never skip waiting
+  if (sessionCheck.confirmedActive) {
+    return false;
+  }
+
+  // Always check durable IndexedDB lease
   const hasLease = await hasActiveIndexedDbLease();
-  if (hasLease) return false;
+  if (hasLease) {
+    return false;
+  }
+
+  // Distinguish timeout from confirmed active session:
+  // If clients timed out without confirming an active session, fail closed initially
+  // and schedule an automatic bounded retry so an unresponsive or suspended client
+  // cannot indefinitely block updates once the lease has expired.
+  if (sessionCheck.hasTimeout && !sessionCheck.confirmedActive) {
+    if (skipWaitingRetryCount < MAX_SKIP_WAITING_RETRIES) {
+      scheduleSkipWaitingRetry();
+      return false;
+    }
+    // Bounded retries exhausted; re-verify durable lease before proceeding
+    const finalLease = await hasActiveIndexedDbLease();
+    if (finalLease) return false;
+  } else if (sessionCheck.hasActive) {
+    return false;
+  }
+
+  if (skipWaitingRetryTimer) {
+    clearTimeout(skipWaitingRetryTimer);
+    skipWaitingRetryTimer = null;
+  }
 
   await self.skipWaiting();
   return true;
@@ -107,6 +167,7 @@ async function trySkipWaiting() {
 
 self.addEventListener('message', async (event) => {
   if (event.data && (event.data.type === 'PULSE_SESSIONS_COMPLETED' || event.data.type === 'PULSE_CLIENT_IDLE')) {
+    skipWaitingRetryCount = 0;
     await trySkipWaiting();
   }
 });
