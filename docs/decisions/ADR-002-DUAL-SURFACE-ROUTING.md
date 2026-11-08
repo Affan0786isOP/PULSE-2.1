@@ -1,7 +1,7 @@
 # ADR-002: Dual-Surface Application Architecture (Desktop SPA & Mobile PWA)
 
 ## Status
-Accepted
+Superseded by [ADR-004: Unified Responsive Routing & Single-Route Surface Encapsulation](ADR-004-UNIFIED-RESPONSIVE-ROUTING.md)
 
 ## Context
 Cognitive motor latency measurement on mobile touchscreens requires tailored touch hit-targets, full-screen canvas controls, and PWA offline installation capabilities, whereas desktop environments demand high-resolution telemetry dashboards and physical keyboard shortcuts. Supporting both within a single monolithic bundle led to layout conflicts and bloated client payloads.

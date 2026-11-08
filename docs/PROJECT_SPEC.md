@@ -33,8 +33,8 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 ```
 [User Arrives]
       │
-      ├─► Desktop Browser ──► Route: /
-      └─► Mobile Browser  ──► Auto-Redirect: /mobile/
+      ├─► Desktop Viewport (>=768px) ──► Route: / (Desktop Surface)
+      └─► Mobile Viewport (<768px)    ──► Route: / (Mobile Surface)
       │
 [Cohort Selection] (Age bracket selection saved in localStorage)
       │
@@ -126,8 +126,8 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 
 | Module / Feature | Route / Interface | Status | Implementation Details |
 | :--- | :--- | :--- | :--- |
-| **Desktop Home & Hero** | `/` | `IMPLEMENTED` | Awwwards-tier animated canvas background, 3D assessment carousel, interactive live reticle, quick-start CTAs, and canonical unified Navbar with assessment lockouts. |
-| **Mobile PWA Sub-App** | `/mobile/` | `IMPLEMENTED` | Dedicated mobile entry point, touch-optimized layouts, service worker caching, standalone PWA install prompt. |
+| **Unified Surface Routing** | Root `/` | `IMPLEMENTED` | Single canonical routes across desktop and mobile, dynamically rendering responsive surfaces via `useViewportSurface` with queued lock-aware surface transitions. |
+| **Mobile PWA Sub-App** | Embedded / Mobile Surface | `IMPLEMENTED` | Touch-optimized mobile layout, service worker caching, standalone PWA install prompt. |
 | **Device Auto-Routing** | Middleware & Client | `IMPLEMENTED` | Client-side routing applies viewport/device checks; the server preserves normal page navigation and redirects only for explicit routing flags/preferences. |
 | **Display Refresh-Rate Calibrator** | Settings / background hook | `REMOVED` | Dynamic refresh-rate detection and theoretical display-offset subtraction are no longer used for new assessment submissions. Legacy local keys may still be cleared. |
 | **Assessment Live-Timer Pacing** | Desktop and mobile assessment engines | `IMPLEMENTED` | Shared software pacer targets an average of approximately 60 live-timer UI updates per second without changing physical display refresh or quantizing stimulus timestamps. |

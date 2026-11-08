@@ -9,6 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Unified Responsive Routing & Surface Switching:**
+  - Unified all top-level routes (`/`, `/assessments`, `/benchmarks`, `/leaderboard`, `/about`, `/improve`, `/research/privacy`, `/guides`, `/guides/:slug`, `/admin`, `/404`) under single canonical URLs, eliminating dual-surface `/mobile/` pathing and redirects.
+  - Implemented dynamic surface switching via `useViewportSurface` in `src/App.tsx`, seamlessly mounting `<DesktopApp />` or `<MobileAppWrapper />` at the 768px breakpoint.
+  - Added session-aware surface transition queueing via `assessmentLockStore`: active or acquiring assessments queue requested surface changes until the session is completed or abandoned, preventing inadvertent unmounting during device orientation flips or window resizing.
+  - Extracted cross-surface shared modules into `@shared/*` (`@shared/assessment/assessmentLockStore`, `@shared/navigation/NavigationGuard`, `@shared/navigation/useGuardedNavigate`, `@shared/lib/settingsStore`, and `@shared/pwa/serviceWorkerSessionBridge`).
+  - Added Architectural Decision Record [ADR-004: Unified Responsive Routing & Single-Route Surface Encapsulation](docs/decisions/ADR-004-UNIFIED-RESPONSIVE-ROUTING.md) superseding ADR-002.
+
+### Fixed
+- **Service Worker Session Query Timeout Deadlock:**
+  - Resolved deadlock condition where suspended or slow-answering clients caused service workers to treat clients as active on timeout without scheduling a bounded retry.
+  - Retained safe fail-closed behavior while adding bounded retry timers and window resume/visibility-change signal bridging in `public/sw.js`, `mobile/public/sw.js`, and `shared/pwa/serviceWorkerSessionBridge.ts`.
 - **Controlled Dataset Summary Maintenance:** Replaced public full-collection summary scans with a single `publicDatasetMeta/summary` document; successful submissions increment the aggregate transactionally. Added admin/CLI dry-run-first reconciliation with explicit apply, safe-integer validation, migration locking, and controlled submission pause during apply. Added a two-minute per-IP explicit Dataset refresh limit and 60-second client/CDN caching with in-flight deduplication.
 - **Restored Desktop Admin Console:** Restored `/admin` and protected `/api/admin/*` routes for leaderboard moderation, leaderboard accuracy maintenance, and Dataset-summary reconciliation. Admin sessions use server-only passcode/signing secrets, signed time-bounded tokens, and Firestore nonce revocation; CLI remains available for operator recovery.
 - **Repository Typography Contract:** Standardized desktop/mobile/chart/brand typography on Inter, Space Grotesk, and JetBrains Mono (weights 400/500/600/700). Added `scripts/audit-typography.mjs` and wired it into `npm test`, `npm run check`, and `npm run build`.

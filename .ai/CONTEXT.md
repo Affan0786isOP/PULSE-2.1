@@ -21,9 +21,10 @@
 - **Data Visualization:** Recharts 3.10.1.
 - **Backend / API:** Express 5.3.0 on Node.js (via `tsx` in dev, `esbuild` bundled in prod), `express-rate-limit`.
 - **Database & Auth:** Firebase Web SDK 13.x (client, anonymous auth + read-only Firestore), Firebase Admin SDK 14.3.0 (server-authoritative writes and HMAC verification).
-- **Target Surfaces:** Dual-surface application architecture:
-  - Desktop SPA: `src/` (root Vite instance on port 3000)
-  - Mobile PWA: `mobile/` (sub-Vite instance with dedicated manifest and touch-optimized components)
+- **Target Surfaces:** Unified responsive application architecture:
+  - Root Vite entry: `src/main.tsx` and `src/App.tsx` hosting unified canonical routes.
+  - Surface switching: `useViewportSurface` dynamically renders desktop (`DesktopApp.tsx`) or mobile (`MobileAppWrapper.tsx`) views while preserving the same URL.
+  - Shared subsystem: `@shared/*` houses cross-surface assessment locks, navigation guards, settings stores, and PWA session bridges.
 
 ---
 
@@ -57,14 +58,21 @@
 ## 4. Key Directory Map
 ```
 /
-├── src/                      # Desktop React Application
+├── src/                      # Desktop React Application & Unified App Switcher
 │   ├── components/           # UI Components & Assessment Protocols
 │   │   ├── brand/            # Unified logo, reticle, telemetry cards
 │   │   └── home/             # Homepage narrative scenes & system footer
+│   ├── hooks/                # Viewport & surface hooks (useViewportSurface)
 │   ├── lib/                  # State stores, Firebase client, timing utilities
 │   └── styles/               # CSS variables & aesthetic rules
-├── mobile/                   # Mobile PWA Subproject (Dedicated Vite config)
+├── mobile/                   # Mobile Surface Components & PWA Assets
+│   ├── public/               # Mobile PWA manifest & service worker
 │   └── src/                  # Mobile-tailored screens, touch layouts, 8 narrative scenes & wave continuation
+├── shared/                   # Cross-Surface Subsystem (@shared)
+│   ├── assessment/           # assessmentLockStore (session protection)
+│   ├── navigation/           # NavigationGuard, useGuardedNavigate
+│   ├── lib/                  # settingsStore and preferences
+│   └── pwa/                  # Service worker session bridge and lifecycle hooks
 ├── security/                 # Retention policies, data maps, processor inventories
 ├── docs/                     # Full project documentation suite
 │   ├── specs/                # Deep technical specifications

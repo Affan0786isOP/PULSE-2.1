@@ -6,44 +6,58 @@ This document describes the end-to-end architecture, runtime subsystems, data fl
 
 ## 1. System Topology Overview
 
-PULSE consists of a dual-surface client layer (Desktop SPA + Mobile PWA) connected over REST/HTTPS to an Express Node.js application server, backed by Google Cloud Firestore and Firebase Authentication.
+PULSE uses a unified single-route responsive architecture. Both desktop and mobile viewports are served from identical canonical URLs (`/`, `/about`, `/assessments`, etc.) connected over REST/HTTPS to an Express Node.js application server, backed by Google Cloud Firestore and Firebase Authentication.
 
 ```mermaid
 graph TD
-    ClientDesktop["Desktop Client (React 19 / Vite)<br/>Route: /"] -->|HTTPS / JSON| Server["Express API & Provenance Engine<br/>(server/ / Node.js)"]
-    ClientMobile["Mobile PWA Client (React 19 / Vite)<br/>Route: /mobile/"] -->|HTTPS / JSON| Server
+    Client["Client Browser (Single Canonical Route: /)"] --> Router["Unified Router & Viewport Surface Switcher<br/>(src/App.tsx / useViewportSurface)"]
+    Router -->|Desktop Breakpoint >= 768px| DesktopApp["Desktop Surface (DesktopApp)"]
+    Router -->|Mobile Breakpoint < 768px| MobileApp["Mobile Surface (MobileAppWrapper)"]
+
+    DesktopApp --> Shared["@shared Subsystem<br/>(Locks, Navigation Guard, Settings, PWA Bridge)"]
+    MobileApp --> Shared
+
+    DesktopApp -->|HTTPS / JSON| Server["Express API & Provenance Engine<br/>(server/ / Node.js)"]
+    MobileApp -->|HTTPS / JSON| Server
 
     Server -->|Admin SDK (Signed Writes)| Firestore[("Google Cloud Firestore")]
     Server -->|Token Verification| FirebaseAuth["Firebase Authentication<br/>(Anonymous Auth)"]
 
-    ClientDesktop -.->|Read-Only Queries| Firestore
-    ClientMobile -.->|Read-Only Queries| Firestore
+    DesktopApp -.->|Read-Only Queries| Firestore
+    MobileApp -.->|Read-Only Queries| Firestore
 ```
 
 ---
 
-## 2. Dual-Surface Frontend Architecture
+## 2. Unified Responsive Frontend Architecture
 
-PULSE separates desktop and mobile web experiences into distinct build pipelines while sharing protocol validation logic and data models.
+PULSE unifies desktop and mobile web experiences under single canonical routes while preserving optimized desktop and mobile layouts and shared business logic.
 
 ```
 /
-├── src/                      # Desktop Web Client (Port 3000)
-│   ├── App.tsx               # Root desktop router & AnimatedBackground
-│   ├── main.tsx              # Desktop entry point
+├── src/                      # Unified Client Entry & Desktop Application
+│   ├── App.tsx               # Root router, useViewportSurface, and surface routing
+│   ├── main.tsx              # Single client entry point
+│   ├── DesktopApp.tsx        # Desktop application component tree
 │   ├── components/           # Desktop assessment views, analytics, brand
-│   └── lib/                  # State stores, timing tools, Firestore client
+│   ├── hooks/                # Viewport hooks (useViewportSurface)
+│   └── lib/                  # Desktop state stores, timing tools, Firestore client
 │
-└── mobile/                   # Mobile PWA Subproject (Vite sub-config)
-    ├── index.html            # Mobile-optimized viewport HTML
-    ├── vite.config.ts        # Mobile Vite configuration
-    └── src/                  # Mobile touch assessment views & PWA lifecycle
+├── mobile/                   # Mobile Surface Components & PWA Shell
+│   ├── src/                  # Mobile touch assessment views & mobile components
+│   └── public/               # Mobile PWA manifest & worker assets
+│
+└── shared/                   # Shared Cross-Surface Subsystem (@shared)
+    ├── assessment/           # Cross-surface assessment locks (assessmentLockStore)
+    ├── navigation/           # Protected navigation guards (NavigationGuard, useGuardedNavigate)
+    ├── lib/                  # Shared settings and preferences stores
+    └── pwa/                  # Service worker session bridge and lifecycle hooks
 ```
 
-### Device Auto-Routing
-- [`src/lib/deviceRouting.ts`](../src/lib/deviceRouting.ts) inspects User-Agent signatures and screen width breakpoints (`< 768px`).
-- Express preserves document routes; client-side routing applies device detection after the browser can inspect its user agent and viewport. Server redirects are reserved for explicit routing flags/preferences.
-- Cross-surface navigation allows manual override if a user explicitly requests the desktop or mobile interface.
+### Viewport Surface Encapsulation
+- [`src/hooks/useViewportSurface.ts`](../src/hooks/useViewportSurface.ts) monitors viewport width with a standard 768px breakpoint.
+- When an assessment session is active or acquiring (tracked via `assessmentLockStore`), surface switches are queued safely rather than abruptly unmounting the active test apparatus.
+- No `/mobile/` path redirects exist in application routing; URLs remain canonical across all devices.
 
 ---
 

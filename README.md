@@ -26,7 +26,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Visit [`http://localhost:3000`](http://localhost:3000) in your browser. Mobile viewports are automatically routed to [`http://localhost:3000/mobile/`](http://localhost:3000/mobile/).
+Visit [`http://localhost:3000`](http://localhost:3000) in your browser. Desktop and mobile viewports are unified on single canonical routes, dynamically rendering device-optimized surfaces via `useViewportSurface`.
 
 ---
 

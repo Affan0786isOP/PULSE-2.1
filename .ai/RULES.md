@@ -14,7 +14,7 @@ These rules govern all AI coding agents working within the PULSE repository. The
 
 ## 2. Code Modification Boundaries
 1. **No Unprompted Refactors:** Do not refactor, reformat, or rewrite code outside the strict scope of the user's prompt.
-2. **Preserve Application Architecture:** Do not alter routing strategies (`/` desktop vs `/mobile/` PWA), state management models, or component contracts unless explicitly instructed.
+2. **Preserve Application Architecture:** Do not alter routing strategies (unified single-route surface switching via `useViewportSurface`), state management models, or component contracts unless explicitly instructed.
 3. **No Unvetted Dependencies:** Do not install new packages without explicit justification and compatibility verification with the versions declared in `package.json` (currently React 19, Vite 8, and Tailwind CSS v4).
 4. **Preserve Comments & Docstrings:** Retain existing explanatory comments, citations, and protocol docstrings unless directly obsolete.
 
@@ -39,7 +39,7 @@ These rules govern all AI coding agents working within the PULSE repository. The
 1. **Respect Design Tokens:** Adhere strictly to the observatory dark palette (`--surface-0` through `--surface-3`, `#00F0FF` Signal Cyan, `#10B981` Provenance Green) and typography defined in [`docs/DESIGN_SYSTEM.md`](../docs/DESIGN_SYSTEM.md).
 2. **Active States & Tactility:** Every interactive element must have defined `:active` and `:focus-visible` styles.
 3. **Reduced Motion:** Always respect `prefers-reduced-motion` and the `reducedMotionEnabled` setting via `<MotionConfig>`.
-4. **Dual-Surface Compatibility:** Changes to shared logic must maintain parity between the desktop application (`/src`) and mobile PWA (`/mobile/src`).
+4. **Cross-Surface Compatibility:** Changes to shared logic must maintain parity between desktop (`DesktopApp.tsx`) and mobile (`MobileAppWrapper.tsx`) surfaces using `@shared/*` modules where appropriate.
 5. **Theme Surface Cohesion (No Accidental Dual-Tone):** When building or styling multi-card layouts, carousels, or stacked components, maintain consistent surface coloring across all card states (active and inactive). Do not mix dark cards and light cards within the same carousel or stack unless specifically instructed.
 6. **Mobile Brand Mark Integrity:** Always use the official `<PulseLogo>` component for branding lockups on mobile pages and headers. Never replace the logo mark with plain text (`<span>PULSE</span>`) or unvetted approximations. Ensure `<PulseLogo>` accepts and applies the correct `textColor` matching the current theme surface.
 7. **Localized Contrast for Neon / Glowing Marks on Light Themes:** When rendering glowing cyan, neon, or white line-art logos on light surfaces, increase legibility by applying a high-contrast dark aperture/disc **strictly and only directly behind the logo graphic**. Do not darken the parent card or surrounding layout to achieve contrast.

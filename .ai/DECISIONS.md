@@ -13,12 +13,16 @@ This file records verified architectural and engineering decisions established i
 
 ---
 
-### Decision: Dual-Surface Architecture (Desktop SPA + Mobile PWA)
-- **Status:** Accepted
-- **Context:** Mobile cognitive assessment requires specialized touch target sizing, viewport isolation, and PWA standalone capabilities, while desktop demands high-resolution telemetry dashboards and keyboard shortcuts.
-- **Decision:** Implement a dual-surface structure with root desktop application in `/src` and a dedicated subproject in `/mobile`. Client-side routing in [`src/lib/deviceRouting.ts`](../src/lib/deviceRouting.ts) inspects device capabilities after load; Express redirects only when explicit routing flags request a surface.
-- **Consequences:** Mobile components are maintained separately in `mobile/src/`, requiring coordinated updates when core shared protocols change.
-- **Evidence:** [`src/lib/deviceRouting.ts`](../src/lib/deviceRouting.ts), [`mobile/vite.config.ts`](../mobile/vite.config.ts), [`package.json`](../package.json).
+### Decision: Unified Responsive Routing & Surface Encapsulation (Supersedes Dual-Surface URL Routing)
+- **Status:** Accepted (v2.2.0)
+- **Context:** Separate `/` (desktop) and `/mobile/` (mobile) URL paths introduced SEO fragmentation, broken link sharing across devices, and redirect flashes.
+- **Decision:**
+  1. Unify all top-level routes (`/`, `/assessments`, `/leaderboard`, etc.) onto single canonical URLs.
+  2. Implement `useViewportSurface` in `src/App.tsx` to conditionally render `<DesktopApp />` or `<MobileAppWrapper />` at the 768px breakpoint.
+  3. Queue surface changes safely during active or acquiring assessment runs via `assessmentLockStore` so screen resizing or device rotation never aborts a test in progress.
+  4. Extract common locks, navigation guards, settings stores, and PWA bridges into `@shared/`.
+- **Consequences:** Eliminates `/mobile/` path redirects, standardizes canonical URLs, and centralizes cross-surface guards.
+- **Evidence:** [`src/App.tsx`](../src/App.tsx), [`src/hooks/useViewportSurface.ts`](../src/hooks/useViewportSurface.ts), [`shared/assessment/assessmentLockStore.ts`](../shared/assessment/assessmentLockStore.ts), [`docs/decisions/ADR-004-UNIFIED-RESPONSIVE-ROUTING.md`](../docs/decisions/ADR-004-UNIFIED-RESPONSIVE-ROUTING.md).
 
 ---
 
