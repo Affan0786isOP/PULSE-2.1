@@ -1,5 +1,5 @@
 import React, { useState, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { isMobileWelcomeSeen } from '../lib/welcomeStore';
 import { SEO } from './SEO';
@@ -21,7 +21,7 @@ const WelcomeModal = React.lazy(() => import('./WelcomeModal').then(m => ({ defa
 const AddToHomeScreenModal = React.lazy(() => import('./AddToHomeScreenModal').then(m => ({ default: m.AddToHomeScreenModal })));
 
 export function Home({ onNavigate }: { onNavigate: (view: string) => void }) {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const pwa = usePwaInstall();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState<boolean>(() => !isMobileWelcomeSeen());

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { Activity, ArrowLeft, LogOut, Settings, Info, WifiOff, Sun, Moon } from 'lucide-react';
 import { PulseLogo } from './brand';
 import { triggerHaptic } from '../lib/settingsStore';
@@ -38,7 +39,7 @@ export function Navbar({
     }
   }, [showExitConfirm]);
   const pwa = usePwaInstall();
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const location = useLocation();
 
   const { activeTheme, isDarkApparatus: isRouteApparatus, toggleTheme } = useSystemTheme(location.pathname);

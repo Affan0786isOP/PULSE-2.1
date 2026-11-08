@@ -1,5 +1,8 @@
 import React from 'react';
-import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
+import { GuardedNavigate } from '@shared/navigation/GuardedNavigate';
+import { useNavigationLocation } from '@shared/navigation/NavigationGuard';
 import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { AuthProvider } from './AuthContext';
 import { useSettings } from './lib/settingsStore';
@@ -20,7 +23,7 @@ function RedirectIndexHtml() {
   const location = useLocation();
   const search = location.search || '';
   const hash = location.hash || '';
-  return <Navigate to={`/${search}${hash}`} replace />;
+  return <GuardedNavigate to={`/${search}${hash}`} replace />;
 }
 
 // Code-split heavy routes for fast Home startup
@@ -59,8 +62,9 @@ const RouteFallback = ({ isDark }: { isDark?: boolean }) => (
 );
 
 function App() {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const location = useLocation();
+  const { effectiveLocation } = useNavigationLocation();
   const [settings] = useSettings();
   const isDarkApparatus = isDarkApparatusRoute(location.pathname);
   const { activeTheme } = useSystemTheme(location.pathname);
@@ -148,7 +152,7 @@ function App() {
                 <RouteShellBoundary>
                 <RouteSEO />
                 <PageViewTracker surface="mobile" />
-                <Routes location={location}>
+                <Routes location={effectiveLocation}>
                   <Route path="/" element={<Home onNavigate={handleNavigate} />} />
                   <Route path="/about" element={<About onNavigate={handleNavigate} />} />
                   <Route path="/index.html" element={<RedirectIndexHtml />} />

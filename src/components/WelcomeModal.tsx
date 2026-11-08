@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { X, List, Zap, BarChart2, Database, ChevronRight, ArrowRight, Check } from 'lucide-react';
 import { PulseLogo } from './brand';
 import { useModalAccessibility } from '../lib/modalAccessibility';
@@ -51,7 +52,7 @@ export interface WelcomeModalProps {
 }
 
 export function WelcomeModal({ isOpen, onClose, onNavigate }: WelcomeModalProps) {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const [dontShowAgain, setDontShowAgain] = useState<boolean>(() => isWelcomeSeen());
   const [mounted, setMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);

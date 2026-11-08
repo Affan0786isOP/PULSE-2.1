@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { HERO_ASSESSMENTS } from '../../data/assessmentsHero';
 import { useReducedMotionPreference } from '../../lib/settingsStore';
 
 export function AssessmentHero3D() {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const shouldReduceMotion = useReducedMotionPreference();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);

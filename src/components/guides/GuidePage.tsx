@@ -1,5 +1,6 @@
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import guidesData from '../../../shared/content/guides.json';
 import type { GuideDocument } from '../../../shared/content/guideValidator.d.mts';
 import { BookOpen, ArrowRight, ExternalLink } from 'lucide-react';
@@ -10,7 +11,7 @@ interface GuidePageProps {
 
 export const GuidePage: React.FC<GuidePageProps> = ({ surface = 'desktop' }) => {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
 
   // Normalize canonical slug
   let slug = location.pathname;

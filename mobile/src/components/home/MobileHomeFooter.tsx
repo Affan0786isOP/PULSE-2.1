@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { triggerHaptic } from '../../lib/settingsStore';
 
 interface MobileHomeFooterProps {
@@ -7,7 +7,7 @@ interface MobileHomeFooterProps {
 }
 
 export function MobileHomeFooter({ onNavigate }: MobileHomeFooterProps) {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
 
   const handleLink = (path: string) => {
     triggerHaptic('tap');

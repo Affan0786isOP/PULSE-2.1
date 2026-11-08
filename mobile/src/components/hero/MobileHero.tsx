@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { 
   Trophy, 
   Database, 
@@ -34,7 +34,7 @@ export const MobileHero: React.FC<MobileHeroProps> = ({
   pwaInstallable = false,
   onPromptInstall
 }) => {
-  const navigate = useNavigate();
+  const navigate = useGuardedNavigate();
   const { testsCount, resultsCount, isLoadingResults } = useAuthoritativeStats();
   const { activeTheme, toggleTheme } = useSystemTheme('/');
   const isDarkActive = activeTheme === 'dark';

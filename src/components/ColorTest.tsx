@@ -25,6 +25,7 @@ function seedPRNG(seedStr: string): () => number {
 }
 import { createFramePacer } from '@shared/timing/framePacer';
 import { CountdownOverlay } from './CountdownOverlay';
+import { assessmentLockStore } from '@shared/assessment/assessmentLockStore';
 
 type EngineState = 'READY' | 'STARTING' | 'STIMULUS_ACTIVE' | 'FEEDBACK' | 'REPORT' | 'UNMOUNTED';
 
@@ -52,6 +53,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
    
   const rawObservationsRef = useRef<any[]>([]);
   const hasSubmittedRef = useRef(false);
+  const activeRunIdRef = useRef<string | null>(null);
 
   const [engineState, setEngineState] = useState<EngineState>('READY');
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -135,6 +137,10 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       setServiceWorkerActiveSession(false);
       if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
       if (stimulusTimeout.current) clearTimeout(stimulusTimeout.current);
+      if (activeRunIdRef.current) {
+        assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+        activeRunIdRef.current = null;
+      }
     };
   }, []);
 
@@ -362,8 +368,16 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     }
   }, [currentInstruction, currentWord, currentColor, sessionId, selectedAgeGroup]);
 
-  function startCountdown() {
+  async function startCountdown() {
     if (!sessionId) return;
+    if (activeRunIdRef.current) {
+      await assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+      activeRunIdRef.current = null;
+    }
+    const runId = await assessmentLockStore.acquireLock('color-recognition');
+    if (!runId) return;
+    activeRunIdRef.current = runId;
+
     setServiceWorkerActiveSession(true);
     falseStartsCountRef.current = 0;
     setFalseStartsCount(0);
@@ -598,6 +612,10 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     }
 
     setSubmissionError(null);
+    const runId = activeRunIdRef.current;
+    if (runId) {
+      assessmentLockStore.markSubmissionPending(runId);
+    }
     
     submitAssessmentResult({
         idempotencyKey: sessionId,
@@ -611,6 +629,10 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
         correctCount: reportStats.correctCount,
         trials: rawObservationsRef.current
       }).then(res => {
+      const success = Boolean(res && res.success);
+      if (runId) {
+        assessmentLockStore.markSubmissionSettled(runId, success);
+      }
       if (!res || !res.success) {
         setSubmissionError(res?.error || 'Could not save results. Please try again.');
       } else {
@@ -633,8 +655,19 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
       }
     }).catch(err => {
       console.error("Failed to submit result:", err);
+      if (runId) {
+        assessmentLockStore.markSubmissionSettled(runId, false);
+      }
       setSubmissionError(err.message || 'Could not save results. Please try again.');
-    }).finally(() => {
+    }).finally(async () => {
+      if (runId) {
+        try {
+          await assessmentLockStore.completeSubmissionAndRelease(runId);
+        } catch (releaseErr) {
+          console.error('[ColorTest] Lock release error:', releaseErr);
+        }
+        activeRunIdRef.current = null;
+      }
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     });
