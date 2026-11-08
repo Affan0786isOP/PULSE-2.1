@@ -232,21 +232,9 @@ export type BasePayload = {
   [key: string]: any;
 };
 
-let activeSessionTimer: any = null;
-
 export function setServiceWorkerActiveSession(active: boolean): void {
   if (typeof window !== 'undefined') {
     (window as any).__PULSE_SESSION_ACTIVE__ = active;
-    if (activeSessionTimer) {
-      clearTimeout(activeSessionTimer);
-      activeSessionTimer = null;
-    }
-    if (active) {
-      // Auto-expire after 10 minutes to prevent permanent drift if an assessment is abandoned
-      activeSessionTimer = setTimeout(() => {
-        setServiceWorkerActiveSession(false);
-      }, 10 * 60 * 1000);
-    }
   }
   if (!active && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistration().then((reg) => {
@@ -255,18 +243,6 @@ export function setServiceWorkerActiveSession(active: boolean): void {
       }
     }).catch(() => {});
   }
-}
-
-if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'QUERY_PULSE_SESSION_ACTIVE') {
-      if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({
-          isSessionActive: Boolean(typeof window !== 'undefined' && (window as any).__PULSE_SESSION_ACTIVE__)
-        });
-      }
-    }
-  });
 }
 
 export const startExperimentSession = async (assessmentType: AssessmentType, ageGroup?: string): Promise<{

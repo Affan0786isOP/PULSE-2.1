@@ -49,12 +49,55 @@ async function checkAnyClientHasActiveSession() {
   return results.some(Boolean);
 }
 
-self.addEventListener('message', async (event) => {
-  if (event.data && event.data.type === 'PULSE_SESSIONS_COMPLETED') {
-    const hasActiveSession = await checkAnyClientHasActiveSession();
-    if (!hasActiveSession) {
-      await self.skipWaiting();
+// Queries IndexedDB for any unexpired durable session lease
+async function hasActiveIndexedDbLease() {
+  if (typeof indexedDB === 'undefined') return false;
+  return new Promise((resolve) => {
+    try {
+      const req = indexedDB.open('pulse_sw_gate', 1);
+      req.onerror = () => resolve(false);
+      req.onupgradeneeded = () => resolve(false);
+      req.onsuccess = () => {
+        try {
+          const db = req.result;
+          if (!db.objectStoreNames.contains('session_locks')) {
+            resolve(false);
+            return;
+          }
+          const tx = db.transaction('session_locks', 'readonly');
+          const store = tx.objectStore('session_locks');
+          const getAllReq = store.getAll();
+          getAllReq.onsuccess = () => {
+            const records = getAllReq.result || [];
+            const now = Date.now();
+            const activeLease = records.some((r) => r && r.leaseExpires && r.leaseExpires > now);
+            resolve(activeLease);
+          };
+          getAllReq.onerror = () => resolve(false);
+        } catch {
+          resolve(false);
+        }
+      };
+    } catch {
+      resolve(false);
     }
+  });
+}
+
+async function trySkipWaiting() {
+  const hasClientSession = await checkAnyClientHasActiveSession();
+  if (hasClientSession) return false;
+
+  const hasLease = await hasActiveIndexedDbLease();
+  if (hasLease) return false;
+
+  await self.skipWaiting();
+  return true;
+}
+
+self.addEventListener('message', async (event) => {
+  if (event.data && (event.data.type === 'PULSE_SESSIONS_COMPLETED' || event.data.type === 'PULSE_CLIENT_IDLE')) {
+    await trySkipWaiting();
   }
 });
 
@@ -77,10 +120,7 @@ self.addEventListener('install', (event) => {
         )
       );
     }).then(async () => {
-      const hasActiveSession = await checkAnyClientHasActiveSession();
-      if (!hasActiveSession) {
-        await self.skipWaiting();
-      }
+      await trySkipWaiting();
     })
   );
 });
