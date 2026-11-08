@@ -855,6 +855,10 @@
     {
       "source": "/number-memory",
       "destination": "/seo/number-memory.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
     }
   ]
 }

@@ -67,7 +67,7 @@ describe('Mobile Navbar Laboratory Light & Apparatus Lockout', () => {
     expect(handleExit).toHaveBeenCalledTimes(1);
   });
 
-  it('dispatches pulse_assessment_abort window event when exit confirm opens', () => {
+  it('does not abort an active assessment merely by opening or dismissing exit confirmation', () => {
     const abortListener = vi.fn();
     window.addEventListener('pulse_assessment_abort', abortListener);
 
@@ -80,7 +80,13 @@ describe('Mobile Navbar Laboratory Light & Apparatus Lockout', () => {
     const exitBtn = screen.getByRole('button', { name: /exit assessment/i });
     fireEvent.click(exitBtn);
 
-    expect(abortListener).toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeDefined();
+    expect(abortListener).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: /resume test/i }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(abortListener).not.toHaveBeenCalled();
+
     window.removeEventListener('pulse_assessment_abort', abortListener);
   });
 });

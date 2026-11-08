@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useGuardedNavigate } from '@shared/navigation/useGuardedNavigate';
 import { assessmentLockStore } from '@shared/assessment/assessmentLockStore';
@@ -34,11 +34,6 @@ export function Navbar({
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
-  useEffect(() => {
-    if (showExitConfirm && typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('pulse_assessment_abort'));
-    }
-  }, [showExitConfirm]);
   const pwa = usePwaInstall();
   const navigate = useGuardedNavigate();
   const location = useLocation();

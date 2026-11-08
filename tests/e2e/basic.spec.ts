@@ -20,3 +20,10 @@ test.describe('Home Page', () => {
     expect(errors).toHaveLength(0);
   });
 });
+
+test('admin deep links are served by the application shell', async ({ request }) => {
+  const response = await request.get('/admin');
+  expect(response.status()).toBe(200);
+  const html = await response.text();
+  expect(html).toContain('id="root"');
+});

@@ -606,7 +606,7 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     }
   }, [engineState]);
 
-  const attemptSubmission = useCallback(() => {
+  const attemptSubmission = useCallback(async () => {
     if (!reportStats || !selectedAgeGroup || !sessionId || isSubmittingRef.current || hasSubmittedRef.current) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -619,10 +619,14 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     }
 
     setSubmissionError(null);
-    const runId = activeRunIdRef.current;
-    if (runId) {
-      assessmentLockStore.markSubmissionPending(runId);
+    const runId = await assessmentLockStore.beginSubmission('color-recognition', activeRunIdRef.current);
+    if (!runId) {
+      setSubmissionError('Unable to secure this assessment session. Please retry.');
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+      return;
     }
+    activeRunIdRef.current = runId;
     
     submitAssessmentResult({
         idempotencyKey: sessionId,
@@ -669,11 +673,11 @@ export function ColorTest({ onNavigate }: { onNavigate: (view: string) => void }
     }).finally(async () => {
       if (runId) {
         try {
-          await assessmentLockStore.completeSubmissionAndRelease(runId);
+          const released = await assessmentLockStore.completeSubmissionAndRelease(runId);
+          if (released) activeRunIdRef.current = null;
         } catch (releaseErr) {
           console.error('[ColorTest] Lock release error:', releaseErr);
         }
-        activeRunIdRef.current = null;
       }
       isSubmittingRef.current = false;
       setIsSubmitting(false);
