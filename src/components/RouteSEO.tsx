@@ -26,7 +26,7 @@ type RouteMetadata = {
  * Supplies head metadata when a route is entered through client-side navigation.
  * Direct production loads are pre-rendered by the build-time SEO shell generator.
  */
-export function RouteSEO({ includeMobileAlternate = true }: { includeMobileAlternate?: boolean } = {}) {
+export function RouteSEO({ includeMobileAlternate = false }: { includeMobileAlternate?: boolean } = {}) {
   const location = useLocation();
   const canonicalPath = getCanonicalPath(location.pathname);
 

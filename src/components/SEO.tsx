@@ -44,7 +44,7 @@ export function SEO({
   ogType = 'website',
   ogImage,
   schema,
-  includeMobileAlternate = true
+  includeMobileAlternate = false
 }: SEOProps) {
   const location = useLocation();
   const canonicalPath = getCanonicalPath(location.pathname);
@@ -138,20 +138,12 @@ export function SEO({
     upsertMeta('property', 'og:image:alt', 'PULSE cognitive benchmarking');
 
     const mobileAlternateSelector = '[media="only screen and (max-width: 768px)"]';
-    const shouldAdvertiseMobile = includeMobileAlternate && Boolean(routeMeta?.indexable) && !effectiveNoindex;
-    if (shouldAdvertiseMobile) {
-      const mobilePath = canonicalPath === '/' ? '/mobile/' : '/mobile' + canonicalPath;
-      upsertLink('alternate', siteUrl + mobilePath, mobileAlternateSelector);
-      upsertLink('alternate', finalCanonical, '[hreflang="x-default"]', { hreflang: 'x-default' });
-      upsertLink('alternate', finalCanonical, '[hreflang="en"]', { hreflang: 'en' });
-    } else {
-      document.querySelectorAll<HTMLLinkElement>(
-        `link[rel="alternate"]${mobileAlternateSelector}`
-      ).forEach(link => link.remove());
-      document.querySelectorAll<HTMLLinkElement>(
-        'link[rel="alternate"][hreflang]'
-      ).forEach(link => link.remove());
-    }
+    document.querySelectorAll<HTMLLinkElement>(
+      `link[rel="alternate"]${mobileAlternateSelector}`
+    ).forEach(link => link.remove());
+    document.querySelectorAll<HTMLLinkElement>(
+      'link[rel="alternate"][hreflang]'
+    ).forEach(link => link.remove());
 
     upsertMeta('name', 'twitter:card', 'summary_large_image');
     upsertMeta('name', 'twitter:title', finalTitle);

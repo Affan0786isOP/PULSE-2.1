@@ -68,21 +68,13 @@ function App() {
 
   React.useEffect(() => {
     try {
-      const pathname = typeof window !== 'undefined' ? window.location.pathname : (location.pathname || '');
-      const search = location.search || window.location.search || '';
-      const hash = location.hash || window.location.hash || '';
+      const search = location.search || (typeof window !== 'undefined' ? window.location.search : '') || '';
       const decision = evaluateDeviceRouting(search);
       const params = new URLSearchParams(search);
       const hasRoutingParam = params.has('force_mobile') || params.has('mobile') || params.has('force_desktop') || params.has('desktop');
 
       syncDeviceRoutingStorage(decision, hasRoutingParam);
-
-      const redirect = resolveDeviceRedirect(pathname, search, hash);
-      if (redirect.shouldRedirect && redirect.targetUrl) {
-        window.location.replace(redirect.targetUrl);
-      } else {
-        clearRedirectLoopGuard();
-      }
+      clearRedirectLoopGuard();
     } catch (e) {}
   }, [location.pathname, location.search, location.hash]);
 

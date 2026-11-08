@@ -102,21 +102,8 @@ function App() {
   const { activeTheme, isDarkApparatus } = useSystemTheme(location.pathname);
   const isDark = isDarkApparatus || activeTheme === 'dark';
 
-  React.useEffect(() => {
-    try {
-      const pathname = location.pathname || window.location.pathname || '';
-      // When on /mobile/*, the dedicated RedirectToMobile route component handles fallback redirection
-      if (pathname.startsWith('/mobile')) return;
-
-      const search = location.search || window.location.search || '';
-      const hash = location.hash || window.location.hash || '';
-
-      const redirect = resolveDeviceRedirect(pathname, search, hash);
-      if (redirect.shouldRedirect && redirect.targetUrl) {
-        window.location.replace(redirect.targetUrl);
-      }
-    } catch (e) {}
-  }, [location.pathname, location.search, location.hash]);
+  // Viewport-based redirection removed in unified architecture.
+  // Unified App router handles desktop/mobile surface rendering under canonical URLs.
 
   const handleNavigate = (view: string) => {
     if (view.startsWith('/')) {
@@ -222,7 +209,7 @@ function App() {
                 <Route path="/privacy-policy" element={<ResearchPrivacyPolicy onNavigate={handleNavigate} />} />
                 
 
-                {/* Mobile PWA Routes */}
+                {/* Legacy Mobile PWA compatibility route - preserved for PWA scope */}
                 <Route path="/mobile" element={<RedirectToMobile />} />
                 <Route path="/mobile/*" element={<RedirectToMobile />} />
 
