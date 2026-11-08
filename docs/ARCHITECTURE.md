@@ -88,7 +88,7 @@ State is partitioned across four clear tiers:
 
 ## 5. Server Subsystem & API Routing (`server/`)
 
-The Express server handles four core operational domains:
+The Express server handles five core operational domains:
 
 ```
 [Express Server (server/index.ts)]
@@ -98,6 +98,7 @@ The Express server handles four core operational domains:
   │     ├── /api/research/session/*   ──► sessionStartLimiter (30 req / 15 min per UID+IP)
   │     ├── /api/sessions/*           ──► generalSessionsLimiter (60 req / 15 min per UID+IP)
   │     ├── /api/research/submit      ──► sessionSubmitLimiter (30 req / 15 min per UID+IP)
+  │     ├── /api/research/dataset?fresh=1 ──► datasetManualRefreshLimiter (1 per 2 min per IP; first page only)
   │     ├── /api/leaderboard/submit   ──► leaderboardSubmitLimiter (30 req / 15 min per UID+IP)
   │     ├── /api/*/verify-provenance  ──► verificationLimiter (60 req / 15 min per IP)
   │     └── /api/*                    ──► generalApiLimiter (2000 req / 15 min per IP)
@@ -112,11 +113,16 @@ The Express server handles four core operational domains:
   │     ├── /api/research/dataset       ──► Filtered public benchmark queries
   │     └── /api/research/dataset/summary ──► Cohort summary statistics
   │
-  └── 4. Leaderboard API
-        ├── /api/leaderboard            ──► Opted-in top 100 entries per protocol
-        ├── /api/leaderboard/submit     ──► Alias validation, best-score checks & leaderboard write
-        ├── /api/leaderboard/mine       ──► Participant GDPR data erasure
-        └── /api/leaderboard/verify-provenance ──► Token signature verification
+  ├── 4. Leaderboard API
+  │     ├── /api/leaderboard            ──► Opted-in top 100 entries per protocol
+  │     ├── /api/leaderboard/submit     ──► Alias validation, best-score checks & leaderboard write
+  │     ├── /api/leaderboard/mine       ──► Participant GDPR data erasure
+  │     └── /api/leaderboard/verify-provenance ──► Token signature verification
+  │
+  └── 5. Protected Admin API
+        ├── /api/admin/*                ──► Signed-session-protected moderation operations
+        ├── /api/admin/maintenance/leaderboard-accuracy-backfill ──► Controlled accuracy backfill
+        └── /api/admin/maintenance/dataset-summary[/reconcile] ──► Aggregate status and reconciliation
 ```
 
 ### 5.1 Module Layout
@@ -138,13 +144,16 @@ server/
 ├── routes/
 │   ├── researchRoutes.ts        session/start, submit, personal-best, verify-provenance, dataset (+summary)
 │   ├── leaderboardRoutes.ts     leaderboard read, submit, mine (erasure), verify-provenance
+│   ├── adminRoutes.ts          signed-session-protected moderation and maintenance routes
 │   ├── telemetryRoutes.ts       targeted page view tracking (/api/telemetry/page-view)
 │   └── staticRoutes.ts          Vite dev middleware or dist/ static serving + SPA/PWA fallbacks
 ├── repositories/
 │   ├── firestore/               Firestore persistence implementations (sessions, submissions, leaderboards)
+│   │   └── firestoreDatasetSummaryMaintenanceRepository.ts aggregate status, lock, and reconciliation persistence
 │   └── interfaces/              Repository contracts enabling test mock injection
 ├── services/
 │   ├── provenanceService.ts     HMAC-SHA256 signing, constant-time compare, canonical trials digest
+│   ├── datasetSummaryReconciliation.ts dry-run/apply aggregate rebuild with migration lock
 │   ├── sessionService.ts        Firestore-backed experiment session lookup and validation
 │   ├── researchService.ts       Dataset query filtering, trial validation, and aggregation
 │   ├── personalBestService.ts   Personal best retrieval and ranking derivation
@@ -176,10 +185,12 @@ The Firestore database enforces strict role isolation via [`firestore.rules`](..
 | `assessmentTrials` | Authenticated Owner (`participantId == auth.uid`) | **DENIED** (`false`) | Full Read/Write |
 | `assessmentResults` | Authenticated Owner (`participantId == auth.uid`) | **DENIED** (`false`) | Full Read/Write |
 | `publicDataset` | Authenticated Users (`auth != null`) | **DENIED** (`false`) | Full Read/Write |
+| `publicDatasetMeta` | **DENIED** (`false`, default deny) | **DENIED** (`false`) | Full Read/Write |
 | `leaderboardResults` | **DENIED** (`false`, API-only) | **DENIED** (`false`) | Full Read/Write |
 | `leaderboardPrivateMeta` | **DENIED** (`false`) | **DENIED** (`false`) | Full Read/Write |
 | `leaderboardOwnerIndex` | **DENIED** (`false`) | **DENIED** (`false`) | Full Read/Write |
 | `adminAuditLogs` | **DENIED** (`false`) | **DENIED** (`false`) | Full Read/Write |
+| `adminSessionRevocations` | **DENIED** (`false`) | **DENIED** (`false`) | Full Read/Write |
 
 
 ## 7. Assessment Measurement vs. Live-Timer UI Pacing
@@ -192,3 +203,16 @@ Stimulus presentation and response events continue to use high-resolution monoto
 ## 8. Current client route surfaces
 
 The desktop route table is mounted in `src/App.tsx`; the mobile PWA has its own route table in `mobile/src/App.tsx`. The mobile surface shares selected desktop components and shared contracts but remains a separately built web/PWA surface, not a native application. Document routes independently against each router. The desktop router currently includes `/admin`, while the mobile router does not expose that path in its route table. Treat the presence of a route, the admin UI's authorization behavior, and backend administrative API availability as separate security questions; do not claim the entire admin surface is removed based on only one layer.
+
+## 9. Dataset summary lifecycle, caching & administrative maintenance
+
+- `GET /api/research/dataset/summary` reads only `publicDatasetMeta/summary`. A missing, malformed, or migrating aggregate produces a controlled error; it never triggers a public scan of `publicDataset`.
+- After the summary is initialized, successful research submissions increment `totalRecords`, `totalTrials`, and the canonical assessment-type count in the same Firestore transaction as the research submission.
+- Full reconciliation is operator-controlled. The service scans the public source in ordered pages of 500, validates counters, supports dry-run without writes, and applies a rebuilt aggregate only after explicit admin confirmation or a CLI `--apply`. Apply holds a Firestore migration lock; new submissions are paused until the lock is released.
+- The desktop `/admin` console exposes protected status, dry-run, and confirmed apply actions. `npm run dataset:reconcile-summary` is the CLI dry-run; `-- --apply` applies and `-- --apply --resume` resumes an interrupted run after verifying no other reconciliation is active.
+- Ordinary dataset and summary responses use a 60-second shared-cache lifetime with 60-second stale-while-revalidate. Explicit `fresh=1` refresh bypasses caching; the first dataset page is limited to one request per two minutes per IP. Desktop and mobile clients also use a 60-second in-memory cache (up to 10 filter entries) and share/abort in-flight requests safely.
+- Direction Dataset's `Both` radar mode overlays accuracy and normalized reaction time on one chart. Public visualizations remain aggregated; individual records are not exposed through the summary aggregate.
+
+## 10. Legacy leaderboard read compatibility
+
+Leaderboard repository reads page by document ID (`__name__`) so historical rows missing optional `scoreMetric` or `createdAt` fields are not silently omitted by ordered-field queries. Pages contain up to 250 public documents; private metadata is read in batches of up to 200, then validated and sorted in memory with deterministic tie-breaking. This intentionally trades broader reads and in-memory sorting for legacy-record completeness; monitor query volume and latency as the leaderboard grows.
