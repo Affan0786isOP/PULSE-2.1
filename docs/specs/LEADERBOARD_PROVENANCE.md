@@ -50,10 +50,14 @@ sequenceDiagram
 ---
 
 ## 4. Administrative Moderation Controls
-- **CLI Script Execution:** Web admin routes (`/api/admin/*`) and browser consoles have been removed to eliminate external attack surfaces. Moderation actions (soft-hide, restore, or hard-delete) are executed directly via operator scripts using the Firebase Admin SDK (`FIREBASE_SERVICE_ACCOUNT`).
+- **Desktop console:** The desktop application exposes `/admin`; the mobile route table does not. The web console lists and moderates leaderboard entries and exposes Dataset-summary maintenance. Route visibility does not grant access to the API.
+- **Server-side authentication:** `POST /api/admin/login` validates the server-only `ADMIN_PASSCODE` and issues a signed, time-bounded token using `PULSE_ADMIN_SESSION_SECRET`. Protected endpoints verify token claims/signature and check the nonce against the server-only `adminSessionRevocations` collection. Logout revokes the token nonce. Both secrets must remain server-side and must never use the `VITE_` prefix.
+- **Protected endpoints:** `/api/admin/leaderboard/all`, `/api/admin/leaderboard/edit-alias`, `/api/admin/leaderboard/hide`, `/api/admin/leaderboard/unhide`, and `/api/admin/leaderboard/delete` provide moderation operations. Maintenance endpoints expose the leaderboard accuracy backfill and Dataset-summary status/reconciliation. Admin responses use no-store headers and login/mutation requests are rate-limited.
 - **Soft-Hide (`hideLeaderboardEntry`):** Sets `hidden = true` on flagged entries without deleting historical data. Soft-hidden entries are excluded from public leaderboard queries.
+- **Unhide (`unhideLeaderboardEntry`):** Restores eligible entries subject to ownership, best-score, and erasure guards.
 - **Hard-Delete (`deleteLeaderboardEntry`):** Permanently purges fraudulent or malicious entries from Firestore when required.
 - **Audit Ledger (`adminAuditLogs`):** Hide/unhide/delete operations and their corresponding audit entries are committed in a single atomic Firestore transaction. The moderation repository records the operator identity, reason, and immutable server timestamp.
+- **CLI fallback:** Trusted operators can run server-side maintenance/recovery scripts with Firebase Admin credentials; the Dataset-summary CLI is dry-run by default and requires explicit `--apply` to write.
 
 
 ## 5. Ranking, identity, and tie policy
@@ -63,3 +67,7 @@ sequenceDiagram
 - **Display names:** Aliases are not verified identities and are not unique participant identifiers. Different participants may choose the same alias, but normalized new data exposes only one current approved best row per owner/assessment.
 - **Ordering:** Speed assessments sort by lower score first; memory assessments sort by higher score first. Full precision determines server ordering. Rows whose displayed scores are identical share a displayed rank; sorting within an equal-score group is deterministic by completion time and entry ID.
 - **Refresh:** Concurrent in-flight reads for the same assessment share one Firestore request. Completed reads are not cached for five seconds; HTTP caching is disabled on the public endpoint, so the next request reloads data. Rankings are not a live push stream.
+
+## 6. Legacy leaderboard document compatibility
+
+Public leaderboard repository queries page through documents by `__name__` (up to 250 per page) instead of ordering by optional schema fields. This prevents historical rows missing `scoreMetric` or `createdAt` from disappearing because Firestore ordered queries omit documents without the ordered field. The repository validates entries and sorts them in memory with deterministic tie-breaking. Private metadata documents are retrieved in batches of up to 200. This improves legacy completeness but reads the full matching set before in-memory sorting; monitor read volume and latency as the leaderboard grows.

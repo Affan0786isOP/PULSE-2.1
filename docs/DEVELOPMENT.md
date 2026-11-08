@@ -46,6 +46,10 @@ PULSE_PROVENANCE_SECRET="replace-with-a-strong-random-signing-key"
 # Server-Side Firebase Admin Credentials (Optional for offline preview, required for production writes)
 FIREBASE_SERVICE_ACCOUNT='{"type":"service_account","project_id":"pulse-lab-36920",...}'
 
+# Desktop web-admin credentials (server-side only; never prefix with VITE_)
+ADMIN_PASSCODE="replace-with-a-strong-admin-passcode"
+PULSE_ADMIN_SESSION_SECRET="replace-with-a-strong-random-session-signing-secret"
+
 # Telegram Activity Telemetry (Optional server-side observability)
 TELEGRAM_BOT_TOKEN="your_telegram_bot_token"
 TELEGRAM_CHAT_ID="-100xxxxxxxxxx"
@@ -65,26 +69,29 @@ All commands below are verified directly against [`package.json`](../package.jso
 | Script | Command | Purpose |
 | :--- | :--- | :--- |
 | `npm run dev` | `tsx server.ts` | Starts full-stack Express server with Vite middleware on port 3000. |
-| `npm run build` | `vite build && vite build --config mobile/vite.config.ts && node scripts/generate-seo-pages.mjs && esbuild server.ts ...` | Builds the desktop SPA, mobile PWA, prerendered SEO pages, and bundled Express server. |
+| `npm run build` | `npm run audit:typography && vite build && vite build --config mobile/vite.config.ts && node scripts/generate-seo-pages.mjs && node scripts/audit-seo-crawl.mjs && esbuild server.ts ...` | Audits typography, builds desktop and mobile, generates and audits SEO pages, and bundles the Express server. |
 | `npm start` | `node dist/server.js` | Launches production bundled Express server. |
 | `npm run lint` | `tsc --noEmit` | Runs TypeScript compiler type check on root desktop project. |
-| `npm run check` | `tsc --noEmit && cd mobile && tsc --noEmit` | Runs full dual-surface type checking (desktop + mobile). |
-| `npm test` | `vitest run` | Executes the full Vitest suite. |
+| `npm run check` | `npm run audit:typography && tsc --noEmit && cd mobile && tsc --noEmit` | Audits typography and runs full dual-surface type checking (desktop + mobile). |
+| `npm test` | `npm run audit:typography && vitest run` | Audits typography, then executes the full Vitest suite. |
 | `npm run dev:mobile` | `vite --config mobile/vite.config.ts ...` | Runs standalone mobile Vite dev server on port 3000. |
 | `npm run build:mobile` | `vite build --config mobile/vite.config.ts && node scripts/generate-seo-pages.mjs` | Builds the mobile PWA and regenerates SEO pages. |
 | `npm run preview` | `vite preview` | Previews production client build. |
 | `npm run clean` | `rm -rf dist server.js` | Purges build artifacts. |
 | `npm run generate-icons`| `node scripts/generate-icons.js` | Re-generates PWA app icons and favicons from source SVG. |
+| `npm run audit:typography` | `node scripts/audit-typography.mjs` | Verifies approved font families, weights, shared tokens, and font-loading declarations across desktop and mobile assets. |
+| `npm run dataset:reconcile-summary` | `tsx scripts/reconcileDatasetSummary.ts` | Dry-runs a full public Dataset summary reconciliation; add `-- --apply` to write the aggregate or `-- --apply --resume` to resume an interrupted operator-approved run. |
 | `npm run migrate:leaderboard-privacy` | `tsx scripts/migrateLeaderboardPrivacyAndAudit.ts` | One-time/rerunnable server-admin migration: moves legacy private leaderboard fields out of public rows and normalizes string audit timestamps. Back up Firestore first; this command modifies live data and is not run automatically. |
 
 ---
 
 ## 5. Deployment notes for the leaderboard backend
 
-1. Set `PULSE_PROVENANCE_SECRET` and `FIREBASE_SERVICE_ACCOUNT` in the server/host environment. Web administration routes and admin passcode sessions have been deprecated/removed; moderation and administrative tasks are managed via direct server-side operator scripts utilizing the Firebase Admin SDK.
+1. Set `PULSE_PROVENANCE_SECRET` and `FIREBASE_SERVICE_ACCOUNT` in the server/host environment. For the desktop `/admin` console, also configure `ADMIN_PASSCODE` and `PULSE_ADMIN_SESSION_SECRET` as server-only secrets. The console uses protected `/api/admin/*` endpoints; never expose these values through `VITE_` variables. CLI operator scripts remain available for controlled maintenance and recovery.
 2. Deploy `firestore.rules` and `firestore.indexes.json` before switching traffic. Leaderboard reads must go through the API; direct client Firestore reads of `leaderboardResults` are intentionally denied.
 3. Back up the relevant Firestore collections, then run `npm run migrate:leaderboard-privacy` once to scrub legacy private fields from public rows and normalize historic string audit timestamps. Verify the migration summary and spot-check provenance before considering cutover complete.
 4. The migration script is **not** run against live Firestore by the development workflow. Running it requires valid Firebase Admin credentials and explicit operator action.
+5. **Dataset summary maintenance:** Public summary reads use `publicDatasetMeta/summary` and never initiate a collection scan. Check the aggregate with `npm run dataset:reconcile-summary` (dry run); inspect the report before explicitly applying with `npm run dataset:reconcile-summary -- --apply`. The authenticated desktop `/admin` panel provides the same dry-run-first workflow. Apply runs acquire a Firestore migration lock and temporarily pause new research submissions; do not start concurrent runs.
 
 ## 6. Development Workflows
 

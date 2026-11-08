@@ -26,15 +26,18 @@ This document outlines the security controls, cryptographic attestation mechanis
   - Session start, research submit and leaderboard submit: 30 requests per 15 minutes per identity key (`uid:ip`).
   - Session APIs: 60 requests per 15 minutes per identity key.
   - Public leaderboard GET: 600 requests per 15 minutes per IP.
+  - Explicit Dataset manual refresh: one first-page `fresh=1` request per two minutes per IP; cursor pages in the same refresh do not consume additional slots.
   - Provenance verification: 60 requests per 15 minutes per IP.
   - General API aggregate: 2,000 requests per 15 minutes per IP.
 - The counter collection `_rateLimitCounters` uses hashed document IDs and a Firestore TTL policy on `resetAt`; deploy the updated Firestore index/TTL configuration for automatic cleanup.
 
 ### 1.4 Administrative & Operational Access Control
 
-- **Web admin decommissioned:** The `/admin` browser console, browser passcode login, and `/api/admin/*` routes are removed. Do not configure or depend on web-admin session secrets.
-- **Operational moderation:** Privileged moderation and migrations are performed through operator-controlled server-side CLI scripts using Firebase Admin credentials; never expose service-account credentials or admin capabilities to browser code.
-- **Least privilege and auditability:** Keep CLI execution restricted to trusted operators, validate all requested mutations, and retain operational logs and documented review records for changes to leaderboard data.
+- **Active web console:** The desktop router mounts `/admin`; the mobile router does not expose that route. The console supports leaderboard moderation and Dataset-summary maintenance. Route presence is separate from authorization: every protected `/api/admin/*` operation must validate a signed admin session server-side.
+- **Login and session secrets:** `ADMIN_PASSCODE` and `PULSE_ADMIN_SESSION_SECRET` are server-only environment variables. Login returns a signed, time-bounded session token; the server verifies its signature/claims and checks nonce revocation in `adminSessionRevocations`. Logout revokes the nonce. Never prefix these values with `VITE_`, include them in client bundles, or expose service-account credentials.
+- **Protected operations:** Admin API routes use no-store response headers and server-side authorization. They cover leaderboard listing/edit/hide/unhide/delete, the opt-in leaderboard-accuracy backfill, and Dataset-summary status/reconciliation. Apply-mode reconciliation requires explicit confirmation and a migration lock; research submissions are paused while that lock is active.
+- **CLI recovery:** `npm run dataset:reconcile-summary` provides a dry-run-first operator recovery path; privileged scripts using Firebase Admin credentials remain restricted to trusted operators.
+- **Least privilege and auditability:** Validate each mutation, preserve immutable moderation audit records, rate-limit login and mutation endpoints, and retain operational review records.
 
 ## 2. Statutory Compliance & Breach Response
 PULSE operates in compliance with international privacy mandates:
@@ -56,7 +59,7 @@ PULSE operates in compliance with international privacy mandates:
 | 4 | Synthetic/automated reaction and memory scores | Plausibility floors and suspicious-score moderation; no server-secret per-trial challenge yet | **MITIGATED; RESIDUAL RISK** |
 | 5 | Direct leaderboard-document reads or writes | Firestore rules deny client access; public data goes through the display-only API | **BLOCKED BY RULES** |
 | 6 | Identity leakage in open research data | Dataset schema minimization and separate private leaderboard metadata | **MITIGATED; VERIFY DEPLOYED DATA** |
-| 7 | Attack surface on administrative interfaces | Public web-admin UI and routes removed; privileged changes restricted to trusted server-side CLI operations with Firebase Admin credentials and operational logging | **REDUCED; CLI ACCESS REMAINS PRIVILEGED** |
+| 7 | Unauthorized administrative access or session reuse | Server-side signed-session verification, nonce revocation, login/mutation rate limits, no-store API responses, and immutable moderation audit logs | **MITIGATED; ADMIN CREDENTIALS REMAIN PRIVILEGED** |
 
 ---
 

@@ -47,6 +47,8 @@ PULSE's visual language is that of a **precision scientific telemetry platform**
 | **Body & UI** | `Inter, system-ui, sans-serif` | `normal` | Body copy, navigation items, instructions |
 | **Numeric & Telemetry** | `JetBrains Mono, monospace` | `tabular-nums` | All latencies, sample counts, percentiles, timestamps |
 
+**Typography enforcement:** PULSE permits only Inter (body/UI), Space Grotesk (display/headings), and JetBrains Mono (numeric/telemetry), using Google Fonts weights 400, 500, 600, and 700. Desktop and mobile load the shared brand tokens from `src/brand/tokens.css`. `scripts/audit-typography.mjs` checks font stacks, Google Fonts requests, approved weights, token aliases, and mobile token imports; `npm test`, `npm run check`, and `npm run build` execute this audit automatically.
+
 ---
 
 ## 5. Official Brand Mark (The P-Symbol)
