@@ -56,11 +56,18 @@ async function hasActiveIndexedDbLease() {
     try {
       const req = indexedDB.open('pulse_sw_gate', 1);
       req.onerror = () => resolve(false);
-      req.onupgradeneeded = () => resolve(false);
+      req.onupgradeneeded = () => {
+        try {
+          if (!req.result.objectStoreNames.contains('session_locks')) {
+            req.result.createObjectStore('session_locks', { keyPath: 'clientId' });
+          }
+        } catch {}
+      };
       req.onsuccess = () => {
         try {
           const db = req.result;
           if (!db.objectStoreNames.contains('session_locks')) {
+            db.close();
             resolve(false);
             return;
           }
@@ -71,9 +78,13 @@ async function hasActiveIndexedDbLease() {
             const records = getAllReq.result || [];
             const now = Date.now();
             const activeLease = records.some((r) => r && r.leaseExpires && r.leaseExpires > now);
+            db.close();
             resolve(activeLease);
           };
-          getAllReq.onerror = () => resolve(false);
+          getAllReq.onerror = () => {
+            db.close();
+            resolve(false);
+          };
         } catch {
           resolve(false);
         }

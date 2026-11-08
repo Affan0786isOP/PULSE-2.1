@@ -32,6 +32,7 @@ class AssessmentLockStore {
 
   private listeners = new Set<(state: Readonly<LockState>) => void>();
   private queuedSurface: 'desktop' | 'mobile' | null = null;
+  private cachedDb: IDBDatabase | null = null;
 
   public async acquireLock(assessmentId: string): Promise<string | null> {
     // 1. Mutex: verify in-memory lock and acquisition in progress
@@ -48,7 +49,7 @@ class AssessmentLockStore {
     this.activeTargetRunId = runId;
 
     this.state = { ...this.state, isAcquiring: true };
-    (window as any).__PULSE_ACQUIRING_LOCK__ = true;
+    if (typeof window !== 'undefined') (window as any).__PULSE_ACQUIRING_LOCK__ = true;
     this.notify();
 
     const acquisitionExecution = async (): Promise<string | null> => {
@@ -89,7 +90,7 @@ class AssessmentLockStore {
         this.activeAcquisitionAbortController = null;
         this.activeAcquisitionTx = null;
         this.activeTargetRunId = null;
-        (window as any).__PULSE_ACQUIRING_LOCK__ = false;
+        if (typeof window !== 'undefined') (window as any).__PULSE_ACQUIRING_LOCK__ = false;
         this.isAcquiringMutex = false; // Mutex ONLY released after complete settlement & cleanup
         this.notify();
       }
@@ -268,6 +269,10 @@ class AssessmentLockStore {
     this.activeAcquisitionTx = null;
     this.activeTargetRunId = null;
     this.queuedSurface = null;
+    if (this.cachedDb) {
+      try { this.cachedDb.close(); } catch {}
+      this.cachedDb = null;
+    }
     this.state = {
       isLocked: false,
       isAcquiring: false,
@@ -277,6 +282,7 @@ class AssessmentLockStore {
       timestamp: 0,
     };
     this.syncGlobal(false);
+    if (typeof window !== 'undefined') (window as any).__PULSE_ACQUIRING_LOCK__ = false;
     this.notify();
   }
 
@@ -482,6 +488,16 @@ class AssessmentLockStore {
   }
 
   private openGateDb(): Promise<IDBDatabase> {
+    if (this.cachedDb) {
+      try {
+        if (this.cachedDb.objectStoreNames.contains('session_locks')) {
+          return Promise.resolve(this.cachedDb);
+        }
+      } catch {
+        this.cachedDb = null;
+      }
+    }
+
     return new Promise((resolve, reject) => {
       const req = indexedDB.open('pulse_sw_gate', 1);
       req.onupgradeneeded = () => {
@@ -489,7 +505,18 @@ class AssessmentLockStore {
           req.result.createObjectStore('session_locks', { keyPath: 'clientId' });
         }
       };
-      req.onsuccess = () => resolve(req.result);
+      req.onsuccess = () => {
+        const db = req.result;
+        this.cachedDb = db;
+        db.onversionchange = () => {
+          try { db.close(); } catch {}
+          if (this.cachedDb === db) this.cachedDb = null;
+        };
+        db.onclose = () => {
+          if (this.cachedDb === db) this.cachedDb = null;
+        };
+        resolve(db);
+      };
       req.onerror = () => reject(req.error);
     });
   }

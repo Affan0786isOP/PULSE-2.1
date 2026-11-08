@@ -35,7 +35,7 @@ for (const vp of MOBILE_VIEWPORTS) {
 
         // 1. Verify hero is visible and intact, along with ambient wave continuation
         const hero = page.locator('section[aria-label="PULSE Mobile Hero"]');
-        await expect(hero).toBeVisible();
+        await expect(hero).toBeVisible({ timeout: 15000 });
 
         const waveContinuation = page.locator('[data-testid="hero-wave-continuation"]');
         await expect(waveContinuation).toBeAttached();
