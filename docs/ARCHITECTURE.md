@@ -95,6 +95,8 @@ The Express server handles five core operational domains:
   │
   ├── 1. Rate Limiting Middleware
   │     ├── /api/leaderboard          ──► leaderboardReadLimiter (600 req / 15 min per IP)
+  │     ├── /api/admin/login            ──► adminLoginLimiter (10 req / 15 min per IP)
+  │     ├── /api/admin/leaderboard/*    ──► adminMutationLimiter (120 mutations / 15 min per IP)
   │     ├── /api/research/session/*   ──► sessionStartLimiter (30 req / 15 min per UID+IP)
   │     ├── /api/sessions/*           ──► generalSessionsLimiter (60 req / 15 min per UID+IP)
   │     ├── /api/research/submit      ──► sessionSubmitLimiter (30 req / 15 min per UID+IP)
