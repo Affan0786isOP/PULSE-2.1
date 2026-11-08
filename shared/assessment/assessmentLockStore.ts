@@ -136,6 +136,64 @@ class AssessmentLockStore {
     return this.state.isLocked || this.state.isAcquiring;
   }
 
+  /**
+   * Begins a submission while ensuring navigation remains protected.
+   * Reuses the active assessment lock for the first attempt, reacquires one
+   * after a failed attempt was released, and can recover a retained
+   * SETTLED_FAILURE lock if durable lease cleanup previously failed.
+   */
+  public async beginSubmission(
+    assessmentId: string,
+    preferredRunId: string | null = null
+  ): Promise<string | null> {
+    let runId: string | null = null;
+
+    const canReuseActiveRun = Boolean(
+      preferredRunId &&
+      this.state.isLocked &&
+      this.state.runId === preferredRunId &&
+      this.state.submissionStage === 'IDLE'
+    );
+    const canRetryRetainedFailure = Boolean(
+      preferredRunId &&
+      this.state.isLocked &&
+      this.state.runId === preferredRunId &&
+      this.state.submissionStage === 'SETTLED_FAILURE'
+    );
+
+    if (canRetryRetainedFailure && preferredRunId) {
+      this.state = {
+        ...this.state,
+        submissionStage: 'IDLE',
+        timestamp: Date.now(),
+      };
+      this.notify();
+      runId = preferredRunId;
+    } else if (canReuseActiveRun && preferredRunId) {
+      runId = preferredRunId;
+    } else {
+      runId = await this.acquireLock(assessmentId);
+    }
+
+    if (!runId) return null;
+    if (this.markSubmissionPending(runId)) return runId;
+
+    // Do not leave behind a newly acquired idle lock if its submission
+    // transition unexpectedly fails.
+    if (
+      this.state.isLocked &&
+      this.state.runId === runId &&
+      this.state.submissionStage === 'IDLE'
+    ) {
+      try {
+        await this.forceAbortLock(runId);
+      } catch (error) {
+        console.error('[AssessmentLockStore] Failed to clean up an unstarted submission lock:', error);
+      }
+    }
+    return null;
+  }
+
   public markSubmissionPending(runId: string): boolean {
     if (!this.state.isLocked || this.state.runId !== runId) return false;
     if (this.state.submissionStage !== 'IDLE') {

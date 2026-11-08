@@ -264,4 +264,56 @@ describe('AssessmentLockStore — Lifecycle, Concurrency & Resilience (Phase 3)'
     expect(assessmentLockStore.isLocked()).toBe(true);
     expect(assessmentLockStore.getActiveRunId()).toBe(runId);
   });
+
+  it('8. beginSubmission reuses the active assessment lock for its first submission', async () => {
+    (assessmentLockStore as any).writeDurableLease = vi.fn().mockResolvedValue(undefined);
+    const runId = await assessmentLockStore.acquireLock('visual-reaction');
+    expect(runId).toBeTruthy();
+
+    const submissionRunId = await assessmentLockStore.beginSubmission('visual-reaction', runId);
+
+    expect(submissionRunId).toBe(runId);
+    expect(assessmentLockStore.isSubmitting()).toBe(true);
+    expect(assessmentLockStore.getActiveRunId()).toBe(runId);
+  });
+
+  it('9. beginSubmission reacquires protection when retrying after a failed submission was released', async () => {
+    (assessmentLockStore as any).writeDurableLease = vi.fn().mockResolvedValue(undefined);
+    (assessmentLockStore as any).clearDurableLease = vi.fn().mockResolvedValue(undefined);
+
+    const firstRunId = await assessmentLockStore.acquireLock('visual-reaction');
+    expect(firstRunId).toBeTruthy();
+    expect(await assessmentLockStore.beginSubmission('visual-reaction', firstRunId)).toBe(firstRunId);
+    expect(assessmentLockStore.markSubmissionSettled(firstRunId!, false)).toBe(true);
+    expect(await assessmentLockStore.completeSubmissionAndRelease(firstRunId!)).toBe(true);
+    expect(assessmentLockStore.isProtected()).toBe(false);
+
+    const retryRunId = await assessmentLockStore.beginSubmission('visual-reaction', null);
+
+    expect(retryRunId).toBeTruthy();
+    expect(retryRunId).not.toBe(firstRunId);
+    expect(assessmentLockStore.isProtected()).toBe(true);
+    expect(assessmentLockStore.isSubmitting()).toBe(true);
+    expect(assessmentLockStore.getActiveRunId()).toBe(retryRunId);
+  });
+
+  it('10. beginSubmission can retry a settled failure when lease cleanup previously failed', async () => {
+    (assessmentLockStore as any).writeDurableLease = vi.fn().mockResolvedValue(undefined);
+    (assessmentLockStore as any).clearDurableLease = vi.fn().mockRejectedValueOnce(new Error('IndexedDB disk failure'));
+
+    const runId = await assessmentLockStore.acquireLock('visual-reaction');
+    expect(runId).toBeTruthy();
+    expect(await assessmentLockStore.beginSubmission('visual-reaction', runId)).toBe(runId);
+    expect(assessmentLockStore.markSubmissionSettled(runId!, false)).toBe(true);
+
+    await expect(assessmentLockStore.completeSubmissionAndRelease(runId!)).rejects.toThrow('IndexedDB disk failure');
+    expect(assessmentLockStore.isLocked()).toBe(true);
+
+    const retryRunId = await assessmentLockStore.beginSubmission('visual-reaction', runId);
+
+    expect(retryRunId).toBe(runId);
+    expect(assessmentLockStore.isSubmitting()).toBe(true);
+    expect(assessmentLockStore.getActiveRunId()).toBe(runId);
+  });
+
 });

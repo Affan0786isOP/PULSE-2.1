@@ -638,7 +638,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     }
   }, [engineState]);
 
-  const attemptSubmission = useCallback(() => {
+  const attemptSubmission = useCallback(async () => {
     if (!reportStats || !selectedAgeGroup || !sessionId || isSubmittingRef.current || hasSubmittedRef.current) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -651,10 +651,14 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     }
 
     setSubmissionError(null);
-    const runId = activeRunIdRef.current;
-    if (runId) {
-      assessmentLockStore.markSubmissionPending(runId);
+    const runId = await assessmentLockStore.beginSubmission('direction', activeRunIdRef.current);
+    if (!runId) {
+      setSubmissionError('Unable to secure this assessment session. Please retry.');
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+      return;
     }
+    activeRunIdRef.current = runId;
     
     submitAssessmentResult({
         idempotencyKey: sessionId,
@@ -700,11 +704,11 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
     }).finally(async () => {
       if (runId) {
         try {
-          await assessmentLockStore.completeSubmissionAndRelease(runId);
+          const released = await assessmentLockStore.completeSubmissionAndRelease(runId);
+          if (released) activeRunIdRef.current = null;
         } catch (releaseErr) {
           console.error('[DirectionTest] Lock release error:', releaseErr);
         }
-        activeRunIdRef.current = null;
       }
       isSubmittingRef.current = false;
       setIsSubmitting(false);

@@ -606,7 +606,7 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     }));
   }, [trialDataset]);
 
-  const attemptSubmission = useCallback(() => {
+  const attemptSubmission = useCallback(async () => {
     if (!reportStats || !selectedAgeGroup || !sessionId || isSubmittingRef.current || hasSubmittedRef.current) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -619,10 +619,14 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     }
 
     setSubmissionError(null);
-    const runId = activeRunIdRef.current;
-    if (runId) {
-      assessmentLockStore.markSubmissionPending(runId);
+    const runId = await assessmentLockStore.beginSubmission('visual-reaction', activeRunIdRef.current);
+    if (!runId) {
+      setSubmissionError('Unable to secure this assessment session. Please retry.');
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+      return;
     }
+    activeRunIdRef.current = runId;
     
     submitAssessmentResult({
         idempotencyKey: sessionId,
@@ -668,11 +672,11 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
     }).finally(async () => {
       if (runId) {
         try {
-          await assessmentLockStore.completeSubmissionAndRelease(runId);
+          const released = await assessmentLockStore.completeSubmissionAndRelease(runId);
+          if (released) activeRunIdRef.current = null;
         } catch (releaseErr) {
           console.error('[ReactionTest] Lock release error:', releaseErr);
         }
-        activeRunIdRef.current = null;
       }
       isSubmittingRef.current = false;
       setIsSubmitting(false);
