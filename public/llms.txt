@@ -53,4 +53,4 @@
 
 ## Canonical Surface Policy
 
-PULSE operates a responsive desktop web application and a dedicated mobile progressive web app at `https://pulse-lab.in/mobile/`. All mobile pages declare reciprocal `<link rel="canonical">` tags pointing to their canonical desktop counterparts. Search engines should only index desktop canonical URLs.
+PULSE operates a single unified responsive progressive web application under single canonical URLs at `https://pulse-lab.in/` using client-side viewport surface switching (ADR-004). All mobile and desktop viewports share identical canonical URLs with zero path redirects. Search engines should index the unified canonical URLs.
