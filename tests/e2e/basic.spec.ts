@@ -8,7 +8,7 @@ test.describe('Home Page', () => {
       await expect(title.first()).toBeVisible();
       await expect(page).toHaveURL(/.*\/$/);
     } else {
-      await page.waitForURL(/\/mobile\/?/);
+      await expect(page).toHaveURL(/.*\/$/);
       await expect(page.locator('text=Pulse').or(page.locator('text=PULSE')).first()).toBeVisible();
     }
   });

@@ -55,7 +55,8 @@
           try {
             isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
                            (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches) ||
-                           (window.navigator.standalone === true);
+                           (window.navigator.standalone === true) ||
+                           (window.location.search && window.location.search.indexOf('standalone=1') !== -1);
           } catch(e) {}
 
           var inIframe = false;

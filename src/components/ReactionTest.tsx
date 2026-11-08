@@ -775,6 +775,10 @@ export function ReactionTest({ onNavigate }: { onNavigate: (view: string) => voi
         if (countdownInterval.current) clearInterval(countdownInterval.current);
         if (finalizeTimeout.current) clearTimeout(finalizeTimeout.current);
         if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+        if (activeRunIdRef.current) {
+          assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+          activeRunIdRef.current = null;
+        }
         setServiceWorkerActiveSession(false);
         setStatusMessage('TEST INTERRUPTED');
         setInputPrompt('Settings opened. Click to restart.');

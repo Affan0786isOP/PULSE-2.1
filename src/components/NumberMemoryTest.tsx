@@ -77,6 +77,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
   const assessmentStartWallTimestampRef = useRef<number | null>(null);
   const totalTimeMsRef = useRef<number | null>(null);
   const activeRunIdRef = useRef<string | null>(null);
+  const isStartingRef = useRef(false);
 
   const clearAllTimers = () => {
     if (sequenceTimeout.current) clearTimeout(sequenceTimeout.current);
@@ -205,12 +206,18 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
 
   const startCountdown = async () => {
     if (!sessionId) return;
+    isStartingRef.current = true;
     if (activeRunIdRef.current) {
       await assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
       activeRunIdRef.current = null;
     }
     const runId = await assessmentLockStore.acquireLock('number-memory');
-    if (!runId) return;
+    if (!runId || !isStartingRef.current) {
+      if (runId) {
+        await assessmentLockStore.forceAbortLock(runId).catch(() => {});
+      }
+      return;
+    }
     activeRunIdRef.current = runId;
 
     setServiceWorkerActiveSession(true);
@@ -588,8 +595,15 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
   useEffect(() => {
     const handleSettingsOpen = () => {
       // If a test is running, abort it to prevent timers from firing behind the modal
-      if (engineStateRef.current !== 'READY' && engineStateRef.current !== 'REPORT') {
+      if ((engineStateRef.current !== 'READY' || isStartingRef.current) && engineStateRef.current !== 'REPORT') {
+        isStartingRef.current = false;
         clearAllTimers();
+        if (activeRunIdRef.current) {
+          assessmentLockStore.forceAbortLock(activeRunIdRef.current).catch(() => {});
+          activeRunIdRef.current = null;
+        } else if (assessmentLockStore.isAcquiring()) {
+          assessmentLockStore.cancelPendingAcquisition().catch(() => {});
+        }
         setServiceWorkerActiveSession(false);
         setStatusMessage('Assessment Interrupted — Click to Restart');
         setInputPrompt('Settings opened. Click to restart.');

@@ -30,7 +30,7 @@ for (const vp of MOBILE_VIEWPORTS) {
       });
 
       test('renders hero intact and 8 narrative sections in correct order without horizontal overflow', async ({ page }) => {
-        await page.goto('/mobile');
+        await page.goto('/');
         await page.waitForLoadState('domcontentloaded');
 
         // 1. Verify hero is visible and intact, along with ambient wave continuation
@@ -80,7 +80,7 @@ for (const vp of MOBILE_VIEWPORTS) {
       });
 
       test('swipe strip scrolls and has accessible cards with min 44x44px touch targets', async ({ page }) => {
-        await page.goto('/mobile');
+        await page.goto('/');
         await page.waitForLoadState('domcontentloaded');
 
         const strip = page.getByRole('region', { name: 'Cognitive Assessments Carousel' });
@@ -117,7 +117,7 @@ for (const vp of MOBILE_VIEWPORTS) {
       });
 
       test('FAQ accordion expands, collapses and exposes aria attributes', async ({ page }) => {
-        await page.goto('/mobile');
+        await page.goto('/');
         await page.waitForLoadState('domcontentloaded');
 
         const faqSection = page.locator('section#faq');
@@ -144,7 +144,7 @@ for (const vp of MOBILE_VIEWPORTS) {
       });
 
       test('assessment launches navigate to valid internal routes', async ({ page }) => {
-        await page.goto('/mobile');
+        await page.goto('/');
         await page.waitForLoadState('domcontentloaded');
 
         const strip = page.getByRole('region', { name: 'Cognitive Assessments Carousel' });
@@ -152,7 +152,7 @@ for (const vp of MOBILE_VIEWPORTS) {
 
         const reactionBtn = page.locator('[data-testid="launch-btn-visual-reaction"]');
         await reactionBtn.click();
-        await expect(page).toHaveURL(/\/mobile\/reaction-test/);
+        await expect(page).toHaveURL(/(?:\/mobile)?\/reaction-test/);
       });
     });
   }

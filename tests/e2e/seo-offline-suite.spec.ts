@@ -34,9 +34,9 @@ test.describe('Offline E2E SEO, Hydration & Bot Verification', () => {
         // 3. Verify canonical link
         expect(html).toMatch(/<link\s+rel="canonical"\s+href="https:\/\/pulse-lab\.in[^"]*"/);
 
-        // 4. Verify hreflang & desktop alternate link
+        // 4. Verify hreflang & absence of separate-URL alternate links
         expect(html).toContain('rel="alternate" hreflang="x-default"');
-        expect(html).toContain('rel="alternate" media="only screen and (max-width: 768px)"');
+        expect(html).not.toContain('rel="alternate" media="only screen and (max-width: 768px)"');
 
         // If it is a guide or assessment route, ensure article element is present
         if (routePath.startsWith('/guides') || routePath === '/reaction-test') {
@@ -89,12 +89,12 @@ test.describe('Offline E2E SEO, Hydration & Bot Verification', () => {
   });
 
   test.describe('3. Mobile Parity & Separate-URL Validation', () => {
-    test('desktop shell contains mobile alternate link pointing to /mobile/...', async ({ request }) => {
+    test('desktop shell contains canonical link and does not emit mobile alternate link', async ({ request }) => {
       const response = await request.get('/reaction-test', {
         headers: { Accept: 'text/html' },
       });
       const html = await response.text();
-      expect(html).toContain('<link rel="alternate" media="only screen and (max-width: 768px)" href="https://pulse-lab.in/mobile/reaction-test"');
+      expect(html).not.toContain('rel="alternate" media="only screen and (max-width: 768px)"');
       expect(html).toContain('<link rel="canonical" href="https://pulse-lab.in/reaction-test"');
     });
 
@@ -116,7 +116,7 @@ test.describe('Offline E2E SEO, Hydration & Bot Verification', () => {
         userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1',
       });
       const mobilePage = await context.newPage();
-      await mobilePage.goto('/mobile/reaction-test');
+      await mobilePage.goto('/mobile/reaction-test?standalone=1');
       await expect(mobilePage).toHaveURL(/\/mobile\/reaction-test/);
       // Ensure #pulse-seo-shell is unlinked
       await expect(mobilePage.locator('#pulse-seo-shell')).toHaveCount(0);

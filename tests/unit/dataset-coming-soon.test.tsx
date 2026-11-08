@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { DatasetComingSoon } from '../../src/components/DatasetComingSoon';
 import { resolveRoute } from '@shared/registries/routeRegistry';
@@ -60,8 +60,9 @@ describe('Dataset Coming Soon', () => {
       resolve(process.cwd(), 'src/components/DatasetComingSoon.tsx'),
       'utf8'
     );
+    const desktopAppPath = resolve(process.cwd(), 'src/DesktopApp.tsx');
     const desktopAppSource = readFileSync(
-      resolve(process.cwd(), 'src/App.tsx'),
+      existsSync(desktopAppPath) ? desktopAppPath : resolve(process.cwd(), 'src/App.tsx'),
       'utf8'
     );
     const mobileAppSource = readFileSync(

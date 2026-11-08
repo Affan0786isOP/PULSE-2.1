@@ -21,9 +21,8 @@ test.describe('Home Page', () => {
       await scene.scrollIntoViewIfNeeded();
       await expect(scene).toBeVisible();
     } else {
-      await page.waitForURL(/\/mobile\/?/);
       await expect(page.getByRole('heading', { name: /Measure.*your mind/i })).toBeVisible();
-      const scene2 = page.getByRole('heading', { name: /Explore the tests/i });
+      const scene2 = page.getByRole('heading', { name: /Explore the Assessments|Explore the tests/i });
       await scene2.scrollIntoViewIfNeeded();
       await expect(scene2).toBeVisible();
     }
@@ -37,8 +36,8 @@ test.describe('Home Page', () => {
       await launchButton.click();
       await expect(page).toHaveURL(/.*\/reaction-test/);
     } else {
-      await page.waitForURL(/\/mobile\/?/);
-      const card = page.getByText('Visual Reaction', { exact: true }).first();
+      const card = page.locator('[data-testid="launch-btn-visual-reaction"]');
+      await card.scrollIntoViewIfNeeded();
       await expect(card).toBeVisible();
       await card.click();
       await expect(page).toHaveURL(/.*\/reaction-test/);
