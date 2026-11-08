@@ -17,12 +17,14 @@ describe('Vercel technical SEO routing', () => {
     expect(pairs).toContainEqual(['/index.html', '/']);
   });
 
-  it('does not have a catch-all SPA rewrite', () => {
+  it('does not have a catch-all SPA rewrite but retains the specific admin fallback', () => {
     const rewrites = config.rewrites as Array<Record<string, unknown>>;
     expect(
       rewrites.some(rule => String(rule.source) === '/((?!api/|mobile/|assets/|.*\\..*).*)')
     ).toBe(false);
-    expect(rewrites.some(rule => String(rule.destination) === '/index.html')).toBe(false);
+    expect(
+      rewrites.filter(rule => String(rule.destination) === '/index.html')
+    ).toEqual([{ source: '/admin', destination: '/index.html' }]);
   });
 
   it('redirects www host and aliases directly to apex canonical URLs without redirect loops', () => {
