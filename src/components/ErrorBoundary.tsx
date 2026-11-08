@@ -22,6 +22,23 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[PULSE Uncaught Error]:', error, errorInfo);
+
+    // Auto-recover from stale dynamic chunk imports following a new deployment
+    const isChunkLoadError =
+      error?.name === 'ChunkLoadError' ||
+      /Failed to fetch dynamically imported module/i.test(error?.message || '') ||
+      /Importing a module script failed/i.test(error?.message || '');
+
+    if (isChunkLoadError && typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+      const reloadKey = 'pulse_chunk_reload';
+      const lastReload = sessionStorage.getItem(reloadKey);
+      const now = Date.now();
+      // Allow 1 auto-reload attempt within 15 seconds to prevent reload loops
+      if (!lastReload || now - Number(lastReload) > 15000) {
+        sessionStorage.setItem(reloadKey, String(now));
+        window.location.reload();
+      }
+    }
   }
 
   private handleReload = () => {
