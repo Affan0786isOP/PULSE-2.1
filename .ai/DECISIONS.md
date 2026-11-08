@@ -53,12 +53,12 @@ This file records verified architectural and engineering decisions established i
 
 ---
 
-### Decision: Web Admin Surface Deprecation & Scoped CLI Operations
-- **Status:** Accepted
-- **Context:** Browser-facing `/admin` routes, login forms, and HTTP moderation endpoints presented an unnecessary external attack surface.
-- **Decision:** Decommission and delete all web-facing admin UI pages, authentication contexts, and `/api/admin/*` endpoints. Restrict administrative moderation (soft-hide, unhide, purge) exclusively to server CLI operator scripts running directly with `FIREBASE_SERVICE_ACCOUNT` credentials.
-- **Consequences:** Minimizes attack surface and eliminates admin passcode session management from client/server HTTP routing.
-- **Evidence:** [`docs/breach-runbook.md`](../docs/breach-runbook.md), [`docs/specs/LEADERBOARD_PROVENANCE.md`](../docs/specs/LEADERBOARD_PROVENANCE.md).
+### Decision: Web Admin Surface Deprecation (Superseded 2026-11-06)
+- **Status:** Superseded
+- **Historical context:** The web admin surface was decommissioned at the time this decision was recorded because browser-facing moderation endpoints were considered unnecessary attack surface.
+- **Historical decision:** Moderation was temporarily restricted to operator-controlled server CLI scripts using Firebase Admin credentials.
+- **Supersession:** The desktop `/admin` console and protected `/api/admin/*` routes were restored on 2026-11-06. The original decommissioning rationale remains relevant as a security constraint: every protected API operation must enforce server-side signed-session authorization, no-store responses, rate limiting, and auditability. The mobile router still does not expose `/admin`.
+- **Evidence:** [`src/App.tsx`](../src/App.tsx), [`server/routes/adminRoutes.ts`](../server/routes/adminRoutes.ts), [`server/middleware/adminAuth.ts`](../server/middleware/adminAuth.ts), [`server/config/rateLimits.ts`](../server/config/rateLimits.ts).
 
 
 ---
@@ -126,6 +126,24 @@ This file records verified architectural and engineering decisions established i
 - **Consequences:** Future documentation updates should inspect `package.json`, both application routers, the relevant admin component and server route registrations before making claims about runtime requirements, feature availability, or administrative access.
 - **Evidence:** [package.json](../package.json), [src/App.tsx](../src/App.tsx), [mobile/src/App.tsx](../mobile/src/App.tsx), [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md), [docs/TESTING.md](../docs/TESTING.md).
 
+
+### Decision: Restored Authenticated Web Administration (2026-11-06)
+- **Status:** Accepted
+- **Context:** Staff needed a browser-accessible surface for leaderboard moderation and Dataset aggregate maintenance, while preserving the server-side authorization boundary.
+- **Decision:** Restore the desktop `/admin` console and protected `/api/admin/*` routes. Keep `ADMIN_PASSCODE` and `PULSE_ADMIN_SESSION_SECRET` server-only; issue signed, time-bounded session tokens, check revocation nonces in `adminSessionRevocations`, and revoke the nonce on logout. Apply no-store headers to admin responses and rate-limit login and mutation operations. Keep CLI scripts as a trusted maintenance/recovery path. The mobile route table does not expose `/admin`.
+- **Consequences:** Admin capabilities are available through the desktop console without making Firestore directly writable by clients or exposing credentials in the browser bundle. Each API route remains independently protected; an exposed page route does not itself confer authorization.
+- **Evidence:** [`src/App.tsx`](../src/App.tsx), [`src/components/admin/AdminPage.tsx`](../src/components/admin/AdminPage.tsx), [`server/routes/adminRoutes.ts`](../server/routes/adminRoutes.ts), [`server/middleware/adminAuth.ts`](../server/middleware/adminAuth.ts), [`firestore.rules`](../firestore.rules).
+
+---
+
+### Decision: Repository-Wide Typography Contract (2026-11-06)
+- **Status:** Accepted
+- **Context:** Font usage had drifted across desktop, mobile, chart components, brand assets, and generated Open Graph cards.
+- **Decision:** Approve Inter, Space Grotesk, and JetBrains Mono only, with Google Fonts weights 400, 500, 600, and 700. Centralize family aliases in `src/brand/tokens.css` and enforce usage through `scripts/audit-typography.mjs`; wire the audit into npm test, check, and build scripts.
+- **Consequences:** Typography changes must update shared tokens and pass the automated repository-wide audit; desktop/mobile parity is checked as part of routine verification.
+- **Evidence:** [`src/brand/tokens.css`](../src/brand/tokens.css), [`scripts/audit-typography.mjs`](../scripts/audit-typography.mjs), [`package.json`](../package.json).
+
+---
 
 ### Decision: Controlled Dataset Summary Maintenance (2026-11-05)
 - **Status:** Accepted
