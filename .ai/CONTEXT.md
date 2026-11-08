@@ -47,7 +47,7 @@
        ├── assessmentResults (5-yr retention, derived metrics)
        ├── publicDataset (Indefinite, fully anonymized, open research)
        ├── leaderboardResults (voluntary public alias; no automated expiry found in reviewed code)
-       └── adminAuditLogs (7-yr retention, immutable moderation log)
+       ├── adminAuditLogs (7-yr retention, immutable moderation log)
        ├── publicDatasetMeta (server-only aggregate summary and reconciliation lock)
        └── adminSessionRevocations (server-only revoked admin-session nonces)
 ```
