@@ -35,6 +35,7 @@ export class FirestoreRateLimitStore implements Store {
     if (!ref) {
       const existing = this.memoryFallback.get(key);
       if (!existing || existing.resetAt.getTime() <= now) {
+        if (this.memoryFallback.size >= 2000) { for (const [k, v] of this.memoryFallback.entries()) { if (v.resetAt.getTime() <= now) this.memoryFallback.delete(k); } const oldestKey = this.memoryFallback.keys().next().value; if (this.memoryFallback.size >= 2000 && oldestKey) this.memoryFallback.delete(oldestKey); }
         this.memoryFallback.set(key, { count: 1, resetAt: resetTime });
         return { totalHits: 1, resetTime };
       }
@@ -62,6 +63,7 @@ export class FirestoreRateLimitStore implements Store {
       console.warn('[Rate limit store] Firestore counter error, falling back to memory counter:', err instanceof Error ? err.message : String(err));
       const existing = this.memoryFallback.get(key);
       if (!existing || existing.resetAt.getTime() <= now) {
+        if (this.memoryFallback.size >= 2000) { for (const [k, v] of this.memoryFallback.entries()) { if (v.resetAt.getTime() <= now) this.memoryFallback.delete(k); } const oldestKey = this.memoryFallback.keys().next().value; if (this.memoryFallback.size >= 2000 && oldestKey) this.memoryFallback.delete(oldestKey); }
         this.memoryFallback.set(key, { count: 1, resetAt: resetTime });
         return { totalHits: 1, resetTime };
       }

@@ -634,50 +634,28 @@ export class LeaderboardAppService implements ILeaderboardService {
 
   private async loadPublicLeaderboard(rawType: string): Promise<LeaderboardEntryRecord[]> {
     const isSpeed = rawType === 'visual-reaction' || rawType === 'direction' || rawType === 'color-recognition';
-    const aliasesByType: Record<string, string[]> = {
-      'visual-reaction': ['visual-reaction', 'reaction-test', 'reaction', 'visual', 'visual-reaction-test'],
-      direction: ['direction', 'direction-test', 'direction-reflex'],
-      'color-recognition': ['color-recognition', 'colour-recognition', 'color-test', 'colour-test', 'color', 'colour', 'color-rec', 'colour-rec'],
-      'block-memory': ['block-memory', 'block-memory-test', 'block'],
-      'number-memory': ['number-memory', 'number-memory-test', 'number']
-    };
-    const aliases = aliasesByType[rawType];
-    const entriesMap = new Map<string, LeaderboardEntryRecord>();
-
-    // Query stored aliases in parallel. If any query fails, the caller gets a
-    // 503 rather than a partial board that differs between clients/instances.
-    const aliasQueries = await Promise.all(aliases.map(async alias => {
-      try {
-        const records = await this.leaderboardRepo.getEntriesByAlias(alias, isSpeed ? 'asc' : 'desc', 100);
-        return { alias, records, error: null as unknown | null };
-      } catch (error: unknown) {
-        safeLogWarning('[Leaderboard API] Firestore query notice:', error);
-        return { alias, records: [] as LeaderboardEntryRecord[], error };
-      }
-    }));
-
-    if (aliasQueries.some(query => query.error !== null)) {
+    let records: LeaderboardEntryRecord[] = [];
+    try {
+      records = await this.leaderboardRepo.getEntriesByAlias(rawType, isSpeed ? 'asc' : 'desc', 100);
+    } catch (error: unknown) {
+      safeLogWarning('[Leaderboard API] Firestore query notice:', error);
       throw new AppError('LEADERBOARD_UNAVAILABLE', 503);
     }
 
-    for (const query of aliasQueries) {
-      for (const record of query.records) {
-        const safeDisplayName = safeLeaderboardDisplayNameForRead(record.displayName);
-        if (
-          record.assessmentType === rawType &&
-          safeDisplayName !== null &&
-          isValidLeaderboardScoreMetric(rawType, record.scoreMetric) &&
-          !entriesMap.has(record.id)
-        ) {
-          entriesMap.set(record.id, {
-            ...record,
-            displayName: safeDisplayName
-          });
-        }
+    const entries: LeaderboardEntryRecord[] = [];
+    for (const record of records) {
+      const safeDisplayName = safeLeaderboardDisplayNameForRead(record.displayName);
+      if (
+        record.assessmentType === rawType &&
+        safeDisplayName !== null &&
+        isValidLeaderboardScoreMetric(rawType, record.scoreMetric)
+      ) {
+        entries.push({
+          ...record,
+          displayName: safeDisplayName
+        });
       }
     }
-
-    const entries = Array.from(entriesMap.values());
     entries.sort((a, b) => {
       if (isSpeed) {
         if (a.scoreMetric !== b.scoreMetric) return a.scoreMetric - b.scoreMetric;

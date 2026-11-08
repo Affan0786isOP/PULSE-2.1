@@ -271,7 +271,7 @@ export function deriveVisualReactionMetrics(ctx: DerivationContext): DerivationR
       if (Math.abs(currFp - prevFp) >= 1500) {
         const prevRt = Number(chronoValidTrials[k - 1].reactionTime);
         const currRt = Number(chronoValidTrials[k].reactionTime);
-        transitionDeltas.push(currRt - prevRt);
+        transitionDeltas.push(Math.abs(currRt - prevRt));
       }
     }
     if (transitionDeltas.length >= 2) {

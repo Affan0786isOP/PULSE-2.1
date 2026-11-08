@@ -141,8 +141,27 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
       return { entries: [], nextCursor: null, hasMore: false };
     }
 
-    const metaSnapshots = await this.getLeaderboardPrivateMetaDocs(db, docs);
-    const entries = docs.map((doc, index) => {
+    // Sort public docs by createdAt desc, then id asc (preserving legacy rows without createdAt at the end)
+    const sortedDocs = [...docs].sort((a, b) => {
+      const aCreated = timestampToMillis(a.data().createdAt);
+      const bCreated = timestampToMillis(b.data().createdAt);
+      return bCreated - aCreated || a.id.localeCompare(b.id);
+    });
+
+    let startIndex = 0;
+    if (cursor) {
+      const cursorIndex = sortedDocs.findIndex(doc => doc.id === cursor);
+      if (cursorIndex < 0) throw new Error('INVALID_CURSOR');
+      startIndex = cursorIndex + 1;
+    }
+
+    const rows = sortedDocs.slice(startIndex, startIndex + safeLimit + 1);
+    const hasMore = rows.length > safeLimit;
+    const pageDocs = rows.slice(0, safeLimit);
+
+    // Fetch private metadata exclusively for the returned page slice
+    const metaSnapshots = await this.getLeaderboardPrivateMetaDocs(db, pageDocs);
+    const entries = pageDocs.map((doc, index) => {
       const data = doc.data();
       const meta = metaSnapshots[index].exists ? metaSnapshots[index].data() || {} : {};
       return {
@@ -152,22 +171,10 @@ export class FirestoreLeaderboardRepository implements ILeaderboardRepository {
         createdAt: timestampToMillis(data.createdAt)
       } as AdminLeaderboardEntryRecord;
     });
-    entries.sort((a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id));
-
-    let startIndex = 0;
-    if (cursor) {
-      const cursorIndex = entries.findIndex(entry => entry.id === cursor);
-      if (cursorIndex < 0) throw new Error('INVALID_CURSOR');
-      startIndex = cursorIndex + 1;
-    }
-
-    const rows = entries.slice(startIndex, startIndex + safeLimit + 1);
-    const hasMore = rows.length > safeLimit;
-    const pageEntries = rows.slice(0, safeLimit);
 
     return {
-      entries: pageEntries,
-      nextCursor: hasMore && pageEntries.length > 0 ? pageEntries[pageEntries.length - 1].id : null,
+      entries,
+      nextCursor: hasMore && pageDocs.length > 0 ? pageDocs[pageDocs.length - 1].id : null,
       hasMore
     };
   }

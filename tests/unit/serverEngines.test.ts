@@ -259,6 +259,7 @@ describe('assessment engine (server-side derivation, no HTTP)', () => {
 
     expect(res.success).toBe(true);
     expect(res.derivedMetrics?.totalFalseStarts).toBe(1);
+    expect(res.derivedMetrics?.temporalDynamics).toBeDefined();
   });
 
   it('deduplicates direction trials by logical position so retry spam cannot inflate accuracy (BUG-08)', () => {
@@ -369,5 +370,36 @@ describe('device routing helpers', () => {
     expect(isMobileUserAgent(req({ 'sec-ch-ua-mobile': '?1' }))).toBe(true);
     expect(isMobileUserAgent(req({ 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }))).toBe(false);
     expect(isMobileUserAgent(req({}))).toBe(false);
+  });
+
+  it('computes non-negative absolute foreperiod transition cost (BUG-14)', () => {
+    const sessionId = 'vrt-fp-cost-test';
+    const baseTime = 1700000000000;
+    const trials: any[] = [];
+    for (let i = 1; i <= 10; i++) {
+      const fp = generateVrtForeperiod(seedPRNG(`${sessionId}-reaction-delays-t${i}-a1`));
+      const rt = (i % 2 === 0) ? 300 : 200;
+      trials.push({
+        trialNumber: i,
+        attemptNumber: 1,
+        stimulusTimestamp: baseTime + i * 4000,
+        responseTimestamp: baseTime + i * 4000 + rt,
+        reactionTime: rt,
+        foreperiodMs: fp.foreperiodMs,
+        foreperiodCategory: fp.foreperiodCategory
+      });
+    }
+
+    const res = deriveVisualReactionMetrics({
+      trials,
+      ageGroup: 'Adults (26–40)',
+      sessionId,
+      session: { sessionId }
+    });
+    expect(res.success).toBe(true);
+    const cost = (res.derivedMetrics as any)?.temporalDynamics?.foreperiodTransitionCost;
+    if (cost !== null) {
+      expect(cost).toBeGreaterThanOrEqual(0);
+    }
   });
 });

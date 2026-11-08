@@ -191,5 +191,18 @@ describe('TelegramNotifierService', () => {
       const res = await service.flush();
       expect(res.processed).toBeGreaterThan(0);
     });
+
+    it('formats Page View with referralSource when provided (BUG-11)', () => {
+      const text = service.formatPageView({
+        eventId: 'page-view-123',
+        route: '/assessments',
+        surface: 'desktop',
+        deviceId: 'dev_test_123',
+        referralSource: 'https://twitter.com/pulse'
+      }, '2026-10-20T18:00:00.000Z');
+
+      expect(text).toContain('Referral:</b> <code>https://twitter.com/pulse</code>');
+      expect(text).toContain('Device ID:</b> <code>dev_test_123</code>');
+    });
   });
 });

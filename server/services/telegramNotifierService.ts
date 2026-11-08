@@ -148,12 +148,16 @@ export class TelegramNotifierService implements ITelegramNotifierService {
     const deviceLine = event.deviceId
       ? `• <b>Device ID:</b> <code>${escapeTelegramHtml(event.deviceId)}</code>\n`
       : '';
+    const referralLine = event.referralSource
+      ? `• <b>Referral:</b> <code>${escapeTelegramHtml(event.referralSource)}</code>\n`
+      : '';
 
     return (
       `🌐 <b>PULSE Page Visit</b>\n\n` +
       `• <b>Route:</b> <code>${escapeTelegramHtml(event.route)}</code>\n` +
       `• <b>Surface:</b> ${surfaceLabel}\n` +
       deviceLine +
+      referralLine +
       `• <b>Time:</b> <code>${escapeTelegramHtml(receivedAtIso)}</code>`
     );
   }

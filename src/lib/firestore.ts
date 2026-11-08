@@ -330,7 +330,7 @@ export const submitAssessmentResult = async (payload: BasePayload): Promise<{
       body: JSON.stringify({
         assessmentType: payload.assessmentType,
         ageGroup: payload.ageGroup,
-        deviceCategory: 'mobile',
+        deviceCategory: 'desktop',
         trials,
         sessionId: activeSessionId,
         idempotencyKey: activeIdempotencyKey,
