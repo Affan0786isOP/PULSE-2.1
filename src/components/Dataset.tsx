@@ -63,9 +63,12 @@ interface HeroLatencyMetricProps {
 }
 
 function HeroLatencyMetric({ value }: HeroLatencyMetricProps) {
-  // Clamped between 150ms and 450ms for position indicator
-  const clamped = Math.max(150, Math.min(450, value || 280));
-  const percentage = Math.round(((clamped - 150) / 300) * 100);
+  // Dynamic scale bounds to avoid out-of-bounds indicators
+  const minBound = value > 0 && value < 150 ? Math.floor(value / 50) * 50 : 150;
+  const maxBound = value > 450 ? Math.ceil(value / 50) * 50 : 450;
+  const percentage = value > 0 
+    ? Math.min(100, Math.max(8, Math.round(((value - minBound) / (maxBound - minBound)) * 100))) 
+    : 0;
 
   return (
     <div className="flex flex-col justify-between h-full">
@@ -89,13 +92,13 @@ function HeroLatencyMetric({ value }: HeroLatencyMetricProps) {
             <div
               className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-purple-400 transition-all duration-700"
               style={{
-                width: `${value > 0 ? Math.min(100, Math.max(8, percentage)) : 0}%`,
+                width: `${value > 0 ? percentage : 0}%`,
               }}
             />
           </div>
           <div className="flex justify-between items-center text-[10px] font-mono text-[var(--text-muted)] mt-1">
-            <span>150ms</span>
-            <span>450ms</span>
+            <span>{minBound}ms</span>
+            <span>{maxBound}ms</span>
           </div>
         </div>
       </div>
@@ -645,58 +648,64 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     </span>
                   </div>
                 </div>
-                <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={foreperiodData}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
-                    >
-                      <defs>
-                        <linearGradient id="areaForeperiodGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#00f0ff" stopOpacity={0.0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        stroke="var(--chart-grid)"
-                        strokeDasharray="3 3"
-                        vertical={false}
-                      />
-                      <XAxis
-                        dataKey="interval"
-                        stroke="var(--chart-text)"
-                        fontSize={9}
-                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                        tickLine={false}
-                        angle={-25}
-                        textAnchor="end"
-                      />
-                      <YAxis
-                        stroke="var(--chart-text)"
-                        fontSize={10}
-                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                        tickLine={false}
-                        axisLine={false}
-                        unit="ms"
-                        domain={[foreperiodTicks[0], foreperiodTicks[foreperiodTicks.length - 1]]}
-                        ticks={foreperiodTicks}
-                      />
-                      <Tooltip 
-                        content={<DatasetTooltip />} 
-                        allowEscapeViewBox={{ x: false, y: true }}
-                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="medianRT"
-                        name="Median RT"
-                        stroke="#00f0ff"
-                        strokeWidth={2}
-                        fill="url(#areaForeperiodGrad)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                {foreperiodData.length === 0 ? (
+                  <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] flex items-center justify-center text-xs font-mono text-[var(--text-muted)] text-center px-4">
+                    Insufficient sample size (min n=10 per interval)
+                  </div>
+                ) : (
+                  <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={foreperiodData}
+                        margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+                      >
+                        <defs>
+                          <linearGradient id="areaForeperiodGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="#00f0ff" stopOpacity={0.0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          stroke="var(--chart-grid)"
+                          strokeDasharray="3 3"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="interval"
+                          stroke="var(--chart-text)"
+                          fontSize={9}
+                          fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                          tickLine={false}
+                          angle={-25}
+                          textAnchor="end"
+                        />
+                        <YAxis
+                          stroke="var(--chart-text)"
+                          fontSize={10}
+                          fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                          tickLine={false}
+                          axisLine={false}
+                          unit="ms"
+                          domain={[foreperiodTicks[0], foreperiodTicks[foreperiodTicks.length - 1]]}
+                          ticks={foreperiodTicks}
+                        />
+                        <Tooltip 
+                          content={<DatasetTooltip />} 
+                          allowEscapeViewBox={{ x: false, y: true }}
+                          wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="medianRT"
+                          name="Median RT"
+                          stroke="#00f0ff"
+                          strokeWidth={2}
+                          fill="url(#areaForeperiodGrad)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </div>
 
               {/* Age Group */}
@@ -709,48 +718,54 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     Median RT by Age Group
                   </span>
                 </div>
-                <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={ageGroupData}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
-                    >
-                      <CartesianGrid
-                        stroke="var(--chart-grid)"
-                        strokeDasharray="3 3"
-                        vertical={false}
-                      />
-                      <XAxis
-                        dataKey="day"
-                        stroke="var(--chart-text)"
-                        fontSize={10}
-                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                        tickLine={false}
-                      />
-                      <YAxis
-                        stroke="var(--chart-text)"
-                        fontSize={10}
-                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                        tickLine={false}
-                        axisLine={false}
-                        unit="ms"
-                      />
-                      <Tooltip 
-                        content={<DatasetTooltip />} 
-                        allowEscapeViewBox={{ x: false, y: true }}
-                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                      />
-                      <Bar dataKey="value" name="Median RT" radius={[6, 6, 0, 0]}>
-                        {ageGroupData.map((_, index) => (
-                          <Cell
-                            key={`cell-age-${index}`}
-                            fill={index === 2 ? '#00f0ff' : '#0284c7'}
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                {ageGroupData.length === 0 ? (
+                  <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
+                    No cohort records available
+                  </div>
+                ) : (
+                  <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={ageGroupData}
+                        margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
+                      >
+                        <CartesianGrid
+                          stroke="var(--chart-grid)"
+                          strokeDasharray="3 3"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="day"
+                          stroke="var(--chart-text)"
+                          fontSize={10}
+                          fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                          tickLine={false}
+                        />
+                        <YAxis
+                          stroke="var(--chart-text)"
+                          fontSize={10}
+                          fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                          tickLine={false}
+                          axisLine={false}
+                          unit="ms"
+                        />
+                        <Tooltip 
+                          content={<DatasetTooltip />} 
+                          allowEscapeViewBox={{ x: false, y: true }}
+                          wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                        />
+                        <Bar dataKey="value" name="Median RT" radius={[6, 6, 0, 0]}>
+                          {ageGroupData.map((_, index) => (
+                            <Cell
+                              key={`cell-age-${index}`}
+                              fill={index === 2 ? '#00f0ff' : '#0284c7'}
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -769,49 +784,55 @@ export function Dataset({ onNavigate }: DatasetProps) {
                   </span>
                 </div>
               </div>
-              <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={trialProgressionData}
-                    margin={{ top: 10, right: 25, left: -10, bottom: 5 }}
-                  >
-                    <CartesianGrid
-                      stroke="var(--chart-grid)"
-                      strokeDasharray="3 3"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="trialLabel"
-                      stroke="var(--chart-text)"
-                      fontSize={10}
-                      fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                      tickLine={false}
-                    />
-                    <YAxis
-                      stroke="var(--chart-text)"
-                      fontSize={10}
-                      fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                      tickLine={false}
-                      axisLine={false}
-                      unit="ms"
-                    />
-                    <Tooltip 
-                      content={<DatasetTooltip />} 
-                      allowEscapeViewBox={{ x: false, y: true }}
-                      wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="overall"
-                      name="Overall RT"
-                      stroke="#00f0ff"
-                      strokeWidth={2.5}
-                      dot={{ r: 4, fill: '#00f0ff', strokeWidth: 0 }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              {trialProgressionData.length === 0 || trialProgressionData.every((d) => !d.overall || d.overall === 0) ? (
+                <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
+                  No progression trials recorded
+                </div>
+              ) : (
+                <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={trialProgressionData}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
+                    >
+                      <CartesianGrid
+                        stroke="var(--chart-grid)"
+                        strokeDasharray="3 3"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="trialLabel"
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                        tickLine={false}
+                      />
+                      <YAxis
+                        stroke="var(--chart-text)"
+                        fontSize={10}
+                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                        tickLine={false}
+                        axisLine={false}
+                        unit="ms"
+                      />
+                      <Tooltip 
+                        content={<DatasetTooltip />} 
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="overall"
+                        name="Overall RT"
+                        stroke="#00f0ff"
+                        strokeWidth={2.5}
+                        dot={{ r: 4, fill: '#00f0ff', strokeWidth: 0 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
 
             {/* 4. CONSISTENCY DISTRIBUTION & TRIAL VALIDITY */}
@@ -834,41 +855,47 @@ export function Dataset({ onNavigate }: DatasetProps) {
                     </span>
                   </div>
                 </div>
-                <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={consistencyData}
-                      margin={{ top: 10, right: 15, left: -20, bottom: 5 }}
-                    >
-                      <CartesianGrid
-                        stroke="var(--chart-grid)"
-                        strokeDasharray="3 3"
-                        vertical={false}
-                      />
-                      <XAxis
-                        dataKey="label"
-                        stroke="var(--chart-text)"
-                        fontSize={10}
-                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                        tickLine={false}
-                      />
-                      <YAxis
-                        stroke="var(--chart-text)"
-                        fontSize={10}
-                        fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <Tooltip
-                        content={<DatasetTooltip />}
-                        allowEscapeViewBox={{ x: false, y: true }}
-                        wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                      />
-                      <Bar dataKey="desktop" name="Desktop" stackId="consistencyStack" fill="#00f0ff" radius={[0, 0, 0, 0]} />
-                      <Bar dataKey="mobile" name="Mobile" stackId="consistencyStack" fill="#a78bfa" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                {consistencyData.length === 0 || consistencyData.every((d) => d.desktop === 0 && d.mobile === 0) ? (
+                  <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
+                    No consistency records available
+                  </div>
+                ) : (
+                  <div className="w-full h-[220px] sm:h-[250px] lg:h-[260px] min-w-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={consistencyData}
+                        margin={{ top: 10, right: 15, left: -20, bottom: 5 }}
+                      >
+                        <CartesianGrid
+                          stroke="var(--chart-grid)"
+                          strokeDasharray="3 3"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="label"
+                          stroke="var(--chart-text)"
+                          fontSize={10}
+                          fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                          tickLine={false}
+                        />
+                        <YAxis
+                          stroke="var(--chart-text)"
+                          fontSize={10}
+                          fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip
+                          content={<DatasetTooltip />}
+                          allowEscapeViewBox={{ x: false, y: true }}
+                          wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                        />
+                        <Bar dataKey="desktop" name="Desktop" stackId="consistencyStack" fill="#00f0ff" radius={[0, 0, 0, 0]} />
+                        <Bar dataKey="mobile" name="Mobile" stackId="consistencyStack" fill="#a78bfa" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </div>
 
               {/* Ring / Trial Validity */}
@@ -887,19 +914,33 @@ export function Dataset({ onNavigate }: DatasetProps) {
                 <div className="w-full h-[180px] sm:h-[190px] relative flex items-center justify-center my-auto min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie
-                        data={ringData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={75}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {ringData.map((entry, index) => (
-                          <Cell key={`ring-pie-cell-${entry.name}-${index}`} fill={entry.color} stroke="none" />
-                        ))}
-                      </Pie>
+                      {ringData.length === 0 ? (
+                        <Pie
+                          data={[{ value: 1 }]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={75}
+                          dataKey="value"
+                          isAnimationActive={false}
+                        >
+                          <Cell fill="var(--border-subtle)" stroke="none" opacity={0.4} />
+                        </Pie>
+                      ) : (
+                        <Pie
+                          data={ringData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={75}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {ringData.map((entry, index) => (
+                            <Cell key={`ring-pie-cell-${entry.name}-${index}`} fill={entry.color} stroke="none" />
+                          ))}
+                        </Pie>
+                      )}
                       <Tooltip 
                         content={<DatasetTooltip />} 
                         allowEscapeViewBox={{ x: false, y: true }}

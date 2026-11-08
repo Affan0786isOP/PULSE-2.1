@@ -252,14 +252,29 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
-                  width: `${Math.min(100, Math.max(10, ((medianRT - 250) / 600) * 100))}%`,
+                  width: `${
+                    medianRT > 0
+                      ? Math.min(
+                          100,
+                          Math.max(
+                            8,
+                            Math.round(
+                              ((medianRT - (medianRT < 250 ? Math.floor(medianRT / 50) * 50 : 250)) /
+                                ((medianRT > 850 ? Math.ceil(medianRT / 50) * 50 : 850) -
+                                  (medianRT < 250 ? Math.floor(medianRT / 50) * 50 : 250))) *
+                                100
+                            )
+                          )
+                        )
+                      : 0
+                  }%`,
                   backgroundColor: 'var(--cyan-primary)',
                 }}
               />
             </div>
             <div className="flex items-center justify-between w-full max-w-[190px] mt-1 text-[9px] font-mono text-[var(--text-muted)]">
-              <span>250ms</span>
-              <span>850ms</span>
+              <span>{medianRT > 0 && medianRT < 250 ? Math.floor(medianRT / 50) * 50 : 250}ms</span>
+              <span>{medianRT > 850 ? Math.ceil(medianRT / 50) * 50 : 850}ms</span>
             </div>
           </div>
           <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
@@ -392,21 +407,27 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               MEDIAN RT (MS)
             </span>
           </div>
-          <div className="h-64 sm:h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={ageCohortData} margin={{ top: 8, right: 12, left: -18, bottom: 4 }}>
-                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
-                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} unit="ms" />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-                  content={<DatasetTooltip variant="direction" />}
-                  allowEscapeViewBox={{ x: false, y: true }}
-                />
-                <Bar dataKey="medianRT" name="Median RT" fill="var(--cyan-primary)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {ageCohortData.length === 0 ? (
+            <div className="h-64 sm:h-72 w-full flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
+              No cohort records available
+            </div>
+          ) : (
+            <div className="h-64 sm:h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={ageCohortData} margin={{ top: 8, right: 12, left: -18, bottom: 4 }}>
+                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
+                  <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} unit="ms" />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                    content={<DatasetTooltip variant="direction" />}
+                    allowEscapeViewBox={{ x: false, y: true }}
+                  />
+                  <Bar dataKey="medianRT" name="Median RT" fill="var(--cyan-primary)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 shadow-sm min-w-0 overflow-hidden">
@@ -418,21 +439,27 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               ACCURACY %
             </span>
           </div>
-          <div className="h-64 sm:h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={ageCohortData} margin={{ top: 8, right: 12, left: -18, bottom: 4 }}>
-                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
-                <YAxis domain={[0, 100]} stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} unit="%" />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-                  content={<DatasetTooltip variant="direction" />}
-                  allowEscapeViewBox={{ x: false, y: true }}
-                />
-                <Bar dataKey="medianAccuracy" name="Median Accuracy" fill="#10b981" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {ageCohortData.length === 0 ? (
+            <div className="h-64 sm:h-72 w-full flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
+              No cohort records available
+            </div>
+          ) : (
+            <div className="h-64 sm:h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={ageCohortData} margin={{ top: 8, right: 12, left: -18, bottom: 4 }}>
+                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="ageGroup" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
+                  <YAxis domain={[0, 100]} stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} unit="%" />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                    content={<DatasetTooltip variant="direction" />}
+                    allowEscapeViewBox={{ x: false, y: true }}
+                  />
+                  <Bar dataKey="medianAccuracy" name="Median Accuracy" fill="#10b981" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </div>
 
@@ -527,45 +554,47 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
           </div>
 
           <div className="flex-1 w-full flex flex-col justify-between py-1 min-h-[260px] sm:min-h-[290px]">
-            <div className="grid grid-cols-[68px_repeat(5,1fr)] gap-1.5 w-full text-center font-mono">
-              <div className="text-[9px] text-[var(--text-muted)] self-end pb-1 text-left">ACC \ RT</div>
-              {rtCols.map((rt) => (
-                <div key={rt} className="text-[9px] text-[var(--text-muted)] truncate px-0.5 pb-1">
-                  {rt}
-                </div>
-              ))}
-
-              {accRows.map((acc) => (
-                <React.Fragment key={acc}>
-                  <div className="text-[10px] text-[var(--text-muted)] font-medium self-center text-left py-2 truncate">
-                    {acc}
+            <div className="overflow-x-auto pb-1 -mx-2 px-2 sm:mx-0 sm:px-0">
+              <div className="grid grid-cols-[56px_repeat(5,1fr)] sm:grid-cols-[68px_repeat(5,1fr)] min-w-[320px] sm:min-w-0 gap-1.5 w-full text-center font-mono">
+                <div className="text-[9px] text-[var(--text-muted)] self-end pb-1 text-left">ACC \ RT</div>
+                {rtCols.map((rt) => (
+                  <div key={rt} className="text-[9px] text-[var(--text-muted)] px-0.5 pb-1 whitespace-nowrap">
+                    {rt}
                   </div>
-                  {rtCols.map((rt) => {
-                    const cell = heatmapData.cells.find((c) => c.accuracyBand === acc && c.rtBand === rt);
-                    const count = cell?.count || 0;
-                    const max = heatmapData.maxCount > 0 ? heatmapData.maxCount : 1;
-                    const alpha = count > 0 ? Math.max(0.18, (count / max) * 0.85) : 0.04;
-                    return (
-                      <div
-                        key={`${acc}-${rt}`}
-                        title={`${acc} accuracy • ${rt} latency: ${count} sessions`}
-                        className="h-10 rounded-md border border-[var(--border-subtle)]/60 flex flex-col items-center justify-center transition-transform hover:scale-105 cursor-default relative group"
-                        style={{
-                          backgroundColor: count > 0 ? `rgba(0, 240, 255, ${alpha})` : 'rgba(255, 255, 255, 0.02)',
-                        }}
-                      >
-                        <span className={`text-xs font-bold ${count > 0 ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]/40'}`}>
-                          {count > 0 ? count : '·'}
-                        </span>
-                        <div className="hidden group-hover:flex flex-col absolute bottom-full mb-1.5 z-30 bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-[10px] text-[var(--text-primary)] p-1.5 rounded shadow-lg whitespace-nowrap pointer-events-none">
-                          <span className="font-bold text-[var(--cyan-primary)]">{count} session{count === 1 ? '' : 's'}</span>
-                          <span className="text-[var(--text-muted)]">{acc} acc • {rt}</span>
+                ))}
+
+                {accRows.map((acc) => (
+                  <React.Fragment key={acc}>
+                    <div className="text-[10px] text-[var(--text-muted)] font-medium self-center text-left py-2 whitespace-nowrap">
+                      {acc}
+                    </div>
+                    {rtCols.map((rt) => {
+                      const cell = heatmapData.cells.find((c) => c.accuracyBand === acc && c.rtBand === rt);
+                      const count = cell?.count || 0;
+                      const max = heatmapData.maxCount > 0 ? heatmapData.maxCount : 1;
+                      const alpha = count > 0 ? Math.max(0.18, (count / max) * 0.85) : 0.04;
+                      return (
+                        <div
+                          key={`${acc}-${rt}`}
+                          title={`${acc} accuracy • ${rt} latency: ${count} sessions`}
+                          className="h-10 rounded-md border border-[var(--border-subtle)]/60 flex flex-col items-center justify-center transition-transform hover:scale-105 cursor-default relative group"
+                          style={{
+                            backgroundColor: count > 0 ? `rgba(0, 240, 255, ${alpha})` : 'rgba(255, 255, 255, 0.02)',
+                          }}
+                        >
+                          <span className={`text-xs font-bold ${count > 0 ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]/40'}`}>
+                            {count > 0 ? count : '·'}
+                          </span>
+                          <div className="hidden group-hover:flex flex-col absolute bottom-full mb-1.5 z-30 bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-[10px] text-[var(--text-primary)] p-1.5 rounded shadow-lg whitespace-nowrap pointer-events-none">
+                            <span className="font-bold text-[var(--cyan-primary)]">{count} session{count === 1 ? '' : 's'}</span>
+                            <span className="text-[var(--text-muted)]">{acc} acc • {rt}</span>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </React.Fragment>
-              ))}
+                      );
+                    })}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
 
             <div className="pt-3 mt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)]">
@@ -598,22 +627,28 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               </span>
             </div>
           </div>
-          <div className="h-64 sm:h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={consistencyDistributionData} margin={{ top: 8, right: 12, left: -22, bottom: 4 }}>
-                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
-                <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-                  content={<DatasetTooltip variant="standard" />}
-                  allowEscapeViewBox={{ x: false, y: true }}
-                />
-                <Bar dataKey="desktop" name="Desktop" stackId="consistency" fill="#00f0ff" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="mobile" name="Mobile" stackId="consistency" fill="#a78bfa" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {consistencyDistributionData.length === 0 || consistencyDistributionData.every((d) => d.desktop === 0 && d.mobile === 0) ? (
+            <div className="h-64 sm:h-72 w-full flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
+              No consistency records available
+            </div>
+          ) : (
+            <div className="h-64 sm:h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={consistencyDistributionData} margin={{ top: 8, right: 12, left: -22, bottom: 4 }}>
+                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="label" stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} />
+                  <YAxis stroke="var(--chart-text)" fontSize={10} fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)" tickLine={false} axisLine={false} />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                    content={<DatasetTooltip variant="standard" />}
+                    allowEscapeViewBox={{ x: false, y: true }}
+                  />
+                  <Bar dataKey="desktop" name="Desktop" stackId="consistency" fill="#00f0ff" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="mobile" name="Mobile" stackId="consistency" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 flex flex-col min-w-0 shadow-xs relative overflow-hidden">
@@ -630,19 +665,33 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             <div className="relative mx-auto aspect-square w-full max-w-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={ringOutcomesData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={58}
-                    outerRadius={84}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {ringOutcomesData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                    ))}
-                  </Pie>
+                  {ringOutcomesData.length === 0 ? (
+                    <Pie
+                      data={[{ value: 1 }]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={58}
+                      outerRadius={84}
+                      dataKey="value"
+                      isAnimationActive={false}
+                    >
+                      <Cell fill="var(--border-subtle)" stroke="none" opacity={0.4} />
+                    </Pie>
+                  ) : (
+                    <Pie
+                      data={ringOutcomesData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={58}
+                      outerRadius={84}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {ringOutcomesData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                      ))}
+                    </Pie>
+                  )}
                   <Tooltip
                     content={({ payload }) => {
                       if (!payload || !payload[0]) return null;
@@ -712,44 +761,51 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
             </div>
           </div>
         </div>
-        <div className="h-64 sm:h-72 w-full min-w-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trialProgressionData} margin={{ top: 10, right: 15, left: -18, bottom: 5 }}>
-              <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="trialLabel"
-                stroke="var(--chart-text)"
-                fontSize={10}
-                fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                tickLine={false}
-              />
-              <YAxis
-                stroke="var(--chart-text)"
-                fontSize={10}
-                fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                tickLine={false}
-                axisLine={false}
-                unit="ms"
-                domain={['dataMin - 30', 'dataMax + 30']}
-                ticks={trialTicks}
-              />
-              <Tooltip
-                content={<DatasetTooltip variant="direction" />}
-                allowEscapeViewBox={{ x: false, y: true }}
-                wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-              />
-              <Line
-                type="monotone"
-                dataKey="overall"
-                name="Overall RT"
-                stroke="#00f0ff"
-                strokeWidth={2.5}
-                dot={{ r: 3.5, fill: '#00f0ff', strokeWidth: 0 }}
-                activeDot={{ r: 5.5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        {trialProgressionData.length === 0 || trialProgressionData.every((d) => !d.overall || d.overall === 0) ? (
+          <div className="h-64 sm:h-72 w-full flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
+            No progression trials recorded
+          </div>
+        ) : (
+          <div className="h-64 sm:h-72 w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trialProgressionData} margin={{ top: 10, right: 28, left: 0, bottom: 5 }}>
+                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="trialLabel"
+                  stroke="var(--chart-text)"
+                  fontSize={10}
+                  fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                  tickLine={false}
+                  tickFormatter={(val: string) => val.replace('Trial ', 'T')}
+                />
+                <YAxis
+                  stroke="var(--chart-text)"
+                  fontSize={10}
+                  fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                  tickLine={false}
+                  axisLine={false}
+                  unit="ms"
+                  domain={['dataMin - 30', 'dataMax + 30']}
+                  ticks={trialTicks}
+                />
+                <Tooltip
+                  content={<DatasetTooltip variant="direction" />}
+                  allowEscapeViewBox={{ x: false, y: true }}
+                  wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="overall"
+                  name="Overall RT"
+                  stroke="#00f0ff"
+                  strokeWidth={2.5}
+                  dot={{ r: 3.5, fill: '#00f0ff', strokeWidth: 0 }}
+                  activeDot={{ r: 5.5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
     </div>
   );
