@@ -22,8 +22,9 @@ These rules govern all AI coding agents working within the PULSE repository. The
 
 ## 3. Security & Trust Boundaries
 1. **Server-Authoritative Writes:** All Firestore mutations to canonical collections (`publicDataset`, `assessmentTrials`, `assessmentResults`, `leaderboardResults`, `adminAuditLogs`) MUST route through the Express server backend (`server.ts`). Never attempt direct client writes to locked Firestore paths.
-2. **Never Expose Secrets:** Never prefix backend secrets (`PULSE_PROVENANCE_SECRET`, `FIREBASE_SERVICE_ACCOUNT`) with `VITE_` or include them in client bundles. Web admin authentication passcodes have been removed; moderation is restricted to server CLI scripts.
+2. **Never Expose Secrets:** Never prefix backend secrets (`PULSE_PROVENANCE_SECRET`, `FIREBASE_SERVICE_ACCOUNT`, `ADMIN_PASSCODE`, `PULSE_ADMIN_SESSION_SECRET`) with `VITE_` or include them in client bundles. The desktop `/admin` console and `/api/admin/*` endpoints are active; every protected API operation must enforce server-side signed-session verification and revocation checks. CLI remains available for controlled maintenance/recovery.
 3. **Zero PII in Public Datasets:** Never attach participant personal names, emails, IPs, or precise birthdates to `publicDataset` or assessment trial records.
+4. **Dataset Summary Integrity:** Public summary reads must use `publicDatasetMeta/summary` and must never scan the full `publicDataset` collection. Submission increments must remain transactional. Full reconciliation is operator-controlled, dry-run first, explicitly confirmed for apply, and protected by the Firestore migration lock.
 
 ---
 
@@ -55,3 +56,4 @@ These rules govern all AI coding agents working within the PULSE repository. The
 
 - Treat `package.json` (`engines`, `packageManager`, dependencies, and scripts) as the authoritative source for runtime and toolchain versions. Do not preserve hard-coded Vite or Node versions in agent guidance after the manifest changes.
 - The current declared Node floor is `>=24.12.0`; the package manager is `npm@10.9.7`.
+- Approved font families are Inter, Space Grotesk, and JetBrains Mono (weights 400/500/600/700). Use shared brand tokens and pass `npm run audit:typography`; the audit is already included in `npm test`, `npm run check`, and `npm run build`.
