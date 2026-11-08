@@ -985,4 +985,62 @@ describe('Firestore Repositories Unit Tests', () => {
     ).rejects.toThrow('INVALID_CURSOR');
   });
 
+  it('allows submission when summary reconciliation lock is older than 10 minutes (BUG-16)', async () => {
+    const mockDb = createMockDb();
+    const repo = new FirestoreResearchSubmissionRepository(() => mockDb);
+    const sessionId = 'lock-expired-session';
+    const completedAtTimestamp = Date.now();
+
+    await mockDb.collection('experimentSessions').doc(sessionId).set({
+      sessionId,
+      uid: 'lock-test-user',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      createdAt: completedAtTimestamp - 1000,
+      expiresAt: completedAtTimestamp + 15 * 60 * 1000,
+      consumed: false
+    });
+    // Stale lock started 15 minutes ago
+    await mockDb.collection('publicDatasetMeta').doc('summary').set({
+      schemaVersion: 1,
+      migrationInProgress: true,
+      migrationStartedAt: completedAtTimestamp - 15 * 60 * 1000,
+      totalRecords: 0,
+      totalTrials: 0,
+      counts: {
+        'visual-reaction': 0,
+        direction: 0,
+        'color-recognition': 0,
+        'block-memory': 0,
+        'number-memory': 0
+      }
+    });
+
+    const input = {
+      docId: 'lock-expired-result',
+      sessionId,
+      userId: 'lock-test-user',
+      assessmentType: 'visual-reaction',
+      ageGroup: 'Young adults (18–25)',
+      derivedMetrics: {},
+      currentScore: 210,
+      isNewPersonalBest: true,
+      previousPersonalBest: null,
+      personalBest: 210,
+      completedAtTimestamp,
+      completedAtMonth: new Date(completedAtTimestamp).toISOString().slice(0, 7),
+      provenanceToken: 'summary-test-provenance',
+      trialsDigest: 'summary-test-digest',
+      publicDatasetDoc: {
+        assessmentType: 'visual-reaction',
+        totalTrials: 1,
+        progressionTrials: [{}]
+      },
+      trialPayloads: []
+    };
+
+    // Should succeed because lock is expired (> 10 min)
+    await expect(repo.executeSubmissionTransaction(input)).resolves.toBeDefined();
+  });
+
 });

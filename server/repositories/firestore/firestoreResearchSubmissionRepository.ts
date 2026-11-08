@@ -59,7 +59,8 @@ export class FirestoreResearchSubmissionRepository implements IResearchSubmissio
       // the backfill either includes the committed record or blocks the submit.
       if (summarySnap.exists) {
         const summary = summarySnap.data() as Record<string, unknown>;
-        if (summary.migrationInProgress === true) {
+        const isLockExpired = typeof summary.migrationStartedAt === 'number' && (Date.now() - summary.migrationStartedAt) > 10 * 60 * 1000;
+        if (summary.migrationInProgress === true && !isLockExpired) {
           throw new Error('DATASET_SUMMARY_MIGRATION_IN_PROGRESS');
         }
 

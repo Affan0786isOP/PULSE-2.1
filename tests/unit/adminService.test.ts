@@ -325,4 +325,44 @@ describe('AdminService Unit Tests', () => {
       ).rejects.toMatchObject({ status: 409 });
     });
   });
+
+  describe('Leaderboard Pagination & Cursor Derivation (BUG-2)', () => {
+    it('sets nextCursor to the last item of finalEntries instead of repository batch cursor', async () => {
+      // Simulate repo returning 3 items, but safeLimit is 2
+      mockLeaderboardRepo.getAllEntriesForAdminPage.mockResolvedValueOnce({
+        entries: [
+          { id: 'entry-1', assessmentType: 'visual-reaction', displayName: 'Alice', createdAt: 1000 },
+          { id: 'entry-2', assessmentType: 'visual-reaction', displayName: 'Bob', createdAt: 900 },
+          { id: 'entry-3', assessmentType: 'visual-reaction', displayName: 'Charlie', createdAt: 800 }
+        ],
+        nextCursor: 'batch-cursor-999',
+        hasMore: true
+      });
+
+      const res = await service.getLeaderboardPage({ limit: 2, assessmentType: 'visual-reaction' });
+      expect(res.success).toBe(true);
+      expect(res.entries).toHaveLength(2);
+      expect(res.entries[0].id).toBe('entry-1');
+      expect(res.entries[1].id).toBe('entry-2');
+      // Must be 'entry-2', NOT 'batch-cursor-999'
+      expect(res.nextCursor).toBe('entry-2');
+      expect(res.hasMore).toBe(true);
+    });
+
+    it('sets nextCursor to null when hasMore is false', async () => {
+      mockLeaderboardRepo.getAllEntriesForAdminPage.mockResolvedValueOnce({
+        entries: [
+          { id: 'entry-1', assessmentType: 'visual-reaction', displayName: 'Alice', createdAt: 1000 }
+        ],
+        nextCursor: null,
+        hasMore: false
+      });
+
+      const res = await service.getLeaderboardPage({ limit: 10 });
+      expect(res.success).toBe(true);
+      expect(res.entries).toHaveLength(1);
+      expect(res.nextCursor).toBeNull();
+      expect(res.hasMore).toBe(false);
+    });
+  });
 });

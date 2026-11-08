@@ -218,5 +218,6 @@ export function applyRateLimits(app: Express): void {
   app.use('/api/leaderboard/submit', leaderboardSubmitLimiter);
   app.use('/api/research/verify-provenance', verificationLimiter);
   app.use('/api/leaderboard/verify-provenance', verificationLimiter);
+  app.use('/api/leaderboard/verify-submission', verificationLimiter);
   app.use(generalApiLimiter);
 }

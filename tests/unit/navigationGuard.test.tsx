@@ -97,4 +97,38 @@ describe('NavigationGuard & GuardedNavigate (Phase 3)', () => {
     // (Verified via stable execution without unhandled loops)
     expect(true).toBe(true);
   });
+
+  it('4. effectiveLocation remains unchanged on history navigation during active assessment (BUG-1)', async () => {
+    function HistoryConsumer() {
+      const { effectiveLocation } = useNavigationLocation();
+      const location = useLocation();
+      return (
+        <div>
+          <div data-testid="effective">{effectiveLocation.pathname}</div>
+          <div data-testid="actual">{location.pathname}</div>
+        </div>
+      );
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/', '/reaction-test']} initialIndex={1}>
+        <NavigationGuard>
+          <HistoryConsumer />
+        </NavigationGuard>
+      </MemoryRouter>
+    );
+
+    // Lock the assessment
+    act(() => {
+      (assessmentLockStore as any).state = {
+        ...((assessmentLockStore as any).state),
+        isLocked: true,
+        runId: 'test_run_123',
+      };
+      (assessmentLockStore as any).notify();
+    });
+
+    expect(screen.getByTestId('effective').textContent).toBe('/reaction-test');
+    expect(screen.getByTestId('actual').textContent).toBe('/reaction-test');
+  });
 });

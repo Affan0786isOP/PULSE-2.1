@@ -134,7 +134,7 @@ export class AdminService implements IAdminService {
       return {
         success: true,
         entries: finalEntries.map(e => this.projectToDTO(e)),
-        nextCursor: hasMore ? lastNextCursor : null,
+        nextCursor: hasMore && finalEntries.length > 0 ? finalEntries[finalEntries.length - 1].id : null,
         hasMore
       };
     }

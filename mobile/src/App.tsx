@@ -142,7 +142,7 @@ export function MobileApp() {
           <div className="relative z-10 flex-1 flex flex-col">
             <AnimatePresence initial={false}>
               <motion.div
-                key={location.pathname}
+                key={effectiveLocation.pathname}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}

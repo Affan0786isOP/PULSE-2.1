@@ -176,6 +176,7 @@ export function safeCompareHex(a: string, b: string): boolean {
   const hexPattern = /^[0-9a-fA-F]+$/;
   if (!hexPattern.test(cleanA) || !hexPattern.test(cleanB)) return false;
   if (cleanA.length !== cleanB.length) return false;
+  if (cleanA.length % 2 !== 0) return false;
   const bufA = Buffer.from(cleanA, 'hex');
   const bufB = Buffer.from(cleanB, 'hex');
   if (bufA.length === 0 || bufA.length !== bufB.length) return false;

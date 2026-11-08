@@ -159,5 +159,10 @@ describe('Admin Provenance & Attested Display Name Tests', () => {
       expect(safeCompareHex('', '')).toBe(false);
       expect(safeCompareHex('abc' as any, null as any)).toBe(false);
     });
+
+    it('returns false for odd-length hex strings to prevent trailing nibble truncation (BUG-12)', () => {
+      expect(safeCompareHex('abc', 'abc')).toBe(false);
+      expect(safeCompareHex('abc', 'abd')).toBe(false);
+    });
   });
 });

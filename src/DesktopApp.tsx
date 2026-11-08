@@ -168,7 +168,7 @@ export function DesktopApp() {
         <div className="relative z-10 min-h-[100dvh] flex flex-col">
           <AnimatePresence initial={false}>
             <motion.div
-              key={location.pathname}
+              key={effectiveLocation.pathname}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
