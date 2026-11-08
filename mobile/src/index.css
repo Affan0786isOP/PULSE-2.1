@@ -325,7 +325,7 @@ a {
    When data-theme="dark" is active on general desktop pages, cascade
    semantic surfaces, borders, and text colors to component containers.
    ========================================================================== */
-:root[data-theme="dark"], [data-theme="dark"], .dark {
+:root[data-theme="dark"] [data-surface="mobile"], [data-theme="dark"] [data-surface="mobile"], .dark [data-surface="mobile"], [data-surface="mobile"][data-theme="dark"] {
   /* Headings & Text */
   h1, h2, h3, h4, .font-heading {
     color: var(--text-primary);

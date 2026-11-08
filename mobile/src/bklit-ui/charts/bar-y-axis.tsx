@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { memo, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { useChart, useChartStable } from "./chart-context";
 
 export interface BarYAxisProps {

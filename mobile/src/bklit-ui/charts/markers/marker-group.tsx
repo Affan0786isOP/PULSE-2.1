@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import type * as React from "react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 import { chartCssVars } from "../chart-context";
 
 // Fan configuration

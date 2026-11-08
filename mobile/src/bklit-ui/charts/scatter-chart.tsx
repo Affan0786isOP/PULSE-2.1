@@ -9,7 +9,7 @@ import {
   useRef,
 } from "react";
 import useMeasure from "react-use-measure";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { DEFAULT_CHART_ENTER_TRANSITION } from "./animation";
 import {
   defaultScatterColors,

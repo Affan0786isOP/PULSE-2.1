@@ -2,7 +2,7 @@
 
 import NumberFlow from "@number-flow/react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 /** Subset of `Intl.NumberFormatOptions` supported by NumberFlow */
 export interface ChartStatFlowFormat {

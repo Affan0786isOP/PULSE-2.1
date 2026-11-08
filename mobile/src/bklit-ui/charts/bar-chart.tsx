@@ -14,7 +14,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { DEFAULT_ANIMATION_EASING } from "./animation";
 import type { BarProps } from "./bar";
 import { topSquareCenterY } from "./bar-squares-layout";

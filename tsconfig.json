@@ -23,6 +23,9 @@
       ],
       "@shared/*": [
         "shared/*"
+      ],
+      "@mobile/*": [
+        "mobile/src/*"
       ]
     },
     "allowImportingTsExtensions": true,
