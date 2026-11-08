@@ -1,7 +1,7 @@
-# Uniform 720p Baseline Aspect Ratio Scaling for Fixed-Viewport Stages
+# Uniform 720p Baseline Aspect Ratio Scaling for Fixed-Viewport Stages & Desktop Pages
 
 ## Scope & Intent
-This rule governs responsive scaling across fixed-viewport desktop stages in the PULSE application (including the Homepage hero carousel and active cognitive assessment stimulus stages).
+This rule governs responsive scaling across desktop views ($W \ge 768\text{px}$) in the PULSE application, guaranteeing geometric proportions, eliminating vertical clipping, and maintaining a canonical 1280×720 baseline.
 
 ---
 
@@ -61,23 +61,32 @@ For screen widths under `768px`:
 
 ---
 
-## 4. Boundary Matrix (When to Apply vs NOT Apply)
+## 4. Application Scope & Safeguards
 
-- **APPLY TO:**
-  - Homepage (`src/components/Home.tsx`): Hero section, 3D assessment carousel, metric pills.
-  - Active Assessment Stimulus Canvases (`ReactionTime`, `DirectionalChoice`, `BlockMemory`, `NumberMemory`, `ColorMatch`): Visual test canvas where target dimensions, stimulus well centering (`#12161B`), and fixations must remain invariant across screen heights.
+- **APPLIED BY DEFAULT TO ALL DESKTOP PAGES VIA `PageShell`:**
+  - Homepage (`src/components/Home.tsx`): Hero section, 3D assessment carousel, narrative sections.
+  - Cognitive Assessments (`ReactionTest`, `DirectionTest`, `BlockMemoryTest`, `NumberMemoryTest`, `ColorTest`): Ready screens, active apparatus stimulus wells (`#12161B`), and performance report cards.
+  - Platform Views (`Assessments.tsx`, `Leaderboard.tsx`, `Dataset.tsx`, `About.tsx`, `Improve.tsx`, `ResearchPrivacyPolicy.tsx`, `NotFound.tsx`, etc.).
 
-- **DO NOT APPLY TO:**
-  - Multi-row data tables (`Leaderboard.tsx`, `Dataset.tsx`): Tables require native browser text reflow, full-width fluid layouts, and native vertical document scrolling.
-  - Long-form text / documentation (`About.tsx`, privacy policies): Standard typography scales and native scroll flow.
-  - Floating modal dialogs (`SettingsModal`, `InfoModal`): Modals have their own internal flex centering and viewport containment (`max-h-[85vh]`).
+- **SAFEGUARDS WHEN SCALING DATA TABLES, LONG TEXT & OVERLAYS:**
+  1. **Floating Modals & Dialogs (`SettingsModal`, `WelcomeModal`, `AddToHomeScreenModal`):**
+     Must use React Portals (`createPortal(..., document.body)`) to mount outside the scaled `PageShell` container, or apply internal viewport containment (`max-h-[85vh]`, `overflow-y-auto`) so CSS zoom does not distort modal backdrop or centering.
+  2. **Data Tables & Dense Data Boards (`Leaderboard.tsx`, `Dataset.tsx`):**
+     Ensure tables wrap columns with fluid truncation (`truncate`, `min-w-0`), horizontal overflow containers (`overflow-x-auto`), and avoid hardcoded fixed pixel widths that could exceed the scaled coordinate boundary.
+  3. **Escape Hatch (`disableScaling={true}`):**
+     If a view explicitly requires unscaled 1:1 browser rendering, pass `disableScaling={true}` to `PageShell`:
+     ```tsx
+     <PageShell currentView="custom" disableScaling={true}>
+       ...
+     </PageShell>
+     ```
 
 ---
 
 ## 5. Standard Implementation Pattern
-Use the verified hook [`src/hooks/useBaselineScale.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/hooks/useBaselineScale.ts):
+The scaling hook is located at [`src/lib/useBaselineScale.ts`](file:///c:/Users/affan/OneDrive/Documents/PULSE/v2.1%20GIT/src/lib/useBaselineScale.ts):
 ```tsx
-import { useBaselineScale } from '../hooks/useBaselineScale';
+import { useBaselineScale } from '../lib/useBaselineScale';
 
 export function MyFixedStage() {
   const { scale, isScaled, style } = useBaselineScale({
@@ -93,3 +102,4 @@ export function MyFixedStage() {
   );
 }
 ```
+*Note: Any view wrapped in `PageShell` automatically receives this scaling on desktop ($W \ge 768\text{px}$) unless `disableScaling={true}` is set.*

@@ -63,9 +63,9 @@ export const PageShell: React.FC<PageShellProps> = ({
 }) => {
   const location = useLocation();
   const { style: scaleStyle } = useBaselineScale();
-  // The 720p zoom is reserved for fixed-viewport stages. Data tables and long-form
-  // pages must retain native browser reflow and scrolling.
-  const shouldScale = !disableScaling && (currentView === 'home' || isAssessmentActive === true);
+  // Apply uniform 720p baseline scaling across desktop pages (w >= 768px),
+  // with disableScaling providing an explicit escape hatch if ever needed.
+  const shouldScale = !disableScaling;
   const effectiveStyle = shouldScale && scaleStyle ? { ...scaleStyle, ...style } : style;
 
   // Register shell as authoritative SEO owner before any useEffect runs

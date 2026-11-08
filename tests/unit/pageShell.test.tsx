@@ -191,72 +191,47 @@ describe('PageShell Layout & Architecture', () => {
       .toBe(window.location.origin + '/unknown-seo-route');
   });
 
-  it('scales only fixed-viewport home and active assessment stages', () => {
+  it('applies uniform baseline scaling across desktop pages and allows disabling via disableScaling', () => {
     const originalW = window.innerWidth;
     const originalH = window.innerHeight;
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1920 });
     Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 1080 });
 
     try {
-      const { container: homeContainer, unmount: unmountHome } = render(
-        <MemoryRouter initialEntries={['/']}>
-          <PageShell currentView="home">
-            <div>Home Stage</div>
-          </PageShell>
-        </MemoryRouter>
-      );
-      expect((homeContainer.firstElementChild as HTMLElement).style.zoom).toBe('1.5');
-      unmountHome();
-
-      const { container: activeTestContainer, unmount: unmountActiveTest } = render(
-        <MemoryRouter initialEntries={['/reaction-test']}>
-          <PageShell currentView="reaction-test" isAssessmentActive={true}>
-            <div>Active Test Stage</div>
-          </PageShell>
-        </MemoryRouter>
-      );
-      expect((activeTestContainer.firstElementChild as HTMLElement).style.zoom).toBe('1.5');
-      unmountActiveTest();
-
-      const nonStagePages = [
+      const pagesToScale = [
+        { path: '/', view: 'home' },
         { path: '/assessments', view: 'assessments' },
         { path: '/leaderboard', view: 'leaderboard' },
         { path: '/dataset', view: 'dataset' },
         { path: '/about', view: 'about' },
         { path: '/privacy', view: 'privacy' },
         { path: '/improve', view: 'improve' },
+        { path: '/reaction-test', view: 'reaction-test' },
       ];
 
-      for (const page of nonStagePages) {
+      for (const page of pagesToScale) {
         const { container, unmount } = render(
           <MemoryRouter initialEntries={[page.path]}>
             <PageShell currentView={page.view}>
-              <div>Natural Flow Page</div>
+              <div>Scaled Content</div>
             </PageShell>
           </MemoryRouter>
         );
-        expect((container.firstElementChild as HTMLElement).style.zoom, page.view).toBeFalsy();
+        expect((container.firstElementChild as HTMLElement).style.zoom, page.view).toBe('1.5');
+        expect((container.firstElementChild as HTMLElement).style.minHeight).toMatch(
+          /calc\((100dvh \/ 1\.5|66\.6667dvh)\)/
+        );
         unmount();
       }
 
-      const { container: readyTestContainer, unmount: unmountReadyTest } = render(
-        <MemoryRouter initialEntries={['/reaction-test']}>
-          <PageShell currentView="reaction-test" isAssessmentActive={false}>
-            <div>Ready Screen</div>
-          </PageShell>
-        </MemoryRouter>
-      );
-      expect((readyTestContainer.firstElementChild as HTMLElement).style.zoom).toBeFalsy();
-      unmountReadyTest();
-
-      const { container: disabledHomeContainer } = render(
+      const { container: disabledContainer } = render(
         <MemoryRouter initialEntries={['/']}>
           <PageShell currentView="home" disableScaling={true}>
-            <div>Unscaled Home</div>
+            <div>Unscaled Page</div>
           </PageShell>
         </MemoryRouter>
       );
-      expect((disabledHomeContainer.firstElementChild as HTMLElement).style.zoom).toBeFalsy();
+      expect((disabledContainer.firstElementChild as HTMLElement).style.zoom).toBeFalsy();
     } finally {
       Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: originalW });
       Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: originalH });
