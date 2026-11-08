@@ -48,6 +48,8 @@
        ├── publicDataset (Indefinite, fully anonymized, open research)
        ├── leaderboardResults (voluntary public alias; no automated expiry found in reviewed code)
        └── adminAuditLogs (7-yr retention, immutable moderation log)
+       ├── publicDatasetMeta (server-only aggregate summary and reconciliation lock)
+       └── adminSessionRevocations (server-only revoked admin-session nonces)
 ```
 
 ---
@@ -77,7 +79,7 @@
 ## 5. Security & Trust Invariants
 - **Client writes are rejected:** `firestore.rules` enforces `allow write: if false` on all canonical collections. All mutations must occur via `server.ts`.
 - **Zero PII in open dataset:** Public records omit user IDs, session IDs, emails, and exact timestamps (aggregated to `completedAtMonth` YYYY-MM).
-- **Administrative operations:** Web admin routes and UI have been audited and removed to minimize attack surface. Moderation actions are executed directly via server CLI scripts utilizing Firebase Admin credentials (`FIREBASE_SERVICE_ACCOUNT`).
+- **Administrative operations:** The desktop router mounts `/admin`; protected `/api/admin/*` routes perform leaderboard moderation and maintenance after server-side signed-session verification. `ADMIN_PASSCODE` and `PULSE_ADMIN_SESSION_SECRET` are server-only; session revocations are stored in `adminSessionRevocations`. CLI scripts remain available for controlled maintenance/recovery. The mobile route table does not expose `/admin`.
 - **Targeted Telegram Telemetry:** Real-time observability streams low-noise events (page visits to `/`, `/about`, `/assessments`, `/leaderboard`, plus canonical assessment completions and leaderboard uploads) to a Telegram Forum Supergroup via `TelegramNotifierService` and durable outbox pacing.
 
 ---
@@ -96,6 +98,7 @@
 
 - Node.js engine floor: `>=24.12.0`.
 - Package manager: `npm@10.9.7`.
+- Approved typography: Inter (body/UI), Space Grotesk (headings/display), and JetBrains Mono (telemetry), weights 400/500/600/700; `scripts/audit-typography.mjs` enforces the repository-wide contract and runs through test/check/build.
 - `npm run build` runs the desktop Vite build, mobile Vite build, SEO page generation, and Express server bundle in sequence.
 - The desktop router currently mounts `/admin`; do not repeat earlier statements that all admin UI routes are removed without re-auditing `src/App.tsx`, the admin component, and its authorization behavior.
 - Both `/dataset` and `/analytics` route to the Dataset Explorer. Do not describe `/analytics` as a separate analytics dashboard unless the implementation supports that claim.
