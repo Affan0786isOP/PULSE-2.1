@@ -5,10 +5,10 @@ This document details the testing framework, type verification, protocol QA proc
 ---
 
 ## 1. Test Stack & Infrastructure
-- **Unit & Integration Test Runner:** [Vitest](https://vitest.dev/) (`npm test` runs `vitest run`; the repository script does not use `--passWithNoTests`).
+- **Unit & Integration Test Runner:** [Vitest](https://vitest.dev/) (`npm test` runs `npm run audit:typography && vitest run`; the repository script does not use `--passWithNoTests`).
 - **Static Type Checking:** TypeScript Compiler (`tsc --noEmit`)
 - **Dual-Surface Validation:** Root desktop project (`tsconfig.json`) + mobile subproject (`mobile/tsconfig.json`)
-- **Security Rule Linter:** `@firebase/eslint-plugin-security-rules`
+- **Repository Typography Audit:** `scripts/audit-typography.mjs` (invoked automatically by `npm test`, `npm run check`, and `npm run build`).
 
 ---
 
@@ -27,6 +27,12 @@ npm run check
 # 4. Run full production build verification
 npm run build
 npm run build:mobile
+
+# 5. Run the typography audit directly (also included in test/check/build)
+npm run audit:typography
+
+# 6. Run a read-only Dataset summary reconciliation preview
+npm run dataset:reconcile-summary
 ```
 
 ---
@@ -52,12 +58,24 @@ When modifying assessment components, verify the following timing and physiologi
 - **Sequence Progression:** Sequence length must increment by 1 on success and terminate on second failure.
 - **Span Calculation:** Verify longest successfully recalled sequence is submitted as `highestLevel`.
 
+### 3.5 Dataset, cache & maintenance QA
+- Verify `GET /api/research/dataset/summary` reads the single `publicDatasetMeta/summary` document and fails closed when the aggregate is missing or invalid; public summary reads must never scan `publicDataset`.
+- Verify successful submissions update aggregate counts transactionally when the summary is initialized, and that reconciliation locks block submissions only during an apply run.
+- Verify reconciliation dry-run writes nothing, apply requires explicit confirmation, and failed runs release their own lock where possible.
+- Verify manual Dataset refresh sends `fresh=1`, bypasses client/CDN caches, and is limited to one first-page refresh per two minutes per IP.
+- Verify client cache invalidation aborts stale pending requests and the stats-cache generation guard prevents pre-clear requests from repopulating cleared state.
+
+### 3.6 Service-worker & legacy leaderboard QA
+- Verify a service-worker active-session probe timeout/error fails closed and does not permit takeover while session state is unknown.
+- Verify leaderboard reads retain legacy documents missing optional ordered fields and keep deterministic in-memory ranking/tie ordering.
+
 ---
 
 ## 4. Pre-Merge Verification Checklist
 
 Before submitting code changes, complete this checklist:
 
+- [ ] `npm run audit:typography` passes (also run automatically by test/check/build).
 - [ ] `npm run check` passes with 0 TypeScript compilation errors.
 - [ ] `npm test` passes all unit tests.
 - [ ] `npm run build` generates `dist/` and `dist/server.js` without errors.

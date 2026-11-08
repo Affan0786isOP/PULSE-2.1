@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Controlled Dataset Summary Maintenance:** Replaced public full-collection summary scans with a single `publicDatasetMeta/summary` document; successful submissions increment the aggregate transactionally. Added admin/CLI dry-run-first reconciliation with explicit apply, safe-integer validation, migration locking, and controlled submission pause during apply. Added a two-minute per-IP explicit Dataset refresh limit and 60-second client/CDN caching with in-flight deduplication.
+- **Restored Desktop Admin Console:** Restored `/admin` and protected `/api/admin/*` routes for leaderboard moderation, leaderboard accuracy maintenance, and Dataset-summary reconciliation. Admin sessions use server-only passcode/signing secrets, signed time-bounded tokens, and Firestore nonce revocation; CLI remains available for operator recovery.
+- **Repository Typography Contract:** Standardized desktop/mobile/chart/brand typography on Inter, Space Grotesk, and JetBrains Mono (weights 400/500/600/700). Added `scripts/audit-typography.mjs` and wired it into `npm test`, `npm run check`, and `npm run build`.
 - **Direction Choice Reaction Time (CRT) Telemetry Redesign:**
   - Implemented a 5-row responsive dashboard layout across desktop (`src/components/DirectionDataset.tsx`) and mobile PWA (`mobile/src/components/DirectionDataset.tsx`).
   - Row 1: Unified dual-metric 4-card overview pairing Reaction Time with Accuracy (Median Performance, Desktop vs Mobile Device Comparison, Total Attempts & Total Correct, and Average Performance).
@@ -25,12 +28,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Standardized Trial Sequence Progression to display a single overall population median RT trajectory across Trials 1–10.
   - Replaced legacy session count in the top overview card with aggregate Total Trials.
 
+### Fixed
+- **Authoritative Stats Cache Reset Race:** Added generation tracking so a Firestore request started before a cache clear cannot repopulate the cleared cache or unregister a newer request.
+- **Service Worker Session Safety:** Active-assessment probes now fail closed on timeout or error, preventing unsafe worker takeover when the client session state is unknown.
+- **Legacy Leaderboard Reads:** Query by document ID and sort validated results in memory so historical rows missing optional score/timestamp fields are not silently excluded; private metadata reads are batched.
+- **PageShell Scaling:** Restrict baseline zoom to the homepage and active assessment stages; data tables and long-form pages retain normal reflow and scrolling.
+
 ### Documentation
 - Synchronized contributor runtime requirements with the Node.js `>=24.12.0` engine floor and npm package-manager pin.
 - Documented the actual production build sequence: desktop Vite build, mobile PWA build, SEO page generation, and Express server bundling.
 - Removed obsolete refresh-rate calibration QA guidance in favor of the current unadjusted-latency protocol.
 - Clarified that desktop and mobile maintain separate route tables and that route presence, authorization, and backend administrative access are distinct concerns.
 - Updated AI agent toolchain guidance to derive versions from `package.json`.
+- Updated the architecture, security, data-model, Dataset pipeline, leaderboard provenance, contributor, and AI-agent documentation for the restored admin console, Dataset summary aggregate/reconciliation lifecycle, manual refresh/cache policy, and legacy leaderboard compatibility.
+- Corrected the product specification: CSV/JSON download actions are not exposed by the current Dataset UI; they must not be described as implemented.
 
 ## [2.6.1] - 2026-10-30
 

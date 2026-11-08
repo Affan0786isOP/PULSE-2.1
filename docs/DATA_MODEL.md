@@ -12,10 +12,12 @@ This document defines the data structures, Firestore collections, TypeScript typ
 | **`assessmentTrials`** | Granular millisecond-level trial telemetry | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
 | **`assessmentResults`** | Aggregated assessment outcome summaries | Authenticated Subject (`participantId == auth.uid`) | Server Backend Only | **5 years** (GDPR erasure applies) |
 | **`publicDataset`** | Anonymized open research benchmark records | Authenticated Users (`auth != null`) | Server Backend Only | **Indefinite** (Open science) |
+| **`publicDatasetMeta`** | Server-maintained aggregate metadata for the public research Dataset (`summary` document) | Server Backend Only; public clients use sanitized research API responses | Server Backend Only | Aggregate is maintained with the public Dataset; reconciliation metadata is retained with the summary document. |
 | **`leaderboardResults`** | Voluntary opted-in public rank records (one best score per owner) | Server Backend Only (`/api/leaderboard` returns sanitized display view) | Server Backend Only | Not automatically purged; participant GDPR erasure supported via `DELETE /api/leaderboard/mine`. |
 | **`leaderboardPrivateMeta`** | Private submission receipts, trial digests, owner UIDs, and moderation metadata | Server Backend Only (Client read denied) | Server Backend Only | Retained with assessment lifespan or purged upon participant erasure. |
 | **`leaderboardOwnerIndex`** | Pseudonymous owner best-score index and transaction locking | Server Backend Only (Client read denied) | Server Backend Only | Updated transactional state tracking participant best scores. |
 | **`adminAuditLogs`** | Immutable administrator moderation log | Server Admin Only (Client read denied) | Server Backend Only | **7 years** (Statutory audit) |
+| **`adminSessionRevocations`** | Revoked web-admin session nonces used to invalidate signed admin sessions | Server Backend Only (Client read denied) | Server Backend Only | Revocation records expire according to the configured Firestore TTL. |
 
 ---
 
@@ -185,6 +187,37 @@ interface AdminAuditLogDoc {
   note?: string;               // Moderator justification
 }
 ```
+
+### 3.6 `publicDatasetMeta/summary`
+The server-maintained aggregate is the only source used by the public Dataset summary endpoint. It is not directly readable or writable by clients.
+
+```typescript
+interface PublicDatasetSummaryDoc {
+  schemaVersion: 1;
+  totalRecords: number;         // Non-negative safe integer
+  totalTrials: number;          // Non-negative safe integer
+  counts: Record<AssessmentType, number>; // Per-assessment record counts
+  lastUpdatedAt?: number;       // Last transactional submission increment
+  lastReconciledAt?: number;    // Last successful full-source reconciliation
+  reconciliationSource?: 'admin-ui' | 'cli';
+  migrationInProgress?: boolean;
+  migrationStartedAt?: number | null;
+  migrationRunId?: string | null;
+}
+```
+
+All five assessment keys are required in `counts`; values must be non-negative safe integers. Normal submissions increment an initialized summary within the same Firestore transaction as the research record. A missing or invalid summary is repaired only through the controlled reconciliation workflow; public reads never initiate a full-collection scan.
+
+### 3.7 `adminSessionRevocations`
+```typescript
+interface AdminSessionRevocationDoc {
+  revokedAt: number;
+  expiresAt: number; // Session expiry timestamp
+  expireAtTimestamp: Date; // Firestore TTL field
+}
+```
+
+The document ID is the signed admin-session nonce. The collection is server-only and is checked during admin-session verification; logout writes the revocation record so an otherwise valid signed token cannot be reused.
 
 ---
 

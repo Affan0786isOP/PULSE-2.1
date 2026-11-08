@@ -131,11 +131,11 @@ PULSE normalizes performance metrics across 7 standard age cohorts:
 | **Device Auto-Routing** | Middleware & Client | `IMPLEMENTED` | Client-side routing applies viewport/device checks; the server preserves normal page navigation and redirects only for explicit routing flags/preferences. |
 | **Display Refresh-Rate Calibrator** | Settings / background hook | `REMOVED` | Dynamic refresh-rate detection and theoretical display-offset subtraction are no longer used for new assessment submissions. Legacy local keys may still be cleared. |
 | **Assessment Live-Timer Pacing** | Desktop and mobile assessment engines | `IMPLEMENTED` | Shared software pacer targets an average of approximately 60 live-timer UI updates per second without changing physical display refresh or quantizing stimulus timestamps. |
-| **Research Dataset Explorer** | `/dataset`, `/analytics` | `IMPLEMENTED` | Real-time multi-filter distribution curves (Visx/Recharts), cohort slicing, and CSV/JSON export. |
+| **Research Dataset Explorer** | `/dataset`, `/analytics` | `IMPLEMENTED` | Multi-filter distribution views, cohort slicing, VRT and Direction telemetry, and an aggregate summary backed by `publicDatasetMeta/summary`. CSV/JSON download actions are not exposed by the current Dataset UI. |
 | **Global Leaderboard** | `/leaderboard` | `IMPLEMENTED` | Top 100 rankings per assessment type, verified server HMAC tokens, strict opt-in alias validation. |
 | **Leaderboard Opt-In** | Modal UI | `IMPLEMENTED` | Self-selected public alias modal with profanity filter; guest/anonymous submissions excluded from public rank. |
 | **Cognitive Guidance** | `/improve` | `IMPLEMENTED` | Sleep, circadian timing, caffeine, and reaction training educational cards backed by scientific literature. |
-| **Admin Console** | `/admin/*` | `DEPRECATED / REMOVED` | Web admin routes and UI were audited and removed; administration and moderation actions are executed via direct CLI scripts with Firebase Admin credentials. |
+| **Admin Console** | Desktop `/admin` and protected `/api/admin/*` | `IMPLEMENTED` | Server-authenticated desktop console for leaderboard moderation, accuracy maintenance, and Dataset-summary reconciliation; CLI remains available for controlled recovery. |
 | **Privacy Policy & Terms** | `/privacy` | `IMPLEMENTED` | Discloses research records, optional public leaderboard aliases, and current data-removal and retention limitations. |
 | **Multiplayer / Live Duels** | — | `PLANNED` | Real-time peer-to-peer cognitive reaction duels (Not implemented in v2.2). |
 | **Native Mobile App (iOS/Android)**| App Stores | `PLANNED` | Capacitor/React Native native wrapper (Web PWA active in v2.2). |
