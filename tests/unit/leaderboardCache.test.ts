@@ -60,8 +60,8 @@ describe('Server Leaderboard TTL Cache & Race-Free Invalidation (Tier 3)', () =>
 
     expect(p1).toEqual(p2);
     expect(p2).toEqual(p3);
-    // Number of alias calls for visual-reaction (5 aliases) should be exactly 5, not 15
-    expect(getEntriesSpy.mock.calls.length).toBe(5);
+    // Number of calls for visual-reaction should be exactly 1 coalesced call, not 3
+    expect(getEntriesSpy.mock.calls.length).toBe(1);
   });
 
   it('bypasses cache when fresh=true is requested', async () => {
@@ -96,7 +96,7 @@ describe('Server Leaderboard TTL Cache & Race-Free Invalidation (Tier 3)', () =>
 
     await service.getPublicLeaderboard('visual-reaction');
     await service.getPublicLeaderboard('number-memory');
-    expect(getEntriesSpy.mock.calls.length).toBe(initialCalls + 8);
+    expect(getEntriesSpy.mock.calls.length).toBe(initialCalls + 2);
   });
 
   it('prevents stale ordinary reads from overwriting a fresh or newer generation', async () => {
