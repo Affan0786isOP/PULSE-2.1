@@ -46,7 +46,7 @@ When public documents are fetched via `/api/research/dataset`, shared aggregatio
 - **Direction Choice Reaction Time (CRT):**
   - **Dual-Metric Overview:** 4 cards pairing reaction time with accuracy (Median, Desktop vs Mobile, Total Attempts & Correct, Average).
   - **Age Cohorts:** Side-by-side comparative views for Median RT and Median Accuracy across valid demographic cohorts.
-  - **Directional Profile:** 4-cardinal-axis Radar (`UP`, `RIGHT`, `DOWN`, `LEFT`) supporting Accuracy %, Reaction Time, or Both side-by-side.
+  - **Directional Profile:** 4-cardinal-axis Radar (`UP`, `RIGHT`, `DOWN`, `LEFT`) supporting Accuracy %, Reaction Time, or Both; Both overlays accuracy and normalized reaction time on one shared radar with a dual-series legend and combined tooltip.
   - **Speed vs Accuracy Matrix:** Aggregated $4 \times 5$ density heatmap with privacy-safe cell intensities (RT columns: $<300\text{ms}$, $300\text{--}500\text{ms}$, $500\text{--}700\text{ms}$, $700\text{--}900\text{ms}$, $\ge 900\text{ms}$; Accuracy rows: $<70\%$, $70\text{--}80\%$, $80\text{--}90\%$, $90\text{--}100\%$).
   - **Attempt Outcomes:** 4-tier mutually exclusive ring (*Correct*, *Incorrect Direction*, *Premature*, *Timeout*).
   - **Trial Progression:** Population median RT progression across Trials 1–10.
@@ -59,8 +59,18 @@ When public documents are fetched via `/api/research/dataset`, shared aggregatio
 
 ---
 
-## 4. Export Formats
+## 4. Aggregate summary, refresh & cache lifecycle
 
-The Dataset Explorer supports instant one-click research exports:
-- **CSV Export:** Tabular comma-separated values containing trial latencies, derived means, medians, consistency scores, and cohort labels.
-- **JSON Export:** Full hierarchical structured representation matching `publicDataset` schema v1 for automated Python/R research scripts.
+### Aggregate document
+The canonical public aggregate is `publicDatasetMeta/summary` (`schemaVersion: 1`). It stores `totalRecords`, `totalTrials`, and counts for the five canonical assessment types. The public summary endpoint reads this single document; it never scans `publicDataset`. If the aggregate is missing or invalid, public summary totals are unavailable until an operator performs reconciliation, while paged public record queries remain available.
+
+Successful research submissions update an already-initialized aggregate within the same Firestore transaction as the new public research record. Full reconciliation uses ordered pages of 500 source documents, validates safe integer counters and trial totals, and supports a non-writing dry run plus explicit apply. Apply holds a migration lock, writes only the aggregate document, and temporarily pauses new submissions. The desktop admin panel requires a successful dry-run preview and explicit confirmation; the CLI command `npm run dataset:reconcile-summary` is dry-run by default (`-- --apply` applies; `-- --apply --resume` resumes an interrupted run after operator inspection).
+
+### Refresh and caching
+Successful `/api/research/dataset` and `/api/research/dataset/summary` responses are eligible for a 60-second shared-cache lifetime with 60-second stale-while-revalidate. A manual `fresh=1` request bypasses the cache and is no-store; the server limits the first page of an explicit Dataset refresh to one per two minutes per IP. Subsequent cursor pages belong to that refresh. Desktop and mobile clients use a 60-second in-memory cache, retain at most 10 filter combinations, deduplicate concurrent requests, and cancel the underlying fetch only when no active consumer remains.
+
+---
+
+## 5. Export Availability
+
+The current desktop and mobile Dataset components do not expose CSV or JSON download actions. Do not describe these exports as implemented until corresponding UI actions and tests exist.
