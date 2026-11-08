@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { isTrackedPageRoute, ActivitySurface, PageViewRequest } from '@shared/types/telemetry';
 import { getOrCreateDeviceId, isTelemetryOptedOut } from '@shared/telemetry/deviceId';
 import { captureReferralFromUrl, getActiveReferralToken } from '@shared/lib/referralManager';
+import { pageViewTrackerGuard } from '@shared/telemetry/pageViewTrackerGuard';
 
 interface PageViewTrackerProps {
   surface: ActivitySurface;
@@ -25,7 +26,6 @@ export function normalizeTrackedRoute(pathname: string, surface: ActivitySurface
 
 export function PageViewTracker({ surface }: PageViewTrackerProps) {
   const location = useLocation();
-  const lastTrackedRef = useRef<{ route: string; timestamp: number } | null>(null);
 
   useEffect(() => {
     // Capture and sanitize any referral query parameters
@@ -39,18 +39,12 @@ export function PageViewTracker({ surface }: PageViewTrackerProps) {
       return;
     }
 
-    const now = Date.now();
-    // Guard against React 19 StrictMode double-mounting on identical route within 500ms
-    if (
-      lastTrackedRef.current &&
-      lastTrackedRef.current.route === normalizedRoute &&
-      now - lastTrackedRef.current.timestamp < 500
-    ) {
+    const navigationKey = location.key || `${location.pathname}_${typeof window !== 'undefined' ? window.history.state?.idx ?? 0 : 0}`;
+    if (!pageViewTrackerGuard.shouldTrack(normalizedRoute, navigationKey)) {
       return;
     }
 
-    lastTrackedRef.current = { route: normalizedRoute, timestamp: now };
-
+    const now = Date.now();
     const eventId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
       ? crypto.randomUUID()
       : `evt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -83,7 +77,7 @@ export function PageViewTracker({ surface }: PageViewTrackerProps) {
     } catch {
       // Telemetry must never crash client rendering
     }
-  }, [location.pathname, surface]);
+  }, [location.pathname, location.key, surface]);
 
   return null;
 }
