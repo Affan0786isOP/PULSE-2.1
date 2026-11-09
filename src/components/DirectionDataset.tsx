@@ -238,9 +238,9 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full min-w-0">
       {/* ======================================================== */}
-      {/* ROW 1: UNIFIED 5-CARD OVERVIEW                           */}
+      {/* ROW 1: UNIFIED 4-CARD OVERVIEW                           */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5 min-w-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 min-w-0">
         {/* Card 1: Median RT + Median Accuracy */}
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs relative overflow-hidden min-w-0">
           <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
@@ -357,49 +357,39 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
           </div>
         </div>
 
-        {/* Card 4: Average Speed */}
+        {/* Card 4: Average Performance (Speed & Accuracy) */}
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs min-w-0">
           <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
             <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-              Average Speed
+              Average Performance
             </span>
             <span className="text-[10px] font-mono text-[var(--color-success)] font-semibold tracking-wider uppercase">
               POPULATION
             </span>
           </div>
-          <div className="my-auto py-2 flex flex-col items-center justify-center text-center">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl sm:text-4xl font-mono text-[var(--color-success)] font-bold tracking-tight">
-                {averageRT > 0 ? averageRT : '—'}
+          <div className="grid grid-cols-2 gap-2 my-auto py-2 divide-x divide-[var(--border-subtle)] text-center">
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-[11px] font-mono text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+                Speed
               </span>
-              <span className="text-xs font-mono text-[var(--text-muted)] uppercase">ms</span>
-            </div>
-            <span className="text-xs font-mono text-[var(--text-muted)] uppercase mt-1">Mean Reaction Time</span>
-          </div>
-          <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
-            <span>Session Mean</span>
-            <span>Equal session weight</span>
-          </div>
-        </div>
-
-        {/* Card 5: Average Accuracy */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-xs min-w-0">
-          <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
-            <span className="text-[11px] font-mono font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-              Average Accuracy
-            </span>
-            <span className="text-[10px] font-mono text-[var(--color-success)] font-semibold tracking-wider uppercase">
-              POPULATION
-            </span>
-          </div>
-          <div className="my-auto py-2 flex flex-col items-center justify-center text-center">
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl sm:text-4xl font-mono text-[var(--color-success)] font-bold tracking-tight">
-                {averageAccuracy > 0 ? averageAccuracy : '—'}
+              <span className="text-2xl font-mono text-[var(--color-success)] font-bold">
+                {averageRT > 0 ? `${averageRT} ms` : '—'}
               </span>
-              <span className="text-xs font-mono text-[var(--text-muted)] uppercase">%</span>
+              <span className="text-[11px] font-mono text-[var(--text-muted)] mt-0.5">
+                Mean RT
+              </span>
             </div>
-            <span className="text-xs font-mono text-[var(--text-muted)] uppercase mt-1">Mean Accuracy Rate</span>
+            <div className="flex flex-col items-center justify-center pl-2">
+              <span className="text-[11px] font-mono text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+                Accuracy
+              </span>
+              <span className="text-2xl font-mono text-[var(--color-success)] font-bold">
+                {averageAccuracy > 0 ? `${averageAccuracy}%` : '—'}
+              </span>
+              <span className="text-[11px] font-mono text-[var(--text-muted)] mt-0.5">
+                Mean Acc
+              </span>
+            </div>
           </div>
           <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
             <span>Session Mean</span>
