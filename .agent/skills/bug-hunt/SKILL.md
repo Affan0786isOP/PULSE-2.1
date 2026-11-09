@@ -47,9 +47,18 @@ To avoid noisy reports and unnecessary over-engineering:
 
 You MUST follow these steps in exact order. Each agent runs as a separate subagent via the Agent tool to ensure context isolation.
 
-### Step 1: Parse arguments and resolve target
+### Step 1: Parse arguments, resolve target, and confirm execution mode
 
-Follow the rules in the **Target** section above to determine the scan target. If in branch diff mode, run the git diff command now and collect the file list.
+1. **Resolve Scan Target:**
+   Follow the rules in the **Target** section above to determine the scan target. If in branch diff mode, run the git diff command now and collect the file list.
+
+2. **Execution Mode Selection (Interactive):**
+   Prompt the user with `ask_question`:
+   - `(Recommended) One-Time Pass`: Run a single 3-stage adversarial cycle (Hunter → Skeptic → Referee).
+   - `Continuous Repeated Loop`: Run continuous cycles until stopped or token limit is reached.
+     - Each cycle passes a ledger of previously audited files to the Hunter so it autonomously scopes unexplored areas.
+     - Maximize efficiency by launching the next agent first before committing reports.
+     - Save reports to `audit/bug-hunt/cycle-{N}/` and push to dedicated branch `audit/bug-hunt-reports`.
 
 ### Step 2: Read the prompt files
 
