@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import path from 'path';
 
 const ARTIFACT_DIR = 'C:/Users/affan/.gemini/antigravity/brain/202e9e53-c5ee-4811-a57c-41fd3b897aa2';
-const BASE_URL = 'http://localhost:3100';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 async function run() {
   const browser = await chromium.launch();

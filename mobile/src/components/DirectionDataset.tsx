@@ -203,8 +203,8 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
   // ==========================================
 
   const trialProgressionData = useMemo(() => {
-    return calculateDirectionTrialProgression(directionDocs, 10);
-  }, [directionDocs]);
+    return calculateDirectionTrialProgression(directionDocs, 10, trials as unknown as DirectionSessionRecord['progressionTrials']);
+  }, [directionDocs, trials]);
 
   const totalProgressionTrials = useMemo(() => {
     return trialProgressionData.reduce((acc, point) => acc + (point.n || 0), 0);
@@ -733,69 +733,137 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
         </div>
       </div>
 
-      {/* ROW 5: TRIAL PROGRESSION */}
-      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 shadow-sm min-w-0 overflow-hidden">
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-subtle)]">
-          <h3 className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
-            Trial Sequence Progression (Trials 1–10)
-          </h3>
-          <div className="flex items-center gap-3 text-[10px] font-mono">
-            {totalProgressionTrials > 0 && (
-              <span className="text-[var(--text-muted)] uppercase">
-                {totalProgressionTrials.toLocaleString()} {totalProgressionTrials === 1 ? 'TRIAL' : 'TRIALS'}
-              </span>
-            )}
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#00f0ff]" />
-              <span className="text-[var(--cyan-primary)] font-semibold">Overall RT</span>
+      {/* ROW 5: TRIAL PROGRESSION (RT & ACCURACY) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
+        {/* Trial Progression (RT) */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 shadow-sm min-w-0 overflow-hidden">
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-subtle)]">
+            <h3 className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+              Trial Sequence Progression (RT)
+            </h3>
+            <div className="flex items-center gap-3 text-[10px] font-mono">
+              {totalProgressionTrials > 0 && (
+                <span className="text-[var(--text-muted)] uppercase">
+                  {totalProgressionTrials.toLocaleString()} {totalProgressionTrials === 1 ? 'TRIAL' : 'TRIALS'}
+                </span>
+              )}
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#00f0ff]" />
+                <span className="text-[var(--cyan-primary)] font-semibold">Overall RT</span>
+              </div>
             </div>
           </div>
+          {trialProgressionData.length === 0 || trialProgressionData.every((d) => !d.overall || d.overall === 0) ? (
+            <div className="h-64 sm:h-72 w-full flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
+              No progression trials recorded
+            </div>
+          ) : (
+            <div className="h-64 sm:h-72 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trialProgressionData} margin={{ top: 10, right: 28, left: 0, bottom: 5 }}>
+                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis
+                    dataKey="trialLabel"
+                    stroke="var(--chart-text)"
+                    fontSize={10}
+                    fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                    tickLine={false}
+                    tickFormatter={(val: string) => val.replace('Trial ', 'T')}
+                  />
+                  <YAxis
+                    stroke="var(--chart-text)"
+                    fontSize={10}
+                    fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                    tickLine={false}
+                    axisLine={false}
+                    unit="ms"
+                    domain={['dataMin - 30', 'dataMax + 30']}
+                    ticks={trialTicks}
+                  />
+                  <Tooltip
+                    content={<DatasetTooltip variant="direction" />}
+                    allowEscapeViewBox={{ x: false, y: true }}
+                    wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="overall"
+                    name="Overall RT"
+                    stroke="#00f0ff"
+                    strokeWidth={2.5}
+                    dot={{ r: 3.5, fill: '#00f0ff', strokeWidth: 0 }}
+                    activeDot={{ r: 5.5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
-        {trialProgressionData.length === 0 || trialProgressionData.every((d) => !d.overall || d.overall === 0) ? (
-          <div className="h-64 sm:h-72 w-full flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
-            No progression trials recorded
+
+        {/* Trial Progression (Accuracy) */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 sm:p-6 shadow-sm min-w-0 overflow-hidden">
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-subtle)]">
+            <h3 className="text-xs font-mono font-bold tracking-wider text-[var(--text-muted)] uppercase">
+              Trial Sequence Progression (Accuracy)
+            </h3>
+            <div className="flex items-center gap-3 text-[10px] font-mono">
+              {totalProgressionTrials > 0 && (
+                <span className="text-[var(--text-muted)] uppercase">
+                  {totalProgressionTrials.toLocaleString()} {totalProgressionTrials === 1 ? 'TRIAL' : 'TRIALS'}
+                </span>
+              )}
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+                <span className="text-[#10b981] font-semibold">Accuracy</span>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="h-64 sm:h-72 w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trialProgressionData} margin={{ top: 10, right: 28, left: 0, bottom: 5 }}>
-                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="trialLabel"
-                  stroke="var(--chart-text)"
-                  fontSize={10}
-                  fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                  tickLine={false}
-                  tickFormatter={(val: string) => val.replace('Trial ', 'T')}
-                />
-                <YAxis
-                  stroke="var(--chart-text)"
-                  fontSize={10}
-                  fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
-                  tickLine={false}
-                  axisLine={false}
-                  unit="ms"
-                  domain={['dataMin - 30', 'dataMax + 30']}
-                  ticks={trialTicks}
-                />
-                <Tooltip
-                  content={<DatasetTooltip variant="direction" />}
-                  allowEscapeViewBox={{ x: false, y: true }}
-                  wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="overall"
-                  name="Overall RT"
-                  stroke="#00f0ff"
-                  strokeWidth={2.5}
-                  dot={{ r: 3.5, fill: '#00f0ff', strokeWidth: 0 }}
-                  activeDot={{ r: 5.5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+          {trialProgressionData.length === 0 || trialProgressionData.every((d) => d.accuracy === 0 && d.overall === 0) ? (
+            <div className="h-64 sm:h-72 w-full flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
+              No progression trials recorded
+            </div>
+          ) : (
+            <div className="h-64 sm:h-72 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trialProgressionData} margin={{ top: 10, right: 28, left: 0, bottom: 5 }}>
+                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis
+                    dataKey="trialLabel"
+                    stroke="var(--chart-text)"
+                    fontSize={10}
+                    fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                    tickLine={false}
+                    tickFormatter={(val: string) => val.replace('Trial ', 'T')}
+                  />
+                  <YAxis
+                    stroke="var(--chart-text)"
+                    fontSize={10}
+                    fontFamily="var(--pulse-font-mono, 'JetBrains Mono', monospace)"
+                    tickLine={false}
+                    axisLine={false}
+                    unit="%"
+                    domain={[0, 100]}
+                    ticks={[0, 25, 50, 75, 100]}
+                  />
+                  <Tooltip
+                    content={<DatasetTooltip variant="direction" />}
+                    allowEscapeViewBox={{ x: false, y: true }}
+                    wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="accuracy"
+                    name="Accuracy"
+                    stroke="#10b981"
+                    strokeWidth={2.5}
+                    dot={{ r: 3.5, fill: '#10b981', strokeWidth: 0 }}
+                    activeDot={{ r: 5.5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

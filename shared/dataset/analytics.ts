@@ -732,41 +732,70 @@ export function calculateDirectionDerivedConsistency(
 
 export function calculateDirectionTrialProgression(
   sessions: readonly DirectionSessionRecord[],
-  maxTrials: number = 10
-): { trialLabel: string; trialNumber: number; overall: number; n: number }[] {
+  maxTrials: number = 10,
+  trialsFallback?: readonly DirectionTrialRecord[]
+): { trialLabel: string; trialNumber: number; overall: number; accuracy: number; n: number; totalAttempts: number }[] {
   // Key: sessionKey + '_' + logicalTrialNumber -> latest valid attempt
-  const trialMap = new Map<string, { sessionKey: string; trialNum: number; rt: number }>();
+  const rtTrialMap = new Map<string, { sessionKey: string; trialNum: number; rt: number }>();
+  const accTrialMap = new Map<string, { sessionKey: string; trialNum: number; isCorrect: boolean }>();
 
-  sessions.forEach((s, sIdx) => {
-    const sessionKey = s.id || `sess_${sIdx}`;
-    const trials = s.progressionTrials || [];
-    trials.forEach((t, tIdx) => {
-      const trialNum = t.trialNumber ?? (tIdx + 1);
-      if (trialNum < 1 || trialNum > maxTrials) return;
-      const isCorrect = t.accuracy === 1 || t.correct === true || t.validity === 'VALID';
-      const rt = t.reactionTime ?? t.rawLatencyMs;
-      const isValid = !t.falseStart && !t.timedOut && t.valid !== false && isCorrect && rt !== undefined && rt >= 80 && rt < 3000;
-      if (!isValid) return;
+  const processTrial = (sessionKey: string, t: DirectionTrialRecord, tIdx: number) => {
+    const trialNum = t.trialNumber ?? (tIdx + 1);
+    if (trialNum < 1 || trialNum > maxTrials) return;
+    const isCorrect = (t.accuracy === 1 || t.correct === true || t.validity === 'VALID') && !t.falseStart && !t.timedOut && t.valid !== false;
+    const rt = t.reactionTime ?? t.rawLatencyMs;
+    const isValidRT = isCorrect && rt !== undefined && rt >= 80 && rt < 3000;
 
-      const key = `${sessionKey}_${trialNum}`;
-      // Latest attempt per logical trial wins
-      trialMap.set(key, { sessionKey, trialNum, rt });
+    const key = `${sessionKey}_${trialNum}`;
+    if (isValidRT) {
+      rtTrialMap.set(key, { sessionKey, trialNum, rt });
+    }
+
+    const prevAcc = accTrialMap.get(key);
+    accTrialMap.set(key, {
+      sessionKey,
+      trialNum,
+      isCorrect: isCorrect || (prevAcc?.isCorrect ?? false),
     });
-  });
+  };
 
-  const points: { trialLabel: string; trialNumber: number; overall: number; n: number }[] = [];
+  const hasSessionTrials = sessions.some((s) => s.progressionTrials && s.progressionTrials.length > 0);
+  if (hasSessionTrials) {
+    sessions.forEach((s, sIdx) => {
+      const sessionKey = s.id || `sess_${sIdx}`;
+      const trials = s.progressionTrials || [];
+      trials.forEach((t, tIdx) => processTrial(sessionKey, t, tIdx));
+    });
+  } else if (trialsFallback && trialsFallback.length > 0) {
+    trialsFallback.forEach((t, tIdx) => processTrial('fallback', t, tIdx));
+  }
+
+  const points: { trialLabel: string; trialNumber: number; overall: number; accuracy: number; n: number; totalAttempts: number }[] = [];
   for (let t = 1; t <= maxTrials; t++) {
     const rts: number[] = [];
-    trialMap.forEach((entry) => {
+    rtTrialMap.forEach((entry) => {
       if (entry.trialNum === t) rts.push(entry.rt);
     });
 
-    const median = Math.round(medianValue(rts));
+    let correctCount = 0;
+    let attemptsCount = 0;
+    accTrialMap.forEach((entry) => {
+      if (entry.trialNum === t) {
+        attemptsCount++;
+        if (entry.isCorrect) correctCount++;
+      }
+    });
+
+    const median = rts.length > 0 ? Math.round(medianValue(rts)) : 0;
+    const accuracy = attemptsCount > 0 ? Math.round((correctCount / attemptsCount) * 100) : (rts.length > 0 ? 100 : 0);
+
     points.push({
       trialLabel: `Trial ${t}`,
       trialNumber: t,
       overall: median,
+      accuracy,
       n: rts.length,
+      totalAttempts: attemptsCount,
     });
   }
 
