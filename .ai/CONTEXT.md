@@ -67,11 +67,12 @@
 │   └── styles/               # CSS variables & aesthetic rules
 ├── mobile/                   # Mobile Surface Components & PWA Assets
 │   ├── public/               # Mobile PWA manifest & service worker
-│   └── src/                  # Mobile-tailored screens, touch layouts, 8 narrative scenes & wave continuation
+│   └── src/                  # Mobile-tailored screens, touch layouts, 8 narrative scenes, wave continuation, & chart library (bklit-ui)
 ├── shared/                   # Cross-Surface Subsystem (@shared)
 │   ├── assessment/           # assessmentLockStore (session protection)
 │   ├── navigation/           # NavigationGuard, useGuardedNavigate
 │   ├── lib/                  # settingsStore and preferences
+│   ├── dataset/              # Shared analytics engine for Dataset/DirectionDataset telemetry
 │   └── pwa/                  # Service worker session bridge and lifecycle hooks
 ├── security/                 # Retention policies, data maps, processor inventories
 ├── docs/                     # Full project documentation suite
@@ -96,7 +97,8 @@
 - **Timing & Validation:** [`src/lib/protocolValidators.ts`](../src/lib/protocolValidators.ts)
 - **Client Firestore API:** [`src/lib/firestore.ts`](../src/lib/firestore.ts)
 - **Dataset Explorer:** [src/components/Dataset.tsx](../src/components/Dataset.tsx) & [mobile/src/components/Dataset.tsx](../mobile/src/components/Dataset.tsx)
-- **Aspect Scaling:** [src/lib/useBaselineScale.ts](../src/lib/useBaselineScale.ts)
+- **Direction Dataset Analytics:** [shared/dataset/analytics.ts](../shared/dataset/analytics.ts) — `calculateDirectionalProfile`, `calculateDirectionHeatmap`, `calculateDirectionAttemptOutcomes`, `calculateDirectionDerivedConsistency`, `calculateDirectionTrialProgression`
+- **Aspect Scaling:** [src/lib/useBaselineScale.ts](../src/lib/useBaselineScale.ts) — applied platform-wide via `PageShell` (`shouldScale = !disableScaling`); see `.agent/rules/resolution-scaling-invariants.md`
 - **Server API & Provenance:** [`server.ts`](../server.ts)
 - **Design Tokens:** [`src/DESIGN_SYSTEM.md`](../src/DESIGN_SYSTEM.md) and [`src/styles/pulse-aesthetic.css`](../src/styles/pulse-aesthetic.css)
 
@@ -110,3 +112,7 @@
 - `npm run build` runs the desktop Vite build, mobile Vite build, SEO page generation, and Express server bundle in sequence.
 - The desktop router currently mounts `/admin`; do not repeat earlier statements that all admin UI routes are removed without re-auditing `src/App.tsx`, the admin component, and its authorization behavior.
 - Both `/dataset` and `/analytics` route to the Dataset Explorer. Do not describe `/analytics` as a separate analytics dashboard unless the implementation supports that claim.
+- **Platform-wide 720p baseline scaling:** `PageShell` (`src/components/layout/PageShell.tsx`) applies `useBaselineScale` (1280×720 baseline, `scale = min(w/1280, h/720)`) to **all** desktop routes by default (`shouldScale = !disableScaling`). Pass `disableScaling` only for multi-row data tables or long-form pages where natural vertical scrolling is expected. Floating modals must use portal decoupling; dense data tables must use fluid overflow containment. Scaling invariants are codified in `.agent/rules/resolution-scaling-invariants.md`.
+- **Chart library:** `src/bklit-ui/` has been removed (commit `4a452b9`). Desktop visualizations use Recharts and direct SVG/D3. The canonical bklit-ui chart primitives now reside exclusively in `mobile/src/bklit-ui/`. Do not attempt to import from `src/bklit-ui/` in the desktop surface.
+- **In-memory idempotency cache:** Removed (commit `4a452b9`). Session replay protection relies solely on Firestore-backed nonce revocation in `adminSessionRevocations` and the research session consumed flag; do not reintroduce a process-local deduplication map.
+- **Firestore reads:** Leaderboard and Dataset repository queries use indexed cursors (paging by `__name__` or indexed fields). Full-collection scans are prohibited outside admin reconciliation operations.

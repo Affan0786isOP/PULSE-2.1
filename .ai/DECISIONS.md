@@ -160,3 +160,46 @@ This file records verified architectural and engineering decisions established i
   5. The CLI remains available as an operator recovery path.
 - **Consequences:** Normal public Dataset loads never recalculate aggregate statistics. Full-collection reconciliation is intentional, operator-controlled maintenance; research submissions are briefly paused during an apply run.
 - **Evidence:** [`server/services/datasetSummaryReconciliation.ts`](../server/services/datasetSummaryReconciliation.ts), [`server/repositories/firestore/firestoreResearchDatasetRepository.ts`](../server/repositories/firestore/firestoreResearchDatasetRepository.ts), [`server/routes/adminRoutes.ts`](../server/routes/adminRoutes.ts), [`src/components/admin/DatasetSummaryMaintenancePanel.tsx`](../src/components/admin/DatasetSummaryMaintenancePanel.tsx), [`src/lib/dataset.ts`](../src/lib/dataset.ts).
+
+---
+
+### Decision: Dataset Explorer Telemetry Redesign — Trial Sequence Progression & Speed/Accuracy Split Card
+- **Status:** Accepted (v2.7.0)
+- **Context:** The Dataset Explorer previously displayed a single overall median RT trajectory without an accuracy counterpart, and the top-of-dashboard overview lacked visual pairing of Speed and Accuracy.
+- **Decision:**
+  1. Add a full-width **Trial Sequence Progression accuracy line chart** (Trials 1–10) alongside the existing population median RT curve in both Desktop (`src/components/Dataset.tsx`) and Mobile (`mobile/src/components/Dataset.tsx`) Dataset Explorers.
+  2. Harden the trial-progression analytical engine against absent or sparse trial buckets (null-slot guard before index access).
+  3. Refactor the top overview into a unified **split Speed/Accuracy performance card** replacing separate metric tiles.
+  4. Split DirectionDataset's performance section into labelled sub-sections with clean section badges; add an interactive overlay view toggle on the 4-axis cardinal radar: `[ Accuracy % | Reaction Time | Both ]`.
+  5. Synchronize `mobile/src/components/DirectionDataset.tsx` to match the full 5-row desktop telemetry layout.
+- **Consequences:** Researchers can inspect RT and accuracy trial-progression trajectories side-by-side. The direction radar now supports three overlay modes. Mobile and desktop Dataset Explorers are in full architectural parity.
+- **Evidence:** [`src/components/Dataset.tsx`](../src/components/Dataset.tsx), [`mobile/src/components/Dataset.tsx`](../mobile/src/components/Dataset.tsx), [`src/components/DirectionDataset.tsx`](../src/components/DirectionDataset.tsx), [`mobile/src/components/DirectionDataset.tsx`](../mobile/src/components/DirectionDataset.tsx), [`shared/dataset/analytics.ts`](../shared/dataset/analytics.ts).
+
+---
+
+### Decision: Uniform 720p Baseline Scaling Extended Platform-Wide via PageShell
+- **Status:** Accepted (v2.7.0)
+- **Context:** Baseline scaling was previously opt-in per route, requiring individual pages to pass a `scale` prop and creating drift when new routes were added without it.
+- **Decision:** Centralize scaling activation in `PageShell` (`src/components/layout/PageShell.tsx`) as `shouldScale = !disableScaling`. All desktop routes wrapped by `PageShell` receive uniform 1280×720 baseline zoom by default. Routes with multi-row data tables or long-form content must pass `disableScaling` explicitly. Scaling safeguards (portal decoupling for modals, fluid overflow for tables) are codified in `.agent/rules/resolution-scaling-invariants.md`.
+- **Consequences:** No per-route scaling boilerplate required. New desktop pages automatically receive the canonical geometry baseline. `disableScaling` is the documented escape hatch.
+- **Evidence:** [`src/components/layout/PageShell.tsx`](../src/components/layout/PageShell.tsx), [`src/lib/useBaselineScale.ts`](../src/lib/useBaselineScale.ts), [`.agent/rules/resolution-scaling-invariants.md`](../.agent/rules/resolution-scaling-invariants.md), [`tests/unit/pageShell.test.tsx`](../tests/unit/pageShell.test.tsx).
+
+---
+
+### Decision: Eliminate In-Memory Idempotency Cache & Deduplicate Mobile Chart Library
+- **Status:** Accepted (v2.7.0)
+- **Context:** A process-local in-memory deduplication cache for research session submissions created cross-restart inconsistencies in Vercel serverless deployments (each invocation starts a fresh process). Additionally, `src/bklit-ui/` duplicated chart primitives from `mobile/src/bklit-ui/`, causing silent divergence over time.
+- **Decision:**
+  1. Remove the server-side in-memory idempotency/deduplication map. Session replay protection relies exclusively on Firestore-backed nonce revocation (`adminSessionRevocations`) and the consumed-session flag on the research session document.
+  2. Remove `src/bklit-ui/` from the desktop build surface. The canonical chart primitive library lives exclusively in `mobile/src/bklit-ui/`. Desktop visualizations use Recharts and direct SVG/D3.
+- **Consequences:** Session idempotency is now fully durable across serverless restarts. No dual-maintenance of chart primitives. Desktop imports from `src/bklit-ui/` will fail — do not reintroduce.
+- **Evidence:** Commit `4a452b9`, [`server/engines/assessmentEngine.ts`](../server/engines/assessmentEngine.ts), [`mobile/src/bklit-ui/`](../mobile/src/bklit-ui/).
+
+---
+
+### Decision: Firestore Indexed Cursor Reads Replace Collection Scans
+- **Status:** Accepted (v2.7.0)
+- **Context:** Leaderboard and Dataset repository queries previously used full-collection reads or unindexed range queries, resulting in unbounded Firestore read costs and silent omission of historical rows missing optional fields.
+- **Decision:** All leaderboard and Dataset repository reads page by document ID (`__name__`) or a declared Firestore composite index. Full-collection scans are prohibited outside admin-initiated reconciliation operations (which hold the migration lock and brief-pause submissions).
+- **Consequences:** Read costs are proportional to result set size. Historical leaderboard rows missing `scoreMetric` or `createdAt` are not silently excluded. New collection queries must declare a composite index before shipping.
+- **Evidence:** Commit `b2956b8`, [`server/repositories/firestore/firestoreLeaderboardRepository.ts`](../server/repositories/firestore/firestoreLeaderboardRepository.ts), [`server/repositories/firestore/firestoreResearchDatasetRepository.ts`](../server/repositories/firestore/firestoreResearchDatasetRepository.ts), [`firestore.indexes.json`](../firestore.indexes.json), [`tests/unit/serverRepositories.test.ts`](../tests/unit/serverRepositories.test.ts).

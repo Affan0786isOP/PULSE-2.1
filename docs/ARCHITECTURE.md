@@ -44,15 +44,18 @@ PULSE unifies desktop and mobile web experiences under single canonical routes w
 │   └── lib/                  # Desktop state stores, timing tools, Firestore client
 │
 ├── mobile/                   # Mobile Surface Components & PWA Shell
-│   ├── src/                  # Mobile touch assessment views & mobile components
+│   ├── src/                  # Mobile touch assessment views, components, & chart library (bklit-ui)
 │   └── public/               # Mobile PWA manifest & worker assets
 │
 └── shared/                   # Shared Cross-Surface Subsystem (@shared)
     ├── assessment/           # Cross-surface assessment locks (assessmentLockStore)
     ├── navigation/           # Protected navigation guards (NavigationGuard, useGuardedNavigate)
     ├── lib/                  # Shared settings and preferences stores
+    ├── dataset/              # Shared analytics engine (calculateDirectionalProfile, etc.)
     └── pwa/                  # Service worker session bridge and lifecycle hooks
 ```
+
+> [!NOTE] The desktop `src/bklit-ui/` chart library subtree was removed in `4a452b9` (refactor: eliminate in-memory idempotency cache and deduplicate mobile client libraries). The canonical chart primitive library now lives exclusively in `mobile/src/bklit-ui/`. Desktop visualizations use Recharts and direct SVG/D3 composites only.
 
 ### Viewport Surface Encapsulation
 - [`src/hooks/useViewportSurface.ts`](../src/hooks/useViewportSurface.ts) monitors viewport width with a standard 768px breakpoint.
@@ -228,6 +231,8 @@ The desktop route table is mounted in `src/App.tsx`; the mobile PWA has its own 
 - The desktop `/admin` console exposes protected status, dry-run, and confirmed apply actions. `npm run dataset:reconcile-summary` is the CLI dry-run; `-- --apply` applies and `-- --apply --resume` resumes an interrupted run after verifying no other reconciliation is active.
 - Ordinary dataset and summary responses use a 60-second shared-cache lifetime with 60-second stale-while-revalidate. Explicit `fresh=1` refresh bypasses caching; the first dataset page is limited to one request per two minutes per IP. Desktop and mobile clients also use a 60-second in-memory cache (up to 10 filter entries) and share/abort in-flight requests safely.
 - Direction Dataset's `Both` radar mode overlays accuracy and normalized reaction time on one chart. Public visualizations remain aggregated; individual records are not exposed through the summary aggregate.
+- **Trial Sequence Progression** is rendered as a dual-chart row (median RT + median accuracy per trial index, Trials 1–10) across both Desktop and Mobile Dataset Explorers. The analytical engine guards against sparse or absent bucket data before rendering.
+- Leaderboard and Dataset collection reads use **Firestore indexed cursors** (paging by document ID or indexed field) rather than full-collection scans. This eliminates unbounded read costs and prevents silent row omission on historical records missing optional fields.
 
 ## 10. Legacy leaderboard read compatibility
 

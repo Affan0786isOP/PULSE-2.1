@@ -57,3 +57,12 @@ These rules govern all AI coding agents working within the PULSE repository. The
 - Treat `package.json` (`engines`, `packageManager`, dependencies, and scripts) as the authoritative source for runtime and toolchain versions. Do not preserve hard-coded Vite or Node versions in agent guidance after the manifest changes.
 - The current declared Node floor is `>=24.12.0`; the package manager is `npm@10.9.7`.
 - Approved font families are Inter, Space Grotesk, and JetBrains Mono (weights 400/500/600/700). Use shared brand tokens and pass `npm run audit:typography`; the audit is already included in `npm test`, `npm run check`, and `npm run build`.
+
+---
+
+## 8. Chart library & build surface invariants
+
+1. **No `src/bklit-ui/` imports:** The `src/bklit-ui/` chart library subtree was removed (commit `4a452b9`). Any import from `src/bklit-ui/` on the desktop surface is a build error. Desktop visualizations use Recharts or direct SVG/D3. The canonical chart primitives live in `mobile/src/bklit-ui/`.
+2. **No in-memory idempotency cache:** Do not reintroduce a process-local deduplication map for research session submissions. Replay protection must use Firestore-backed nonce revocation only.
+3. **No collection scans in production queries:** Leaderboard and Dataset reads must page by document ID or a declared Firestore composite index. Full-collection scans are permitted only inside admin reconciliation flows (with migration lock held). Add index declarations to `firestore.indexes.json` before shipping any new range query.
+4. **PageShell scaling default-on:** `PageShell` applies `useBaselineScale` by default (`shouldScale = !disableScaling`). Pass `disableScaling` only for multi-row data tables (Leaderboard, Dataset filter views) or long-form documentation pages where native vertical scrolling is expected. Floating modals spawned inside a scaled `PageShell` must use a React portal to escape the zoom transform.

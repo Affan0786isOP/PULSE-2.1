@@ -9,6 +9,54 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Dataset Explorer — Trial Sequence Progression Accuracy Chart:**
+  - Added a full-width **Trial Sequence Progression** accuracy line chart (Trials 1–10) alongside the existing population median RT curve across both desktop (`src/components/Dataset.tsx`) and mobile PWA (`mobile/src/components/Dataset.tsx`).
+  - Hardened the trial-progression analytical engine for edge cases: absent or sparse trial buckets now render gracefully without undefined-index crashes.
+- **Dataset Explorer — Split Speed/Accuracy Performance Card:**
+  - Refactored the top-of-dashboard overview into a unified split card pairing Speed and Accuracy metrics side-by-side, replacing separate metric tiles and decluttering the visual header.
+- **DirectionDataset — Overlay Directional Radar & Section Badges:**
+  - Split performance metrics into dedicated sub-sections with clean section-badge labels.
+  - Added an interactive overlay view toggle on the 4-axis cardinal radar chart: `[ Accuracy % | Reaction Time | Both ]`.
+  - Cleaned section badge styles for visual consistency across VRT and Direction dataset explorers.
+- **Mobile Dataset Explorer — Telemetry Architecture Parity:**
+  - Synchronized `mobile/src/components/DirectionDataset.tsx` with the full 5-row desktop telemetry layout: dual-metric overview, age-cohort side-by-side, directional radar with overlay, consistency/outcomes row, and trial-sequence progression row.
+- **Uniform 720p Baseline Scaling Across All Desktop Pages:**
+  - Extended canonical 1280×720 aspect-ratio baseline scaling (`useBaselineScale`) to every desktop route wrapped in `PageShell` by defaulting `shouldScale = !disableScaling`, removing per-route opt-in boilerplate.
+  - Codified scaling safeguards in `.agent/rules/resolution-scaling-invariants.md`: floating modals use portal decoupling, dense data tables use fluid overflow containment.
+  - Updated `PageShell` unit tests to assert platform-wide desktop scaling across all core routes.
+- **SEO — llms.txt Synchronization & Static Build Shells:**
+  - Updated `public/llms.txt` to reflect canonical route inventory and current mobile PWA surface structure.
+  - Regenerated static build shells (`dist/seo/`) for all assessment and informational pages.
+- **Agent Toolchain — Unslop Skill:**
+  - Added `unslop` skill to `.agent/skills/` for surgical aesthetic upgrades of AI-generated UI surfaces.
+
+### Changed
+- **Architecture — Eliminated In-Memory Idempotency Cache:**
+  - Removed the server-side in-memory idempotency/deduplication cache from the Express session pipeline. Session replay protection is now handled exclusively through Firestore-backed nonce revocation, eliminating cross-restart memory state inconsistencies in serverless deployments.
+- **Architecture — Deduplicated Mobile Client Libraries:**
+  - Removed the `src/bklit-ui/` chart library subtree (100+ files) from the desktop build surface. Mobile chart primitives now share a single canonical copy in `mobile/src/bklit-ui/`, preventing duplication drift between surfaces.
+- **Dead Code Prune:**
+  - Removed orphaned UI components, unused skill packages, and zombie packages from both desktop and mobile dependency graphs via `chore(prune)`.
+
+### Fixed
+- **Database — Replace Collection Scans with Indexed Cursors:**
+  - Replaced all `publicDataset` and leaderboard full-collection scans with Firestore indexed cursor queries, reducing read costs and correcting calculation metrics that previously over-counted or skipped edge rows.
+- **Core — Test Continuity on History Navigation:**
+  - Resolved a regression where navigating back through browser history during an active assessment could cause the test state machine to stall or silently abort without triggering the guarded-navigation prompt.
+- **Core — Security Boundary Bugs:**
+  - Hardened server-side route authorization checks to close gaps in admin boundary enforcement identified during internal audit.
+- **Dataset — Break-UI Edge-Case Rendering Fixes:**
+  - Fixed rendering breaks in Dataset and DirectionDataset identified during the break-ui audit: null-slot guard for empty trial arrays, layout containment for extreme count values, and fallback labels for missing cohort bins.
+
+### Tests
+- Added `tests/unit/mobileDataset.test.tsx` covering mobile Dataset Explorer data bindings and edge-case rendering.
+- Added `tests/unit/navigationGuard.test.tsx` verifying guarded navigation prompts on history-back during active assessments.
+- Added `tests/unit/rateLimitsBoundary.test.ts` asserting rate-limit boundary enforcement for admin and research submission endpoints.
+- Added `tests/unit/adminService.test.ts` and `tests/unit/adminProvenance.test.ts` covering admin session lifecycle and provenance audit log entries.
+- Added `tests/unit/serverRepositories.test.ts` covering Firestore repository indexed-cursor queries.
+- Expanded `tests/unit/directionDataset.test.ts`, `tests/unit/serverEngines.test.ts`, `tests/unit/pageShell.test.tsx`, and `tests/unit/leaderboardCache.test.ts` with coverage for new subsystems.
+
+### Added
 - **Unified Responsive Routing & Surface Switching:**
   - Unified all top-level routes (`/`, `/assessments`, `/benchmarks`, `/leaderboard`, `/about`, `/improve`, `/research/privacy`, `/guides`, `/guides/:slug`, `/admin`, `/404`) under single canonical URLs, eliminating dual-surface `/mobile/` pathing and redirects.
   - Implemented dynamic surface switching via `useViewportSurface` in `src/App.tsx`, seamlessly mounting `<DesktopApp />` or `<MobileAppWrapper />` at the 768px breakpoint.
