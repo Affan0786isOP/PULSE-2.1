@@ -206,8 +206,12 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
     return calculateDirectionTrialProgression(directionDocs, 10, trials as unknown as DirectionSessionRecord['progressionTrials']);
   }, [directionDocs, trials]);
 
-  const totalProgressionTrials = useMemo(() => {
-    return trialProgressionData.reduce((acc, point) => acc + (point.n || 0), 0);
+  const totalRTTrials = useMemo(() => {
+    return trialProgressionData.reduce((acc, point) => acc + (point.overallN ?? point.n ?? 0), 0);
+  }, [trialProgressionData]);
+
+  const totalAccuracyTrials = useMemo(() => {
+    return trialProgressionData.reduce((acc, point) => acc + (point.accuracyN ?? point.totalAttempts ?? point.n ?? 0), 0);
   }, [trialProgressionData]);
 
   const trialTicks = useMemo(() => {
@@ -742,9 +746,9 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               Trial Sequence Progression (RT)
             </h3>
             <div className="flex items-center gap-3 text-[10px] font-mono">
-              {totalProgressionTrials > 0 && (
+              {totalRTTrials > 0 && (
                 <span className="text-[var(--text-muted)] uppercase">
-                  {totalProgressionTrials.toLocaleString()} {totalProgressionTrials === 1 ? 'TRIAL' : 'TRIALS'}
+                  {totalRTTrials.toLocaleString()} {totalRTTrials === 1 ? 'TRIAL' : 'TRIALS'}
                 </span>
               )}
               <div className="flex items-center gap-1.5">
@@ -807,9 +811,9 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               Trial Sequence Progression (Accuracy)
             </h3>
             <div className="flex items-center gap-3 text-[10px] font-mono">
-              {totalProgressionTrials > 0 && (
+              {totalAccuracyTrials > 0 && (
                 <span className="text-[var(--text-muted)] uppercase">
-                  {totalProgressionTrials.toLocaleString()} {totalProgressionTrials === 1 ? 'TRIAL' : 'TRIALS'}
+                  {totalAccuracyTrials.toLocaleString()} {totalAccuracyTrials === 1 ? 'TRIAL' : 'TRIALS'}
                 </span>
               )}
               <div className="flex items-center gap-1.5">
@@ -818,7 +822,7 @@ export function DirectionDataset({ trials, datasetDocs }: DirectionDatasetProps)
               </div>
             </div>
           </div>
-          {trialProgressionData.length === 0 || trialProgressionData.every((d) => d.accuracy === 0 && d.overall === 0) ? (
+          {trialProgressionData.length === 0 || trialProgressionData.every((d) => (d.accuracyN ?? d.totalAttempts ?? 0) === 0) ? (
             <div className="h-64 sm:h-72 w-full flex items-center justify-center text-xs font-mono text-[var(--text-muted)]">
               No progression trials recorded
             </div>

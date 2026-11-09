@@ -734,28 +734,41 @@ export function calculateDirectionTrialProgression(
   sessions: readonly DirectionSessionRecord[],
   maxTrials: number = 10,
   trialsFallback?: readonly DirectionTrialRecord[]
-): { trialLabel: string; trialNumber: number; overall: number; accuracy: number; n: number; totalAttempts: number }[] {
-  // Key: sessionKey + '_' + logicalTrialNumber -> latest valid attempt
+): {
+  trialLabel: string;
+  trialNumber: number;
+  overall: number;
+  accuracy: number;
+  n: number;
+  totalAttempts: number;
+  overallN: number;
+  accuracyN: number;
+}[] {
+  // Key: sessionKey + '_' + logicalTrialNumber -> latest attempt for that trial
   const rtTrialMap = new Map<string, { sessionKey: string; trialNum: number; rt: number }>();
   const accTrialMap = new Map<string, { sessionKey: string; trialNum: number; isCorrect: boolean }>();
 
   const processTrial = (sessionKey: string, t: DirectionTrialRecord, tIdx: number) => {
     const trialNum = t.trialNumber ?? (tIdx + 1);
     if (trialNum < 1 || trialNum > maxTrials) return;
-    const isCorrect = (t.accuracy === 1 || t.correct === true || t.validity === 'VALID') && !t.falseStart && !t.timedOut && t.valid !== false;
+
+    const isExplicitlyIncorrect = t.accuracy === 0 || t.correct === false || t.validity === 'INCORRECT' || t.falseStart === true || t.timedOut === true;
+    const isCorrect = !isExplicitlyIncorrect && (t.accuracy === 1 || t.correct === true || t.validity === 'VALID');
     const rt = t.reactionTime ?? t.rawLatencyMs;
-    const isValidRT = isCorrect && rt !== undefined && rt >= 80 && rt < 3000;
+    const isValidRT = isCorrect && rt !== undefined && rt >= 80 && rt < 3000 && !t.falseStart && !t.timedOut && t.valid !== false;
 
     const key = `${sessionKey}_${trialNum}`;
-    if (isValidRT) {
+    // The latest chronological attempt for each logical trial determines the outcome
+    if (isValidRT && rt !== undefined) {
       rtTrialMap.set(key, { sessionKey, trialNum, rt });
+    } else {
+      rtTrialMap.delete(key);
     }
 
-    const prevAcc = accTrialMap.get(key);
     accTrialMap.set(key, {
       sessionKey,
       trialNum,
-      isCorrect: isCorrect || (prevAcc?.isCorrect ?? false),
+      isCorrect,
     });
   };
 
@@ -767,10 +780,27 @@ export function calculateDirectionTrialProgression(
       trials.forEach((t, tIdx) => processTrial(sessionKey, t, tIdx));
     });
   } else if (trialsFallback && trialsFallback.length > 0) {
-    trialsFallback.forEach((t, tIdx) => processTrial('fallback', t, tIdx));
+    trialsFallback.forEach((t, tIdx) => {
+      const fallbackKey =
+        (t as unknown as { experimentId?: string }).experimentId ||
+        (t as unknown as { sessionId?: string }).sessionId ||
+        (t as unknown as { id?: string }).id?.split('-tr-')[0] ||
+        `fallback_${Math.floor(tIdx / maxTrials)}`;
+      processTrial(fallbackKey, t, tIdx);
+    });
   }
 
-  const points: { trialLabel: string; trialNumber: number; overall: number; accuracy: number; n: number; totalAttempts: number }[] = [];
+  const points: {
+    trialLabel: string;
+    trialNumber: number;
+    overall: number;
+    accuracy: number;
+    n: number;
+    totalAttempts: number;
+    overallN: number;
+    accuracyN: number;
+  }[] = [];
+
   for (let t = 1; t <= maxTrials; t++) {
     const rts: number[] = [];
     rtTrialMap.forEach((entry) => {
@@ -796,6 +826,8 @@ export function calculateDirectionTrialProgression(
       accuracy,
       n: rts.length,
       totalAttempts: attemptsCount,
+      overallN: rts.length,
+      accuracyN: attemptsCount,
     });
   }
 
