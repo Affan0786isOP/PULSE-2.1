@@ -403,7 +403,8 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
       };
 
       const now = performance.now();
-      const stimTime = stimulusWallTimestamp.current || now;
+      const stimTime = stimulusPerformanceTimestamp.current || now;
+      const stimWallTime = stimulusWallTimestamp.current || Date.now();
       const obsIndex = rawObservationsRef.current.length + 1;
       const currentLvl = levelRef.current;
       const attemptNum = levelAttemptsRef.current[currentLvl] || 1;
@@ -416,8 +417,8 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         trialIndex: obsIndex,
         sequenceNumber: obsIndex,
         attemptNumber: attemptNum,
-        assessmentStartedAt: assessmentStartWallTimestampRef.current || stimTime,
-        stimulusTimestamp: stimTime,
+        assessmentStartedAt: assessmentStartWallTimestampRef.current || stimWallTime,
+        stimulusTimestamp: stimWallTime,
         responseTimestamp: now,
         reactionTime: Math.max(0, now - stimTime),
         accuracy: 1,
