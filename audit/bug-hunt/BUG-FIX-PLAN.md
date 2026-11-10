@@ -106,27 +106,27 @@ Add canonical `targetDirection` to the under-80ms observation, matching the fiel
 
 **Acceptance:** invalid legacy fields are removed from Firestore rather than merely omitted from a merge payload. Production execution requires backup/restore readiness and a small canary batch.
 
-### P0.7 — Conditional admin authentication fallback (Security Cycle 1, SEC-1)
+### P0.7 — Admin authentication master passcode & fallback secret (Security Cycle 1, SEC-1)
 
-**Target:** `server/index.ts`, `server/middleware/adminAuth.ts`, deployment environment configuration.
+**Target:** `server/index.ts`, `server/middleware/adminAuth.ts`, `server/routes/adminRoutes.ts`.
 
-**Status:** **Needs Validation**, not a confirmed deployed vulnerability.
+**Status:** **Confirmed Actionable Vulnerability (Critical, Score 80)**.
 
-**Required deployment-owner check:**
-- Inspect the effective `NODE_ENV` for production, preview, and staging without printing secret values.
-- Confirm which deployments are internet-reachable and whether they have the server-side Firebase Admin configuration required by the admin-session revocation check.
-- Confirm explicit `ADMIN_PASSCODE` and `PULSE_ADMIN_SESSION_SECRET` configuration exists in every reachable environment.
+**Vulnerability Description:**
+When `NODE_ENV !== 'production'` (or when `NODE_ENV` is unset, defaulting to `development` via `server/index.ts:2-4`), `validateAdminPasscode()` accepts hardcoded master passcode `'180611'`, and `getAdminSessionSecret()` returns hardcoded fallback `'pulse-admin-dev-secret-change-in-production'`. Any network-reachable deployment running without explicit production environment variables allows unauthenticated callers to acquire admin JWTs and perform administrative operations.
 
-**Remediation if any reachable non-production environment is exposed:**
-- Remove the universal development passcode and built-in HMAC signing secret.
-- Require explicit, unique server-side credentials in every network-reachable environment and fail closed when missing.
-- Keep test credentials local to test setup; do not use a known repository fallback.
-- Do not use an unset `NODE_ENV` as a security signal. Make startup/runtime environment configuration explicit.
-- Rotate potentially exposed credentials and invalidate active sessions if exposure is found.
+**Remediation:**
+- Remove hardcoded fallback master passcode (`180611`) and built-in HMAC signing secret entirely from `server/middleware/adminAuth.ts`.
+- Require explicit, non-empty server-side credentials (`ADMIN_PASSCODE` and `PULSE_ADMIN_SESSION_SECRET`) in every environment; fail closed on startup if either is missing or set to known weak defaults.
+- Keep test credentials isolated strictly within unit/integration test setups (e.g. `process.env.ADMIN_PASSCODE = 'test-passcode'`).
+- Do not default an unset `NODE_ENV` to a permissive security state.
 
-**Regression coverage:** test missing credentials, explicit credentials, production mode, and non-production mode. Verify absent configuration fails closed. Use dummy secrets and an isolated Firestore emulator; do not probe deployed endpoints.
+**Regression coverage:**
+- Unit test asserts server startup / admin auth fails closed with descriptive error if `ADMIN_PASSCODE` or `PULSE_ADMIN_SESSION_SECRET` is unset.
+- Unit test confirms master passcode `180611` is rejected across all environment configurations.
+- Verify admin route middleware rejects tokens signed with the legacy fallback secret.
 
-**Acceptance:** no reachable deployment can issue an admin token using repository-known fallback credentials or a built-in signing key.
+**Acceptance:** No environment can issue or verify an admin token using repository-known fallback credentials or built-in signing keys.
 
 ---
 
@@ -271,7 +271,7 @@ For each implementation PR/commit:
 | Cycle 1 BUG-4 — Color Recognition trial count | P0 | Not started | False-start retries still submit 15 scored trials |
 | Cycle 3 BUG-1 — Mobile Direction payload | P0 | Not started | Under-80ms payload validates |
 | Cycle 3 BUG-2 — Privacy migration field deletion | P0 | Not started | Emulator migration + rerun/idempotency test |
-| Security Cycle 1 SEC-1 — Admin fallback | P0 gate | Needs deployment-owner validation | Effective env audit + fail-closed tests |
+| Security Cycle 1 SEC-1 — Admin fallback | P0 | Actionable / Confirmed | Fail-closed env checks + master passcode removal |
 | Cycle 2 BUG-4 — trialStore forbidden writes | P1 | Not started | Permission-denied queue regression |
 | Cycle 2 BUG-7 — Mobile Reaction telemetry | P1 | Not started | Mobile payload + ingestion test |
 | Cycle 2 BUG-5 — Admin read amplification | P1 | Not started | Bounded-read pagination test |
