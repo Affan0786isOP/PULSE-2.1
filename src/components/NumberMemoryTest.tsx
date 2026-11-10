@@ -310,6 +310,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
     const now = performance.now();
     const stimTime = stimulusPerformanceTimestamp.current || now;
     const stimWallTime = stimulusWallTimestamp.current || Date.now();
+    const responseWallTime = Date.now();
     const trialIndex = trialDataset.length + 1;
     
     const trial: TrialData = {
@@ -343,7 +344,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       attemptNumber: attemptNum,
       assessmentStartedAt: assessmentStartWallTimestampRef.current || stimWallTime,
       stimulusTimestamp: stimWallTime,
-      responseTimestamp: now,
+      responseTimestamp: responseWallTime,
       reactionTime: Math.max(0, now - stimTime),
       accuracy: isCorrect ? 1 : 0,
       correct: isCorrect,
