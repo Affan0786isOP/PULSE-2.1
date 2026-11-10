@@ -5,10 +5,11 @@ These rules govern all AI coding agents working within the PULSE repository. The
 ---
 
 ## 1. Inspection & Verification Rules
-1. **Inspect Before Acting:** Always examine actual source code, configuration files, and types before proposing or making changes. Never guess architecture or file paths.
-2. **Evidence Over Assumptions:** Only document or code against verifiable system behavior. If a behavior or requirement cannot be verified, flag it as `UNKNOWN / TO BE VERIFIED`.
-3. **Validate Commands:** Verify all scripts against `package.json` and tool configurations before suggesting or executing them.
-4. **Visual Verification Loop for UI Changes:** Any visual change to UI components, heroes, modals, navigation, or responsive layouts MUST follow the screenshot-driven feedback loop (`screenshot-driven-ui`). The agent must capture actual screenshots using headless browser automation, inspect the images directly via `view_file`, and iterate (code -> build -> capture -> inspect) until visual quality, contrast, and responsive layout are proven. Never claim UI success without inspected screenshots.
+1. **Mandatory Skills & Rules Pre-Flight Check:** Before taking any action, formulating a plan, or writing code, ALWAYS check for applicable skills (in `.agent/skills/`) and rules (in `.agent/rules/` and `.ai/RULES.md`). If a skill or rule governs the task domain (e.g., `mobile-native`, `screenshot-driven-ui`, `ui-aesthetic-invariants`, `resolution-scaling-invariants`, `minimal-robust-engineering`), read and strictly enforce its instructions. Never proceed with execution without verifying and applying the relevant skills and rules first.
+2. **Inspect Before Acting:** Always examine actual source code, configuration files, and types before proposing or making changes. Never guess architecture or file paths.
+3. **Evidence Over Assumptions:** Only document or code against verifiable system behavior. If a behavior or requirement cannot be verified, flag it as `UNKNOWN / TO BE VERIFIED`.
+4. **Validate Commands:** Verify all scripts against `package.json` and tool configurations before suggesting or executing them.
+5. **Visual Verification Loop for UI Changes:** Any visual change to UI components, heroes, modals, navigation, or responsive layouts MUST follow the screenshot-driven feedback loop (`screenshot-driven-ui`). The agent must capture actual screenshots using headless browser automation, inspect the images directly via `view_file`, and iterate (code -> build -> capture -> inspect) until visual quality, contrast, and responsive layout are proven. Never claim UI success without inspected screenshots.
 
 ---
 
