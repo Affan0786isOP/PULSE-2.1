@@ -30,6 +30,12 @@ describe('Shared Library Parity & Chunk Leakage Guards', () => {
     expect(mobileRouteTheme).not.toContain("../../../src/components/About");
   });
 
+  it('keeps the mobile About route inside the mobile component boundary', () => {
+    const mobileApp = readSource('mobile/src/App.tsx');
+    expect(mobileApp).toContain("import('./components/About')");
+    expect(mobileApp).not.toContain("../../src/components/About");
+  });
+
   it('keeps the desktop AddToHomeScreenModal reachable from Navbar and Settings', () => {
     const navbarSource = readSource('src/components/Navbar.tsx');
     expect(navbarSource).toContain('AddToHomeScreenModal');
