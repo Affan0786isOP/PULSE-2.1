@@ -421,7 +421,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         attemptNumber: attemptNum,
         assessmentStartedAt: assessmentStartWallTimestampRef.current || stimWallTime,
         stimulusTimestamp: stimWallTime,
-        responseTimestamp: now,
+        responseTimestamp: responseWallTime,
         reactionTime: Math.max(0, now - stimTime),
         accuracy: 1,
         correct: true,
