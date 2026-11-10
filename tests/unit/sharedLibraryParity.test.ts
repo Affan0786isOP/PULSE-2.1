@@ -55,7 +55,7 @@ describe('Shared Library Parity & Chunk Leakage Guards', () => {
       'mobile/src/components/DirectionTest.tsx',
     ]) {
       const branch = getUnderEightyMillisecondDirectionBranch(readSource(path));
-      expect(branch).toMatch(/targetDirection: currentDirection\\.toLowerCase\\(\\)/);
+      expect(branch).toMatch(/targetDirection: currentDirection\.toLowerCase\(\)/);
     }
   });
 
