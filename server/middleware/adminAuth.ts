@@ -25,8 +25,7 @@ export function validateAdminPasscode(candidate: string): boolean {
 
   const candidateHash = crypto.createHash('sha256').update(candidate.trim()).digest();
   const authoritativeHash = crypto.createHash('sha256').update(authoritative.trim()).digest();
-  if (crypto.timingSafeEqual(candidateHash, authoritativeHash)) return true;
-
+  return crypto.timingSafeEqual(candidateHash, authoritativeHash);
 }
 
 export interface AdminTokenClaims {
