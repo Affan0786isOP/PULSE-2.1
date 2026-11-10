@@ -323,6 +323,73 @@ describe('assessment engine (server-side derivation, no HTTP)', () => {
     expect(res.derivedMetrics?.accuracy).toBe(100);
     expect(res.derivedMetrics?.totalCorrect).toBe(10);
   });
+
+  it('rejects negative effective raw latency even when reactionTime is positive', () => {
+    const trials = numberMemoryTrials([true]);
+    trials[0].rawLatency = -1;
+    const result = validateAndDeriveAssessmentFromTrials('number-memory', 'Adults (26–40)', trials, session);
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/raw reaction time/i);
+  });
+
+  it('accepts false-start retries while requiring exactly 15 scored Stroop trials', () => {
+    const sessionId = 'stroop-retry-contract';
+    const baseTime = Date.now();
+    const plansPrng = seedPRNG(sessionId + '-color-plans');
+    const congruentCount = plansPrng() < 0.5 ? 8 : 7;
+    const plans: Array<{ condition: 'congruent' | 'incongruent'; instruction: 'WORD' | 'COLOR' }> = [];
+    for (let i = 0; i < congruentCount; i++) plans.push({ condition: 'congruent', instruction: i % 2 === 0 ? 'WORD' : 'COLOR' });
+    for (let i = 0; i < 15 - congruentCount; i++) plans.push({ condition: 'incongruent', instruction: i % 2 === 0 ? 'WORD' : 'COLOR' });
+    for (let i = plans.length - 1; i > 0; i--) {
+      const j = Math.floor(plansPrng() * (i + 1));
+      [plans[i], plans[j]] = [plans[j], plans[i]];
+    }
+
+    const trials: any[] = [];
+    let observationIndex = 0;
+    for (let logicalIndex = 0; logicalIndex < 15; logicalIndex++) {
+      const plan = plans[logicalIndex];
+      const prng = seedPRNG(sessionId + '-color-trial-' + logicalIndex);
+      const colors = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PURPLE'];
+      const wordIndex = Math.floor(prng() * colors.length);
+      let colorIndex = wordIndex;
+      if (plan.condition === 'incongruent') {
+        colorIndex = (wordIndex + Math.floor(prng() * (colors.length - 1)) + 1) % colors.length;
+      }
+      const wordName = colors[wordIndex];
+      const wordColor = colors[colorIndex];
+      const userResponse = plan.instruction === 'WORD' ? wordName : wordColor;
+
+      if (logicalIndex === 0) {
+        observationIndex++;
+        trials.push({
+          trialNumber: 1, trialIndex: observationIndex, sequenceNumber: observationIndex, attemptNumber: 1,
+          test: 'color-recognition', condition: plan.condition, wordName, wordColor, instruction: plan.instruction,
+          stimulusTimestamp: null, responseTimestamp: baseTime + 100, reactionTime: null, rawReactionTime: null,
+          falseStart: true, timedOut: false
+        });
+      }
+
+      observationIndex++;
+      trials.push({
+        trialNumber: logicalIndex + 1, trialIndex: observationIndex, sequenceNumber: observationIndex,
+        attemptNumber: logicalIndex === 0 ? 2 : 1,
+        test: 'color-recognition', condition: plan.condition, wordName, wordColor, instruction: plan.instruction,
+        userResponse, stimulusTimestamp: baseTime + logicalIndex * 1000 + 200,
+        responseTimestamp: baseTime + logicalIndex * 1000 + 500,
+        reactionTime: 300, rawReactionTime: 300, falseStart: false, timedOut: false
+      });
+    }
+
+    const result = validateAndDeriveAssessmentFromTrials(
+      'color-recognition',
+      'Adults (26–40)',
+      trials,
+      { sessionId, createdAt: baseTime - 1000, expiresAt: baseTime + 60000 }
+    );
+    expect(result.success).toBe(true);
+  });
+
 });
 
 describe('leaderboard rules', () => {
