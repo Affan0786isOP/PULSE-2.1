@@ -24,12 +24,16 @@ describe('Admin Auth & Token Security Unit Tests', () => {
   });
 
   describe('Passcode & Secret Resolution Rules', () => {
-    it('allows fallback 180611 across environments when not set', () => {
+    it('fails closed when admin credentials are missing or too short', () => {
       delete process.env.ADMIN_PASSCODE;
-      expect(getAdminPasscode()).toBe('180611');
+      expect(getAdminPasscode()).toBe('');
 
       delete process.env.PULSE_ADMIN_SESSION_SECRET;
-      expect(getAdminSessionSecret()).toContain('pulse-admin-session-secret');
+      expect(getAdminSessionSecret()).toBe('');
+      process.env.ADMIN_PASSCODE = 'short';
+      process.env.PULSE_ADMIN_SESSION_SECRET = 'short-secret';
+      expect(getAdminPasscode()).toBe('');
+      expect(getAdminSessionSecret()).toBe('');
     });
 
     it('accepts strong production passcode in production', () => {
@@ -40,9 +44,10 @@ describe('Admin Auth & Token Security Unit Tests', () => {
 
     it('constant-time passcode validation correctly compares passcodes', () => {
       process.env.NODE_ENV = 'development';
-      delete process.env.ADMIN_PASSCODE; // default 180611
+      process.env.ADMIN_PASSCODE = 'a-long-test-admin-passcode';
 
-      expect(validateAdminPasscode('180611')).toBe(true);
+      expect(validateAdminPasscode('a-long-test-admin-passcode')).toBe(true);
+      expect(validateAdminPasscode('180611')).toBe(false);
       expect(validateAdminPasscode('wrong-code')).toBe(false);
       expect(validateAdminPasscode('')).toBe(false);
       expect(validateAdminPasscode(null as unknown as string)).toBe(false);
@@ -50,8 +55,8 @@ describe('Admin Auth & Token Security Unit Tests', () => {
   });
 
   describe('Production admin auth fails closed', () => {
-    it('rejects development fallback passcodes and session secrets in production', () => {
-      process.env.NODE_ENV = 'production';
+    it('rejects missing credentials regardless of NODE_ENV', () => {
+      delete process.env.NODE_ENV;
       delete process.env.ADMIN_PASSCODE;
       delete process.env.PULSE_ADMIN_SESSION_SECRET;
 
