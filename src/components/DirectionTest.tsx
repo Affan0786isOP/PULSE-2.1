@@ -378,6 +378,7 @@ export function DirectionTest({ onNavigate }: { onNavigate: (view: string) => vo
       condition: `arrow-${currentDirection.toLowerCase()}`,
       test: 'direction',
       trialNumber: currentTrialRef.current,
+      targetDirection: currentDirection.toUpperCase(),
       stimulusTimestamp: null,
       responseTimestamp: Date.now(),
       reactionTime: null,
