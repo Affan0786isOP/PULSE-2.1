@@ -322,6 +322,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
       const now = performance.now();
       const stimTime = stimulusPerformanceTimestamp.current || now;
       const stimWallTime = stimulusWallTimestamp.current || Date.now();
+      const responseWallTime = Date.now();
       const obsIndex = rawObservationsRef.current.length + 1;
       const currentLvl = levelRef.current;
       const attemptNum = levelAttemptsRef.current[currentLvl] || 1;
@@ -336,7 +337,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
         attemptNumber: attemptNum,
         assessmentStartedAt: assessmentStartWallTimestampRef.current || stimWallTime,
         stimulusTimestamp: stimWallTime,
-        responseTimestamp: now,
+        responseTimestamp: responseWallTime,
         reactionTime: Math.max(0, now - stimTime),
         accuracy: 0,
         correct: false,
@@ -405,6 +406,7 @@ export function BlockMemoryTest({ onNavigate }: { onNavigate: (view: string) => 
       const now = performance.now();
       const stimTime = stimulusPerformanceTimestamp.current || now;
       const stimWallTime = stimulusWallTimestamp.current || Date.now();
+      const responseWallTime = Date.now();
       const obsIndex = rawObservationsRef.current.length + 1;
       const currentLvl = levelRef.current;
       const attemptNum = levelAttemptsRef.current[currentLvl] || 1;
