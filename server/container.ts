@@ -1,12 +1,13 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import { getAdminDb } from './config/firebaseAdmin';
-
+import { getProfilesDb } from './config/databases';
 
 import { FirestoreSessionRepository } from './repositories/firestore/firestoreSessionRepository';
 import { FirestoreResearchSubmissionRepository } from './repositories/firestore/firestoreResearchSubmissionRepository';
 import { FirestoreResearchDatasetRepository } from './repositories/firestore/firestoreResearchDatasetRepository';
 import { FirestoreLeaderboardSubmissionRepository } from './repositories/firestore/firestoreLeaderboardSubmissionRepository';
 import { FirestoreLeaderboardRepository } from './repositories/firestore/firestoreLeaderboardRepository';
+import { FirestoreProfileRegistryRepository } from './repositories/firestore/firestoreProfileRegistryRepository';
 
 import type { ISessionService } from './services/interfaces/ISessionService';
 import type { IPersonalBestService } from './services/interfaces/IPersonalBestService';
@@ -21,6 +22,7 @@ import { PersonalBestService } from './services/personalBestService';
 import { ResearchService } from './services/researchService';
 import { LeaderboardAppService } from './services/leaderboardAppService';
 import { AdminService } from './services/adminService';
+import { ProfileRegistryService } from './services/profileRegistryService';
 import { FirestoreLeaderboardAccuracyBackfillRepository } from './repositories/firestore/firestoreLeaderboardAccuracyBackfillRepository';
 import { LeaderboardAccuracyBackfillService } from './services/leaderboardAccuracyBackfill';
 import { DatasetSummaryReconciliationService } from './services/datasetSummaryReconciliation';
@@ -32,11 +34,11 @@ export interface ServerContainer {
   researchService: IResearchService;
   leaderboardService: ILeaderboardService;
   adminService: IAdminService;
+  profileRegistryService: ProfileRegistryService;
   leaderboardAccuracyBackfillService: LeaderboardAccuracyBackfillService;
   datasetSummaryReconciliationService: DatasetSummaryReconciliationService;
   telegramNotifierService: ITelegramNotifierService;
 }
-
 
 export function createServerContainer(dbProvider?: () => Firestore | null): ServerContainer {
   const getDb = dbProvider ?? getAdminDb;
@@ -46,6 +48,7 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
   const researchDatasetRepository = new FirestoreResearchDatasetRepository(getDb);
   const leaderboardSubmissionRepository = new FirestoreLeaderboardSubmissionRepository(getDb);
   const leaderboardRepository = new FirestoreLeaderboardRepository(getDb);
+  const profileRegistryRepository = new FirestoreProfileRegistryRepository(getProfilesDb);
 
   const sessionService = new SessionService(sessionRepository);
   const personalBestService = new PersonalBestService(sessionRepository);
@@ -62,6 +65,7 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
   );
 
   const adminService = new AdminService(leaderboardRepository);
+  const profileRegistryService = new ProfileRegistryService(profileRegistryRepository);
   const leaderboardAccuracyBackfillRepository = new FirestoreLeaderboardAccuracyBackfillRepository(getDb);
   const leaderboardAccuracyBackfillService = new LeaderboardAccuracyBackfillService(leaderboardAccuracyBackfillRepository);
   const datasetSummaryMaintenanceRepository = new FirestoreDatasetSummaryMaintenanceRepository(getDb);
@@ -74,6 +78,7 @@ export function createServerContainer(dbProvider?: () => Firestore | null): Serv
     researchService,
     leaderboardService,
     adminService,
+    profileRegistryService,
     leaderboardAccuracyBackfillService,
     datasetSummaryReconciliationService,
     telegramNotifierService

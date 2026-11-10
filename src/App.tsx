@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { useViewportSurface } from './hooks/useViewportSurface';
+import { ProfileProvider } from './lib/profiles/ProfileContext';
 
 const DesktopApp = lazy(() => import('./DesktopApp').then(m => ({ default: m.DesktopApp || m.default })));
 const MobileAppWrapper = lazy(() => import('@mobile/MobileAppWrapper').then(m => ({ default: m.MobileAppWrapper || m.default })));
@@ -17,9 +18,11 @@ export function App() {
   const surface = useViewportSurface();
 
   return (
-    <Suspense fallback={<SurfaceFallback />}>
-      {surface === 'mobile' ? <MobileAppWrapper /> : <DesktopApp />}
-    </Suspense>
+    <ProfileProvider>
+      <Suspense fallback={<SurfaceFallback />}>
+        {surface === 'mobile' ? <MobileAppWrapper /> : <DesktopApp />}
+      </Suspense>
+    </ProfileProvider>
   );
 }
 

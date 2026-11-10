@@ -49,6 +49,7 @@ function RedirectToMobile() {
 const About = React.lazy(() => import('./components/About').then(m => ({ default: m.About })));
 const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
 const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
+const ProfilesPage = React.lazy(() => import('./components/profiles/ProfilesPage').then(m => ({ default: m.ProfilesPage })));
 
 const DeferredAnalytics = React.memo(function DeferredAnalytics() {
   const [shouldLoad, setShouldLoad] = React.useState(false);
@@ -122,6 +123,10 @@ export function DesktopApp() {
       case 'analytics':
         navigate('/dataset');
         break;
+      case 'profiles':
+      case 'profile':
+        navigate('/profiles');
+        break;
       case 'improve': navigate('/improve'); break;
       case 'visual-reaction':
       case 'reaction-test':
@@ -192,6 +197,7 @@ export function DesktopApp() {
 
                 <Route path="/dataset" element={<Dataset onNavigate={handleNavigate} />} />
                 <Route path="/analytics" element={<Dataset onNavigate={handleNavigate} />} />
+                <Route path="/profiles" element={<ProfilesPage onNavigate={handleNavigate} />} />
                 <Route path="/improve" element={<Improve onNavigate={handleNavigate} />} />
                 <Route path="/reaction-test" element={<ReactionTest onNavigate={handleNavigate} />} />
                 <Route path="/visual-reaction" element={<ReactionTest onNavigate={handleNavigate} />} />

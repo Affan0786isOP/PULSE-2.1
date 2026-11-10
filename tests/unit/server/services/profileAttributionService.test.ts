@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ProfileAttributionService } from '../../../../server/services/profileAttributionService';
+import { FirestoreProfileAttributionRepository } from '../../../../server/repositories/firestore/firestoreProfileAttributionRepository';
 
 describe('ProfileAttributionService', () => {
   let mockProfilesDb: any;
   let mockTx: any;
+  let repo: FirestoreProfileAttributionRepository;
   let service: ProfileAttributionService;
 
   beforeEach(() => {
@@ -19,7 +21,8 @@ describe('ProfileAttributionService', () => {
       })),
       runTransaction: vi.fn(async (cb: (tx: any) => Promise<any>) => cb(mockTx))
     };
-    service = new ProfileAttributionService(() => mockProfilesDb);
+    repo = new FirestoreProfileAttributionRepository(() => mockProfilesDb);
+    service = new ProfileAttributionService(repo);
   });
 
   it('generates an opaque 32-byte capability and creates attribution record', async () => {
