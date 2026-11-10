@@ -167,6 +167,9 @@ export function validateAndDeriveAssessmentFromTrials(
       lastResponse = responseTimestamp;
 
       const checkedRt = rawRt !== null ? rawRt : reactionTime;
+      if (checkedRt !== null && (!Number.isFinite(checkedRt) || checkedRt < 0)) {
+        return { success: false, error: `Invalid raw reaction time at trial ${i + 1}.` };
+      }
       if (checkedRt !== null && checkedRt > 0) {
         const calculatedDelta = responseTimestamp - stimulusTimestamp;
         if (Math.abs(checkedRt - calculatedDelta) > 150) {
