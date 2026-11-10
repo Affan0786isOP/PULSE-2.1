@@ -106,6 +106,10 @@ export function validateAndDeriveAssessmentFromTrials(
           ? Number(t.rawLatencyMs)
           : (typeof t.rawLatency === 'number' && Number.isFinite(t.rawLatency) ? Number(t.rawLatency) : reactionTime));
 
+    if (rawRt !== null && (!Number.isFinite(rawRt) || rawRt < 0)) {
+      return { success: false, error: `Invalid raw reaction time at trial ${i + 1}.` };
+    }
+
     if (stimulusTimestamp === null && responseTimestamp === null) {
       return { success: false, error: `Trial ${i + 1} is missing both stimulusTimestamp and responseTimestamp.` };
     }
@@ -167,9 +171,6 @@ export function validateAndDeriveAssessmentFromTrials(
       lastResponse = responseTimestamp;
 
       const checkedRt = rawRt !== null ? rawRt : reactionTime;
-      if (checkedRt !== null && (!Number.isFinite(checkedRt) || checkedRt < 0)) {
-        return { success: false, error: `Invalid raw reaction time at trial ${i + 1}.` };
-      }
       if (checkedRt !== null && checkedRt > 0) {
         const calculatedDelta = responseTimestamp - stimulusTimestamp;
         if (Math.abs(checkedRt - calculatedDelta) > 150) {
