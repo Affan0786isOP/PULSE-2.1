@@ -222,16 +222,6 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       displayDelayOffsetSource: null,
     });
 
-    const anticipatoryFalseStart = payload.trials.find(
-      trial => trial.notes === 'anticipatory_response_<80ms'
-    );
-    expect(anticipatoryFalseStart).toMatchObject({
-      targetDirection: expect.any(String),
-      falseStart: true,
-      timedOut: false,
-      valid: false,
-    });
-
     const measuredTrials = payload.trials.filter(
       trial => trial.falseStart !== true && trial.timedOut !== true
     );
@@ -347,6 +337,16 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       displayDelayOffsetMs: null,
       displayDelayOffsetEstimated: null,
       displayDelayOffsetSource: null,
+    });
+
+    const anticipatoryFalseStart = payload.trials.find(
+      trial => trial.notes === 'anticipatory_response_<80ms'
+    );
+    expect(anticipatoryFalseStart).toMatchObject({
+      targetDirection: expect.any(String),
+      falseStart: true,
+      timedOut: false,
+      valid: false,
     });
 
     const measuredTrials = payload.trials.filter(
