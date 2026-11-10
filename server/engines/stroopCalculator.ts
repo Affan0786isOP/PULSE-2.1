@@ -117,8 +117,8 @@ export function validateColorRecognitionTrial(
 
 export function deriveColorRecognitionMetrics(ctx: DerivationContext): DerivationResult {
   const { trials, ageGroup, session, sessionId } = ctx;
-    if (trials.length !== 15) {
-      return { success: false, error: `Color recognition test requires exactly 15 trials (received ${trials.length}).` };
+    if (trials.length < 15 || trials.length > 40) {
+      return { success: false, error: `Color recognition test requires 15 scored trials and allows at most 40 total observations (received ${trials.length}).` };
     }
 
     // Reconstruct congruent/incongruent plans sequence
@@ -141,16 +141,23 @@ export function deriveColorRecognitionMetrics(ctx: DerivationContext): Derivatio
     }
 
     let correctCount = 0;
+    let scoredTrialCount = 0;
+    const scoredTrialNumbers = new Set<number>();
     const validRTs: number[] = [];
     const congruentTrials: any[] = [];
     const incongruentTrials: any[] = [];
 
     for (let i = 0; i < trials.length; i++) {
       const t = trials[i];
-      const plan = plans[i];
+      const logicalTrialNumber = Number(t.trialNumber);
+      const logicalTrialIndex = logicalTrialNumber - 1;
+      if (!Number.isInteger(logicalTrialNumber) || logicalTrialIndex < 0 || logicalTrialIndex >= 15) {
+        return { success: false, error: `Invalid logical Stroop trial number at observation ${i + 1}.` };
+      }
+      const plan = plans[logicalTrialIndex];
 
-      // Seeded PRNG for the individual trial
-      const prngTrial = seedPRNG(sessionId + "-color-trial-" + i);
+      // Seeded PRNG is keyed to the logical trial so retries retain the same stimulus.
+      const prngTrial = seedPRNG(sessionId + "-color-trial-" + logicalTrialIndex);
       const COLORS = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PURPLE'];
       const wordIdx = Math.floor(prngTrial() * COLORS.length);
       let colorIdx = wordIdx;
@@ -165,7 +172,7 @@ export function deriveColorRecognitionMetrics(ctx: DerivationContext): Derivatio
 
       const valRes = validateColorRecognitionTrial(
         t,
-        i,
+        logicalTrialIndex,
         expectedWord,
         expectedColor,
         plan.condition,
@@ -173,6 +180,13 @@ export function deriveColorRecognitionMetrics(ctx: DerivationContext): Derivatio
       );
       if (!valRes.success) {
         return { success: false, error: valRes.error };
+      }
+      if (!valRes.derivedFalseStart) {
+        if (scoredTrialNumbers.has(logicalTrialNumber)) {
+          return { success: false, error: `Logical trial ${logicalTrialNumber} contains more than one scored observation.` };
+        }
+        scoredTrialNumbers.add(logicalTrialNumber);
+        scoredTrialCount++;
       }
 
       let rawRtPhysiological: number | null = null;
@@ -236,6 +250,10 @@ export function deriveColorRecognitionMetrics(ctx: DerivationContext): Derivatio
           incongruentTrials.push(t);
         }
       }
+    }
+
+    if (scoredTrialCount !== 15) {
+      return { success: false, error: `Color recognition test requires exactly 15 scored trials (received ${scoredTrialCount}).` };
     }
 
     const validTrialsCount = trials.filter(t => !t.falseStart && !t.timedOut).length;
