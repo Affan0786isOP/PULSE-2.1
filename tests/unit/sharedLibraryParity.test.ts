@@ -7,6 +7,18 @@ import { isValidReactionMetrics as mobileValidate } from '../../mobile/src/lib/p
 const readSource = (relPath: string) =>
   readFileSync(resolve(process.cwd(), relPath), 'utf8');
 
+
+function getUnderEightyMillisecondDirectionBranch(source: string): string {
+  const marker = 'if (rawLatency < 80) {';
+  const start = source.indexOf(marker);
+  if (start < 0) throw new Error('Direction under-80ms branch was not found.');
+
+  const endMarker = "notes: 'anticipatory_response_<80ms'";
+  const end = source.indexOf(endMarker, start);
+  if (end < 0) throw new Error('Direction under-80ms observation was not found.');
+  return source.slice(start, end);
+}
+
 describe('Shared Library Parity & Chunk Leakage Guards', () => {
   it('enforces exact parity for isValidReactionMetrics between desktop and mobile', () => {
     // Both should reject median reaction times outside fastest..slowest
@@ -34,6 +46,17 @@ describe('Shared Library Parity & Chunk Leakage Guards', () => {
     const mobileApp = readSource('mobile/src/App.tsx');
     expect(mobileApp).toContain("import('./components/About')");
     expect(mobileApp).not.toContain("../../src/components/About");
+  });
+
+
+  it('includes the required targetDirection in desktop and mobile under-80ms observations', () => {
+    for (const path of [
+      'src/components/DirectionTest.tsx',
+      'mobile/src/components/DirectionTest.tsx',
+    ]) {
+      const branch = getUnderEightyMillisecondDirectionBranch(readSource(path));
+      expect(branch).toMatch(/targetDirection: currentDirection\\.toLowerCase\\(\\)/);
+    }
   });
 
   it('keeps the desktop AddToHomeScreenModal reachable from Navbar and Settings', () => {
