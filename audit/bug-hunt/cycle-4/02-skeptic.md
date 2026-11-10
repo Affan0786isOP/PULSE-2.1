@@ -118,17 +118,14 @@ return '  <url>\n' + loc + lastmod + changefreq + '\n  </url>';
 ---
 
 #### BUG-6 | Original: 5 pts
-- **Counter-argument:** The claim is refuted by reading the actual implementation in `scripts/dedupeLeaderboardBestPerOwner.ts`. First, line 76 explicitly checks `if (!indexSnap.exists || indexSnap.data()?.leaderboardDocId === loser.id)`. If the index was previously null / non-existent (`!indexSnap.exists`), it DOES write `{ leaderboardDocId: winner.id }`. If the index already pointed to `winner.id`, it is already synchronized and needs no update. Second, if a transaction aborts (throws), `await db.runTransaction(...)` throws an unhandled rejection caught by `main().catch(...)`, so line 80 (`superseded++`) is never reached. Finally, `superseded` is an ephemeral local integer used strictly for an informational console log in an offline script (`console.info(...)`), with zero persistence to Firestore and zero data-integrity impact. Realistic Frequency = 0, Impact = 0 (Frequency × Impact = 0 < 5).
-- **Evidence:** In `scripts/dedupeLeaderboardBestPerOwner.ts`:
-```ts
-// Lines 76-78: Handles non-existent (null) indices and points them to winner.id
-if (!indexSnap.exists || indexSnap.data()?.leaderboardDocId === loser.id) {
-  tx.set(ownerIndexRef, { ownerUid: loser.ownerUid, assessmentType: loser.assessmentType, leaderboardDocId: winner.id, updatedAt: Date.now() }, { merge: true });
-}
-```
-- **Confidence:** 95%
-- **Risk calc:** EV = (95% x 5) - (5% x 10) = 4.75 - 0.5 = +4.25 pts
-- **Decision:** DISPROVE
+
+- **Counter-argument:** The Hunter's claim is only partly correct, and the stated impact is not established. The condition at line 76 is `!indexSnap.exists || indexSnap.data()?.leaderboardDocId === loser.id`, so a missing owner-index document is repaired; it is not skipped. If the pointer refers to another loser in the same visible owner/assessment group, that row is eventually processed and the pointer is updated when its transaction runs. A pointer that refers to an unrelated or stale ID outside the current group is left unchanged, so the script does not guarantee global repair of every stale pointer.
+- **Impact check:** In the inspected submission path, `FirestoreLeaderboardSubmissionRepository.executeLeaderboardSubmission` reads the owner-index document to enforce the `deleting` lock, then queries the owner's private metadata and computes the current visible best from those rows. It does not use the index's `leaderboardDocId` to select the best entry. No user-facing failure from a stale pointer was established in the reviewed paths. Do not classify this as a confirmed data-integrity defect without identifying a consumer that relies on that pointer.
+- **Counter accuracy:** The `superseded++` increment occurs after the transaction promise resolves. It is skipped when the transaction throws, as the prior review noted, but it still increments when the transaction callback returns early (for example, deleting is active, the public row is absent/hidden, or metadata no longer matches). That can overstate the console summary; it does not itself change Firestore data.
+- **Evidence:** `scripts/dedupeLeaderboardBestPerOwner.ts:65-81`; `server/repositories/firestore/firestoreLeaderboardSubmissionRepository.ts:32-35, 76-92, 214-218`.
+- **Confidence:** High on the transaction/control-flow observations; medium on the intended global owner-index invariant because no formal invariant or consuming read path was identified.
+- **Risk assessment:** Frequency 1 × Impact 2 = 2 (< 5). Treat as a maintenance-script observability/invariant follow-up, not an actionable production bug.
+- **Decision:** BELOW THRESHOLD — no code change required for this cycle. Add focused tests before relying on this migration to repair arbitrary stale pointers.
 
 ---
 
@@ -175,9 +172,11 @@ const res = await fetchWithAuth(`/api/leaderboard/mine?assessmentType=${encodeUR
 ---
 
 **SUMMARY:**
-- Bugs disproved: 8 (total points claimed: 46)
-- Bugs accepted as real: 0
-- Your final score: 46 pts
+- Candidate findings reviewed: 8
+- Disproved as false positives: 5 (BUG-1, BUG-2, BUG-3, BUG-4, BUG-8)
+- Below threshold: 3 (BUG-5, BUG-6, BUG-7)
+- Confirmed actionable bugs: 0
+- Hunter points evaluated: 46
 
 **ACCEPTED BUG LIST:**
 *(None)*

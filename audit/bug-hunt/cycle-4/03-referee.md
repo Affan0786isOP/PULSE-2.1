@@ -71,14 +71,21 @@
 ---
 
 #### BUG-6
-- **Hunter's claim:** Deduplication migration in `scripts/dedupeLeaderboardBestPerOwner.ts` only updates `leaderboardOwnerIndex` if the index points to the specific loser ID being processed, leaving owner indices permanently desynchronized if they were previously null or pointing to an older entry, while incrementing `superseded` count outside the transaction even when the transaction aborted.
-- **Skeptic's response:** DISPROVE. Line 76 explicitly checks `if (!indexSnap.exists || ...)`, successfully updating null/non-existent indices. Transaction abort throws unhandled rejection preventing the increment. `superseded` is an ephemeral console log integer in an offline script with zero Firestore data impact. Frequency 0, Impact 0.
-- **Your analysis:** The Skeptic is correct. In `scripts/dedupeLeaderboardBestPerOwner.ts` line 76, the code explicitly tests `if (!indexSnap.exists || indexSnap.data()?.leaderboardDocId === loser.id)`. When the index document does not exist, `!indexSnap.exists` evaluates to true, and `tx.set(ownerIndexRef, ...)` properly writes the pointer to `winner.id`. If `leaderboardDocId` was already pointing to `winner.id`, it is already synchronized. Regarding transaction aborts: if `db.runTransaction` fails or aborts, it throws an exception, rejecting the promise and jumping straight to `main().catch(...)` (line 85) to exit with code 1; line 80 (`superseded++`) is never reached. Furthermore, `superseded` is merely an ephemeral local variable printed to `console.info` in a one-off offline script with zero database or application state impact.
+
+- **Hunter's claim:** The best-per-owner migration may leave an owner index stale when it points to an entry other than the loser currently being processed, and its superseded counter may be inaccurate.
+- **Skeptic's response:** Partially disproved. A missing index is handled by `!indexSnap.exists`; a pointer to a loser in the same group is updated when that loser is processed. A pointer to an unrelated stale ID is not repaired. The counter also increments after early returns from the transaction callback.
+- **Referee analysis:** The source confirms the narrower behavior:
+  1. The `!indexSnap.exists` branch repairs a missing owner-index document.
+  2. When the pointer equals a loser ID in the grouped visible rows, that loser's transaction writes the winner ID.
+  3. When the pointer references an unrelated stale ID outside the group, the script leaves it unchanged.
+  4. The reviewed submission path uses the owner-index `deleting` field as an erasure/submission guard, then derives the current visible best from owner-private metadata. It does not read `leaderboardDocId` from the index to select the best leaderboard record. No functional consequence of the stale pointer was established in the inspected paths.
+  5. `superseded++` is not reached when the transaction promise rejects, but it is reached after a transaction callback returns early. The log count can therefore overstate successful superseding; it is an operational summary, not a persisted data mutation.
 - **Frequency (1-10):** 1
-- **Impact (1-10):** 1
-- **Risk Score:** 1
-- **VERDICT:** NOT A BUG
-- **Confidence:** High
+- **Impact (1-10):** 2
+- **Risk Score:** 2
+- **VERDICT:** BELOW THRESHOLD — non-actionable based on the currently demonstrated impact.
+- **Confidence:** High for the observed control flow; medium for the undocumented global owner-index contract.
+- **Follow-up:** Before rerunning this migration as an index-repair tool, add emulator tests for a missing index, pointer-to-current-loser, pointer-to-winner, pointer-to-unrelated/stale ID, active deletion lock, hidden/missing rows, owner mismatch, and early-return counter behavior. Define whether this script is intended to repair every stale pointer. Do not broaden writes until that invariant is explicit.
 
 ---
 
@@ -111,8 +118,8 @@
 
 ### Stats:
 - Total reported by Hunter: 8
-- Dismissed as false positives (Not a bug): 6 (BUG-1, BUG-2, BUG-3, BUG-4, BUG-6, BUG-8)
-- Dismissed below threshold (Frequency × Impact < 5 or rare/future cases): 2 (BUG-5, BUG-7)
+- Dismissed as false positives (Not a bug): 5 (BUG-1, BUG-2, BUG-3, BUG-4, BUG-8)
+- Dismissed below threshold (Frequency × Impact < 5 or rare/future cases): 3 (BUG-5, BUG-6, BUG-7)
 - Confirmed actionable bugs (Risk Score ≥ 5): 0
 - Critical: 0 | Medium: 0 | Low: 0
 
@@ -120,8 +127,9 @@
 *(None — no actionable bugs confirmed)*
 
 ### Dismissed Below Threshold (Score < 5 - Left Alone per YAGNI):
-- **BUG-5 (`scripts/generate-seo-pages.mjs:254-257`):** Ternary assigns either `<changefreq>` or `<priority>` to a single XML template tag. The generated sitemap remains 100% schema-valid under sitemaps.org 0.9, and major search engines (including Googlebot) explicitly ignore both `<priority>` and `<changefreq>`. Frequency: 1, Impact: 1, Risk Score: 1 (< 5). Left alone per YAGNI and Threshold Rule.
-- **BUG-7 (`server/services/sessionService.ts:67-72`):** `getAndValidateSession` returns HTTP 500 rather than HTTP 503 on database unavailability. Status 500 is the frozen contract in golden baseline tests (`tests/fixtures/goldenBaseline/httpResponses.json`); modifying it would break regression characterization tests, and client retry handlers trigger on any non-200. Frequency: 1, Impact: 1, Risk Score: 1 (< 5). Left alone per YAGNI and Threshold Rule.
+- **BUG-5 (scripts/generate-seo-pages.mjs:254-257):** The sitemap generator emits one optional element (`changefreq` for guide/benchmark URLs or `priority` for core URLs). The generated XML remains structurally valid, and the reviewed evidence does not establish an operational search impact. Frequency: 1, Impact: 1, Risk Score: 1.
+- **BUG-6 (scripts/dedupeLeaderboardBestPerOwner.ts:65-81):** Missing owner indexes and pointers to losers in the current group are handled. Unrelated stale pointers can remain, but the inspected submission path does not use `leaderboardDocId` from this index to choose the current best row; the transaction counter can also overstate work after early returns. No production behavior defect was established. Frequency: 1, Impact: 2, Risk Score: 2. Add focused tests and document the intended index-repair invariant before treating the script as a global repair utility.
+- **BUG-7 (server/services/sessionService.ts:67-72):** HTTP 500 on database unavailability is the frozen characterization contract, and the client retry flow handles non-success responses. Do not change the status without an explicit API-contract migration. Frequency: 1, Impact: 1, Risk Score: 1.
 
 ### Low-Confidence Items (Flagged for Manual Review):
 *(None — all items evaluated with High confidence after direct source code inspection)*

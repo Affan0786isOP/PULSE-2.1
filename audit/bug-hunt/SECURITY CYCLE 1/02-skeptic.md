@@ -1,4 +1,4 @@
-# Cycle 2: Security Audit — Adversarial Review
+# Cycle 1: Security Audit — Adversarial Review
 
 **Date:** 2026-11-10  
 **Agent Role:** Security Audit Skeptic (adversarial source review)  

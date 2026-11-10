@@ -53,7 +53,33 @@ Over **5 consecutive adversarial cycles**, the pipeline performed deep inspectio
   - 3 Bugs verified (mobile `DirectionTest` targetDirection, `migrateLeaderboardPrivacy` FieldValue.delete, mobile memory modal timers).
 - [**Cycle 4 (Auth Middleware, SEO, Cache & Deduplication)**](cycle-4/)
   - `01-hunter.md` | `02-skeptic.md` | `03-referee.md`
-  - 0 Actionable Bugs (6 false positives disproved, 2 dismissed below threshold per YAGNI).
+  - 0 Actionable Bugs (5 false positives disproved, 3 dismissed below threshold; BUG-6 owner-index migration concern reclassified after code-path review).
 - [**Cycle 5 (Admin Routing, Error Contracts & Standalone Scripts)**](cycle-5/)
   - `01-hunter.md` | `02-skeptic.md` | `03-referee.md`
   - 1 Bug verified (`adminRoutes` INVALID_CURSOR 500 vs 400).
+
+
+---
+
+## Reconciliation Notes
+
+The aggregate disposition totals are reconciled from the five referee reports:
+
+| Cycle | Candidates | Actionable | False positives | Below threshold |
+|---|---:|---:|---:|---:|
+| 1 | 5 | 4 | 0 | 1 |
+| 2 | 7 | 5 | 2 | 0 |
+| 3 | 4 | 3 | 1 | 0 |
+| 4 | 8 | 0 | 5 | 3 |
+| 5 | 3 | 1 | 0 | 2 |
+| **Total** | **27** | **13** | **8** | **6** |
+
+Cycle 4 BUG-6 is classified below threshold rather than as a false positive: the script can leave an unrelated stale owner-index pointer untouched and can overstate its console counter after early transaction returns, but no consuming path or production impact was established in the reviewed code. The Cycle 4 referee report records the evidence and follow-up tests.
+
+## Security Review
+
+[Security Cycle 1 — Hunter, Skeptic, and Referee](SECURITY%20CYCLE%201/) is a separate, incomplete source-only review. It contains one conditional admin-authentication finding (SEC-1) marked **Needs Validation**. It is not included in the 27 functional bug-hunt candidates or the 13 actionable functional bugs.
+
+## Remediation
+
+See the [Bug Fix Plan](BUG-FIX-PLAN.md) for the prioritized implementation sequence, regression coverage, and security validation gate.
