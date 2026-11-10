@@ -73,6 +73,7 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
   const livesRef = useRef<number>(3);
   const inputRef = useRef<string>('');
   const stimulusWallTimestamp = useRef<number>(0);
+  const stimulusPerformanceTimestamp = useRef<number>(0);
   const assessmentStartTimeRef = useRef<number | null>(null);
   const assessmentStartWallTimestampRef = useRef<number | null>(null);
   const totalTimeMsRef = useRef<number | null>(null);
@@ -196,7 +197,8 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       if (engineStateRef.current !== 'SHOWING') return;
       
       setEngineState('INPUT'); engineStateRef.current = 'INPUT';
-      stimulusWallTimestamp.current = performance.now();
+      stimulusWallTimestamp.current = Date.now();
+      stimulusPerformanceTimestamp.current = performance.now();
       setPlayerInput('');
       inputRef.current = '';
       setStatusMessage('Your turn');
@@ -306,7 +308,8 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
 
     const isCorrect = input === sequenceRef.current;
     const now = performance.now();
-    const stimTime = stimulusWallTimestamp.current || now;
+    const stimTime = stimulusPerformanceTimestamp.current || now;
+    const stimWallTime = stimulusWallTimestamp.current || Date.now();
     const trialIndex = trialDataset.length + 1;
     
     const trial: TrialData = {
@@ -338,8 +341,8 @@ export function NumberMemoryTest({ onNavigate }: { onNavigate: (view: string) =>
       trialIndex: obsIndex,
       sequenceNumber: obsIndex,
       attemptNumber: attemptNum,
-      assessmentStartedAt: assessmentStartWallTimestampRef.current || stimTime,
-      stimulusTimestamp: stimTime,
+      assessmentStartedAt: assessmentStartWallTimestampRef.current || stimWallTime,
+      stimulusTimestamp: stimWallTime,
       responseTimestamp: now,
       reactionTime: Math.max(0, now - stimTime),
       accuracy: isCorrect ? 1 : 0,
