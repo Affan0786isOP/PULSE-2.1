@@ -222,6 +222,16 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
       displayDelayOffsetSource: null,
     });
 
+    const anticipatoryFalseStart = payload.trials.find(
+      trial => trial.notes === 'anticipatory_response_<80ms'
+    );
+    expect(anticipatoryFalseStart).toMatchObject({
+      targetDirection: expect.any(String),
+      falseStart: true,
+      timedOut: false,
+      valid: false,
+    });
+
     const measuredTrials = payload.trials.filter(
       trial => trial.falseStart !== true && trial.timedOut !== true
     );
@@ -278,6 +288,25 @@ describe('Task 5A: Simple & Choice Reaction Engines (Visual & Directional)', () 
 
     for (let trial = 0; trial < 10; trial++) {
       await advanceUntilText(/Press the matching arrow/i);
+
+      // Exercise the physiological false-start path on the first logical trial.
+      // The component must preserve targetDirection on this extra observation,
+      // then retry the same logical trial without incrementing the scored count.
+      if (trial === 0) {
+        const anticipatory = createEvent.keyDown(window, { key: 'ArrowUp' });
+        Object.defineProperty(anticipatory, 'timeStamp', {
+          configurable: true,
+          value: performance.now(),
+        });
+        fireEvent(window, anticipatory);
+        expect(screen.getByText('False start')).toBeDefined();
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(800);
+        });
+        await advanceUntilText(/Press the matching arrow/i);
+      }
+
       await act(async () => {
         await vi.advanceTimersByTimeAsync(120);
       });
