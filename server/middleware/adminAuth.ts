@@ -5,36 +5,28 @@ import { getAdminDb } from '../config/firebaseAdmin';
 
 export const ADMIN_SESSION_COLLECTION = 'adminSessionRevocations';
 const MAX_SESSION_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
-const DEVELOPMENT_SESSION_SECRET = 'pulse-admin-session-secret-key-32chars-fallback!';
+const MIN_ADMIN_PASSCODE_LENGTH = 16;
+const MIN_ADMIN_SESSION_SECRET_LENGTH = 32;
 
 export function getAdminPasscode(): string {
   const configured = process.env.ADMIN_PASSCODE?.trim();
-  if (configured) return configured;
-  // Never ship the development passcode as a production credential.
-  return process.env.NODE_ENV === 'production' ? '' : '180611';
+  return configured && configured.length >= MIN_ADMIN_PASSCODE_LENGTH ? configured : '';
 }
 
 export function getAdminSessionSecret(): string {
   const configured = process.env.PULSE_ADMIN_SESSION_SECRET?.trim();
-  if (configured && !(process.env.NODE_ENV === 'production' && configured === DEVELOPMENT_SESSION_SECRET)) {
-    return configured;
-  }
-  return process.env.NODE_ENV === 'production' ? '' : DEVELOPMENT_SESSION_SECRET;
+  return configured && configured.length >= MIN_ADMIN_SESSION_SECRET_LENGTH ? configured : '';
 }
 
 export function validateAdminPasscode(candidate: string): boolean {
   if (!candidate || typeof candidate !== 'string') return false;
   const authoritative = getAdminPasscode();
-  if (!authoritative || (process.env.NODE_ENV === 'production' && authoritative === '180611')) return false;
+  if (!authoritative) return false;
 
   const candidateHash = crypto.createHash('sha256').update(candidate.trim()).digest();
   const authoritativeHash = crypto.createHash('sha256').update(authoritative.trim()).digest();
   if (crypto.timingSafeEqual(candidateHash, authoritativeHash)) return true;
 
-  // The master development passcode is allowed only outside production.
-  if (process.env.NODE_ENV === 'production') return false;
-  const masterHash = crypto.createHash('sha256').update('180611').digest();
-  return crypto.timingSafeEqual(candidateHash, masterHash);
 }
 
 export interface AdminTokenClaims {
