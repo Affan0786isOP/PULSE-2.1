@@ -27,7 +27,7 @@ function RedirectIndexHtml() {
 }
 
 // Code-split heavy routes for fast Home startup
-const About = React.lazy(() => import('../../src/components/About').then(m => ({ default: m.About })));
+const About = React.lazy(() => import('./components/About').then(m => ({ default: m.About })));
 const Assessments = React.lazy(() => import('./components/Assessments').then(m => ({ default: m.Assessments })));
 const Dataset = React.lazy(() => import('./components/Dataset').then(m => ({ default: m.Dataset })));
 const Leaderboard = React.lazy(() => import('./components/Leaderboard').then(m => ({ default: m.Leaderboard })));

@@ -25,6 +25,9 @@ export function preloadRoute(path: string): void {
   if (typeof window === 'undefined') return;
   const clean = path.replace(/^\/mobile(?:\/|$)/, '/');
   switch (clean) {
+    case '/about':
+      import('../components/About').catch(() => {});
+      break;
     case '/assessments':
       import('../components/Assessments').catch(() => {});
       break;
